@@ -15,7 +15,6 @@ def install():
 	update_salutations()
 	update_global_search_doctypes()
 	sync_dashboards()
-	add_unsubscribe()
 
 
 def update_genders():
@@ -48,14 +47,3 @@ def update_salutations():
 		doc = frappe.new_doc("Salutation")
 		doc.salutation = salutation
 		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-
-def add_unsubscribe():
-	for unsubscribe in [
-		{"email": "admin@example.com", "global_unsubscribe": 1},
-		{"email": "guest@example.com", "global_unsubscribe": 1},
-	]:
-		if not frappe.get_all("Email Unsubscribe", filters=unsubscribe):
-			doc = frappe.new_doc("Email Unsubscribe")
-			doc.update(unsubscribe)
-			doc.insert(ignore_permissions=True)

@@ -17,10 +17,10 @@ import { computed } from "vue";
 // a function's approval card: the server's prompt names its records by title, one "Label: value" line each
 const props = defineProps({
 	arguments: { type: Object, default: () => ({}) },
-	call: { type: Object, required: true },
+	call: { type: Object, default: null },
 });
 const lines = computed(() =>
-	(props.call.prompt ?? "")
+	(props.call?.prompt ?? "")
 		.split("\n")
 		.slice(1)
 		.filter((line) => line.trim())

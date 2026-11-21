@@ -1182,11 +1182,12 @@ data = columns, result
 		self.assertEqual(frappe.local.response["_link_titles"]["User::Administrator"], full_name)
 
 	def test_run_skips_link_titles_when_doctype_does_not_show_them(self):
+		frappe.get_doc(doctype="ToDo", description="Link title check").insert(set_name="todo-1")
 		report = self.make_link_column_report()
 
 		self.run_report(report)
 
-		self.assertNotIn("User::Administrator", frappe.local.response.get("_link_titles", {}))
+		self.assertNotIn("ToDo::todo-1", frappe.local.response.get("_link_titles", {}))
 
 	def test_legacy_string_columns_resolve_link_titles(self):
 		"""Prepared reports can still carry `Label:Link/DocType:width` column strings."""

@@ -165,8 +165,13 @@ test("an opened tool row shows its output, or a host's views of its arguments an
 	assert.equal(el.querySelector("button"), null)
 	bash.streaming = false
 	await nextTick()
-	el.querySelector("button").click()
+	// its one chevron sits in the icon's place, not after the text
+	const row = el.querySelector("button")
+	assert.equal(row.querySelectorAll("[class*=lucide-chevron]").length, 1)
+	assert.ok(row.firstElementChild.querySelector(".lucide-chevron-right"))
+	row.click()
 	await nextTick()
+	assert.ok(row.querySelector(".lucide-chevron-right").classList.contains("rotate-90"))
 	assert.equal(el.querySelector("pre").textContent, "$ pwd")
 	bash.result = { content: "/project" }
 	await nextTick()
@@ -249,6 +254,35 @@ test("a host view that declares a call prop reads the call and keeps the card's 
 	const { el } = mount(t, ApprovalCard, { call: { id: "c8", name: "run_action", args, prompt: "Assign To: Add\nToDo: Call the courier" } }, flow)
 	assert.ok(el.querySelector("p").textContent.includes("ToDo: Call the courier"))
 	assert.deepEqual([...el.querySelectorAll("button")].map((button) => button.textContent), ["Ask for changes", "Deny", "Approve"])
+})
+
+test("a card says in its header why auto mode held the call, and nowhere else", async (t) => {
+	const prompt = 'Send Email\n{\n  "to": "a@b.c"\n}\n\nNot auto-approved: it mails a customer'
+	const call = { id: "c9", name: "send_email", args: { to: "a@b.c" }, prompt }
+	const header = (el) => [...el.firstElementChild.firstElementChild.firstElementChild.children].map((line) => line.textContent.trim())
+	const plain = mount(t, ApprovalCard, { call }, { options: {} })
+	assert.deepEqual(header(plain.el), ["Send Email", "Not auto-approved: it mails a customer"])
+	assert.equal(plain.el.querySelector("pre").textContent, '{\n  "to": "a@b.c"\n}')
+
+	// a host's view reads the prompt without it
+	const ReadsPrompt = { props: { arguments: Object, call: Object }, setup: (props) => () => h("p", props.call.prompt) }
+	const hosted = mount(t, ApprovalCard, { call }, { options: { presentTool: () => ({ argsComponent: ReadsPrompt }) } })
+	assert.equal(hosted.el.querySelector("p").textContent, 'Send Email\n{\n  "to": "a@b.c"\n}')
+	assert.deepEqual(header(hosted.el), ["Send Email", "Not auto-approved: it mails a customer"])
+
+	// a call that was only asked about has no second line
+	const asked = mount(t, ApprovalCard, { call: { ...call, prompt: "Send Email\nMail it" } }, { options: {} })
+	assert.deepEqual(header(asked.el), ["Send Email"])
+})
+
+test("a card for a call with no arguments shows its tool's own prompt, and no empty braces", async (t) => {
+	const card = (prompt) => mount(t, ApprovalCard, { call: { id: "c10", name: "restart_queue", args: {}, prompt } }, { options: {} }).el
+	assert.equal(card("Restart Queue\n{}").querySelector("pre"), null)
+	assert.equal(card("Restart Queue").querySelector("pre"), null)
+	assert.equal(card("Restart Queue\nJobs that are running will be lost.").querySelector("pre").textContent, "Jobs that are running will be lost.")
+	const held = card("Restart Queue\nJobs that are running will be lost.\n\nNot auto-approved: nobody asked for a restart")
+	assert.equal(held.querySelector("pre").textContent, "Jobs that are running will be lost.")
+	assert.ok(held.textContent.includes("Not auto-approved: nobody asked for a restart"))
 })
 
 test("a row leaves a host's counts to the result, showing the user's decision or an error instead; a host picks its dropdown", async (t) => {
@@ -1379,12 +1413,22 @@ test("open thoughts and tool rows stay open as the run ends, and their turn unfo
 	rowButton(el, "Thinking").click()
 	await nextTick()
 	assert.ok(panel())
+	// a thought's one chevron sits in its icon's place, turned while open
+	const chevron = (label) => {
+		const row = rowButton(el, label)
+		const found = row.querySelectorAll("[class*=lucide-chevron]")
+		assert.equal(found.length, 1)
+		assert.equal(found[0].parentElement, row.firstElementChild)
+		return found[0]
+	}
+	assert.ok(chevron("Thinking").classList.contains("rotate-90"))
 
 	// the thought merges into a tool group
 	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-1", name: "bash", arguments: { command: "ls" } })
 	await nextTick()
 	assert.ok(rowButton(el, "Thought"))
 	assert.ok(panel())
+	assert.ok(chevron("Thought").classList.contains("rotate-90"))
 
 	applyEvent(conversation, {
 		type: "assistant_message",

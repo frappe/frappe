@@ -11,7 +11,7 @@ from frappe.core.doctype.installed_applications.installed_applications import ge
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
-from frappe.utils import cint, get_user_by_email, now, strip
+from frappe.utils import cint, get_system_timezone, get_user_by_email, now, strip
 from frappe.utils.background_jobs import defer_enqueue_after_commit
 from frappe.utils.password import update_password
 from frappe.utils.synchronization import LockTimeoutError, filelock
@@ -421,6 +421,7 @@ def update_system_settings(args):  # nosemgrep
 		# A site set up without a region (Frappe Cloud v2 saves none) still gets the site
 		# defaults, written directly: saving the doc would insist on a time zone and formats.
 		frappe.db.set_single_value("System Settings", defaults)
+		fill_required_system_settings(get_language_code(args.get("language")))
 		return
 
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
@@ -448,6 +449,25 @@ def update_system_settings(args):  # nosemgrep
 	system_settings.save()
 	if args.get("allow_recording_first_session"):
 		frappe.db.set_default("session_recording_start", now())
+
+
+def fill_required_system_settings(language: str | None = None):
+	"""Write what the site runs on into the System Settings it requires but left empty, so a later
+	save of the doc, from the form or an app, gets past its mandatory fields."""
+	runs_on = {
+		"language": language or "en",
+		"time_zone": get_system_timezone(),
+		"date_format": "yyyy-mm-dd",
+		"time_format": "HH:mm:ss",
+		"number_format": "#,###.##",
+	}
+	missing = {
+		field: value
+		for field, value in runs_on.items()
+		if not frappe.db.get_single_value("System Settings", field)
+	}
+	if missing:
+		frappe.db.set_single_value("System Settings", missing)
 
 
 def create_or_update_user(args):  # nosemgrep
@@ -651,7 +671,6 @@ def email_setup_wizard_exception(traceback, args):  # nosemgrep
 
 	frappe.sendmail(
 		recipients=frappe.conf.setup_wizard_exception_email,
-		sender=frappe.session.user,
 		subject=f"Setup failed: {frappe.local.site}",
 		message=message,
 		delayed=False,

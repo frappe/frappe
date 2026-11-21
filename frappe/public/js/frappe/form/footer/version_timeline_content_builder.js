@@ -348,7 +348,8 @@ function get_version_timeline_content(version_doc, frm) {
 			)
 		);
 		out.push(get_version_comment(version_doc, message));
-	} else if (data.created_by && data.agent) {
+	} else if (data.agent && !data.changed) {
+		// An insert by an agent keeps only the agent, while an update always has a diff.
 		let message = get_user_message(
 			version_doc.owner,
 			__("You created this document", null, "Form timeline"),

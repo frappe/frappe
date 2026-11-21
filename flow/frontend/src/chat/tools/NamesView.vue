@@ -17,11 +17,12 @@
 								<RecordTable
 									:columns="columnsOf(value)"
 									:rows="value.map((cells) => ({ cells }))"
+									:json="fields"
 								/>
 							</div>
 						</td>
 						<td v-else class="max-w-[320px] truncate py-0.5">
-							<ValueView :value="value" />
+							<ValueView :value="value" :json="fields" />
 						</td>
 					</tr>
 				</tbody>
@@ -58,6 +59,8 @@ const values = computed(() =>
 		? []
 		: Object.entries(props.arguments.values ?? props.arguments.args ?? {})
 );
+// an update's values are fields; an action's args are not
+const fields = computed(() => "values" in props.arguments);
 // deleted records have no form left to open
 const linked = computed(() => !!doctype.value && !parsed.value?.deleted);
 

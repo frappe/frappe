@@ -58,6 +58,11 @@ user_module = frappe.core.doctype.user.user
 
 
 class TestUser(IntegrationTestCase):
+	def setUp(self):
+		counter_prefix = "rl:frappe.core.doctype.user.user.update_password:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
+
 	def tearDown(self):
 		# disable password strength test
 		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
@@ -1142,6 +1147,17 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		execute()
 		self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
 		self.assertEqual(frappe.db.get_value("User", "admin@example.com", "email"), "admin@example.com")
+
+	def test_users_are_found_by_email(self):
+		from frappe.core.doctype.user.user import user_query
+
+		with (
+			test_user(roles=["Desk User"]) as searcher,
+			test_user(roles=["Desk User"], generated_id=True, email="_test_find_me@example.com") as user,
+			self.set_user(searcher.name),
+		):
+			found = user_query("User", "_test_find_me", "name", 0, 20, {})
+			self.assertIn(user.name, [row[0] for row in found])
 
 	def test_get_user_by_email(self):
 		with test_user(roles=[], generated_id=True) as user:

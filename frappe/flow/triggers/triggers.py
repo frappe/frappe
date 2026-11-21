@@ -111,6 +111,7 @@ def fire(
 			prompt,
 			source="Trigger",
 			trigger=t.name,
+			personal_trigger=frappe.session.user == t.owner and "System Manager" not in frappe.get_roles(),
 			reference_doctype=target_doctype if doc else None,
 			reference_name=target_name if doc else None,
 		)
@@ -138,6 +139,8 @@ def _doctype_triggers(target_doctype: str, doc_event: str) -> list:
 
 
 def _enabled_doctype_triggers(target_doctype: str) -> list:
+	if not frappe.db.table_exists("Flow Trigger"):
+		return []
 	return frappe.get_all(
 		"Flow Trigger",
 		filters={"event": "DocType Event", "target_doctype": target_doctype, "enabled": 1},

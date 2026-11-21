@@ -1193,15 +1193,15 @@ fill-range@^7.1.1:
   dependencies:
     to-regex-range "^5.0.1"
 
-frappe-charts@2.0.0-rc31:
-  version "2.0.0-rc31"
-  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc31.tgz#84bf967667fe1f7019697d752d10cd048479295a"
-  integrity sha512-N9girfYw5OYQd9MOwn0lq78FTOFhOXSp99yn1lQ0PYBCIKXU++2eUw5kpao1fonuAJuANq2yLNEnh2+VAxWv4g==
+frappe-charts@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.1.1.tgz#a009752e3f725f54f5f2e55fc80ed22ab35d7a41"
+  integrity sha512-WYPC4L2v6CAd1TWlTkcSvacUO3ZgeZWc+QpfMg7d8CaALvSh8Tf+iOT9Qtd6EVWSHmCiBxO4OEuqEZmSmkuU2w==
 
-frappe-datatable@1.24.0:
-  version "1.24.0"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.24.0.tgz#17f95237734cb7194f22bdb53fde46a59fb46430"
-  integrity sha512-QG2IznmRaLKI6pvjIH5Ivx08bTy7cZON/fvYY2bMiQfYMDnOza8+t3BK5FsWJl09UiC03e+iheGFWYt6FSd7YA==
+frappe-datatable@1.26.0:
+  version "1.26.0"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.26.0.tgz#a9ccd71840f8b1141d66e2d87b735271a0aca061"
+  integrity sha512-K/PI4kPCP6AQezuCW/F3oBH3qmrvJ3eq8eumoBh+yCrleVIGhF77U8I4cPwTq2ZGqqBu2j7IIjHIEAW38F6zDA==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"

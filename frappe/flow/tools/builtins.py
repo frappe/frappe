@@ -8,7 +8,7 @@ import json
 import re
 from collections.abc import Callable
 from functools import partial
-from typing import Any, Literal, NoReturn
+from typing import TYPE_CHECKING, Any, Literal, NoReturn
 
 import frappe
 from frappe import _
@@ -21,6 +21,9 @@ from frappe.handler import run_server_script
 from frappe.model.base_document import get_controller
 from frappe.model.document import Document
 from frappe.query_builder.functions import Count
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.docfield.docfield import DocField
 
 MAX_READ_LIMIT = 200
 LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})
@@ -133,6 +136,24 @@ def find_doctypes(
 	return {"total": len(rows), "doctypes": rows[:limit]}
 
 
+def _describe_field(df: DocField, is_submittable: bool) -> dict[str, Any]:
+	field: dict[str, Any] = {
+		"fieldname": df.fieldname,
+		"label": df.label,
+		"type": df.fieldtype,
+		"options": df.options,
+		"required": bool(df.reqd),
+	}
+	if df.read_only:
+		field["read_only"] = True
+	if is_submittable and df.allow_on_submit:
+		field["allow_on_submit"] = True
+	for prop in ("depends_on", "mandatory_depends_on", "read_only_depends_on"):
+		if expression := df.get(prop):
+			field[prop] = expression
+	return field
+
+
 @tool
 def describe(
 	doctype: str, name: str | None = None, parent_doctype: str | None = None, *, ctx: ToolContext
@@ -140,6 +161,9 @@ def describe(
 	"""Inspect a DocType's fields and your permissions. Pass `name` to also get a record's available actions.
 
 	For a child table used by more than one DocType, pass the one you mean as `parent_doctype`.
+
+	Respect the depends_on, mandatory_depends_on and read_only_depends_on rules of the fields: the desk
+	UI evaluates them, but the server does not, so check them yourself before you write.
 	"""
 	parent_doctype = _parent_doctype(doctype, parent_doctype)
 	if not frappe.has_permission(doctype, "read", parent_doctype=parent_doctype):
@@ -147,15 +171,7 @@ def describe(
 
 	meta = frappe.get_meta(doctype)
 	fields = [
-		{
-			"fieldname": f.fieldname,
-			"label": f.label,
-			"type": f.fieldtype,
-			"options": f.options,
-			"required": bool(f.reqd),
-		}
-		for f in meta.fields
-		if f.fieldtype not in LAYOUT_FIELDTYPES
+		_describe_field(f, meta.is_submittable) for f in meta.fields if f.fieldtype not in LAYOUT_FIELDTYPES
 	]
 	permissions = {
 		# reported to the model, not used as a check

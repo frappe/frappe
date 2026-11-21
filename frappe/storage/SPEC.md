@@ -478,6 +478,30 @@ deleting the bytes, then the row. Then it calls
   `frappe.core.doctype.file.utils.get_files_index`, and deletes it with
   the backup. An index that cannot be read deletes no blob that run.
   Backups in another bucket are not seen and keep nothing.
+- Skips a blob whose key is under another site's `sites/<name>/`
+  prefix: a renamed site's former name, or the source of a restored
+  backup. The driver refuses to delete those bytes, so collecting would
+  only drop the row.
+
+### Backups
+
+`BackupGenerator.backup_files` (`frappe/utils/backups.py`) adds remote
+blobs to the files archives, so a backup with files holds their bytes.
+
+- After `tar` writes the local files, each Ready blob on a driver other
+  than `local` is streamed into the archive of its privacy, at
+  `<public|private>/files/<blob>/<filename>`: the local cache path.
+  Restore extracts it there, and `relocate_blobs` to `local` reuses it.
+- A `.tgz` cannot be appended to. With `--compress` and remote blobs,
+  `tar` writes `<backup>.tar.part`, the blobs are added, then `gzip`
+  writes the `.tgz`, so both sit on disk until it ends. A failed step
+  leaves no `.tar.part`. Without remote blobs, `tar | gzip` runs as before.
+- A blob whose object is missing is skipped with a warning. A short read
+  fails the backup.
+- A blob cached on disk is in the archive twice, with the same bytes.
+- Blobs that GC has not yet deleted are included.
+- A backup path that is a named pipe gets no blobs. Pilot streams its
+  backups through pipes, so those rely on the File index above.
 
 ## Tests
 
@@ -512,6 +536,12 @@ Laravel's `Storage::fake()`.
   using server-side copies, including multipart copies for large objects,
   leaving local blobs and `file_url` unchanged. Failed rows can be retried
   by rerunning the patch; source objects are deleted only after commit.
+- A renamed site keeps its blobs under the former name's prefix until
+  `frappe.storage.relocate.relocate_renamed_site_blobs` moves them to
+  `sites/<site-name>/storage/`. Pilot calls it after a rename. It copies
+  only inside the site's bucket, 16 server-side copies at a time, and
+  skips a row whose object is in another bucket. The old objects stay,
+  so backups taken before the rename still restore. Safe to rerun.
 - The legacy write path (`utils/file_manager.py`) is not ported. Under
   the flag it forwards to `put_blob`. The old `write_file` /
   `delete_file_data_content` hooks are ignored for v2 rows and

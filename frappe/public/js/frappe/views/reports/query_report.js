@@ -1244,6 +1244,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				columns: columns,
 				data: data,
 				inlineFilters: true,
+				filterMode: "fuzzy",
 				language: frappe.boot.lang,
 				translations: frappe.utils.datatable.get_translations(),
 				treeView: this.tree_report,
@@ -1332,7 +1333,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							fieldtype: options.fieldtype,
 							options: options.options,
 						},
-						options.options,
+						{ inline: true },
 						options
 					),
 			};
@@ -2144,6 +2145,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 				row[cell.column.id] = cell.content;
 				row.is_total_row = true;
+				row._is_report_total = true;
 				return row;
 			}, {});
 			if (!totalRow?.currency && rows[0]?.currency) {

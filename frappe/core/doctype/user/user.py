@@ -1147,7 +1147,8 @@ def get_perm_info(role: str):
 	return get_all_perms(role)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
+@rate_limit(limit=10, seconds=600, user_based=True)
 def update_password(
 	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
 ):
@@ -1219,7 +1220,7 @@ def update_password(
 		return redirect_url or get_default_path() or get_home_page()
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def test_password_strength(
 	new_password: str, key: str | None = None, old_password: str | None = None, user_data: tuple | None = None
 ):
@@ -1369,7 +1370,7 @@ def get_signup_limit():
 	return frappe.db.get_single_value("Website Settings", "max_signups_per_minute")
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=get_signup_limit, seconds=60)
 def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	allow = True
@@ -1522,9 +1523,10 @@ def user_query(doctype: str, txt: str, searchfield: str, start: int, page_len: i
 	}
 
 	# Check if we have a search term, and decide the filters depending on the search term
-	or_filters = [[searchfield, "like", f"%{txt}%"]]
-	if "name" in searchfield:
-		or_filters += [[field, "like", f"%{txt}%"] for field in ("first_name", "middle_name", "last_name")]
+	search_fields = ["name", "first_name", "middle_name", "last_name", "email"]
+	if searchfield not in search_fields:
+		search_fields.append(searchfield)
+	or_filters = [[field, "like", f"%{txt}%"] for field in search_fields]
 
 	if filters:
 		if not (filters.get("ignore_user_type") and frappe.session.data.user_type == "System User"):
@@ -1536,10 +1538,10 @@ def user_query(doctype: str, txt: str, searchfield: str, start: int, page_len: i
 	return frappe.get_list(
 		doctype,
 		filters=list_filters,
-		fields=["name", "full_name"],
+		fields=["name", "full_name", "email"],
 		limit_start=start,
 		limit_page_length=page_len,
-		order_by="name asc",
+		order_by="full_name asc, name asc",
 		or_filters=or_filters,
 		as_list=True,
 	)
@@ -1656,14 +1658,10 @@ def handle_password_test_fail(feedback: dict):
 	message_parts = []
 
 	if warning:
-		message_parts.append(f'<div class="alert alert-warning" role="alert">{warning}</div>')
+		message_parts.append(f"<div>{warning}</div>")
 
 	if suggestions:
-		suggestions_html = (
-			'<ul style="margin: 0; padding-left: 1em;">'
-			+ "".join(f"<li>{suggestion}</li>" for suggestion in suggestions)
-			+ "</ul>"
-		)
+		suggestions_html = "<ul>" + "".join(f"<li>{suggestion}</li>" for suggestion in suggestions) + "</ul>"
 		message_parts.append(suggestions_html)
 
 	frappe.throw(

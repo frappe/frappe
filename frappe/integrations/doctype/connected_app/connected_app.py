@@ -219,7 +219,7 @@ class ConnectedApp(Document):
 
 # OAuth providers must be able to return here before authentication; guests are redirected
 # to login below, and authenticated callbacks must match the stored OAuth state.
-@frappe.whitelist(methods=["GET"], allow_guest=True)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(methods=["GET"], allow_guest=True, rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def callback(code: str | None = None, state: str | None = None):
 	"""Handle client's code.
 
