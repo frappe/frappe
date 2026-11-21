@@ -30,6 +30,7 @@ from frappe.core.doctype.file.utils import (
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_files_path, set_request
 
@@ -1006,6 +1007,21 @@ class TestFile(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("File", upper.name))
 		self.assertTrue(frappe.db.exists("File", lower.name))
+
+	def test_private_file_access_matches_the_exact_file_url(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test@example.com"):
+			file = frappe.get_doc(doctype="File", file_url="/private/files/casecheck.txt", is_private=1)
+			self.assertRaises(frappe.PermissionError, file.insert)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_private_file_access_without_an_exact_url_match(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test2@example.com"):
+			file = frappe.get_doc(doctype="File", file_url="/private/files/CASECHECK.txt", is_private=1)
+			self.assertRaises(frappe.PermissionError, file.insert)
 
 	def test_zip_files_adds_a_repeated_file_once(self):
 		from frappe.core.doctype.file.file import File

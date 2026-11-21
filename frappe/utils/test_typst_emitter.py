@@ -147,6 +147,40 @@ class TestTypstGate(IntegrationTestCase):
 		# no File document registered for this path -> refused even if it existed on disk
 		self.assertIsNone(emitter._read_site_file("/private/files/unregistered.png"))
 
+	def test_private_file_read_matches_the_exact_file_url(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst Case {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout_with()),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "x"}).insert(ignore_permissions=True)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		emitter = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name)))
+		file = frappe.get_doc(doctype="File", file_name="typst_case.txt", content="x", is_private=1).insert()
+		self.addCleanup(file.delete)
+
+		with self.set_user("test@example.com"):
+			variant = frappe.new_doc("File")
+			variant.update(
+				{
+					"file_name": "Typst_Case.txt",
+					"file_url": file.file_url.replace("typst_case", "Typst_Case"),
+					"is_private": 1,
+				}
+			)
+			variant.set_new_name()
+			variant.db_insert()
+			self.addCleanup(frappe.delete_doc, "File", variant.name, force=True, ignore_permissions=True)
+			self.assertIsNone(emitter._read_site_file(file.file_url))
+
 	def test_typst_block_qualifies_and_emits_verbatim(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 		from frappe.utils.typst_emitter import TypstEmitter, has_typst_blocks
