@@ -159,6 +159,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (label) {
 			this.label = this.get_translated(label);
 			frappe.utils.add_link_title(this.get_options(), value, label);
+			this.title_value_map = { ...this.title_value_map, [this.label]: value };
 		}
 
 		return this.validate_and_set_in_model(value, e);
