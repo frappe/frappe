@@ -201,9 +201,13 @@ class TestStudioApp(FrappeTestCase):
 
 		self.assertTrue(served_app.is_website_published())
 		self.assertFalse(draft_app.is_website_published())
+		hidden_app = make_studio_app(app_title="Hidden App", app_name="hidden-app")
+		make_studio_page(hidden_app.name, published=1)
+		hidden_app.db_set("hide_from_desktop", 1)
 		desktop_apps = [app.name for app in get_desktop_apps()]
 		self.assertIn(served_app.name, desktop_apps)
 		self.assertNotIn(draft_app.name, desktop_apps)
+		self.assertNotIn(hidden_app.name, desktop_apps)
 		with self.set_user("Guest"):
 			self.assertEqual(get_website_response(served_app.route).status_code, 200)
 			self.assertEqual(get_website_response(draft_app.route).status_code, 404)

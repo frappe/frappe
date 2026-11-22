@@ -121,7 +121,7 @@ def get_desktop_apps() -> list[dict]:
 		.inner_join(StudioPage)
 		.on(StudioPage.studio_app == StudioApp.name)
 		.select(StudioApp.name, StudioApp.app_title, StudioApp.route, StudioApp.favicon)
-		.where(StudioPage.published == 1)
+		.where((StudioPage.published == 1) & (StudioApp.hide_from_desktop == 0))
 		.distinct()
 		.orderby(StudioApp.app_title)
 		.run(as_dict=True)
@@ -142,6 +142,7 @@ class StudioApp(WebsiteGenerator):
 		app_title: DF.Data
 		favicon: DF.AttachImage | None
 		frappe_app: DF.Literal[None]
+		hide_from_desktop: DF.Check
 		is_standard: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
