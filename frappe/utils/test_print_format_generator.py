@@ -1576,6 +1576,84 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertEqual(gen.context.chrome_layout_header, "")
 		self.assertEqual(gen.context.chrome_layout_footer, "")
 
+	def test_first_page_header_prints_once_in_the_body(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format(
+			format_data=json.dumps({"header": {"columns": [], "show_on": "first_page"}, "sections": []})
+		)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		self.assertIn("LETTERHEAD_TOP", gen.context.chrome_layout_header)
+		self.assertNotIn("LETTERHEAD_TOP", gen.context.header)
+
+	def test_every_page_footer_repeats_with_the_setting_off(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format(
+			format_data=json.dumps({"footer": {"columns": [], "show_on": "every_page"}, "sections": []})
+		)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=0):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		self.assertIn("LETTERHEAD_BOTTOM", gen.context.footer)
+		self.assertEqual(gen.context.chrome_layout_footer, "")
+
+	def test_last_page_footer_stays_out_of_the_preview_frame(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format(
+			format_data=json.dumps({"footer": {"columns": [], "show_on": "last_page"}, "sections": []})
+		)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen.get_html_preview()
+
+		self.assertEqual(gen.context.frame_footer, "")
+		self.assertIn("LETTERHEAD_BOTTOM", gen.context.once_footer)
+
+	def test_unclosed_letterhead_tag_keeps_the_page_number_on_every_page(self):
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		lh.footer = '<div class="pfg-lf">LETTERHEAD_BOTTOM'
+		lh.save(ignore_permissions=True)
+		pf = self._make_print_format(
+			page_number="Bottom Center",
+			format_data=json.dumps({"footer": {"columns": [], "show_on": "last_page"}, "sections": []}),
+		)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		footer = BeautifulSoup(gen.context.footer, "html.parser")
+		self.assertTrue(footer.select(".page"))
+		self.assertFalse(footer.select(".visible-last-page .page"))
+
 	def test_letterhead_left_open_by_jinja_keeps_the_body(self):
 		from bs4 import BeautifulSoup
 

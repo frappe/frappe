@@ -270,6 +270,24 @@ class TestPdf(IntegrationTestCase):
 				self.assertNotIn("Grand Total", "".join(texts[:-1]))
 				self.assertIn("Grand Total", texts[-1])
 
+	def test_footer_first_page_classes_pick_their_pages(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		html = (
+			"<p>row</p>" * 120 + '<div id="footer-html"><p class="visible-first-page">Cover Note</p>'
+			'<p class="hidden-first-page">Continued</p>'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		for pdf_generator in ("chrome", "PlutoPrint"):
+			with self.subTest(pdf_generator=pdf_generator):
+				pdf = pdfgen.get_pdf(html, pdf_generator=pdf_generator)
+				first, *later = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
+				self.assertTrue(later)
+				self.assertIn("Cover Note", first)
+				self.assertNotIn("Continued", first)
+				self.assertNotIn("Cover Note", "".join(later))
+				self.assertIn("Continued", later[0])
+
 	def test_pdf_renders_while_another_render_has_a_tab_open(self):
 		from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
 		from frappe.utils.pdf import get_host_url

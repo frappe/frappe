@@ -779,6 +779,32 @@ class TestTypstRender(IntegrationTestCase):
 			'Page #context counter(page).display("1"); of #context counter(page).final().first();', source
 		)
 
+	def test_last_page_footer_prints_on_the_last_page_only(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		footer = {"fieldtype": "Static Text", "text": "Authorised Signatory"}
+		pf = self.make(
+			layout_with(
+				*[{"fieldtype": "Static Text", "text": "Delivery line"}] * 120,
+				footer={"columns": [{"label": "", "fields": [footer]}], "show_on": "last_page"},
+			),
+			pdf_generator="Typst",
+		)
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdf = PrintFormatGenerator(pf, todo).render_typst_pdf()
+
+		texts = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
+		self.assertGreater(len(texts), 1)
+		self.assertNotIn("Authorised Signatory", "".join(texts[:-1]))
+		self.assertIn("Authorised Signatory", texts[-1])
+
 	def test_field_alignment_matches_html(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 		from frappe.utils.typst_emitter import TypstEmitter
