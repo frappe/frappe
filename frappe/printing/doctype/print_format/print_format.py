@@ -80,6 +80,7 @@ class PrintFormat(Document):
 		]
 		paper_width: DF.Float
 		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
+		pdf_standard: DF.Literal["", "PDF/A-2b", "PDF/A-3b"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -221,6 +222,9 @@ class PrintFormat(Document):
 			layout = {}
 
 		if self.pdf_generator != "Typst":
+			if self.pdf_standard:
+				self.pdf_standard = None
+				frappe.msgprint(_("PDF Standard cleared: only the Typst renderer writes PDF/A."), alert=True)
 			# the mirror gate: raw Typst markup can't render anywhere else
 			if has_typst_blocks(layout):
 				frappe.throw(

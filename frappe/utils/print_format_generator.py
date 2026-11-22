@@ -818,6 +818,15 @@ class PrintFormatGenerator:
 				title=_("Typst renderer unavailable"),
 			)
 
+		pdf_standard = self.print_format.get("pdf_standard")
+		if pdf_standard and password:
+			frappe.throw(
+				_(
+					"A PDF/A file cannot be password protected. Print it without a password or clear the PDF Standard of this Print Format."
+				),
+				title=_("PDF Standard"),
+			)
+
 		ensure_typst_fonts(self.print_format.get("font"))
 		emitter = TypstEmitter(self)
 		emitter.prepare()
@@ -863,7 +872,21 @@ class PrintFormatGenerator:
 			write_assets(assets)
 			# root pins file access to the tempdir — matters once formats can
 			# carry raw Typst markup (Typst blocks)
-			pdf = typst.compile(path, root=tmp, font_paths=typst_fonts())
+			try:
+				pdf = typst.compile(
+					path,
+					root=tmp,
+					font_paths=typst_fonts(),
+					pdf_standards=[pdf_standard.removeprefix("PDF/").lower()] if pdf_standard else [],
+				)
+			except typst.TypstError as e:
+				reason = e.message.removeprefix(f"{pdf_standard} error: ")
+				if reason == e.message:
+					raise
+				frappe.throw(
+					_("This document cannot be printed as {0}: {1}").format(pdf_standard, reason),
+					title=_("PDF Standard"),
+				)
 		if password:
 			pdf = encrypt_pdf(pdf, password)
 		return pdf
