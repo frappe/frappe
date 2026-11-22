@@ -986,10 +986,23 @@ frappe.ui.form.PrintView = class {
 				14
 			);
 			me.printer_setting_dialog();
-		} else if (cint(me.print_settings.print_generated_pdf)) {
+		} else if (cint(me.print_settings.print_generated_pdf) || me.has_page_specific_zone()) {
 			me.print_pdf();
 		} else {
 			me.render_page("/printview?", true);
+		}
+	}
+
+	has_page_specific_zone() {
+		const print_format = this.get_print_format();
+		if (!this.renders_via_generator(print_format)) return false;
+		try {
+			const layout = JSON.parse(print_format.format_data || "{}");
+			return [layout?.header, layout?.footer].some(
+				(zone) => zone?.show_on && zone.show_on !== "every_page"
+			);
+		} catch (_) {
+			return false;
 		}
 	}
 

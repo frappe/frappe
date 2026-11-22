@@ -9,6 +9,28 @@ from collections.abc import Iterator
 
 from frappe import _
 
+ZONE_SHOW_ON = ("every_page", "first_page", "last_page", "after_first_page")
+
+
+def zone_show_on(layout: dict, kind: str) -> str | None:
+	"""The pages the header or footer prints on; None follows Print Settings."""
+	zone = layout.get(kind)
+	show_on = zone.get("show_on") if isinstance(zone, dict) else None
+	return show_on if show_on in ZONE_SHOW_ON else None
+
+
+def zone_repeats(layout: dict, kind: str, repeat_header_footer: int, in_preview: bool = False) -> bool:
+	"""Whether the header or footer belongs in the per-page frame.
+
+	A first-page header prints once in the body, so later pages get its space back.
+	A browser's repeating frame cannot vary by page, so the preview also prints a
+	last-page footer once."""
+	show_on = zone_show_on(layout, kind)
+	if not show_on:
+		return bool(repeat_header_footer)
+	printed_once = "first_page" if kind == "header" else "last_page" if in_preview else None
+	return show_on != printed_once
+
 
 def iter_zones(layout: dict) -> Iterator[tuple[str, dict]]:
 	"""Yield (where, zone) for the header, each body section and the footer, in print order."""

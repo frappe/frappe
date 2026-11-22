@@ -179,9 +179,11 @@ class PlutoPage:
 			for class_name, value in {**values, "page": page_no}.items():
 				for element in wrapper.select(f".{class_name}"):
 					element.string = cstr(value)
+			hidden_on_this_page = [".hidden-first-page" if page_no == 1 else ".visible-first-page"]
 			if page_no != total_pages:
-				for element in wrapper.select(".visible-last-page"):
-					element["style"] = f"{element.get('style', '')};visibility: hidden"
+				hidden_on_this_page.append(".visible-last-page")
+			for element in wrapper.select(",".join(hidden_on_this_page)):
+				element["style"] = f"{element.get('style', '')};visibility: hidden"
 			if page_no > 1:
 				previous.insert_after(wrapper)
 				previous = wrapper
