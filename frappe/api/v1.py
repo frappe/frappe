@@ -119,20 +119,11 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	fn = getattr(method_obj, "__func__", method_obj)
 	is_valid_http_method(fn)
 
-<<<<<<< HEAD
 	if frappe.request.method == "GET":
 		doc.check_permission("read")
 		return doc.run_method(method, **frappe.form_dict)
 
 	elif frappe.request.method == "POST":
-=======
-	assert frappe.request.method in (
-		"GET",
-		"POST",
-		"QUERY",
-	), "execute_doc_method route is only mounted for GET/POST/QUERY"
-	if frappe.request.method == "POST":
->>>>>>> 70760a5 (feat: support QUERY HTTP method (RFC 10008))
 		doc.check_permission("write")
 	else:
 		doc.check_permission("read")

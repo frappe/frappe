@@ -889,16 +889,8 @@ def test(
 @whitelist_for_tests(allow_guest=True)
 def test_array(data: typing.Any):
 	return data
-<<<<<<< HEAD
-=======
-
-
-@whitelist_for_tests()
-def test_unserializable_response():
-	frappe.response["value"] = 2**70
 
 
 @whitelist_for_tests()
 def create_todo_for_testing(description: str):
 	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
->>>>>>> 70760a5 (feat: support QUERY HTTP method (RFC 10008))
