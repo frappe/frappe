@@ -89,7 +89,6 @@ class UserPermissions:
 				"issingle",
 				"read_only",
 				"restrict_to_domain",
-				"is_submittable",
 			],
 		)
 
@@ -153,7 +152,7 @@ class UserPermissions:
 						self.can_read.append(dt)
 						if dtp["module"] not in self.permitted_modules:
 							self.permitted_modules.append(dtp["module"])
-			if p.get("submit") and dtp.get("is_submittable"):
+			if p.get("submit") and frappe.get_meta(dt).is_submittable:
 				self.can_submit.append(dt)
 
 			if p.get("cancel"):
