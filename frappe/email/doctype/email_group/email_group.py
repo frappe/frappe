@@ -29,15 +29,18 @@ class EmailGroup(Document):
 	# end: auto-generated types
 
 	def onload(self):
-		singles = [d.name for d in frappe.get_all("DocType", "name", {"issingle": 1})]
-		self.get("__onload").import_types = [
-			{"value": d.parent, "label": f"{d.parent} ({d.label})"}
-			for d in frappe.get_all("DocField", ("parent", "label"), {"options": "Email"})
-			if d.parent not in singles
-		]
+		singles = frappe.get_all("DocType", filters={"issingle": 1}, pluck="name")
+		doctypes = frappe.get_all("DocField", "parent", {"options": "Email"}, distinct=True, pluck="parent")
+		self.set_onload(
+			"import_types", 
+			[
+				{"value": d, "label": d}
+				for d in sorted(doctypes)
+				if d not in singles
+			],
+		)
 
 	def import_from(self, doctype):
-		"""Extract Email Addresses from given doctype and add them to the current list"""
 		meta = frappe.get_meta(doctype)
 		email_field = next(
 			(
@@ -48,30 +51,34 @@ class EmailGroup(Document):
 			None,
 		)
 		if not email_field:
-			frappe.throw(
-				_("No Email field found in {0}").format(doctype),
-				title=_("Invalid Doctype"),
-			)
+			frappe.throw(_("No Email field found in {0}").format(doctype), title=_("Invalid Doctype"))
+
+		email_field = frappe.form_dict.get("email_field") or email_field
+
+		filters = frappe.form_dict.get("filters")
+		filters = frappe.parse_json(filters) if filters else []
 
 		unsubscribed_field = "unsubscribed" if meta.get_field("unsubscribed") else None
+		fields = [email_field] + ([unsubscribed_field] if unsubscribed_field else [])
 		added = 0
 
-		for user in frappe.get_all(doctype, [email_field, unsubscribed_field or "name"]):
-			with contextlib.suppress(frappe.UniqueValidationError, frappe.InvalidEmailAddressError):
-				email = parse_addr(user.get(email_field))[1] if user.get(email_field) else None
-				if email:
-					frappe.get_doc(
-						{
-							"doctype": "Email Group Member",
-							"email_group": self.name,
-							"email": email,
-							"unsubscribed": user.get(unsubscribed_field) if unsubscribed_field else 0,
-						}
-					).insert(ignore_permissions=True)
-					added += 1
+		for row in frappe.get_list(doctype, filters=filters, fields=fields, limit_page_length=0):
+			email = parse_addr(row.get(email_field))[1] if row.get(email_field) else None
+			if not email:
+				continue
+			if frappe.db.exists("Email Group Member", {"email_group": self.name, "email": email}):
+				continue
+			frappe.get_doc(
+				{
+					"doctype": "Email Group Member",
+					"email_group": self.name,
+					"email": email,
+					"unsubscribed": row.get(unsubscribed_field) if unsubscribed_field else 0,
+				}
+			).insert(ignore_permissions=True)
+			added += 1
 
 		frappe.msgprint(_("{0} subscribers added").format(added))
-
 		return self.update_total_subscribers()
 
 	def update_total_subscribers(self):
