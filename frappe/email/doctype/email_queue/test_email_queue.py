@@ -146,9 +146,6 @@ class TestEmailQueue(FrappeTestCase):
 		self.assertIn(link, mock_session.sendmail.call_args.kwargs["msg"].decode())
 		self.assertNotIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))
 
-<<<<<<< HEAD
-	@change_settings("System Settings", store_attached_pdf_document=0)
-=======
 	def test_notification_keeps_large_recipient_list_in_one_queue(self):
 		recipients = [f"notify{index}@example.com" for index in range(101)]
 
@@ -158,8 +155,7 @@ class TestEmailQueue(FrappeTestCase):
 
 		self.assertCountEqual([row.recipient for row in queue.recipients], recipients)
 
-	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=0)
->>>>>>> 42737f9 (fix: keep large inbound notifications in one queue)
+	@change_settings("System Settings", store_attached_pdf_document=0)
 	def test_print_attachment_renders_once_for_every_recipient(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")

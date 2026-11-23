@@ -1,11 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-<<<<<<< HEAD
-=======
 import email
-import json
-from datetime import timedelta
->>>>>>> e680a4f (fix: address incoming-mail notifications in the To header)
 from typing import TYPE_CHECKING
 
 import frappe
