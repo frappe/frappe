@@ -1,0 +1,248 @@
+.form-control {
+	display: block;
+	width: 100%;
+	height: $input-height;
+	padding: $input-padding-y $input-padding-x;
+	font-family: $input-font-family;
+	@include font-size($input-font-size);
+	font-weight: $input-font-weight;
+	line-height: $input-line-height;
+	color: $input-color;
+	background-color: $input-bg;
+	background-clip: padding-box;
+	border: $input-border-width solid $input-border-color;
+
+	@include border-radius($input-border-radius, 0);
+
+	@include box-shadow($input-box-shadow);
+	@include component-transition($input-transition);
+
+	@include form-control-focus($ignore-warning: true);
+
+	&::placeholder {
+		color: $input-placeholder-color;
+		opacity: 1;
+	}
+
+	&:disabled,
+	&[readonly] {
+		background-color: $input-disabled-bg;
+		opacity: 1;
+	}
+}
+
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"] {
+	&.form-control {
+		appearance: none;
+	}
+}
+
+select.form-control {
+	&:-moz-focusring {
+		color: transparent;
+		text-shadow: 0 0 0 $input-color;
+	}
+}
+
+.form-control-file,
+.form-control-range {
+	display: block;
+	width: 100%;
+}
+
+.col-form-label {
+	padding-top: add($input-padding-y, $input-border-width);
+	padding-bottom: add($input-padding-y, $input-border-width);
+	margin-bottom: 0;
+	@include font-size(inherit);
+	line-height: $input-line-height;
+}
+
+.col-form-label-lg {
+	padding-top: add($input-padding-y-lg, $input-border-width);
+	padding-bottom: add($input-padding-y-lg, $input-border-width);
+	@include font-size($input-font-size-lg);
+	line-height: $input-line-height-lg;
+}
+
+.col-form-label-sm {
+	padding-top: add($input-padding-y-sm, $input-border-width);
+	padding-bottom: add($input-padding-y-sm, $input-border-width);
+	@include font-size($input-font-size-sm);
+	line-height: $input-line-height-sm;
+}
+
+.form-control-plaintext {
+	display: block;
+	width: 100%;
+	padding: $input-padding-y 0;
+	margin-bottom: 0;
+	@include font-size($input-font-size);
+	line-height: $input-line-height;
+	color: $input-plaintext-color;
+	background-color: transparent;
+	border: solid transparent;
+	border-width: $input-border-width 0;
+
+	&.form-control-sm,
+	&.form-control-lg {
+		padding-right: 0;
+		padding-left: 0;
+	}
+}
+
+.form-control-sm {
+	height: $input-height-sm;
+	padding: $input-padding-y-sm $input-padding-x-sm;
+	@include font-size($input-font-size-sm);
+	line-height: $input-line-height-sm;
+	@include border-radius($input-border-radius-sm);
+}
+
+.form-control-lg {
+	height: $input-height-lg;
+	padding: $input-padding-y-lg $input-padding-x-lg;
+	@include font-size($input-font-size-lg);
+	line-height: $input-line-height-lg;
+	@include border-radius($input-border-radius-lg);
+}
+
+select.form-control {
+	&[size],
+	&[multiple] {
+		height: auto;
+	}
+}
+
+textarea.form-control {
+	height: auto;
+}
+
+.form-group {
+	margin-bottom: $form-group-margin-bottom;
+}
+
+.form-text {
+	display: block;
+	margin-top: $form-text-margin-top;
+}
+
+.form-row {
+	display: flex;
+	flex-wrap: wrap;
+	margin-right: -$form-grid-gutter-width * 0.5;
+	margin-left: -$form-grid-gutter-width * 0.5;
+
+	> .col,
+	> [class*="col-"] {
+		padding-right: $form-grid-gutter-width * 0.5;
+		padding-left: $form-grid-gutter-width * 0.5;
+	}
+}
+
+.form-check {
+	position: relative;
+	display: block;
+	padding-left: $form-check-input-gutter;
+}
+
+.form-check-input {
+	position: absolute;
+	margin-top: $form-check-input-margin-y;
+	margin-left: -$form-check-input-gutter;
+
+	&[disabled] ~ .form-check-label,
+	&:disabled ~ .form-check-label {
+		color: $text-muted;
+	}
+}
+
+.form-check-label {
+	margin-bottom: 0;
+}
+
+.form-check-inline {
+	display: inline-flex;
+	align-items: center;
+	padding-left: 0;
+	margin-right: $form-check-inline-margin-x;
+
+	.form-check-input {
+		position: static;
+		margin-top: 0;
+		margin-right: $form-check-inline-input-margin-x;
+		margin-left: 0;
+	}
+}
+
+@each $state, $data in $form-validation-states {
+	@include form-validation-state($state, map-get($data, color), map-get($data, icon));
+}
+
+.form-inline {
+	display: flex;
+	flex-flow: row wrap;
+	align-items: center;
+
+	.form-check {
+		width: 100%;
+	}
+
+	@include media-breakpoint-up(sm) {
+		label {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-bottom: 0;
+		}
+
+		.form-group {
+			display: flex;
+			flex: 0 0 auto;
+			flex-flow: row wrap;
+			align-items: center;
+			margin-bottom: 0;
+		}
+
+		.form-control {
+			display: inline-block;
+			width: auto;
+			vertical-align: middle;
+		}
+
+		.form-control-plaintext {
+			display: inline-block;
+		}
+
+		.input-group,
+		.custom-select {
+			width: auto;
+		}
+
+		.form-check {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: auto;
+			padding-left: 0;
+		}
+		.form-check-input {
+			position: relative;
+			flex-shrink: 0;
+			margin-top: 0;
+			margin-right: $form-check-input-margin-x;
+			margin-left: 0;
+		}
+
+		.custom-control {
+			align-items: center;
+			justify-content: center;
+		}
+		.custom-control-label {
+			margin-bottom: 0;
+		}
+	}
+}

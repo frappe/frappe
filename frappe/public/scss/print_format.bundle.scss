@@ -1,8 +1,9 @@
 @import "./desk/variables.scss";
+@import "./print/variables";
 @import "./common/mixins.scss";
 @import "./common/global.scss";
 @import "./common/icons.scss";
-@import "~bootstrap/scss/bootstrap";
+@import "./website/foundation/index";
 @import "./common/quill_content.scss";
 
 // global.scss sets html, body { height: 100% } for the desk; in paged media

@@ -1,0 +1,180 @@
+.input-group {
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	width: 100%;
+
+	> .form-control,
+	> .form-control-plaintext,
+	> .custom-select,
+	> .custom-file {
+		position: relative;
+		flex: 1 1 auto;
+		width: 1%;
+		min-width: 0;
+		margin-bottom: 0;
+
+		+ .form-control,
+		+ .custom-select,
+		+ .custom-file {
+			margin-left: -$input-border-width;
+		}
+	}
+
+	> .form-control:focus,
+	> .custom-select:focus,
+	> .custom-file .custom-file-input:focus ~ .custom-file-label {
+		z-index: 3;
+	}
+
+	> .custom-file .custom-file-input:focus {
+		z-index: 4;
+	}
+
+	> .form-control,
+	> .custom-select {
+		&:not(:first-child) {
+			@include border-left-radius(0);
+		}
+	}
+
+	> .custom-file {
+		display: flex;
+		align-items: center;
+
+		&:not(:last-child) .custom-file-label,
+		&:not(:last-child) .custom-file-label::after {
+			@include border-right-radius(0);
+		}
+		&:not(:first-child) .custom-file-label {
+			@include border-left-radius(0);
+		}
+	}
+
+	&:not(.has-validation) {
+		> .form-control:not(:last-child),
+		> .custom-select:not(:last-child),
+		> .custom-file:not(:last-child) .custom-file-label,
+		> .custom-file:not(:last-child) .custom-file-label::after {
+			@include border-right-radius(0);
+		}
+	}
+
+	&.has-validation {
+		> .form-control:nth-last-child(n + 3),
+		> .custom-select:nth-last-child(n + 3),
+		> .custom-file:nth-last-child(n + 3) .custom-file-label,
+		> .custom-file:nth-last-child(n + 3) .custom-file-label::after {
+			@include border-right-radius(0);
+		}
+	}
+}
+
+.input-group-prepend,
+.input-group-append {
+	display: flex;
+
+	.btn {
+		position: relative;
+		z-index: 2;
+
+		&:focus {
+			z-index: 3;
+		}
+	}
+
+	.btn + .btn,
+	.btn + .input-group-text,
+	.input-group-text + .input-group-text,
+	.input-group-text + .btn {
+		margin-left: -$input-border-width;
+	}
+}
+
+.input-group-prepend {
+	margin-right: -$input-border-width;
+}
+.input-group-append {
+	margin-left: -$input-border-width;
+}
+
+.input-group-text {
+	display: flex;
+	align-items: center;
+	padding: $input-padding-y $input-padding-x;
+	margin-bottom: 0;
+	@include font-size($input-font-size);
+	font-weight: $font-weight-normal;
+	line-height: $input-line-height;
+	color: $input-group-addon-color;
+	text-align: center;
+	white-space: nowrap;
+	background-color: $input-group-addon-bg;
+	border: $input-border-width solid $input-group-addon-border-color;
+	@include border-radius($input-border-radius);
+
+	input[type="radio"],
+	input[type="checkbox"] {
+		margin-top: 0;
+	}
+}
+
+.input-group-lg > .form-control:not(textarea),
+.input-group-lg > .custom-select {
+	height: $input-height-lg;
+}
+
+.input-group-lg > .form-control,
+.input-group-lg > .custom-select,
+.input-group-lg > .input-group-prepend > .input-group-text,
+.input-group-lg > .input-group-append > .input-group-text,
+.input-group-lg > .input-group-prepend > .btn,
+.input-group-lg > .input-group-append > .btn {
+	padding: $input-padding-y-lg $input-padding-x-lg;
+	@include font-size($input-font-size-lg);
+	line-height: $input-line-height-lg;
+	@include border-radius($input-border-radius-lg);
+}
+
+.input-group-sm > .form-control:not(textarea),
+.input-group-sm > .custom-select {
+	height: $input-height-sm;
+}
+
+.input-group-sm > .form-control,
+.input-group-sm > .custom-select,
+.input-group-sm > .input-group-prepend > .input-group-text,
+.input-group-sm > .input-group-append > .input-group-text,
+.input-group-sm > .input-group-prepend > .btn,
+.input-group-sm > .input-group-append > .btn {
+	padding: $input-padding-y-sm $input-padding-x-sm;
+	@include font-size($input-font-size-sm);
+	line-height: $input-line-height-sm;
+	@include border-radius($input-border-radius-sm);
+}
+
+.input-group-lg > .custom-select,
+.input-group-sm > .custom-select {
+	padding-right: $custom-select-padding-x + $custom-select-indicator-padding;
+}
+
+.input-group > .input-group-prepend > .btn,
+.input-group > .input-group-prepend > .input-group-text,
+.input-group:not(.has-validation) > .input-group-append:not(:last-child) > .btn,
+.input-group:not(.has-validation) > .input-group-append:not(:last-child) > .input-group-text,
+.input-group.has-validation > .input-group-append:nth-last-child(n + 3) > .btn,
+.input-group.has-validation > .input-group-append:nth-last-child(n + 3) > .input-group-text,
+.input-group > .input-group-append:last-child > .btn:not(:last-child):not(.dropdown-toggle),
+.input-group > .input-group-append:last-child > .input-group-text:not(:last-child) {
+	@include border-right-radius(0);
+}
+
+.input-group > .input-group-append > .btn,
+.input-group > .input-group-append > .input-group-text,
+.input-group > .input-group-prepend:not(:first-child) > .btn,
+.input-group > .input-group-prepend:not(:first-child) > .input-group-text,
+.input-group > .input-group-prepend:first-child > .btn:not(:first-child),
+.input-group > .input-group-prepend:first-child > .input-group-text:not(:first-child) {
+	@include border-left-radius(0);
+}

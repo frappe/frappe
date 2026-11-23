@@ -504,11 +504,12 @@ frappe.ui.form.on("Number Card", {
 						<input type="text" class="form-control input-xs filter-expression">
 					</td>
 					<td class="text-center">
-						<a class="remove-filter text-muted" style="cursor: pointer;">
-							<svg class="icon icon-sm">
-								<use href="#icon-x" class="close"></use>
-							</svg>
-						</a>
+						${frappe.ui.button.html({
+							icon: "x",
+							variant: "ghost",
+							title: __("Remove filter"),
+							css_class: "remove-filter",
+						})}
 					</td>
 				</tr>
 			`;

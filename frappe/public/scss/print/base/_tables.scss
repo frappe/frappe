@@ -1,0 +1,155 @@
+@mixin print-table-cells(
+	$sections: (
+		thead,
+		tbody,
+		tfoot,
+	)
+) {
+	@each $section in $sections {
+		> #{$section} > tr > th,
+		> #{$section} > tr > td {
+			@content;
+		}
+	}
+}
+
+table {
+	background-color: transparent;
+}
+caption {
+	padding-top: 8px;
+	padding-bottom: 8px;
+	color: $print-text-muted;
+	text-align: left;
+}
+th {
+	text-align: left;
+}
+
+.table {
+	width: 100%;
+	max-width: 100%;
+	margin-bottom: 20px;
+
+	@include print-table-cells {
+		padding: 8px;
+		line-height: $print-line-height;
+		vertical-align: top;
+		border-top: 1px solid $print-border-color;
+	}
+	> thead > tr > th {
+		vertical-align: bottom;
+		border-bottom: 2px solid $print-border-color;
+	}
+	> caption + thead,
+	> colgroup + thead,
+	> thead:first-child {
+		> tr:first-child > th,
+		> tr:first-child > td {
+			border-top: 0;
+		}
+	}
+	> tbody + tbody {
+		border-top: 2px solid $print-border-color;
+	}
+	.table {
+		background-color: #fff;
+	}
+}
+
+.table-condensed {
+	@include print-table-cells {
+		padding: 5px;
+	}
+}
+
+.table-bordered {
+	border: 1px solid $print-border-color;
+
+	@include print-table-cells {
+		border: 1px solid $print-border-color;
+	}
+	@include print-table-cells(thead) {
+		border-bottom-width: 2px;
+	}
+}
+
+.table-striped > tbody > tr:nth-child(odd) {
+	background-color: #f9f9f9;
+}
+
+table col[class*="col-"] {
+	position: static;
+	display: table-column;
+	float: none;
+}
+table td[class*="col-"],
+table th[class*="col-"] {
+	position: static;
+	display: table-cell;
+	float: none;
+}
+
+@each $state,
+	$background
+		in (
+			active: #f5f5f5,
+			success: transparent,
+			info: transparent,
+			warning: transparent,
+			danger: transparent
+		)
+{
+	.table > thead,
+	.table > tbody,
+	.table > tfoot {
+		> tr > td.#{$state},
+		> tr > th.#{$state},
+		> tr.#{$state} > td,
+		> tr.#{$state} > th {
+			background-color: $background;
+		}
+	}
+}
+
+.table-responsive {
+	min-height: 0.01%;
+	overflow-x: auto;
+}
+@media screen and (max-width: 767px) {
+	.table-responsive {
+		width: 100%;
+		margin-bottom: 15px;
+		overflow-y: hidden;
+		border: 1px solid $print-border-color;
+
+		> .table {
+			margin-bottom: 0;
+
+			@include print-table-cells {
+				white-space: nowrap;
+			}
+		}
+		> .table-bordered {
+			border: 0;
+
+			@include print-table-cells {
+				&:first-child {
+					border-left: 0;
+				}
+			}
+			@include print-table-cells {
+				&:last-child {
+					border-right: 0;
+				}
+			}
+			> tbody > tr:last-child,
+			> tfoot > tr:last-child {
+				> th,
+				> td {
+					border-bottom: 0;
+				}
+			}
+		}
+	}
+}

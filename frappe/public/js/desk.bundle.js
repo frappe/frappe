@@ -6,6 +6,7 @@ import "./frappe/assets.js";
 import "./frappe/format.js";
 import "./frappe/form/formatters.js";
 import "./frappe/dom.js";
+import "./frappe/ui/jquery_plugins/index.js";
 import "./frappe/ui/messages.js";
 
 import "./frappe/ui/components/button.js";
