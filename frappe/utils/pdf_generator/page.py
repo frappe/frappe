@@ -1,6 +1,8 @@
 import base64
+import contextlib
 import json
 import re
+import socket
 import time
 import urllib
 
@@ -100,6 +102,64 @@ def read_external_resource(
 	"""Read a URL through the guarded session, which checks every redirect and the connected
 	address, within one time and size budget. Return its body, headers and status, else None.
 	With `return_redirects`, a redirect comes back unfollowed for the caller to request."""
+	from concurrent.futures import ThreadPoolExecutor
+
+	deadline = time.monotonic() + EXTERNAL_FETCH_SECONDS
+	connections = []
+	executor = ThreadPoolExecutor(max_workers=1)
+	reading = executor.submit(
+		_fetch_external_resource,
+		url,
+		max_size,
+		headers,
+		return_redirects,
+		method,
+		data,
+		deadline,
+		connections,
+	)
+	executor.shutdown(wait=False)
+	try:
+		return reading.result(timeout=EXTERNAL_FETCH_SECONDS)
+	except TimeoutError:
+		for connection in connections:
+			with contextlib.suppress(OSError):
+				connection.shutdown(socket.SHUT_RDWR)
+		return None
+
+
+def _track_connections(adapter, connections: list, deadline: float) -> None:
+	"""Keep a copy of each socket so the deadline can end a blocked read. A copy, because
+	TLS takes over the original socket object."""
+
+	def tracked(pool_class):
+		class TrackedConnection(pool_class.ConnectionCls):
+			def _new_conn(self):
+				sock = super()._new_conn()
+				connections.append(sock.dup())
+				if time.monotonic() > deadline:
+					sock.close()
+					raise TimeoutError
+				return sock
+
+		return type(pool_class.__name__, (pool_class,), {"ConnectionCls": TrackedConnection})
+
+	pool_classes = adapter.poolmanager.pool_classes_by_scheme
+	adapter.poolmanager.pool_classes_by_scheme = {
+		scheme: tracked(pool_class) for scheme, pool_class in pool_classes.items()
+	}
+
+
+def _fetch_external_resource(
+	url: str,
+	max_size: int,
+	headers: dict | None,
+	return_redirects: bool,
+	method: str,
+	data: bytes | None,
+	deadline: float,
+	connections: list,
+) -> tuple[bytes, dict, int] | None:
 	import zlib
 
 	import requests
@@ -108,12 +168,12 @@ def read_external_resource(
 
 	from frappe.utils.safe_exec import BlockedRequest, get_safe_request_session
 
-	deadline = time.monotonic() + EXTERNAL_FETCH_SECONDS
 	content = bytearray()
 	try:
 		with get_safe_request_session() as session:
-			for adapter in session.adapters.values():
+			for adapter in set(session.adapters.values()):
 				adapter.max_retries = Retry(total=0, read=False)
+				_track_connections(adapter, connections, deadline)
 			for _hop in range(session.max_redirects + 1):
 				with session.request(
 					method,
@@ -154,6 +214,9 @@ def read_external_resource(
 		zlib.error,
 	):
 		return None
+	finally:
+		for connection in connections:
+			connection.close()
 
 
 class Page:
