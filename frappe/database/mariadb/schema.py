@@ -147,14 +147,18 @@ class MariaDBTable(DBTable):
 
 		plain_indexes = {}
 		if self.add_unique:
+			statistics = frappe.qb.Schema("information_schema").statistics
 			plain_indexes = {
 				name.lower(): name
-				for name in frappe.db.sql(
-					"""select distinct index_name from information_schema.statistics
-					where table_schema = %s and table_name = %s and non_unique = 1""",
-					(frappe.db.cur_db_name, self.table_name),
-					pluck=True,
+				for name in frappe.qb.from_(statistics)
+				.select(statistics.index_name)
+				.distinct()
+				.where(
+					(statistics.table_schema == frappe.db.cur_db_name)
+					& (statistics.table_name == self.table_name)
+					& (statistics.non_unique == 1)
 				)
+				.run(pluck=True)
 			}
 
 		for col in self.add_unique:
