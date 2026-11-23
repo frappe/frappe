@@ -968,6 +968,7 @@ frappe.ui.Page = class Page {
 	}
 
 	remove_inner_button(label, group) {
+		let menu_item_label = group ? `${group} > ${label}` : label;
 		if (typeof label === "string") {
 			label = [label];
 		}
@@ -990,7 +991,7 @@ frappe.ui.Page = class Page {
 		let $menu_item = this.is_in_group_button_dropdown(
 			this.menu,
 			"li > a.grey-link > span",
-			group ? `${__(group)} > ${label}` : label
+			menu_item_label
 		);
 		if ($menu_item) {
 			$menu_item.closest("li").remove();
