@@ -26,6 +26,11 @@ class AttachmentQueue(Document):
 
 		created_document: DF.DynamicLink | None
 		document_type: DF.Link
+		extracted_values: DF.JSON | None
+		extraction_error: DF.SmallText | None
+		extraction_run: DF.Link | None
+		extraction_status: DF.Literal["", "Started", "Completed", "Failed"]
+		skipped_values: DF.JSON | None
 		source_file: DF.Attach
 	# end: auto-generated types
 
@@ -39,6 +44,27 @@ class AttachmentQueue(Document):
 	def notify_update(self):
 		super().notify_update()
 		publish_queue_update(self.document_type)
+
+	def before_insert(self):
+		"""Mark the file as being read when the target DocType asks for it, so the queue shows
+		the work as started from the moment the file is uploaded."""
+		# Meta is cached, and a DocType that does not ask for this never loads the flow stack.
+		enabled = frappe.get_meta(self.document_type).get("enable_flow_extraction")
+		self.extraction_status = "Started" if enabled else None
+
+	def after_insert(self):
+		"""Read the file with Flow, when the target DocType asks for it."""
+		if self.extraction_status != "Started":
+			return
+
+		# After commit, so the worker reads a row whose File is already attached to it: the
+		# upload leaves the File an orphan, and attach_files_to_document claims it on insert.
+		frappe.enqueue(
+			"frappe.core.doctype.attachment_queue.extraction.start",
+			queue="long",
+			enqueue_after_commit=True,
+			entry=self.name,
+		)
 
 	def validate_document_type(self):
 		if not frappe.get_meta(self.document_type).get("enable_upload_first_workflow"):
@@ -64,7 +90,6 @@ class AttachmentQueue(Document):
 		# Locks the entry until the request ends, so a second reviewer filing the same
 		# upload waits here and then finds it claimed.
 		claimed = frappe.db.get_value(self.doctype, self.name, "created_document", for_update=True)
-		source_file = self.source_file
 
 		if claimed:
 			if claimed == document_name:
@@ -86,27 +111,16 @@ class AttachmentQueue(Document):
 			)
 
 		frappe.has_permission(self.document_type, "write", doc=document_name, throw=True)
-		self.attach_source_file_to(self.document_type, document_name, source_file)
+		self.attach_source_file_to(self.document_type, document_name)
 
 		# Written last, so the entry only reads as filed once its file is in place.
 		self.db_set("created_document", document_name)
 		publish_queue_update(self.document_type)
 		return document_name
 
-	def attach_source_file_to(self, document_type: str, document_name: str, source_file: str) -> None:
+	def attach_source_file_to(self, document_type: str, document_name: str) -> None:
 		"""Give the target its own File record for the same stored file."""
-		file_name = frappe.db.get_value(
-			"File",
-			{
-				"file_url": source_file,
-				"attached_to_doctype": self.doctype,
-				"attached_to_name": self.name,
-			},
-		)
-		if not file_name:
-			frappe.throw(_("The file for {0} is no longer available.").format(frappe.bold(self.name)))
-
-		frappe.get_doc("File", file_name).create_attachment_copy(
+		frappe.get_doc("File", queued_file(self)).create_attachment_copy(
 			attached_to_doctype=document_type,
 			attached_to_name=document_name,
 		)
@@ -124,6 +138,21 @@ class AttachmentQueue(Document):
 
 		for name in rows:
 			frappe.delete_doc("Attachment Queue", name, delete_permanently=True)
+
+
+def queued_file(doc) -> str:
+	"""The File the entry's upload produced."""
+	file = frappe.db.get_value(
+		"File",
+		{
+			"file_url": doc.source_file,
+			"attached_to_doctype": doc.doctype,
+			"attached_to_name": doc.name,
+		},
+	)
+	if not file:
+		frappe.throw(_("The file for {0} is no longer available.").format(frappe.bold(doc.name)))
+	return file
 
 
 def unlink_deleted_document(doc, method=None):
