@@ -219,6 +219,15 @@ class TestEmailQueue(IntegrationTestCase):
 		self.assertIn(link, mock_session.sendmail.call_args.kwargs["msg"].decode())
 		self.assertNotIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))
 
+	def test_notification_keeps_large_recipient_list_in_one_queue(self):
+		recipients = [f"notify{index}@example.com" for index in range(101)]
+
+		queue = frappe.sendmail(
+			recipients=recipients, subject="Notification", message="Body", is_notification=True
+		)
+
+		self.assertCountEqual([row.recipient for row in queue.recipients], recipients)
+
 	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=0)
 	def test_print_attachment_renders_once_for_every_recipient(self):
 		self.addCleanup(frappe.set_user, "Administrator")
