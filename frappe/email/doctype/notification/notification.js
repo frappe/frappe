@@ -89,7 +89,7 @@ frappe.notification = {
 			);
 
 			let receiver_fields = [];
-			if (frm.doc.channel === "Email") {
+			if (["Email", "System Notification"].includes(frm.doc.channel)) {
 				receiver_fields = get_receiver_fields(fields, function (df) {
 					return df.options == "Email";
 				});
