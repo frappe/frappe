@@ -963,6 +963,26 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(repaired[0]["label"], "In Words")
 		self.assertEqual(draft.margin_top, 25)
 
+	def test_repair_decodes_labels_in_custom_html(self):
+		from frappe.patches.v16_0.repair_converted_print_formats import repair_converted_labels
+
+		doc = self.make_classic_format()
+		fields = [{"fieldtype": "HTML", "html": "<span>R&amp;D</span><span>In Words :&amp;nbsp;</span>"}]
+		doc.db_set(
+			{
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json({"sections": [{"columns": [{"fields": fields}]}]}),
+			}
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		repair_converted_labels()
+
+		format_data = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
+		repaired = frappe.parse_json(format_data)["sections"][0]["columns"][0]["fields"]
+		self.assertEqual(repaired[0]["html"], "<span>R&amp;D</span><span>In Words :\xa0</span>")
+
 	def test_migration_skips_corrupt_format(self):
 		"""A format with unparseable format_data is skipped, not fatal to the run."""
 		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
