@@ -130,6 +130,7 @@ def get_context(context) -> PrintContext:
 			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
 			settings=settings,
+			print_filename=context["print_filename"],
 		)
 	else:
 		body = get_rendered_template(

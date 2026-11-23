@@ -28,7 +28,9 @@ def get_context(context):
 	elif is_beta:
 		from frappe.utils.print_format_generator import get_html
 
-		context.body = get_html(doctype, docname, pf, letterhead, settings=settings)
+		context.body = get_html(
+			doctype, docname, pf, letterhead, settings=settings, print_filename=get_print_filename(doc)
+		)
 	else:
 		# Jinja formats render through the legacy pipeline, wrapped in the same
 		# page shell /printview uses — PrintFormat.get_html is the beta generator
