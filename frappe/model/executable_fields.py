@@ -10,8 +10,13 @@ CODE_AUTHOR_ROLE = "Code Author"
 class CodeFieldGuard:
 	"""Only a Code Author can change fields marked `executes_code` (Jinja or Python run on the server)."""
 
-	def __init__(self, doc):
+	def __init__(self, doc, fields=None):
+		"""`fields`: check these parent fields instead of the ones marked `executes_code`."""
 		self.doc = doc
+		if fields is not None:
+			self.fields, self.tables = fields, []
+			return
+
 		self.fields = doc.meta.get_executable_fields()
 		self.tables = [
 			(df, child_fields)

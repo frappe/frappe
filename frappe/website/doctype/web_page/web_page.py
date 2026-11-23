@@ -7,6 +7,7 @@ from jinja2.exceptions import TemplateSyntaxError
 
 import frappe
 from frappe import _
+from frappe.model.executable_fields import CodeFieldGuard
 from frappe.utils import get_datetime, now, quoted, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.utils.jinja import render_template
@@ -20,6 +21,8 @@ from frappe.website.utils import (
 	get_sidebar_items,
 )
 from frappe.website.website_generator import WebsiteGenerator
+
+CONTENT_FIELDS = ("main_section", "main_section_md", "main_section_html")
 
 H_TAG_PATTERN = re.compile("<h.>")
 
@@ -70,6 +73,7 @@ class WebPage(WebsiteGenerator):
 
 	def validate(self):
 		self.validate_dates()
+		self.validate_jinja_content()
 		self.set_route()
 		if not self.dynamic_route:
 			self.route = quoted(self.route)
@@ -118,12 +122,7 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		is_jinja = (
-			context.dynamic_template
-			or "<!-- jinja -->" in context.main_section
-			or ("{{" in context.main_section)
-		)
-		if is_jinja:
+		if context.dynamic_template or has_jinja_markers(context.main_section):
 			frappe.flags.web_block_scripts = {}
 			frappe.flags.web_block_styles = {}
 			try:
@@ -205,6 +204,17 @@ class WebPage(WebsiteGenerator):
 				"image": self.meta_image or find_first_image(context.main_section or ""),
 				"og:type": "website",
 			}
+
+	def validate_jinja_content(self):
+		saved = self.get_doc_before_save()
+		if self.has_jinja_content() or (saved and saved.has_jinja_content()):
+			fields = [self.meta.get_field(fieldname) for fieldname in CONTENT_FIELDS]
+			CodeFieldGuard(self, fields=fields).validate()
+
+	def has_jinja_content(self):
+		# every content field, not only the active one: switching content_type would
+		# otherwise activate Jinja stored in a field that was inactive when it was saved
+		return self.dynamic_template or any(has_jinja_markers(self.get(f)) for f in CONTENT_FIELDS)
 
 	def validate_dates(self):
 		if (
@@ -311,3 +321,8 @@ def get_dynamic_web_pages() -> dict[str, str]:
 	for method in get_web_pages_with_dynamic_routes:
 		pages.extend(frappe.get_attr(method)())
 	return pages
+
+
+def has_jinja_markers(content):
+	content = content or ""
+	return "{{" in content or "<!-- jinja -->" in content

@@ -241,6 +241,7 @@
   },
   {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
+   "executes_code": 1,
    "fieldname": "breadcrumbs",
    "fieldtype": "Code",
    "label": "Breadcrumbs",
@@ -253,6 +254,7 @@
   },
   {
    "default": "0",
+   "executes_code": 1,
    "fieldname": "dynamic_template",
    "fieldtype": "Check",
    "label": "Dynamic Template"
@@ -306,6 +308,7 @@
   },
   {
    "description": "<p>Set context before rendering a template. Example:</p><p>\n</p><div><pre><code>\ncontext.project = frappe.get_doc(\"Project\", frappe.form_dict.name)\n</code></pre></div>",
+   "executes_code": 1,
    "fieldname": "context_script",
    "fieldtype": "Code",
    "label": "Context Script",
@@ -340,7 +343,7 @@
  "is_published_field": "published",
  "links": [],
  "make_attachments_public": 1,
- "modified": "2024-04-12 10:30:49.022735",
+ "modified": "2026-11-23 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",
