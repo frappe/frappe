@@ -1642,6 +1642,7 @@
  },
  "Madagascar": {
   "code": "mg",
+  "currency": "MGA",
   "currency_fraction": "Iraimbilanja",
   "currency_fraction_units": 5,
   "currency_symbol": "Ar",
