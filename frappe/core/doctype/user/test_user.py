@@ -1170,6 +1170,24 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		with self.set_user("_test_no_such_user@example.com"):
 			self.assertEqual(frappe.session.user, "_test_no_such_user@example.com")
 
+	def test_existing_contact_is_updated_despite_missing_mandatory_fields(self):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		email = "_test_contact_mandatory@example.com"
+		contact = frappe.new_doc("Contact", first_name="Old")
+		contact.add_email(email, is_primary=True)
+		contact.insert()
+
+		property_setter = make_property_setter("Contact", "company_name", "reqd", 1, "Check")
+		self.addCleanup(frappe.clear_cache, doctype="Contact")
+		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+
+		user = frappe.new_doc("User", email=email, first_name="New")
+		user.insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		self.assertEqual(frappe.db.get_value("Contact", contact.name, "first_name"), "New")
+
 	def test_get_user_by_email(self):
 		with test_user(roles=[], generated_id=True) as user:
 			self.assertEqual(get_user_by_email(f" {user.email.upper()} "), user.name)
