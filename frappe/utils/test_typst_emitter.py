@@ -885,6 +885,32 @@ class TestTypstRender(IntegrationTestCase):
 		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_image_in_object_storage_prints(self):
+		from io import BytesIO
+
+		from PIL import Image
+		from pypdf import PdfReader
+
+		from frappe.storage import fake
+		from frappe.storage.tests import storage_v2
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		png = BytesIO()
+		Image.new("RGB", (40, 20), "navy").save(png, "PNG")
+		with storage_v2(), fake():
+			logo = frappe.get_doc(
+				{"doctype": "File", "file_name": "logo.png", "content": png.getvalue()}
+			).insert()
+			self.addCleanup(logo.delete)
+			pf = self.make(layout_with({"fieldtype": "Image", "custom": 1, "image_url": logo.file_url}))
+			pf.pdf_generator = "Typst"
+			todo = self.make_todo()
+			self.addCleanup(frappe.set_user, "Administrator")
+			frappe.set_user("test@example.com")
+			pdf = PrintFormatGenerator(pf, todo).render_pdf()
+		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_animated_png_prints(self):
 		from io import BytesIO
 
