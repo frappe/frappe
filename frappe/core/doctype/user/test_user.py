@@ -1218,6 +1218,27 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			admin.email = old.name
 			self.assertRaises(frappe.ValidationError, admin.run_method, "validate")
 
+	def test_email_can_be_the_users_own_id_in_another_case(self):
+		user = frappe.new_doc("User", email="_test_mixed_case_other@example.com", first_name="Mixed")
+		user.insert(set_name="_Test_Mixed_Case@Example.com")
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_permissions=True)
+
+		user.email = "_test_mixed_case@example.com"
+		user.save()
+		self.assertEqual(user.email, "_test_mixed_case@example.com")
+
+	def test_import_keeps_the_given_id(self):
+		user = frappe.new_doc("User", email="_test_imported@example.com", first_name="Imported")
+		user.name = "_Test_Imported@Example.com"
+		frappe.flags.in_import = True
+		try:
+			user.insert()
+		finally:
+			frappe.flags.in_import = False
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_permissions=True)
+
+		self.assertEqual(user.name, "_Test_Imported@Example.com")
+
 	def test_standard_users_need_a_valid_email(self):
 		admin = frappe.get_doc("User", "Administrator")
 		admin.email = "not-an-email"

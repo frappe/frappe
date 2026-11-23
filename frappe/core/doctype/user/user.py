@@ -212,11 +212,6 @@ class User(Document):
 		# because it is handled separately
 		self.flags.ignore_save_passwords = ["new_password"]
 
-	def before_naming(self):
-		# data import keeps the given name and skips autoname
-		if self.name and self.name not in STANDARD_USERS:
-			self.name = self.name.strip().lower()
-
 	def autoname(self):
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
@@ -815,7 +810,8 @@ class User(Document):
 
 	def validate_email_is_not_another_users_id(self):
 		"""An email and a user ID mean one user: users created before v17 have their email as ID."""
-		if self.email != self.name and frappe.db.exists("User", self.email):
+		user_id = frappe.db.get_value("User", self.email)
+		if user_id and user_id != self.name:
 			throw(_("{0} is already used by another user.").format(frappe.bold(self.email)))
 
 	def validate_email_domain(self, email):
