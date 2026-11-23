@@ -508,6 +508,9 @@ class CustomizeForm(Document):
 		for prop in docfield_properties:
 			d.set(prop, df.get(prop))
 
+		if df.fieldname and df.fieldname.startswith("custom_"):
+			d.fieldname = "".join(c for c in df.fieldname if c.isalnum() or c == "_")
+
 		if i != 0:
 			d.insert_after = self.fields[i - 1].fieldname
 		d.idx = i
