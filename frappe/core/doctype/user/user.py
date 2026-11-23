@@ -1743,7 +1743,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	contact.flags.ignore_links = ignore_links
 	contact.flags.ignore_mandatory = ignore_mandatory
 	try:
-		with savepoint(catch=frappe.DuplicateEntryError):
+		with savepoint(catch=frappe.DuplicateEntryError if contact.is_new() else ()):
 			contact.save()
 	except frappe.TimestampMismatchError:
 		raise frappe.RetryBackgroundJobError
