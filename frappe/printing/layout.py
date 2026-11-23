@@ -5,6 +5,7 @@ zone is ``{"columns": [{"fields": [df, ...]}, ...]}``. Everything that walks it
 goes through here so each consumer sees the same nodes in the same order:
 header, body sections, footer."""
 
+import json
 from collections.abc import Iterator
 
 from frappe import _
@@ -30,6 +31,17 @@ def zone_repeats(layout: dict, kind: str, repeat_header_footer: int, in_preview:
 		return bool(repeat_header_footer)
 	printed_once = "first_page" if kind == "header" else "last_page" if in_preview else None
 	return show_on != printed_once
+
+
+def has_page_specific_zone(format_data: str | None) -> bool:
+	"""Whether a saved layout prints its header or footer on some pages only."""
+	try:
+		layout = json.loads(format_data or "{}")
+	except ValueError:
+		return False
+	return isinstance(layout, dict) and any(
+		zone_show_on(layout, kind) not in (None, "every_page") for kind in ("header", "footer")
+	)
 
 
 def iter_zones(layout: dict) -> Iterator[tuple[str, dict]]:

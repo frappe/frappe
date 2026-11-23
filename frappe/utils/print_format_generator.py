@@ -21,6 +21,7 @@ ZONE_PAGE_CLASSES = {
 	"last_page": "visible-last-page",
 	"after_first_page": "hidden-first-page",
 }
+OVERLAY_VALUE_SELECTOR = ".page, .topage, .date, .isodate, .time"
 
 
 @frappe.whitelist()
@@ -905,12 +906,17 @@ class PrintFormatGenerator:
 		self.context.footer_height = 0
 
 		for kind in ("header", "footer"):
-			if self._zone_repeats(kind):
+			repeats = self._zone_repeats(kind)
+			# Letterhead + layout content → inline (once only, no repeat).
+			once = "" if repeats else self._render_overlay(kind, with_page_no=False) or ""
+			# only the overlay gets its page number and date filled in
+			if zone_show_on(self.layout or {}, kind) and BeautifulSoup(once, "html.parser").select_one(
+				OVERLAY_VALUE_SELECTOR
+			):
+				repeats, once = True, ""
+			if repeats:
 				overlay = self._render_overlay(kind)
-				once = ""
 			else:
-				# Letterhead + layout content → inline (once only, no repeat).
-				once = self._render_overlay(kind, with_page_no=False) or ""
 				if once and kind == "footer":
 					once = f'<div class="print-footer-once">{once}</div>'
 				# Page numbers → minimal overlay so they still repeat on every page.
