@@ -61,3 +61,8 @@ body {
 	{% endif -%}
 }
 
+{% if primary_color %}
+.btn.btn-primary {
+	color: color-yiq($primary);
+}
+{% endif -%}
