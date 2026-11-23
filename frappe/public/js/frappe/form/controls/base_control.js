@@ -271,7 +271,7 @@ frappe.ui.form.Control = class BaseControl {
 					: this.get_input_value()
 				: undefined;
 		} else {
-			return this.value || undefined;
+			return this.value;
 		}
 	}
 	set_model_value(value) {
