@@ -70,6 +70,10 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		);
 	}
 
+	read_only_because_of_code_author() {
+		return this.df.executes_code && !frappe.user.has_role("Code Author");
+	}
+
 	// update input value, label, description
 	// display (show/hide/read-only),
 	// mandatory style on refresh
@@ -135,6 +139,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			me.set_description();
 			me.set_label();
 			me.set_doc_url();
+			me.set_code_author_hint();
 			me.set_mandatory(me.value);
 			me.set_bold();
 			me.set_required();
@@ -214,6 +219,18 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				df: this.df,
 			});
 		}
+	}
+
+	set_code_author_hint() {
+		if (!this.label_span || !this.read_only_because_of_code_author()) return;
+		if ($(this.label_span).find(".code-author-hint").length) return;
+
+		const $icon = $(frappe.utils.icon("lock", "xs", "", "", "code-author-hint ml-1")).appendTo(
+			this.label_span
+		);
+		frappe.ui.tooltip?.($icon, {
+			text: __("Only a user with the Code Author role can change this field"),
+		});
 	}
 
 	set_description(description) {
