@@ -27,6 +27,10 @@ svg[data-barcode-value] {
 			word-break: break-all;
 		}
 	}
+	pre {
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
 }
 
 .action-banner {
