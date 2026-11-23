@@ -160,6 +160,10 @@ def validate_fields(data):
 		if not fieldname:
 			raise_invalid_field(fieldname)
 
+		if fieldname.rsplit(".", 1)[-1].strip("`") == "_comments":
+			data.fields.remove(field)
+			continue
+
 		if is_standard(fieldname):
 			continue
 
