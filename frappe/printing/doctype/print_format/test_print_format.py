@@ -917,7 +917,7 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(frappe.parse_json(format_data).get("page"), {"size": "A5"})
 
 	def test_repair_decodes_converted_print_designer_labels(self):
-		from frappe.patches.v16_0.repair_converted_print_formats import repair_converted_labels
+		from frappe.patches.v16_0.repair_converted_labels import execute
 
 		doc = self.make_classic_format()
 		fields = [
@@ -933,7 +933,7 @@ class TestClassicConverter(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 
-		repair_converted_labels()
+		execute()
 
 		format_data = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
 		repaired = frappe.parse_json(format_data)["sections"][0]["columns"][0]["fields"]
@@ -941,7 +941,7 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(repaired[1]["table_columns"][0]["label"], "R&D")
 
 	def test_repair_decodes_labels_in_builder_draft(self):
-		from frappe.patches.v16_0.repair_converted_print_formats import repair_converted_labels
+		from frappe.patches.v16_0.repair_converted_labels import execute
 
 		doc = self.make_classic_format()
 		fields = [{"label": "In Words :&nbsp;", "fieldname": "first_name"}]
@@ -956,7 +956,7 @@ class TestClassicConverter(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 
-		repair_converted_labels()
+		execute()
 
 		draft = frappe.parse_json(frappe.db.get_value("Print Format", self.FORMAT_NAME, "draft_data"))
 		repaired = frappe.parse_json(draft.format_data)["sections"][0]["columns"][0]["fields"]
@@ -964,7 +964,7 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(draft.margin_top, 25)
 
 	def test_repair_decodes_labels_in_custom_html(self):
-		from frappe.patches.v16_0.repair_converted_print_formats import repair_converted_labels
+		from frappe.patches.v16_0.repair_converted_labels import execute
 
 		doc = self.make_classic_format()
 		fields = [{"fieldtype": "HTML", "html": "<span>R&amp;D</span><span>In Words :&amp;nbsp;</span>"}]
@@ -977,7 +977,7 @@ class TestClassicConverter(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 
-		repair_converted_labels()
+		execute()
 
 		format_data = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
 		repaired = frappe.parse_json(format_data)["sections"][0]["columns"][0]["fields"]
