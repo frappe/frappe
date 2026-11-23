@@ -17,6 +17,7 @@ from typing import Any
 
 import frappe
 from frappe import _
+from frappe.core.doctype.attachment_queue.attachment_queue import publish_queue_update, queued_file
 from frappe.flow import Agent, ToolContext, tool
 from frappe.flow.lib.agent import with_app_prefix
 from frappe.utils import cint, cstr, flt, get_datetime, get_time, getdate
@@ -76,8 +77,8 @@ def start(entry: str) -> None:
 	if doc.extraction_status != "Started":
 		return
 
-	from frappe.core.doctype.attachment_queue.attachment_queue import queued_file
-
+	# Flow only sends files the session owner uploaded, and a coworker may have queued this read.
+	frappe.set_user(doc.owner)  # nosemgrep: frappe-setuser
 	try:
 		# the agent carries its own approval mode, so the session takes it from there
 		session = ensure_agent().new_session(title=_("Extraction for {0}").format(doc.name))
@@ -98,6 +99,16 @@ def start(entry: str) -> None:
 		return
 
 	doc.db_set("extraction_run", run.name, update_modified=False)
+
+
+def enqueue_extraction(entry: str) -> None:
+	"""Read the entry's file in the background, once the request that queued it has committed."""
+	frappe.enqueue(
+		"frappe.core.doctype.attachment_queue.extraction.start",
+		queue="long",
+		enqueue_after_commit=True,
+		entry=entry,
+	)
 
 
 @frappe.whitelist()
@@ -123,15 +134,15 @@ def read_now(entry: str) -> str:
 
 	# last read's outcome goes too, so the review never mixes it with this read's
 	doc.db_set(
-		{"extraction_status": "Started", "extraction_error": None, "skipped_values": None},
+		{
+			"extraction_status": "Started",
+			"extraction_error": None,
+			"extracted_values": None,
+			"skipped_values": None,
+		},
 		update_modified=False,
 	)
-	frappe.enqueue(
-		"frappe.core.doctype.attachment_queue.extraction.start",
-		queue="long",
-		enqueue_after_commit=True,
-		entry=doc.name,
-	)
+	enqueue_extraction(doc.name)
 	return "Started"
 
 
@@ -287,9 +298,6 @@ def coerce(df, value: Any) -> Any:
 	The model is an untrusted client here: anything it sends that the field would reject is
 	turned away, so the form is never filled with a value that blocks saving it.
 	"""
-	if value is None or (isinstance(value, str) and not value.strip()):
-		return None
-
 	if df.fieldtype in NUMERIC_FIELDTYPES:
 		return parse_number(df.fieldtype, value)
 	if df.fieldtype == "Check":
@@ -345,16 +353,9 @@ def extraction_complete(run) -> None:
 	doc = frappe.get_doc(QUEUE_DOCTYPE, run.reference_name)
 	if run.status == "Completed" and doc.extracted_values:
 		doc.db_set({"extraction_status": "Completed", "extraction_error": None}, update_modified=False)
+		publish_queue_update(doc.document_type)
 	else:
 		fail(doc, run.error or _("Flow did not report any field values for this file."))
-
-	# after commit: a review waiting on this reads the entry back, so it must be written first
-	frappe.publish_realtime(
-		"attachment_queue_extraction",
-		{"entry": doc.name, "status": doc.extraction_status},
-		user=doc.owner,
-		after_commit=True,
-	)
 
 
 def fail(doc, error: str) -> None:
@@ -362,6 +363,7 @@ def fail(doc, error: str) -> None:
 		{"extraction_status": "Failed", "extraction_error": readable_error(error)},
 		update_modified=False,
 	)
+	publish_queue_update(doc.document_type)
 
 
 def readable_error(error: str | None) -> str:
@@ -385,22 +387,30 @@ def readable_error(error: str | None) -> str:
 
 
 def ensure_agent() -> Agent:
-	"""The extraction agent, written to the site if it is not there yet.
-
-	Its model is set once, from the first enabled Flow Model; switching it afterwards is the
-	site's choice, the same as for the Assistant.
-	"""
+	"""The extraction agent, written to the site if it is not there yet, or if its model is gone."""
 	model = frappe.db.get_value("Flow Agent", AGENT_NAME, "model")
-	synced = bool(model) and frappe.db.exists("Flow Model", model)
+	if model and frappe.db.exists("Flow Model", model):
+		return extraction_agent(model)
 
-	model = model or frappe.db.get_value("Flow Model", {"enabled": 1}, "name")
-	if not model:
+	agents = flow_agents()
+	if not agents:
 		frappe.throw(
 			_("Add an enabled Flow Model before reading files with Flow."),
 			title=_("No Flow Model"),
 		)
+	agents[0].sync()
+	return agents[0]
 
-	agent = Agent(
+
+def flow_agents() -> list[Agent]:
+	"""flow_agents hook: the extraction agent, once the site has a model to run it on. Its model
+	is set once; switching it afterwards is the site's choice, the same as for the Assistant."""
+	model = frappe.db.get_value("Flow Model", {"enabled": 1}, "name")
+	return [extraction_agent(model)] if model else []
+
+
+def extraction_agent(model: str) -> Agent:
+	return Agent(
 		name=AGENT_TITLE,
 		model=model,
 		description=_("Reads a queued file and reports the field values it states."),
@@ -409,13 +419,3 @@ def ensure_agent() -> Agent:
 		max_iterations=MAX_ITERATIONS,
 		auto_approve=True,
 	)
-	if not synced:
-		agent.sync()
-	return agent
-
-
-def sync_agent() -> None:
-	"""after_install and after_migrate: give the site the agent to configure, once it has a
-	model to run it on. Without one there is nothing to configure yet."""
-	if frappe.db.exists("Flow Model", {"enabled": 1}):
-		ensure_agent()

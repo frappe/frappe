@@ -57,14 +57,11 @@ class AttachmentQueue(Document):
 		if self.extraction_status != "Started":
 			return
 
+		from frappe.core.doctype.attachment_queue.extraction import enqueue_extraction
+
 		# After commit, so the worker reads a row whose File is already attached to it: the
 		# upload leaves the File an orphan, and attach_files_to_document claims it on insert.
-		frappe.enqueue(
-			"frappe.core.doctype.attachment_queue.extraction.start",
-			queue="long",
-			enqueue_after_commit=True,
-			entry=self.name,
-		)
+		enqueue_extraction(self.name)
 
 	def validate_document_type(self):
 		if not frappe.get_meta(self.document_type).get("enable_upload_first_workflow"):

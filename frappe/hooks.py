@@ -18,7 +18,6 @@ after_install = [
 	"frappe.utils.install.after_install",
 	"frappe.flow.permissions.ensure_flow_role",
 	"frappe.flow.assistant.sync_builtin_assistant",
-	"frappe.core.doctype.attachment_queue.extraction.sync_agent",
 	"frappe.flow.daemon.lifecycle.after_install",
 ]
 after_app_install = [
@@ -419,12 +418,13 @@ after_migrate = [
 	"frappe.studio.sync.after_migrate",
 	"frappe.flow.permissions.ensure_flow_role",
 	"frappe.flow.assistant.sync_builtin_assistant",
-	"frappe.core.doctype.attachment_queue.extraction.sync_agent",
 	"frappe.flow.lib.agent.sync_agents",
 	"frappe.flow.lib.agent.sync_tools",
 	"frappe.flow.lib.trigger.sync_triggers",
 	"frappe.flow.daemon.lifecycle.after_migrate",
 ]
+
+flow_agents = ["frappe.core.doctype.attachment_queue.extraction.flow_agents"]
 
 otp_methods = ["OTP App", "Email", "SMS"]
 

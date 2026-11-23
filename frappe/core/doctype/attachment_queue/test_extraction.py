@@ -23,6 +23,34 @@ from frappe.utils.file_manager import save_file
 TARGET_DOCTYPE = "ToDo"
 
 
+def set_target(test, **settings):
+	"""Set `settings` on the target DocType for the length of `test`."""
+	original = frappe.db.get_value("DocType", TARGET_DOCTYPE, list(settings), as_dict=True)
+	frappe.db.set_value("DocType", TARGET_DOCTYPE, settings)
+	frappe.clear_cache(doctype=TARGET_DOCTYPE)
+	test.addCleanup(restore_target, original)
+
+
+def restore_target(original):
+	# A schema change inside a test commits, so putting this back has to commit too.
+	# Rolling back first keeps that commit from carrying the test's own rows with it.
+	frappe.db.rollback()
+	frappe.db.set_value("DocType", TARGET_DOCTYPE, original)
+	frappe.db.commit()  # nosemgrep
+	frappe.clear_cache(doctype=TARGET_DOCTYPE)
+
+
+def make_entry(**fields):
+	return frappe.get_doc(
+		{
+			"doctype": QUEUE_DOCTYPE,
+			"document_type": TARGET_DOCTYPE,
+			"source_file": "/private/files/not-read.pdf",
+			**fields,
+		}
+	).insert()
+
+
 class TestFieldSchema(IntegrationTestCase):
 	"""What the agent is told it may fill in."""
 
@@ -168,41 +196,15 @@ class TestReadNow(IntegrationTestCase):
 	"""Reading a file the review opens, whatever happened to it before."""
 
 	def setUp(self):
-		self.original = {
-			field: frappe.db.get_value("DocType", TARGET_DOCTYPE, field)
-			for field in ("enable_upload_first_workflow", "enable_flow_extraction")
-		}
-		frappe.db.set_value(
-			"DocType",
-			TARGET_DOCTYPE,
-			{"enable_upload_first_workflow": 1, "enable_flow_extraction": 1},
-		)
-		frappe.clear_cache(doctype=TARGET_DOCTYPE)
-		self.addCleanup(self.restore)
+		set_target(self, enable_upload_first_workflow=1, enable_flow_extraction=1)
 		# the worker is never reached: these tests are about which entries are offered to it
 		self.enqueue = self.enterContext(patch("frappe.enqueue"))
-
-	def restore(self):
-		frappe.db.rollback()
-		frappe.db.set_value("DocType", TARGET_DOCTYPE, self.original)
-		frappe.db.commit()  # nosemgrep
-		frappe.clear_cache(doctype=TARGET_DOCTYPE)
-
-	def make_entry(self, **fields):
-		return frappe.get_doc(
-			{
-				"doctype": QUEUE_DOCTYPE,
-				"document_type": TARGET_DOCTYPE,
-				"source_file": "/private/files/not-read.pdf",
-				**fields,
-			}
-		).insert()
 
 	def test_an_uploaded_entry_keeps_its_file_for_the_worker(self):
 		with self.set_user("test@example.com"):
 			unique = uuid4().hex[:8]
 			file_doc = save_file(f"{unique}.pdf", minimal_pdf(unique), None, None, is_private=1)
-			entry = self.make_entry(source_file=file_doc.file_url)
+			entry = make_entry(source_file=file_doc.file_url)
 
 			self.assertEqual(entry.extraction_status, "Started")
 			self.assertEqual(queued_file(entry), file_doc.name)
@@ -210,7 +212,7 @@ class TestReadNow(IntegrationTestCase):
 
 	def test_reads_an_entry_that_was_never_offered_to_flow(self):
 		# an entry uploaded before its DocType asked for extraction
-		entry = self.make_entry()
+		entry = make_entry()
 		entry.db_set({"extraction_status": None}, update_modified=False)
 		self.enqueue.reset_mock()
 
@@ -221,7 +223,7 @@ class TestReadNow(IntegrationTestCase):
 		self.enqueue.assert_called_once()
 
 	def test_reads_an_entry_whose_read_failed(self):
-		entry = self.make_entry()
+		entry = make_entry()
 		entry.db_set({"extraction_status": "Failed", "extraction_error": "no credit"}, update_modified=False)
 		self.enqueue.reset_mock()
 
@@ -235,7 +237,7 @@ class TestReadNow(IntegrationTestCase):
 	def test_leaves_an_entry_that_is_already_read_or_being_read(self):
 		for status in ("Started", "Completed"):
 			with self.subTest(status=status):
-				entry = self.make_entry()
+				entry = make_entry()
 				entry.db_set({"extraction_status": status}, update_modified=False)
 				self.enqueue.reset_mock()
 
@@ -243,7 +245,7 @@ class TestReadNow(IntegrationTestCase):
 				self.enqueue.assert_not_called()
 
 	def test_reads_nothing_when_the_doctype_does_not_ask_for_it(self):
-		entry = self.make_entry()
+		entry = make_entry()
 		entry.db_set({"extraction_status": None}, update_modified=False)
 		frappe.db.set_value("DocType", TARGET_DOCTYPE, "enable_flow_extraction", 0)
 		frappe.clear_cache(doctype=TARGET_DOCTYPE)
@@ -257,29 +259,12 @@ class TestExtractionComplete(IntegrationTestCase):
 	"""The three statuses an entry moves through."""
 
 	def setUp(self):
-		original = frappe.db.get_value("DocType", TARGET_DOCTYPE, "enable_upload_first_workflow")
-		frappe.db.set_value("DocType", TARGET_DOCTYPE, "enable_upload_first_workflow", 1)
-		frappe.clear_cache(doctype=TARGET_DOCTYPE)
-		self.addCleanup(self.restore_upload_first, original)
+		set_target(self, enable_upload_first_workflow=1)
 
 		# Extraction stays off, so inserting the entry does not queue a worker: these tests
 		# are about what the run's outcome does to the entry, not about reading a file.
-		self.entry = frappe.get_doc(
-			{
-				"doctype": QUEUE_DOCTYPE,
-				"document_type": TARGET_DOCTYPE,
-				"source_file": "/private/files/not-read.pdf",
-				"extraction_status": "Started",
-			}
-		).insert()
-
-	def restore_upload_first(self, original):
-		# A schema change inside a test commits, so putting this back has to commit too.
-		# Rolling back first keeps that commit from carrying the test's own rows with it.
-		frappe.db.rollback()
-		frappe.db.set_value("DocType", TARGET_DOCTYPE, "enable_upload_first_workflow", original)
-		frappe.db.commit()  # nosemgrep
-		frappe.clear_cache(doctype=TARGET_DOCTYPE)
+		self.entry = make_entry()
+		self.entry.db_set("extraction_status", "Started", update_modified=False)
 
 	def run_for(self, status, error=None):
 		return frappe._dict(

@@ -4,7 +4,6 @@ import { queued_file_name } from "../utils/queued_file.js";
 frappe.provide("frappe.ui.form.upload_first_review");
 
 const QUEUE_DOCTYPE = "Attachment Queue";
-const EXTRACTION_EVENT = "attachment_queue_extraction";
 
 // The unsaved document each entry is being written into, by entry name. Picking an
 // entry up again returns to that document instead of starting a new one, so a
@@ -66,6 +65,7 @@ frappe.ui.form.upload_first_review.open = function (frm, entry) {
 	// such as having closed the file
 	const running = frm.upload_first_review;
 	if (!running || running.docname !== frm.docname || running.entry.name !== entry.name) {
+		if (running) stop_waiting(running);
 		frm.upload_first_review = { entry, file_url, docname: frm.docname, closed: false };
 	}
 
@@ -91,8 +91,11 @@ function fill_from_file(frm) {
 		])
 		.then(({ message }) => {
 			if (!message || frm.upload_first_review !== review || review.closed) return;
+			// the form is shared by every document of its DocType
+			if (frm.docname !== review.docname) return;
 
 			if (message.extraction_status === "Started") return wait_for_file(frm);
+			stop_waiting(review);
 			if (message.extraction_status === "Completed") {
 				apply_values(frm, extracted_values(message.extracted_values));
 				return report_skipped(frm, extracted_values(message.skipped_values));
@@ -161,13 +164,19 @@ function extracted_values(raw) {
 }
 
 /**
- * The reading is still running, so wait for it instead of leaving the form empty. The
- * values arrive once, for this entry, while the review is open.
+ * The reading is still running, so wait for it instead of leaving the form empty. Every
+ * change to the DocType's queue reads the entry back, until it is no longer being read.
  */
 function wait_for_file(frm) {
 	const review = frm.upload_first_review;
 	if (review.waiting) return;
-	review.waiting = true;
+
+	const document_type = review.entry.document_type;
+	review.waiting = (data) => {
+		if (data?.document_type === document_type) fill_from_file(frm);
+	};
+	frappe.realtime.doctype_subscribe(document_type);
+	frappe.realtime.on("attachment_queue_update", review.waiting);
 
 	frappe.show_alert({
 		message: __("Reading {0}. The form fills in once it is read.", [
@@ -175,23 +184,18 @@ function wait_for_file(frm) {
 		]),
 		indicator: "blue",
 	});
-
-	// the reading is over either way: read the entry back and fill in or explain
-	frappe.realtime.on(EXTRACTION_EVENT, ({ entry }) => {
-		if (entry !== review.entry.name || review.closed) return;
-		stop_waiting(review);
-		fill_from_file(frm);
-	});
 }
 
 function stop_waiting(review) {
 	if (!review.waiting) return;
-	review.waiting = false;
-	frappe.realtime.off(EXTRACTION_EVENT);
+	frappe.realtime.off("attachment_queue_update", review.waiting);
+	frappe.realtime.doctype_unsubscribe(review.entry.document_type);
+	review.waiting = null;
 }
 
 /**
  * Fill in the fields the file states, leaving alone any the reader has already answered.
+ * A field still holding the value every new document starts with is not an answer.
  * Only an unsaved document is filled: once saved, its values are the reader's.
  */
 function apply_values(frm, values) {
@@ -199,7 +203,12 @@ function apply_values(frm, values) {
 
 	const filled = {};
 	for (const [fieldname, value] of Object.entries(values)) {
-		if (frm.get_field(fieldname) && !frm.doc[fieldname]) filled[fieldname] = value;
+		const field = frm.get_field(fieldname);
+		if (!field) continue;
+		const current = frm.doc[fieldname];
+		if (!current || current == frappe.model.get_default_value(field.df, frm.doc)) {
+			filled[fieldname] = value;
+		}
 	}
 
 	const fieldnames = Object.keys(filled);
