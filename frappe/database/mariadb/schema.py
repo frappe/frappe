@@ -81,9 +81,6 @@ class MariaDBTable(DBTable):
 		if alter_pk := self.alter_primary_key():
 			modify_column_query.append(alter_pk)
 
-		modify_column_query.extend(
-			[f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)" for col in self.add_unique]
-		)
 		add_index_query = [
 			f"ADD INDEX `{col.fieldname}_index`(`{col.fieldname}`)"
 			for col in self.add_index
@@ -147,6 +144,19 @@ class MariaDBTable(DBTable):
 
 		# drop each index only once
 		drop_index_query = list(dict.fromkeys(drop_index_query))
+
+		for col in self.add_unique:
+			drop_name_clash = f"DROP INDEX `{col.fieldname}`"
+			if drop_name_clash not in drop_index_query and frappe.db.sql(
+				f"SHOW INDEX FROM `{self.table_name}` WHERE Key_name = %s AND Non_unique = 1", col.fieldname
+			):
+				modify_column_query.append(
+					f"{drop_name_clash}, ADD UNIQUE INDEX `{col.fieldname}` (`{col.fieldname}`)"
+				)
+			else:
+				modify_column_query.append(
+					f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)"
+				)
 
 		for col in self.change_nullability:
 			if col.not_nullable:
