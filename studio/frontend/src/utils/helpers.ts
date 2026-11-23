@@ -1,4 +1,4 @@
-import { Ref } from "vue"
+import { Ref, toRaw } from "vue"
 import { createDocumentResource, createResource, dialog } from "frappe-ui"
 import { toast } from "frappe-ui"
 
@@ -13,6 +13,9 @@ function isEditor() {
 }
 
 function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {
+	// Read the raw object, not the Vue reactive proxy. It is not necessary for Vue to track
+	// a copy, and it is much slower to read through the proxy.
+	obj = toRaw(obj)
 	if (!obj || typeof obj !== "object") {
 		return obj
 	}

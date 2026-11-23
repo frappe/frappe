@@ -1,4 +1,4 @@
-import { reactive, toRaw } from "vue"
+import { reactive } from "vue"
 import Block from "./block"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { deepCloneObject } from "@/utils/helpers"
@@ -140,21 +140,8 @@ function getBlockCopy(block: BlockOptions | Block, retainId = false): Block {
 	return getBlockInstance(b, retainId)
 }
 
-function getBlockCopyWithoutParent(block: BlockOptions | Block) {
-	const rawBlock = toRaw(block)
-	const blockCopy = deepCloneObject(rawBlock, ["parentBlock"]) as BlockOptions
-	delete blockCopy.parentBlock
-	delete blockCopy.slotScope
-	delete blockCopy.componentContext
-
-	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
-
-	// remove parentBlock reference for slot children
-	for (const slot of Object.values(blockCopy.componentSlots || {})) {
-		slot.slotContent = slot.slotContent.map(getBlockCopyWithoutParent) as Block[]
-	}
-
-	return blockCopy
+function getBlockCopyWithoutParent(block: BlockOptions | Block): BlockOptions {
+	return deepCloneObject(block, ["parentBlock", "slotScope", "componentContext"])
 }
 
 export {
