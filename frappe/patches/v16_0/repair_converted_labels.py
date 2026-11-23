@@ -16,10 +16,11 @@ CONVERTED_LABEL_MARKERS = (':&nbsp;"', "&amp;%</span> {{ ", "&amp;%</span> <span
 
 def execute():
 	"""Print Designer formats converted before the converter decoded labels still store
-	its entities and print them literally. A conversion keeps its design on the record;
-	without the app's fields, the labels it wrote are the only mark left."""
+	its entities and print them literally. A conversion keeps its design on the record,
+	and uninstalling the app leaves that column. Once the design is deleted, the labels
+	it wrote are the only mark left."""
 	or_filters = [["format_data", "like", f"%{marker}%"] for marker in CONVERTED_LABEL_MARKERS]
-	if frappe.get_meta("Print Format").has_field("print_designer_body"):
+	if frappe.db.has_column("Print Format", "print_designer_body"):
 		or_filters.append(["print_designer_body", "is", "set"])
 	names = frappe.get_all(
 		"Print Format",
