@@ -13,6 +13,7 @@
   "column_break_aroi",
   "app_home",
   "favicon",
+  "show_on_desktop",
   "export_section",
   "is_standard",
   "frappe_app",
@@ -41,6 +42,13 @@
    "fieldname": "favicon",
    "fieldtype": "Attach Image",
    "label": "Favicon"
+  },
+  {
+   "default": "1",
+   "description": "Show this app on the desktop and in the app switcher",
+   "fieldname": "show_on_desktop",
+   "fieldtype": "Check",
+   "label": "Show on Desktop"
   },
   {
    "fieldname": "app_name",
@@ -93,7 +101,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-11-15 11:48:08.507712",
+ "modified": "2026-11-23 15:50:12.772511",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",
