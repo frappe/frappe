@@ -916,6 +916,30 @@ class TestClassicConverter(IntegrationTestCase):
 		format_data = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
 		self.assertEqual(frappe.parse_json(format_data).get("page"), {"size": "A5"})
 
+	def test_repair_decodes_converted_print_designer_labels(self):
+		from frappe.patches.v16_0.repair_converted_print_formats import repair_converted_labels
+
+		doc = self.make_classic_format()
+		fields = [
+			{"label": "In Words :&nbsp;", "fieldname": "first_name"},
+			{"label": "Roles", "fieldname": "roles", "table_columns": [{"label": "R&amp;D"}]},
+		]
+		doc.db_set(
+			{
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json({"sections": [{"columns": [{"fields": fields}]}]}),
+			}
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		repair_converted_labels()
+
+		format_data = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
+		repaired = frappe.parse_json(format_data)["sections"][0]["columns"][0]["fields"]
+		self.assertEqual(repaired[0]["label"], "In Words")
+		self.assertEqual(repaired[1]["table_columns"][0]["label"], "R&D")
+
 	def test_migration_skips_corrupt_format(self):
 		"""A format with unparseable format_data is skipped, not fatal to the run."""
 		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
