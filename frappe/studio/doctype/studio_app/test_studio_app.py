@@ -210,12 +210,12 @@ class TestStudioApp(FrappeTestCase):
 			# a path no renderer owns must still resolve, not fail on a Studio App lookup
 			self.assertEqual(get_website_response("login").status_code, 200)
 
-	def test_hide_on_desktop_keeps_a_served_app_off_the_desktop(self):
+	def test_hide_from_desktop_keeps_a_served_app_off_the_desktop(self):
 		app = make_studio_app(app_title="Hidden App", app_name="hidden-app")
 		make_studio_page(app.name, published=1, allow_guest=1)
 		self.assertIn(app.name, [row.name for row in get_desktop_apps()])
 
-		app.db_set("hide_on_desktop", 1)
+		app.db_set("hide_from_desktop", 1)
 		self.assertNotIn(app.name, [row.name for row in get_desktop_apps()])
 		self.assertTrue(app.is_website_published())
 
