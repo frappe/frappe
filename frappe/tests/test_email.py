@@ -308,6 +308,10 @@ class TestEmail(IntegrationTestCase):
 			("jane@customer.example", "Support <support@example.com>"),
 			('"jane@customer.example" <jane@customer.example>', "Support <support@example.com>"),
 			("=?utf-8?q?jane=40customer.example?= <jane@customer.example>", "Support <support@example.com>"),
+			(
+				"=?utf-8?b?PT91dGYtOD9xP2phbmU9NDBjdXN0b21lci5leGFtcGxlPz0=?= <jane@customer.example>",
+				"Support <support@example.com>",
+			),
 			("support@example.com", "Support <support@example.com>"),
 			("Jane Doe <jane@customer.example>", "Jane Doe <support@example.com>"),
 			("Support <support@example.com>", "Support <support@example.com>"),
