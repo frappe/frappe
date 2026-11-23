@@ -18,7 +18,10 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
 		if (!value) {
+			// clearing the picker fires onSelect: don't report it as a user change (marks the form dirty)
+			this._suppress_change = true;
 			this.datepicker.clear();
+			this._suppress_change = false;
 			this.datepicker.date = this.get_now_date();
 			return;
 		}
