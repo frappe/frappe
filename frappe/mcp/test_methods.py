@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import base64
 from unittest.mock import Mock, patch
 
 import frappe
@@ -52,6 +53,73 @@ class TestCallMethod(McpTestCase):
 			method="frappe.client.get_count", args={"doctype": "ToDo", "filters": {"name": self.own}}
 		)
 		self.assertEqual(result["result"], 1)
+
+	def test_json_answer_is_one_text_block(self):
+		response = self.invoke(method="frappe.client.get_count", args={"doctype": "ToDo"})
+		self.assertEqual([block["type"] for block in response.json["result"]["content"]], ["text"])
+		self.assertNotIn("file", response.json["result"]["structuredContent"])
+
+	def test_image_answer_reaches_the_model(self):
+		for response_type, filename, content_type, mime_type in (
+			("download", "chart.png", None, "image/png"),
+			("binary", "chart", None, "image/png"),
+			("download", "chart.jpg", "image/jpeg", "image/png"),
+		):
+			with self.subTest(response_type=response_type):
+				response = self.invoke(
+					method=f"{__name__}.file_method",
+					args={"response_type": response_type, "filename": filename, "content_type": content_type},
+				)
+				result = response.json["result"]
+				self.assertFalse(result["isError"], result)
+				self.assertEqual(result["content"][1], {"type": "image", "data": PNG, "mimeType": mime_type})
+				self.assertEqual(
+					result["structuredContent"],
+					{
+						"result": None,
+						"file": {"filename": filename, "mimeType": mime_type, "size": len(PNG_BYTES)},
+					},
+				)
+
+	def test_document_method_image_answer(self):
+		frappe.share.add("User", self.user, user=self.user, read=1, write=1, notify=0)
+		with patch.object(User, "mcp_image", image_document_method, create=True):
+			response = self.invoke(
+				tool="call_document_method", doctype="User", name=self.user, method="mcp_image"
+			)
+		result = response.json["result"]
+		self.assertEqual(result["content"][1]["data"], PNG)
+		self.assertEqual(result["structuredContent"]["document"]["name"], self.user)
+
+	def test_non_image_download_describes_the_file(self):
+		for response_type, filename, content, mime_type in (
+			("download", "report.csv", "a,b\n1,2\n", "text/csv"),
+			("pdf", "invoice.pdf", "%PDF-1.4", "application/pdf"),
+			("download", "broken.png", "not an image", "image/png"),
+		):
+			with self.subTest(filename=filename):
+				response = self.invoke(
+					method=f"{__name__}.file_method",
+					args={"response_type": response_type, "filename": filename, "content": content},
+				)
+				result = response.json["result"]
+				self.assertEqual([block["type"] for block in result["content"]], ["text"])
+				self.assertEqual(
+					result["structuredContent"],
+					{
+						"result": None,
+						"file": {"filename": filename, "mimeType": mime_type, "size": len(content)},
+					},
+				)
+
+	def test_oversize_image_is_an_error(self):
+		response = self.invoke(method=f"{__name__}.file_method", args={"size": 4 * 1024 * 1024})
+		result = response.json["result"]
+		self.assertTrue(result["isError"])
+		self.assertEqual(
+			result["content"],
+			[{"type": "text", "text": "The image is 5.3 MB as base64; MCP results carry images up to 5 MB."}],
+		)
 
 	def test_rpc_preserves_document_permissions(self):
 		response = self.invoke(method="frappe.client.get", args={"doctype": "ToDo", "name": self.private})
@@ -278,6 +346,32 @@ class TestCallMethod(McpTestCase):
 		self.assertEqual(response.json["result"]["content"][0]["text"], "Failure after transaction")
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "MCP method fixture")
 		callback.assert_not_called()
+
+
+PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
+PNG_BYTES = base64.b64decode(PNG)
+
+
+@whitelist_for_tests(methods=["GET"])
+def file_method(
+	response_type: str = "download",
+	filename: str = "chart.png",
+	content_type: str | None = None,
+	content: str | None = None,
+	size: int | None = None,
+):
+	frappe.response.type = response_type
+	frappe.response.filename = filename
+	frappe.response.filecontent = PNG_BYTES + bytes(size) if size else content or PNG_BYTES
+	if content_type:
+		frappe.response.content_type = content_type
+
+
+@whitelist_for_tests(methods=["POST"])
+def image_document_method(self):
+	frappe.response.type = "download"
+	frappe.response.filename = "avatar.png"
+	frappe.response.filecontent = PNG_BYTES
 
 
 @whitelist_for_tests(methods=["POST"])
