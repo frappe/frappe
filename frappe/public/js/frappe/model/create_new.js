@@ -100,7 +100,8 @@ $.extend(frappe.model, {
 			let v = frappe.model.get_default_value(f, doc, parent_doc);
 			if (v) {
 				if (["Int", "Check"].includes(f.fieldtype)) v = cint(v);
-				else if (["Currency", "Float", "Percent"].includes(f.fieldtype)) v = flt(v, null, "#,###.##");
+				else if (["Currency", "Float", "Percent"].includes(f.fieldtype))
+					v = flt(v, null, "#,###.##");
 
 				doc[f.fieldname] = v;
 				updated.push(f.fieldname);
