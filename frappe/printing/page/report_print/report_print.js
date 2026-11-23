@@ -240,10 +240,12 @@ frappe.views.ReportPrintView = class ReportPrintView {
 	}
 
 	save_print_columns() {
-		frappe.model.user_settings.save(this.report.report_name, "print_columns", {
+		const settings = frappe.model.user_settings[this.report.report_name];
+		settings.print_columns = {
 			pick_columns: this.pick_columns_field.get_value(),
 			fieldnames: this.columns_field.get_checked_options(),
-		});
+		};
+		frappe.model.user_settings.update(this.report.report_name, settings);
 		this.refresh();
 	}
 
