@@ -156,7 +156,7 @@ class TestAddress(IntegrationTestCase):
 				user=user.name,
 				links=[{"link_doctype": "User", "link_name": "Guest"}],
 			)
-			second_contact.add_email(user.email.upper(), is_primary=True)
+			second_contact.add_email(user.email, is_primary=True)
 			second_contact.insert()
 			frappe.get_doc(
 				doctype="Contact",
