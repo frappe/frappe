@@ -12,9 +12,16 @@ from bs4 import BeautifulSoup
 import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
-from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
+from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones, zone_repeats, zone_show_on
 from frappe.utils.data import cint, cstr, flt
 from frappe.utils.jinja_globals import is_rtl
+
+ZONE_PAGE_CLASSES = {
+	"first_page": "visible-first-page",
+	"last_page": "visible-last-page",
+	"after_first_page": "hidden-first-page",
+}
+OVERLAY_VALUE_SELECTOR = ".page, .topage, .date, .isodate, .time"
 
 
 @frappe.whitelist()
@@ -651,13 +658,20 @@ class PrintFormatGenerator:
 	# ----- HTML preview (browser printview) ------------------------------
 
 	def get_html_preview(self, action_banner=None, trigger_print=False):
-		repeat = self.print_settings.repeat_header_footer
-		frame_header = self._render_overlay("header", with_page_no=False) if repeat else None
-		frame_footer = self._render_overlay("footer", with_page_no=False) if repeat else None
-		if repeat and (frame_header or frame_footer):
+		header_repeats = self._zone_repeats("header", in_preview=True)
+		footer_repeats = self._zone_repeats("footer", in_preview=True)
+		frame_header = self._render_overlay("header", with_page_no=False) if header_repeats else None
+		frame_footer = self._render_overlay("footer", with_page_no=False) if footer_repeats else None
+		if frame_header or frame_footer:
 			self.context.repeat_frame = True
 			self.context.frame_header = frame_header or ""
 			self.context.frame_footer = frame_footer or ""
+			self.context.once_header = (
+				"" if header_repeats else self._render_overlay("header", with_page_no=False) or ""
+			)
+			self.context.once_footer = (
+				"" if footer_repeats else self._render_overlay("footer", with_page_no=False) or ""
+			)
 			self.context.header = ""
 			self.context.footer = ""
 		else:
@@ -846,7 +860,9 @@ class PrintFormatGenerator:
 						write(name, data, "wb")
 
 			heights = {"pfhdr": 0.0, "pfftr": 0.0}
-			if repeat and (emitter.header_src or emitter.footer_src):
+			if (self._zone_repeats("header") and emitter.header_src) or (
+				self._zone_repeats("footer") and emitter.footer_src
+			):
 				write_assets(emitter.assets)
 				measure_path = write("measure.typ", emitter.measure_source())
 				for label in list(heights):
@@ -882,6 +898,8 @@ class PrintFormatGenerator:
 		    (appear on page 1 / last page only via ``chrome_layout_header/footer``).
 		  - Page numbers → still placed in a minimal ``#header-html`` / ``#footer-html``
 		    overlay so they continue to repeat on every page if the user enabled them.
+
+		A zone's own ``show_on`` takes precedence over the setting.
 		"""
 		self.context.for_chrome = True
 		self._header_absorbs_top_margin = False
@@ -889,29 +907,31 @@ class PrintFormatGenerator:
 		self.context.header_height = 0
 		self.context.footer_height = 0
 
-		repeat = self.print_settings.repeat_header_footer
-
-		if repeat:
-			header = self._render_overlay("header")
-			footer = self._render_overlay("footer")
-			self.context.header = f'<div id="header-html">{header}</div>' if header else ""
-			self.context.footer = f'<div id="footer-html">{footer}</div>' if footer else ""
-			self.context.chrome_layout_header = ""
-			self.context.chrome_layout_footer = ""
-		else:
+		for kind in ("header", "footer"):
+			repeats = self._zone_repeats(kind)
 			# Letterhead + layout content → inline (once only, no repeat).
-			self.context.chrome_layout_header = self._render_overlay("header", with_page_no=False) or ""
-			footer_once = self._render_overlay("footer", with_page_no=False)
-			self.context.chrome_layout_footer = (
-				f'<div class="print-footer-once">{footer_once}</div>' if footer_once else ""
-			)
-			# Page numbers → minimal overlay so they still repeat on every page.
-			page_no_header = self._render_page_no_overlay("header")
-			page_no_footer = self._render_page_no_overlay("footer")
-			self.context.header = f'<div id="header-html">{page_no_header}</div>' if page_no_header else ""
-			self.context.footer = f'<div id="footer-html">{page_no_footer}</div>' if page_no_footer else ""
+			once = "" if repeats else self._render_overlay(kind, with_page_no=False) or ""
+			# only the overlay gets its page number and date filled in
+			if zone_show_on(self.layout or {}, kind) and BeautifulSoup(once, "html.parser").select_one(
+				OVERLAY_VALUE_SELECTOR
+			):
+				repeats, once = True, ""
+			if repeats:
+				overlay = self._render_overlay(kind)
+			else:
+				if once and kind == "footer":
+					once = f'<div class="print-footer-once">{once}</div>'
+				# Page numbers → minimal overlay so they still repeat on every page.
+				overlay = self._render_page_no_overlay(kind)
+			self.context[kind] = f'<div id="{kind}-html">{overlay}</div>' if overlay else ""
+			self.context[f"chrome_layout_{kind}"] = once
 
 		return self.get_main_html()
+
+	def _zone_repeats(self, kind: str, in_preview: bool = False) -> bool:
+		return zone_repeats(
+			self.layout or {}, kind, cint(self.print_settings.get("repeat_header_footer")), in_preview
+		)
 
 	def _reserve_top_margin(self, html: str) -> str:
 		"""Reserve the page's top margin *below* the page number.
@@ -985,14 +1005,16 @@ class PrintFormatGenerator:
 				zone_html = self._render_zone_section(layout_template, ctx["doc"], zone_class)
 			if zone_html:
 				body_parts.append(zone_html)
+		page_class = ZONE_PAGE_CLASSES.get(zone_show_on(self.layout or {}, kind))
+		if page_class and body_parts:
+			balanced = BeautifulSoup("\n".join(body_parts), "html.parser")
+			body_parts = [f'<div class="{page_class}">{balanced}</div>']
 		if not is_header and page_no_html:
 			body_parts.append(page_no_html)
 
 		if is_header and page_no_html:
 			body_parts = [self._reserve_top_margin("\n".join(body_parts))]
 		parts.extend(body_parts)
-
-		from bs4 import BeautifulSoup
 
 		# Jinja branches can leave a tag open; unbalanced, the PDF parser folds the body into the overlay.
 		return str(BeautifulSoup("\n".join(parts), "html.parser")) or None

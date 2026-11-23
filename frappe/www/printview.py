@@ -100,8 +100,11 @@ def get_context(context) -> PrintContext:
 	if standalone:
 		validate_print_permission(doc)
 
+		from frappe.printing.layout import has_page_specific_zone
 		from frappe.utils.print_format_generator import get_html
 
+		context["print_from_pdf"] = has_page_specific_zone(getattr(print_format, "format_data", None))
+		context["open_pdf"] = context["print_from_pdf"] and cint(frappe.form_dict.trigger_print)
 		body = get_html(
 			doctype=frappe.form_dict.doctype,
 			name=frappe.form_dict.name,
@@ -110,7 +113,7 @@ def get_context(context) -> PrintContext:
 			letterhead=letterhead,
 			no_letterhead=frappe.form_dict.no_letterhead,
 			style=frappe.form_dict.style,
-			trigger_print=cint(frappe.form_dict.trigger_print),
+			trigger_print=cint(frappe.form_dict.trigger_print) and not context["print_from_pdf"],
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
 			settings=settings,
 			print_filename=context["print_filename"],

@@ -66,6 +66,10 @@
 				@update:model-value="set_image"
 			/>
 		</InspectorSection>
+
+		<InspectorSection v-if="letterhead" :label="__('Pages')">
+			<ZoneShowOnRow :zone="zone" />
+		</InspectorSection>
 	</div>
 </template>
 
@@ -78,6 +82,7 @@ import SegmentedRow from "./SegmentedRow.vue";
 import SliderRow from "./SliderRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
+import ZoneShowOnRow from "./ZoneShowOnRow.vue";
 
 const props = defineProps({
 	zone: { type: String, required: true },

@@ -19,7 +19,7 @@
 
 | Key | Value |
 | --- | --- |
-| `header`, `footer` | A zone: `{"columns": [...]}`. Printed at the top and bottom of every page. Takes the same columns (with `width`) and fields as a section. |
+| `header`, `footer` | A zone: `{"columns": [...]}`. Printed at the top and bottom of the page. Takes the same columns (with `width`) and fields as a section. `show_on` picks the pages: `every_page`, `first_page`, `last_page` or `after_first_page`. Leave it out to follow Print Settings. |
 | `sections` | List of sections, printed in order. |
 | `page` | `size`: a Print Settings `pdf_page_size` value such as `A4`, `A5`, `Letter`, `Legal`. `orientation`: `Portrait` or `Landscape`. Leave it out to use Print Settings. |
 | `letter_head` | Name of a Letter Head. An empty string prints none. Leave the key out to follow the document. |

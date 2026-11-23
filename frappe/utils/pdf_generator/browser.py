@@ -162,6 +162,8 @@ class Browser:
 			"page_info_frompage",
 			"page_info_topage",
 			"visible-last-page",
+			"visible-first-page",
+			"hidden-first-page",
 		]
 
 		# Loop through the classes to check
