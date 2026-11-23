@@ -84,7 +84,7 @@ function quoteDynamicValues(str: string): string {
 }
 
 function getBlockString(block: BlockOptions | Block): string {
-	return jsToJson(getBlockCopyWithoutParent(block))
+	return JSON.stringify(getBlockCopyWithoutParent(block), jsonReplacer)
 }
 
 function getBlockObjectCopy(block: BlockOptions | Block): BlockOptions {
