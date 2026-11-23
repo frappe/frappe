@@ -787,6 +787,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			is_filter: 1,
 			ignore_link_validation: fieldtype === "Dynamic Link",
 			onchange: () => this.on_filter_change(),
+			context: df.parent,
 		};
 	}
 
@@ -1215,7 +1216,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	lane_label(field, lane) {
 		if (lane.unset) return __("Not set");
 		if (field === "_assign") return frappe.user_info(lane.value).fullname || lane.value;
-		return __(lane.label != null ? lane.label : lane.value);
+		return __(lane.label != null ? lane.label : lane.value, null, this.doctype);
 	}
 
 	merge_callbacks(base, custom) {
@@ -1521,22 +1522,22 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (df.fieldtype === "Select") {
 			// badge only for values with a known icon; the preview always uses plain text
 			if (opts.plain_select) {
-				el.textContent = __(val);
-				this.tip_if_long(el, __(val));
+				el.textContent = __(val, null, df.parent);
+				this.tip_if_long(el, __(val, null, df.parent));
 				return el;
 			}
 			const style = this.select_style(val);
 			if (style.icon) {
 				el.className = "min-w-0";
 				el.innerHTML = frappe.ui.badge.html({
-					label: __(val),
+					label: __(val, null, df.parent),
 					size: "md",
 					theme: style.theme,
 					icon: style.icon,
 				});
 			} else {
-				el.textContent = __(val);
-				this.tip_if_long(el, __(val));
+				el.textContent = __(val, null, df.parent);
+				this.tip_if_long(el, __(val, null, df.parent));
 			}
 			return el;
 		}
@@ -1616,7 +1617,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	column_label(column) {
-		return __(column.title || column.id);
+		return column.title || __(column.id, null, this.doctype);
 	}
 
 	/** `engine` is the board the card is on, as a card can sit in two swimlanes. */

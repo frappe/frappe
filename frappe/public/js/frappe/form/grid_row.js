@@ -723,9 +723,6 @@ export default class GridRow {
 				? this._format_static_value(this.doc[df.fieldname], df, this.doc)
 				: __(df.label, null, df.parent);
 
-			if (this.doc && df.fieldtype === "Select") {
-				txt = __(txt);
-			}
 			let column;
 			if (!this.columns[df.fieldname] && !this.show_search) {
 				column = this.make_column(df, width, txt, ci);
