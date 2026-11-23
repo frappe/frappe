@@ -79,15 +79,19 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			frappe.utils.debounce((e) => {
 				this.set_options().then(() => {
 					let txt = e.target.value;
+					let pattern = new RegExp(
+						txt.trim().split("%").map(Awesomplete.$.regExpEscape).join(".*"),
+						"i"
+					);
 					let filtered_options = this._options.filter((opt) => {
 						let match = false;
-						if (this.df.get_data || this.values.includes(opt.value)) {
+						if (this.values.includes(opt.value)) {
 							return true;
 						}
 						match =
-							Awesomplete.FILTER_CONTAINS(opt.label, txt) ||
-							Awesomplete.FILTER_CONTAINS(opt.value, txt) ||
-							Awesomplete.FILTER_CONTAINS(opt.description, txt);
+							pattern.test(opt.label) ||
+							pattern.test(opt.value) ||
+							pattern.test(opt.description);
 
 						return match;
 					});
