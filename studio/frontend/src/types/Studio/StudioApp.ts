@@ -19,7 +19,7 @@ export interface StudioApp {
 	/**	Favicon : Attach Image */
 	favicon?: string
 	/**	Hide from Desktop : Check */
-	hide_from_desktop: 0 | 1
+	hide_on_desktop: 0 | 1
 	/**	Is Standard : Check */
 	is_standard: 0 | 1
 	/**	Frappe App : Target Frappe App for export */

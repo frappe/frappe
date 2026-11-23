@@ -71,8 +71,8 @@
 			<Switch
 				size="sm"
 				aria-label="Hide from Desktop"
-				:modelValue="Boolean(app.hide_from_desktop)"
-				@update:modelValue="(value: boolean) => update('hide_from_desktop', value ? 1 : 0)"
+				:modelValue="Boolean(app.hide_on_desktop)"
+				@update:modelValue="(value: boolean) => update('hide_on_desktop', value ? 1 : 0)"
 			/>
 		</div>
 
@@ -121,7 +121,7 @@ const FIELD_LABELS = {
 	route: "Route",
 	app_home: "App Home",
 	favicon: "Favicon",
-	hide_from_desktop: "Hide from Desktop",
+	hide_on_desktop: "Hide from Desktop",
 }
 
 function update(field: keyof typeof FIELD_LABELS, value: string | number) {
