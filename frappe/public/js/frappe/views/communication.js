@@ -1322,8 +1322,9 @@ frappe.views.CommunicationComposer = class {
 
 		const fields = this.dialog.fields_dict;
 		const lang = fields.print_language?.get_value() || "";
+		const print_format = fields.select_print_format?.get_value();
 		const parts = [
-			fields.select_print_format?.get_value(),
+			print_format && __(print_format),
 			fields.select_letter_head?.get_value(),
 			this._language_labels?.[lang] || lang,
 		];
