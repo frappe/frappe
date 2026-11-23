@@ -92,13 +92,7 @@ class AutoRepeat(Document):
 		self.update_auto_repeat_id()
 		self.unlink_if_applicable()
 
-		default_message = self.meta.get_field("message").default
-		if self.template and self.has_value_changed("template"):
-			template = frappe.get_cached_doc("Email Template", self.template)
-			self.subject = self.subject or template.subject
-			if not self.message or self.message == default_message:
-				self.message = template.response_
-
+		self.set_message_from_template()
 		validate_template(self.subject or "")
 		validate_template(self.message or "")
 
@@ -127,6 +121,21 @@ class AutoRepeat(Document):
 	def unlink_if_applicable(self):
 		if self.status == "Completed" or self.disabled:
 			frappe.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", "")
+
+	def set_message_from_template(self):
+		if not (self.template and self.has_value_changed("template")):
+			return
+
+		template = frappe.get_cached_doc("Email Template", self.template)
+		if self.is_untouched("subject"):
+			self.subject = template.subject
+		if self.is_untouched("message", self.meta.get_field("message").default):
+			self.message = template.response_
+
+	def is_untouched(self, fieldname, default=None):
+		value = self.get(fieldname)
+		saved = self.get_doc_before_save()
+		return not value or value == default or bool(saved and value == saved.get(fieldname))
 
 	def validate_reference_doctype(self):
 		if frappe.in_test or frappe.flags.in_patch:
