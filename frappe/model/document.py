@@ -50,9 +50,9 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.code_fields import CodeFieldGuard
 from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import invalidate_distinct_link_doctypes
+from frappe.model.executable_fields import CodeFieldGuard
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.utils.link_count import notify_link_count

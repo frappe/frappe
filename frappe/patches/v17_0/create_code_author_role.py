@@ -5,6 +5,4 @@ import frappe
 
 def execute():
 	if not frappe.db.exists("Role", "Code Author"):
-		frappe.get_doc({"doctype": "Role", "role_name": "Code Author", "desk_access": 1}).insert(
-			ignore_permissions=True
-		)
+		frappe.get_doc({"doctype": "Role", "role_name": "Code Author"}).insert(ignore_permissions=True)
