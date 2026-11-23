@@ -57,6 +57,7 @@ class CustomizeForm(Document):
 		doc_type: DF.Link | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
+		enable_flow_extraction: DF.Check
 		enable_upload_first_workflow: DF.Check
 		fields: DF.Table[CustomizeFormField]
 		force_private_attachments: DF.Check
@@ -758,6 +759,7 @@ doctype_properties = {
 	"force_private_attachments": "Check",
 	"protect_attached_files": "Check",
 	"enable_upload_first_workflow": "Check",
+	"enable_flow_extraction": "Check",
 	"track_changes": "Check",
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
