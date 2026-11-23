@@ -136,7 +136,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 			const side = `${Math.max(-offset, (frame_width - width * this.zoom) / 2 - offset)}px`;
 			this.zoom_style.textContent = `@media screen { .preview-pages {
 				width: ${width}px;
-				margin: 0 ${rtl ? side : 0} ${container.offsetHeight * (this.zoom - 1)}px ${rtl ? 0 : side};
+				margin: 0 ${rtl ? side : 0} ${container.offsetHeight * (this.zoom - 1) + 80}px ${rtl ? 0 : side};
 				transform: scale(${this.zoom});
 				transform-origin: ${rtl ? "100% 0" : "0 0"};
 			} }`;
