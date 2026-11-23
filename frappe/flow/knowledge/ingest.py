@@ -24,11 +24,13 @@ CHUNK_DOCTYPE = "Flow Knowledge Chunk"
 BATCH = 500
 
 
-def enqueue_ingestion(source: str, rebuild: bool = False) -> None:
+def enqueue_ingestion(source: str, rebuild: bool = False, deduplicate: bool = False) -> None:
 	frappe.enqueue(
 		"frappe.flow.knowledge.ingest.ingest_source",
 		queue="long",
 		enqueue_after_commit=True,
+		job_id=f"flow-knowledge-ingest-{source}" if deduplicate else None,
+		deduplicate=deduplicate,
 		source=source,
 		rebuild=rebuild,
 	)
@@ -53,9 +55,7 @@ def sync_due_sources() -> None:
 		)
 		missing = set(completed) - store.indexed_sources()
 	for source in missing:
-		# no longer Completed, so a slow queue doesn't collect one rebuild a day
-		frappe.db.set_value("Flow Knowledge Source", source, "status", "Pending", update_modified=False)
-		enqueue_ingestion(source, rebuild=True)
+		enqueue_ingestion(source, rebuild=True, deduplicate=True)
 	sources = frappe.get_all(
 		"Flow Knowledge Source",
 		filters={"source_type": "DocType", "auto_sync": 1},
