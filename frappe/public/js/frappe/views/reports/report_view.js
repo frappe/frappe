@@ -1946,8 +1946,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __("User Permissions"),
 				action: () => {
 					const args = {
-						doctype: "Report",
-						name: this.report_name,
+						allow: "Report",
+						for_value: this.report_name,
 					};
 					frappe.set_route("List", "User Permission", args);
 				},
