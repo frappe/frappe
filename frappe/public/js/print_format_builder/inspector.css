@@ -382,6 +382,15 @@ body.pfb-dragging * {
 	padding: 0;
 }
 
+/* quill.scss sets this padding with !important, through these tokens */
+.print-format-doc .ql-code-block-container,
+.print-format-doc .ql-snow .ql-editor .ql-code-block-container {
+	--padding-xs: 0;
+	--padding-sm: 0;
+	background-color: transparent;
+	color: inherit;
+}
+
 .print-format-doc .ql-editor ol {
 	padding-left: revert;
 }
