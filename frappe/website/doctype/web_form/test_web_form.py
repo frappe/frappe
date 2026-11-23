@@ -4,6 +4,7 @@ import json
 
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
+from frappe.core.doctype.user.test_user import test_user
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.permissions import add_permission, add_user_permission, reset_perms
 from frappe.tests import IntegrationTestCase
@@ -738,6 +739,19 @@ class TestWebForm(IntegrationTestCase):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.PermissionError):
 			delete("manage-events", event.name)
+
+	def test_get_form_data_rejects_doctype_other_than_web_forms(self):
+		web_form_name = self.make_temp_web_form().name
+
+		with test_user(roles=["Desk User"]) as user:
+			note = frappe.new_doc("Note")
+			note.title = "_Test Other Doctype Note"
+			note.insert(ignore_permissions=True)
+			frappe.db.set_value("Note", note.name, "owner", user.name)
+			self.addCleanup(frappe.delete_doc, "Note", note.name, force=True, ignore_permissions=True)
+
+			with self.set_user(user.name):
+				self.assertRaises(frappe.PermissionError, get_form_data, "Note", note.name, web_form_name)
 
 	def test_guest_reference_doc_exposes_only_web_form_fields(self):
 		"""Guest with a valid key viewing a bound document must only receive
