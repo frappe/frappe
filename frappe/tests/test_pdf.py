@@ -182,6 +182,171 @@ class TestPdf(IntegrationTestCase):
 			self.assertGreaterEqual(baselines[text], bottom, text)
 			self.assertLessEqual(baselines[text], top, text)
 
+<<<<<<< HEAD
+=======
+	def test_internal_link_lands_on_its_target_with_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<a href="#totals">See totals</a>'
+			+ "<p>row</p>" * 80
+			+ '<p id="totals">Totals</p><div id="footer-html"><p style="height: 150px">BOTTOM</p></div>'
+		)
+		reader = PdfReader(io.BytesIO(pdf))
+		page, _, _, top, _ = reader.pages[0]["/Annots"][0].get_object()["/Dest"]
+		baselines = []
+
+		def record_baseline(text, cm, tm, *_):
+			if text.strip() == "Totals":
+				baselines.append(tm[4] * cm[1] + tm[5] * cm[3] + cm[5])
+
+		reader.pages[reader.get_page_number(page.get_object())].extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(baselines), 1)
+		self.assertGreater(top, baselines[0])
+		self.assertLess(top, baselines[0] + 72)
+
+	def test_header_and_footer_keep_the_document_title(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			"<title>Sales Invoice: SINV-0001</title>"
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		self.assertEqual(PdfReader(io.BytesIO(pdf)).metadata.title, "Sales Invoice: SINV-0001")
+
+	def test_footer_is_measured_at_the_width_it_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		block = '<span style="display: inline-block; width: 380px; height: 40px"></span>'
+		footer = (
+			f'<div id="footer-html">{block}{block}'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		pages = PdfReader(io.BytesIO(pdfgen.get_pdf("<p>row</p>" * 120 + footer))).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
+
+	def test_footer_visible_last_page_prints_on_last_page_only(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		html = (
+			"<p>row</p>" * 120 + '<div id="footer-html"><p class="visible-last-page">Grand Total</p>'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		for pdf_generator in ("chrome", "PlutoPrint"):
+			with self.subTest(pdf_generator=pdf_generator):
+				pdf = pdfgen.get_pdf(html, pdf_generator=pdf_generator)
+				texts = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
+				self.assertGreater(len(texts), 1)
+				self.assertNotIn("Grand Total", "".join(texts[:-1]))
+				self.assertIn("Grand Total", texts[-1])
+
+	def test_pdf_renders_while_another_render_has_a_tab_open(self):
+		from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
+		from frappe.utils.pdf import get_host_url
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		generator, token = ChromiumManager.acquire()
+		self.addCleanup(generator.release, token)
+		if not generator._devtools_url:
+			generator._set_devtools_url()
+		session = CDPSocketClient(generator._devtools_url)
+		session.connect()
+		self.addCleanup(session.disconnect)
+		context, _error = session.send("Target.createBrowserContext", {"disposeOnDetach": True})
+		page = Page(session, context["browserContextId"], "body")
+		page.set_tab_url(get_host_url())
+		page.wait_for_navigate()
+
+		pdf = pdfgen.get_pdf("<p>body text</p>")
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
+	def test_two_pdfs_started_together_both_render(self):
+		import threading
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		site, sites_path = frappe.local.site, frappe.local.sites_path
+		pdfs = []
+		both_ready = threading.Barrier(2)
+
+		def render():
+			try:
+				frappe.init(site, sites_path=sites_path)
+				frappe.connect()
+				frappe.set_user("test@example.com")
+				both_ready.wait()
+				pdfs.append(pdfgen.get_pdf("<p>body text</p>"))
+			finally:
+				frappe.destroy()
+
+		renders = [threading.Thread(target=render, daemon=True) for _ in range(2)]
+		for thread in renders:
+			thread.start()
+		for thread in renders:
+			thread.join(timeout=60)
+		self.assertEqual(len(pdfs), 2)
+
+	def test_pages_merged_with_header_and_footer_are_compressed(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		contents = PdfReader(io.BytesIO(pdf)).pages[0]["/Contents"]
+		self.assertEqual(contents.get("/Filter"), "/FlateDecode")
+
+	def test_header_is_measured_after_its_image_loads(self):
+		import threading
+		import time
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+		from unittest.mock import patch
+
+		class SlowImageHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				time.sleep(0.5)
+				self.send_response(200)
+				self.send_header("Content-Type", "image/svg+xml")
+				self.end_headers()
+				self.wfile.write(b'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="900"/>')
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), SlowImageHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with patch("frappe.utils.chromium.page.allows_internal_print_urls", return_value=True):
+			pdf = pdfgen.get_pdf(
+				f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
+				+ "<p>row</p>" * 10
+			)
+		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
+
+	def test_bulk_pdf_with_password_keeps_every_document(self):
+		import json
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		names = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"bulk {i}"}).insert().name for i in range(2)
+		]
+
+		_download_multi_pdf(
+			"ToDo", json.dumps(names), format="Standard", options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertGreaterEqual(len(reader.pages), 2)
+
+>>>>>>> 9026635 (test(print): pdf resources load through the safe request session)
 	def test_bulk_pdf_bookmarks_each_document(self):
 		from frappe.utils.print_format import _download_multi_pdf
 
