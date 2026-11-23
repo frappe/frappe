@@ -85,9 +85,7 @@ def decode_labels(format_data):
 			stored_label = field.get("label")
 			label = decode_entities(stored_label)
 			if label != stored_label:
-				field["label"] = (
-					label.strip().rstrip(":").strip() if stored_label.endswith(":&nbsp;") else label
-				)
+				field["label"] = label.strip().rstrip(":").strip()
 				changed = True
 			table_columns = field.get("table_columns")
 			for table_column in table_columns if isinstance(table_columns, list) else []:
