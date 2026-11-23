@@ -967,7 +967,14 @@ class TestClassicConverter(IntegrationTestCase):
 		from frappe.patches.v16_0.repair_converted_labels import execute
 
 		doc = self.make_classic_format()
-		fields = [{"fieldtype": "HTML", "html": "<span>R&amp;D</span><span>In Words :&amp;nbsp;</span>"}]
+		fields = [
+			{
+				"fieldtype": "HTML",
+				"html": '<span style="color: red;">Terms &amp;amp; Conditions :&amp;nbsp;</span> '
+				"{{ doc.get_formatted('first_name') }}"
+				'<th width="50%" style="">R&amp;amp;D</th><p>Tom &amp;amp; Co</p>',
+			}
+		]
 		doc.db_set(
 			{
 				"print_format_builder_beta": 1,
@@ -981,7 +988,12 @@ class TestClassicConverter(IntegrationTestCase):
 
 		format_data = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
 		repaired = frappe.parse_json(format_data)["sections"][0]["columns"][0]["fields"]
-		self.assertEqual(repaired[0]["html"], "<span>R&amp;D</span><span>In Words :\xa0</span>")
+		self.assertEqual(
+			repaired[0]["html"],
+			'<span style="color: red;">Terms &amp; Conditions :&nbsp;</span> '
+			"{{ doc.get_formatted('first_name') }}"
+			'<th width="50%" style="">R&amp;D</th><p>Tom &amp;amp; Co</p>',
+		)
 
 	def test_migration_skips_corrupt_format(self):
 		"""A format with unparseable format_data is skipped, not fatal to the run."""
