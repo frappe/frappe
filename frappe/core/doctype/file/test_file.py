@@ -1030,6 +1030,7 @@ def convert_to_symlink(directory):
 
 class TestAttachment(IntegrationTestCase):
 	test_doctype = "Test For Attachment"
+	test_protected_doctype = "Test For Attachment Protected"
 
 	@classmethod
 	def setUpClass(cls):
@@ -1044,11 +1045,22 @@ class TestAttachment(IntegrationTestCase):
 				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
 			],
 		).insert(ignore_if_duplicate=True)
+		frappe.get_doc(
+			doctype="DocType",
+			name=cls.test_protected_doctype,
+			module="Custom",
+			custom=1,
+			is_submittable=1,
+			protect_attached_files=1,
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			permissions=[{"role": "System Manager", "submit": 1, "cancel": 1, "delete": 0}],
+		).insert(ignore_if_duplicate=True)
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		frappe.delete_doc("DocType", cls.test_doctype)
+		frappe.delete_doc("DocType", cls.test_protected_doctype)
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test for attachment on update").insert()
@@ -1138,13 +1150,20 @@ class TestAttachment(IntegrationTestCase):
 	def test_toggle_is_private_leaves_unrelated_single_field_unchanged(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
-<<<<<<< HEAD
-=======
-		frappe.clear_messages()
-		with self.assertRaises(frappe.ValidationError):
-			frappe.delete_doc("File", file.name)
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="navbar-logo.png",
+			content=b"navbar-logo-bytes",
+			is_private=1,
+			attached_to_doctype="Navbar Settings",
+			attached_to_name="Navbar Settings",
+			attached_to_field="app_logo",
+		).insert()
 
-		self.assertEqual([message.get("title") for message in frappe.message_log], ["Protected File"])
+		file.is_private = 0
+		file.save()
+
+		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
 
 	def test_protected_file_keeps_its_document(self):
 		doc = frappe.get_doc(doctype=self.test_protected_doctype, title="test protected reference").insert()
@@ -1187,24 +1206,6 @@ class TestAttachment(IntegrationTestCase):
 		file.attached_to_name = own_todo.name
 		with self.assertRaises(frappe.PermissionError):
 			file.save()
-
-	def test_document_delete_cascades_referenced_attachment(self):
-		doc = frappe.get_doc(doctype=self.test_doctype, title="test cascade delete").insert()
->>>>>>> 4b9369d (test(file): attachment changes check the saved record)
-		file = frappe.get_doc(
-			doctype="File",
-			file_name="navbar-logo.png",
-			content=b"navbar-logo-bytes",
-			is_private=1,
-			attached_to_doctype="Navbar Settings",
-			attached_to_name="Navbar Settings",
-			attached_to_field="app_logo",
-		).insert()
-
-		file.is_private = 0
-		file.save()
-
-		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
 
 
 class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
