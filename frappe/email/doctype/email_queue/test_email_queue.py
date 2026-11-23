@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import smtplib
 import textwrap
+from email import message_from_bytes
 from unittest.mock import MagicMock, patch
 
 import frappe
@@ -155,7 +156,44 @@ class TestEmailQueue(FrappeTestCase):
 
 		self.assertCountEqual([row.recipient for row in queue.recipients], recipients)
 
+<<<<<<< HEAD
 	@change_settings("System Settings", store_attached_pdf_document=0)
+=======
+	def test_reply_to_removed_only_from_copy_sent_to_that_address(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		queue = frappe.sendmail(
+			recipients=["customer@example.com"],
+			cc=["manager@example.com"],
+			reply_to="manager@example.com",
+			subject="Reply-To",
+			message="Test message",
+		)
+		context = SendMailContext(queue)
+
+		manager_copy = message_from_bytes(context.build_message("manager@example.com"))
+		customer_copy = message_from_bytes(context.build_message("customer@example.com"))
+
+		self.assertIsNone(manager_copy["Reply-To"])
+		self.assertEqual(customer_copy["Reply-To"], "manager@example.com")
+
+	def test_reply_to_address_matching(self):
+		for reply_to, recipient, is_kept in (
+			("Manager <Manager@Example.com>", "manager@example.com", False),
+			("manager@example.com", "Manager <MANAGER@example.com>", False),
+			("manager@example.com, other@example.com", "manager@example.com", True),
+			("manager@example.com", "other@example.com", True),
+		):
+			with self.subTest(reply_to=reply_to, recipient=recipient):
+				queue = frappe.new_doc(
+					"Email Queue",
+					message=f"From: test@example.com\nTo: <!--recipient-->\nReply-To: {reply_to}\n\nBody\n",
+				)
+				copy = message_from_bytes(SendMailContext(queue).build_message(recipient))
+				self.assertEqual(copy["Reply-To"], reply_to if is_kept else None)
+
+	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=0)
+>>>>>>> 86d9e4a (fix(email): drop Reply-To from the copy sent to that address)
 	def test_print_attachment_renders_once_for_every_recipient(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")

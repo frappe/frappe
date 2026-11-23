@@ -349,7 +349,7 @@ class SendMailContext:
 		message = message.replace(
 			self.message_placeholder("recipient"), self.get_recipient_str(recipient_email)
 		)
-		message = self.include_attachments(message)
+		message = self.include_attachments(message, recipient_email)
 		return message
 
 	def get_tracker_str(self, recipient_email) -> str:
@@ -402,13 +402,22 @@ class SendMailContext:
 	def get_recipient_str(self, recipient_email):
 		return recipient_email if self.queue_doc.expose_recipients != "header" else ""
 
-	def include_attachments(self, message):
+	def include_attachments(self, message, recipient_email=None):
 		message_obj = self.get_message_object(message)
+
+		if self.is_only_reply_to_address(message_obj, recipient_email):
+			del message_obj["Reply-To"]
 
 		for attachment in self.attachments:
 			add_attachment(**attachment, parent=message_obj)
 
 		return safe_encode(message_obj.as_string())
+
+	def is_only_reply_to_address(self, message_obj, recipient_email):
+		reply_to = message_obj["Reply-To"]
+		if not reply_to or len(reply_to.addresses) != 1:
+			return False
+		return reply_to.addresses[0].addr_spec.lower() == extract_email_id(recipient_email).lower()
 
 	@cached_property
 	def attachments(self) -> list[dict]:
