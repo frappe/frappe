@@ -13,7 +13,6 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		}
 		this.render_group_by_items();
 		this.setup_dropdown();
-		this.setup_filter_by();
 	}
 
 	make_wrapper() {
@@ -47,15 +46,12 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			}
 
 			return `<div class="group-by-field list-link">
-						<a class="btn btn-default btn-sm list-sidebar-button" data-toggle="dropdown"
-						aria-haspopup="true" aria-expanded="false"
+						<a class="btn btn-default btn-sm list-sidebar-button"
 						data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 						href="#" onclick="return false;">
 							<span class="ellipsis">${__(label, null, this.doctype)}</span>
 							<span>${frappe.utils.icon("chevrons-up-down", "xs")}</span>
 						</a>
-					<ul class="dropdown-menu group-by-dropdown" role="menu">
-					</ul>
 			</div>`;
 		};
 		let html = this.group_by_fields.map(get_item_html).join("");
@@ -63,27 +59,34 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	setup_dropdown() {
-		this.$wrapper.find(".group-by-field").on("show.bs.dropdown", (e) => {
-			let $dropdown = $(e.currentTarget).find(".group-by-dropdown");
-			this.set_loading_state($dropdown);
-			let fieldname = $(e.currentTarget).find("a").attr("data-fieldname");
-			let fieldtype = $(e.currentTarget).find("a").attr("data-fieldtype");
-			this.get_group_by_count(fieldname).then((field_count_list) => {
-				if (field_count_list.length) {
-					let applied_filter = this.list_view.get_filter_value(
-						fieldname == "assigned_to" ? "_assign" : fieldname
-					);
-					this.render_dropdown_items(
-						field_count_list,
-						fieldtype,
-						$dropdown,
-						applied_filter
-					);
-					this.setup_search($dropdown);
-				} else {
-					this.set_empty_state($dropdown);
-				}
+		this.$wrapper.find(".group-by-field > a").each((i, button) => {
+			let $dropdown = $(`<div class="group-by-dropdown"></div>`);
+			let popover = new frappe.ui.Popover({
+				trigger: button,
+				content: () => $dropdown[0],
+				on_open: () => this.load_dropdown($(button), $dropdown),
 			});
+			$dropdown.on("click", ".group-by-item", (e) => {
+				popover.close();
+				this.filter_by($(button).data("fieldname"), $(e.currentTarget));
+			});
+		});
+	}
+
+	load_dropdown($button, $dropdown) {
+		this.set_loading_state($dropdown);
+		let fieldname = $button.attr("data-fieldname");
+		let fieldtype = $button.attr("data-fieldtype");
+		this.get_group_by_count(fieldname).then((field_count_list) => {
+			if (field_count_list.length) {
+				let applied_filter = this.list_view.get_filter_value(
+					fieldname == "assigned_to" ? "_assign" : fieldname
+				);
+				this.render_dropdown_items(field_count_list, fieldtype, $dropdown, applied_filter);
+				this.setup_search($dropdown);
+			} else {
+				this.set_empty_state($dropdown);
+			}
 		});
 	}
 
@@ -178,7 +181,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			? `<span class="applied"> ${frappe.utils.icon("check", "xs")} </span>`
 			: "";
 		return `<div class="group-by-item ${applied ? "selected" : ""}" data-value="${value}">
-			<a class="dropdown-item" href="#" onclick="return false;">
+			<a class="dropdown-item flex justify-between" href="#" onclick="return false;">
 				${applied_html}
 				<span class="group-by-value ellipsis" data-name="${field.name}">${label}</span>
 				<span class="group-by-count">${field.count}</span>
@@ -186,22 +189,17 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		</div>`;
 	}
 
-	setup_filter_by() {
-		this.$wrapper.on("click", ".group-by-item", (e) => {
-			let $target = $(e.currentTarget);
-			let is_selected = $target.hasClass("selected");
+	filter_by(fieldname, $target) {
+		let is_selected = $target.hasClass("selected");
+		let value =
+			typeof $target.data("value") === "string"
+				? decodeURIComponent($target.data("value").trim())
+				: $target.data("value");
+		fieldname = fieldname === "assigned_to" ? "_assign" : fieldname;
 
-			let fieldname = $target.parents(".group-by-field").find("a").data("fieldname");
-			let value =
-				typeof $target.data("value") === "string"
-					? decodeURIComponent($target.data("value").trim())
-					: $target.data("value");
-			fieldname = fieldname === "assigned_to" ? "_assign" : fieldname;
-
-			return this.list_view.filter_area.remove(fieldname).then(() => {
-				if (is_selected) return;
-				return this.apply_filter(fieldname, value);
-			});
+		return this.list_view.filter_area.remove(fieldname).then(() => {
+			if (is_selected) return;
+			return this.apply_filter(fieldname, value);
 		});
 	}
 

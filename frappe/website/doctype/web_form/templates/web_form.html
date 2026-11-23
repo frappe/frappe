@@ -30,13 +30,13 @@
 	{% if allow_edit and in_view_mode %}
 		{% set request_query = "?web_form_request_key=" + web_form_request_key if web_form_request_key else "" %}
 		<!-- edit button -->
-		<a href="/{{ route }}/{{ doc_name | urlencode }}/edit{{ request_query }}" class="edit-button btn btn-default btn-sm">{{ _("Edit", context="Button in web form") }}</a>
+		<a href="/{{ route }}/{{ doc_name | urlencode }}/edit{{ request_query }}" class="edit-button es-button">{{ _("Edit", context="Button in web form") }}</a>
 	{% endif %}
 
 	{% if allow_print and in_view_mode %}
 		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + (print_format or "standard") %}
 		<!-- print button -->
-		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-default btn-sm ml-2">
+		<a href="{{ print_format_url }}" target="_blank" class="print-btn es-button ml-2">
 			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
 		</a>
 	{% endif %}
@@ -49,15 +49,15 @@
 	<div class="right-area">
 		{% if not in_view_mode %}
 			<!-- discard button -->
-			<button class="discard-btn btn btn-default btn-sm">
+			<button class="discard-btn es-button">
 				{{ _("Discard", context="Button in web form") }}
 			</button>
 			<!-- submit button -->
-			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ _(button_label, context="Button in web form") or _("Submit", context="Button in web form") }}</button>
+			<button type="submit" class="submit-btn es-button ml-2" data-variant="solid">{{ _(button_label, context="Button in web form") or _("Submit", context="Button in web form") }}</button>
 		{% endif %}
 		{% if has_delete_permission %}
 			<!-- delete button -->
-			<button type="button" class="delete-btn btn btn-default btn-sm">
+			<button type="button" class="delete-btn es-button">
 				{{ _("Delete", context="Button in web form") }}
 			</button>
 		{% endif %}
@@ -170,10 +170,10 @@
 				</div>
 			{% else %}
 				{% if show_list %}
-					<a href="/{{ route }}/list{{ request_query }}" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", context="Button in web form") }}</a>
+					<a href="/{{ route }}/list{{ request_query }}" class="show-list-button es-button" data-size="md">{{ _("See previous responses", context="Button in web form") }}</a>
 				{% endif %}
 				{% if allows_public_access or allow_multiple %}
-					<a href="/{{ route }}/new{{ request_query }}" class="new-btn btn btn-default btn-md">{{ _("Submit another response", context="Button in web form") }}</a>
+					<a href="/{{ route }}/new{{ request_query }}" class="new-btn es-button" data-size="md">{{ _("Submit another response", context="Button in web form") }}</a>
 				{% endif %}
 			{% endif %}
 		</div>

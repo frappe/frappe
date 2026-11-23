@@ -1,0 +1,40 @@
+.badge {
+	display: inline-block;
+	min-width: 10px;
+	padding: 3px 7px;
+	font-size: $print-font-size-sm;
+	font-weight: bold;
+	line-height: 1;
+	color: $print-text-color;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	background-color: $print-light-bg;
+	border-radius: 10px;
+
+	&:empty {
+		display: none;
+	}
+	.btn & {
+		position: relative;
+		top: -1px;
+	}
+	.btn-xs & {
+		top: 0;
+		padding: 1px 5px;
+	}
+	.list-group-item.active > &,
+	.nav-pills > .active > a > & {
+		color: $print-text-color;
+		background-color: #fff;
+	}
+	.list-group-item > & {
+		float: right;
+	}
+	.list-group-item > & + & {
+		margin-right: 5px;
+	}
+	.nav-pills > li > a > & {
+		margin-left: 3px;
+	}
+}

@@ -1,0 +1,47 @@
+$spacing-sides: (
+	"": null,
+	"t": top,
+	"r": right,
+	"b": bottom,
+	"l": left,
+	"x": (
+		right,
+		left,
+	),
+	"y": (
+		top,
+		bottom,
+	),
+);
+
+@mixin spacing($abbr, $property, $size, $value, $infix) {
+	@each $side, $edges in $spacing-sides {
+		.#{$abbr}#{$side}#{$infix}-#{$size} {
+			@if $edges {
+				@each $edge in $edges {
+					#{$property}-#{$edge}: $value !important;
+				}
+			} @else {
+				#{$property}: $value !important;
+			}
+		}
+	}
+}
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+	@include media-breakpoint-up($breakpoint) {
+		$infix: if(breakpoint-min($breakpoint), "-#{$breakpoint}", "");
+
+		@each $abbr, $property in (m: margin, p: padding) {
+			@each $size, $length in $spacers {
+				@include spacing($abbr, $property, $size, $length, $infix);
+			}
+		}
+		@each $size, $length in $spacers {
+			@if $size != 0 {
+				@include spacing(m, margin, n#{$size}, -$length, $infix);
+			}
+		}
+		@include spacing(m, margin, auto, auto, $infix);
+	}
+}

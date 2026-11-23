@@ -37,60 +37,6 @@
 	}
 }
 
-.btn-secondary-dark {
-	@include button-variant(
-		$background: $gray-600,
-		$border: $gray-600,
-		$hover-background: lighten($gray-600, 1%),
-		$hover-border: $gray-600,
-		$active-background: lighten($gray-600, 1%),
-		$active-border: darken($gray-600, 12.5%)
-	);
-
-	color: $white;
-
-	&:hover,
-	&:active,
-	&:focus {
-		color: $white;
-	}
-
-	.icon {
-		--icon-stroke: currentColor;
-	}
-}
-
-.btn-primary-light {
-	@include button-variant(
-		// not happy with this
-		$background: $gray-300,
-		$border: $gray-800,
-		$hover-background: $gray-200,
-		$hover-border: $gray-300,
-		$active-background: $gray-300,
-		$active-border: $gray-200
-	);
-
-	color: var(--primary);
-
-	&:hover,
-	&:active {
-		color: var(--primary);
-	}
-
-	&:focus {
-		box-shadow: var(--focus-default);
-	}
-
-	// the mixin's hover can't be wrapped: on touch, a tapped button goes back to rest.
-	// Light theme only: the dark theme's own background below already beats the hover.
-	@media (hover: none) {
-		:root:not([data-theme="dark"]) &:hover:not(:active) {
-			background-color: var(--surface-gray-4);
-		}
-	}
-}
-
 // hover only with a real pointer: touch keeps :hover on the last button tapped
 @mixin hover-only-with-pointer {
 	@media (hover: hover) {
@@ -170,7 +116,7 @@
 
 .btn.btn-danger {
 	background-color: var(--danger);
-	color: $white;
+	color: var(--white);
 }
 
 .btn-reset {

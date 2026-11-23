@@ -11,14 +11,14 @@
 				{{ _(subtitle) }}
 			</p>
 			{%- endif -%}
-			<div>
+			<div class="flex flex-wrap gap-2 mt-4">
 				{%- if primary_action -%}
-				<a class="btn btn-lg btn-primary" href="{{ primary_action }}">
+				<a class="es-button" data-variant="solid" data-size="lg" href="{{ primary_action }}">
 					{{ _(primary_action_label) }}
 				</a>
 				{%- endif -%}
 				{%- if secondary_action -%}
-				<a class="btn btn-lg btn-primary-light" href="{{ secondary_action }}">
+				<a class="es-button" data-size="lg" href="{{ secondary_action }}">
 					{{ _(secondary_action_label) }}
 				</a>
 				{%- endif -%}

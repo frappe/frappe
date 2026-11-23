@@ -1,0 +1,22 @@
+.thumbnail {
+	display: block;
+	padding: 4px;
+	margin-bottom: 20px;
+	line-height: $print-line-height;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-radius: $print-radius;
+
+	> img,
+	a > img {
+		margin-right: auto;
+		margin-left: auto;
+	}
+	.caption {
+		padding: 9px;
+		color: $print-text-color;
+	}
+}
+a.thumbnail.active {
+	border-color: $print-text-color;
+}

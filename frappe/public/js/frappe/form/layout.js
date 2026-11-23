@@ -633,7 +633,6 @@ frappe.ui.form.Layout = class Layout {
 		this.tab_link_container.off("click").on("click", ".nav-link", (e) => {
 			e.preventDefault();
 			e.stopImmediatePropagation();
-			$(e.currentTarget).tab("show");
 			if (tabs_content.getBoundingClientRect().top < 100) {
 				tabs_content.scrollIntoView();
 				setTimeout(() => {

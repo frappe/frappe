@@ -29,31 +29,6 @@ frappe.ui.form.ControlColor = class ControlColor extends frappe.ui.form.ControlD
 			],
 		});
 
-		this.$wrapper
-			.popover({
-				trigger: "manual",
-				offset: "0, 4",
-				boundary: "viewport",
-				placement: "bottom",
-				template: `
-				<div class="popover color-picker-popover">
-					<div class="picker-arrow arrow"></div>
-					<div class="popover-body popover-content"></div>
-				</div>
-			`,
-				content: () => picker_wrapper,
-				html: true,
-			})
-			.on("shown.bs.popover", () => {
-				const color = this.get_color();
-				if (color) this.picker.set_color(color);
-				this.picker.refresh();
-			})
-			.on("hidden.bs.popover", () => {
-				$("body").off("click.color-popover");
-				$(window).off("hashchange.color-popover");
-			});
-
 		this.picker.on_change = (color) => {
 			this.set_value(color);
 		};
@@ -63,30 +38,24 @@ frappe.ui.form.ControlColor = class ControlColor extends frappe.ui.form.ControlD
 			this.selected_color.insertAfter(this.$input);
 		}
 
-		this.$wrapper
-			.find(".selected-color")
-			.parent()
-			.on("click", (e) => {
-				this.$wrapper.popover("toggle");
+		const $trigger = this.$wrapper.find(".selected-color").parent();
+		this.popover = new frappe.ui.Popover({
+			trigger: $trigger,
+			content: () => picker_wrapper[0],
+			css_class: "color-picker-popover",
+			on_open: () => {
+				this.$input.trigger("focus");
 				if (!this.get_color()) {
 					this.$input.val("");
 				}
-				e.stopPropagation();
-				$("body").on("click.color-popover", (ev) => {
-					if (!$(ev.target).parents().is(".popover")) {
-						this.$wrapper.popover("hide");
-					}
-				});
-				$(window).on("hashchange.color-popover", () => {
-					this.$wrapper.popover("hide");
-				});
-			});
-
-		this.$input.on("blur", (e) => {
-			if (e.relatedTarget && !$(e.relatedTarget).parents().is(".popover")) {
-				this.$wrapper.popover("hide");
-			}
+				const color = this.get_color();
+				if (color) this.picker.set_color(color);
+				this.picker.refresh();
+				$(window).on("hashchange.color-popover", () => this.popover.close());
+			},
+			on_close: () => $(window).off("hashchange.color-popover"),
 		});
+		$trigger.on("click", (e) => e.stopPropagation());
 	}
 
 	refresh() {

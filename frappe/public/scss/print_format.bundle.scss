@@ -2,7 +2,9 @@
 @import "./common/mixins.scss";
 @import "./common/global.scss";
 @import "./common/icons.scss";
-@import "~bootstrap/scss/bootstrap";
+@import "./common/base/index";
+@import "./espresso_components";
+@import "./common/espresso_aliases";
 @import "./common/quill_content.scss";
 
 // global.scss sets html, body { height: 100% } for the desk; in paged media

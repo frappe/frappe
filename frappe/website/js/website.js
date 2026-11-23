@@ -482,6 +482,63 @@ window.ask_to_login = function ask_to_login() {
 	}
 };
 
+const DROPDOWN_TOGGLES = ".dropdown-toggle, .nav-avatar";
+
+function setup_dropdown(toggle) {
+	if ($(toggle).data("es-dropdown") || toggle.closest(".dropdown-menu")) return;
+	const menu = toggle.parentElement?.querySelector(".dropdown-menu");
+	if (!menu) return;
+	const dropdown = new frappe.ui.Dropdown({
+		trigger: toggle,
+		options: () => dropdown_menu_options(menu),
+		align: menu.classList.contains("dropdown-menu-right") ? "end" : "start",
+	});
+	$(toggle).data("es-dropdown", dropdown);
+	return dropdown;
+}
+
+function dropdown_menu_options(menu) {
+	const groups = [{ group: "", hide_label: true, options: [] }];
+	for (const el of menu.children) {
+		if (getComputedStyle(el).display === "none") continue;
+		if (el.matches(".dropdown-divider, .dropdown-header")) {
+			const label = el.matches(".dropdown-header") ? el.textContent.trim() : "";
+			groups.push({ group: label, hide_label: !label, options: [] });
+			continue;
+		}
+		const item = el.matches(".dropdown-item") ? el : el.querySelector(".dropdown-item");
+		if (!item || getComputedStyle(item).display === "none") continue;
+		const submenu = el.querySelector(":scope > .dropdown-menu");
+		const href = item.getAttribute("href");
+		const is_link = !submenu && href && href !== "#" && !href.startsWith("javascript:");
+		groups[groups.length - 1].options.push({
+			label: item.textContent.replace(/\s+/g, " ").trim(),
+			disabled: item.matches(".disabled, :disabled"),
+			submenu: submenu ? dropdown_menu_options(submenu) : undefined,
+			href: is_link ? href : undefined,
+			target: (is_link && item.getAttribute("target")) || undefined,
+			onclick: is_link || submenu ? undefined : () => item.click(),
+		});
+	}
+	return groups;
+}
+
+$(document).on("click", DROPDOWN_TOGGLES, (e) => {
+	if ($(e.currentTarget).data("es-dropdown")) return;
+	const dropdown = setup_dropdown(e.currentTarget);
+	if (!dropdown) return;
+	e.preventDefault();
+	dropdown.open();
+});
+
+$(document).on("click", ".navbar-toggler[aria-controls]", (e) => {
+	const toggler = e.currentTarget;
+	const target = document.getElementById(toggler.getAttribute("aria-controls"));
+	if (!target) return;
+	const open = target.classList.toggle("show");
+	toggler.setAttribute("aria-expanded", open);
+});
+
 // check if logged in?
 $(document).ready(function () {
 	window.full_name = frappe.get_cookie("full_name");
@@ -521,13 +578,7 @@ $(document).ready(function () {
 
 $(document).on("page-change", function () {
 	$(document).trigger("apply_permissions");
-	$(".dropdown-toggle").dropdown();
-
-	//multilevel dropdown fix
-	$(".dropdown-menu .dropdown-submenu .dropdown-toggle").on("click", function (e) {
-		e.stopPropagation();
-		$(this).parent().parent().parent().addClass("open");
-	});
+	$(DROPDOWN_TOGGLES).each((i, toggle) => setup_dropdown(toggle));
 
 	$.extend(frappe, frappe.get_cookies());
 	frappe.session = { user: frappe.user_id };

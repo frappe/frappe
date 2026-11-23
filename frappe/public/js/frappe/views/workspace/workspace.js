@@ -283,7 +283,7 @@ frappe.views.Workspace = class Workspace {
 			if (!this.add_workspace_controls) {
 				this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
 
-				$(this.workspace_actions_button).removeAttr("data-original-title");
+				$(this.workspace_actions_button).data("es-tooltip").destroy();
 				$(this.workspace_actions_button).removeClass("btn-default");
 				new frappe.ui.Dropdown({
 					trigger: $(this.workspace_actions_button),
@@ -549,7 +549,7 @@ frappe.views.Workspace = class Workspace {
 		// tracked so a re-render of the same workspace doesn't stack a second copy on top
 		d.page_name = page.name;
 		this.mount_dialog = d;
-		d.$wrapper.on("hidden.bs.modal", () => {
+		d.on("hidden", () => {
 			if (this.mount_dialog === d) this.mount_dialog = null;
 			// closed without picking an app -> take the hint and stop asking for this session
 			if (!mounted) {

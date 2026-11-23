@@ -201,23 +201,6 @@
     color: var(--ink-gray-3);
 }
 
-/* The button also carries bootstrap's old "close" class so legacy
-   .find(".close").click() dismissals keep working. Bootstrap styles .close
-   globally and loads after this file, so these selectors out-specify its
-   rules (including the :hover/:focus opacity one) to keep the toast look. */
-.es-toast button.es-toast__close.close {
-    float: none;
-    padding: var(--spacing);
-    line-height: 0;
-    color: var(--ink-base);
-    text-shadow: none;
-    opacity: 1;
-}
-
-.es-toast button.es-toast__close.close:hover {
-    color: var(--ink-gray-3);
-}
-
 .es-toast__action:focus-visible,
 .es-toast__close:focus-visible {
     outline: var(--focus-outline-default);

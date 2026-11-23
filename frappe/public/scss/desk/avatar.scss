@@ -207,7 +207,7 @@
 
 	.avatar-extra-count {
 		@include get_textstyle("sm", "medium");
-		color: $white;
+		color: var(--white);
 		background-color: var(--blue-500);
 	}
 

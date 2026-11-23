@@ -1,10 +1,10 @@
+/* Espresso components (.es-* classes) — one aggregator, add new components there. */
+@import "./espresso_components";
+
 @import "frappe/public/css/fonts/inter/inter.scss";
 @import "~frappe-charts/dist/frappe-charts.min";
 @import "~plyr/dist/plyr";
 @import "./desk/index";
-
-/* Espresso components (.es-* classes) — one aggregator, add new components there. */
-@import "./espresso_components";
 
 @import "frappe/public/node_modules/highlight.js/styles/tomorrow.css";
 

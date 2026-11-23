@@ -119,9 +119,9 @@ $spacers: (
 	64: 16rem,
 );
 
-@import "~bootstrap/scss/functions";
-@import "~bootstrap/scss/variables";
-@import "~bootstrap/scss/mixins";
+@import "../common/base/functions";
+@import "../common/base/variables";
+@import "../common/base/mixins";
 @import "css_variables";
 
 $code-color: $purple;

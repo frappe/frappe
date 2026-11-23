@@ -173,7 +173,7 @@ frappe.search.SearchDialog = class {
 			}
 		}, wait_ms);
 		this.$input.on("input", () => this._debounced_search_input());
-		this.$wrapper.on("hide.bs.modal.globalSearch", () => {
+		this.search_dialog.on("hide", () => {
 			this._debounced_search_input?.cancel?.();
 		});
 	}

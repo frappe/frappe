@@ -94,12 +94,6 @@
 }
 
 .navbar.bg-dark {
-	.dropdown-menu {
-		font-size: 0.75rem;
-		background-color: $dark;
-		border-radius: 0;
-	}
-
 	.nav-link {
 		white-space: nowrap;
 		color: $light;
@@ -111,15 +105,6 @@
 
 	.nav-item {
 		padding: 0rem 1rem;
-	}
-
-	.dropdown-item {
-		color: $light;
-
-		&:hover {
-			background-color: $dark;
-			color: $primary;
-		}
 	}
 }
 

@@ -30,11 +30,6 @@ frappe.ui.toolbar.Toolbar = class {
 				})
 			);
 		}
-		$(".dropdown-toggle").dropdown();
-		$("#toolbar-user a[href]").click(function () {
-			$(this).closest(".dropdown-menu").prev().dropdown("toggle");
-		});
-
 		this.setup_help();
 
 		this.setup_announcement_widget();
@@ -154,14 +149,6 @@ frappe.ui.toolbar.Toolbar = class {
 		// clear all custom menus on page change
 		$(document).on("page-change", function () {
 			$("header .navbar .custom-menu").remove();
-		});
-
-		//focus search-modal on show in mobile view
-		$("#search-modal").on("shown.bs.modal", function () {
-			var search_modal = $(this);
-			setTimeout(function () {
-				search_modal.find("#modal-search").focus();
-			}, 300);
 		});
 	}
 

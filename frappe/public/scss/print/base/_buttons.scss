@@ -1,0 +1,163 @@
+$print-button-variants: (
+	default: (
+		inherit,
+		$print-light-bg,
+		transparent,
+		#cfdce5,
+		rgba(0, 0, 0, 0),
+	),
+	primary: (
+		#fff,
+		$print-primary,
+		$print-primary-border,
+		#2b33ff,
+		#0711ff,
+	),
+	success: (
+		#fff,
+		#98d85b,
+		#8bd346,
+		#7ece32,
+		#6db22a,
+	),
+	info: (
+		#fff,
+		#8d99a6,
+		#7f8c9b,
+		#707f90,
+		#616e7c,
+	),
+	warning: (
+		#fff,
+		#ffa00a,
+		#f09300,
+		#d68300,
+		#b26d00,
+	),
+	danger: (
+		#fff,
+		#ff5858,
+		#ff3f3f,
+		#ff2525,
+		#ff0101,
+	),
+);
+$print-button-sizes: (
+	lg: (
+		10px 16px,
+		$print-font-size-lg,
+		$print-line-height-lg,
+		$print-radius-lg,
+	),
+	sm: (
+		5px 10px,
+		$print-font-size-sm,
+		$print-line-height-sm,
+		$print-radius-sm,
+	),
+	xs: (
+		1px 5px,
+		$print-font-size-sm,
+		$print-line-height-sm,
+		$print-radius-sm,
+	),
+);
+
+@mixin print-button-variant($color, $background, $border, $active-background, $active-border) {
+	color: $color;
+	background-color: $background;
+	border-color: $border;
+
+	&.active {
+		color: $color;
+		background-color: $active-background;
+		border-color: $active-border;
+		background-image: none;
+	}
+	&.disabled,
+	&[disabled],
+	fieldset[disabled] & {
+		&,
+		&.active {
+			background-color: $background;
+			border-color: $border;
+		}
+	}
+	.badge {
+		color: $background;
+		background-color: $color;
+	}
+}
+
+.btn {
+	display: inline-block;
+	padding: 4px 10px;
+	margin-bottom: 0;
+	font-size: $print-font-size;
+	font-weight: normal;
+	line-height: $print-line-height;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	background-image: none;
+	border: 1px solid transparent;
+	border-radius: $print-radius;
+
+	&.active {
+		background-image: none;
+		box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+	}
+	&.disabled,
+	&[disabled],
+	fieldset[disabled] & {
+		box-shadow: none;
+		opacity: 0.65;
+	}
+}
+
+@each $variant, $colors in $print-button-variants {
+	.btn-#{$variant} {
+		@include print-button-variant($colors...);
+	}
+}
+
+.btn-link {
+	font-weight: normal;
+	color: $print-text-color;
+	border-color: transparent;
+	border-radius: 0;
+
+	&,
+	&.active,
+	&[disabled],
+	fieldset[disabled] & {
+		background-color: transparent;
+		box-shadow: none;
+	}
+}
+
+@each $size, $props in $print-button-sizes {
+	.btn-#{$size},
+	.btn-group-#{$size} > .btn {
+		padding: nth($props, 1);
+		font-size: nth($props, 2);
+		line-height: nth($props, 3);
+		border-radius: nth($props, 4);
+	}
+}
+
+.btn-block {
+	display: block;
+	width: 100%;
+
+	+ .btn-block {
+		margin-top: 5px;
+	}
+}
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+	&.btn-block {
+		width: 100%;
+	}
+}

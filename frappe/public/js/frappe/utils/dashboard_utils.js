@@ -12,56 +12,28 @@ frappe.dashboard_utils = {
 				filter_class = filter.class;
 			}
 
-			let chart_filter_html = `<div class="${button_class} ${filter_class} btn-group dropdown pull-right">
-					<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						<button class="btn btn-secondary btn-xs">
-							${icon_html}
-							<span class="filter-label">${__(filter.label)}</span>
-							${frappe.utils.icon("chevrons-up-down", "xs")}
-						</button>
-				</a>`;
-			let options_html;
-
-			if (filter.fieldnames) {
-				options_html = filter.options
-					.map(
-						(option, i) =>
-							`<li>
-						<a class="dropdown-item" data-fieldname="${
-							filter.fieldnames[i]
-						}" data-option="${encodeURIComponent(option)}">${__(option)}</a>
-					</li>`
-					)
-					.join("");
-			} else {
-				options_html = filter.options
-					.map(
-						(option) =>
-							`<li><a class="dropdown-item" data-option="${encodeURIComponent(
-								option
-							)}">${__(option)}</a></li>`
-					)
-					.join("");
-			}
-
-			let dropdown_html =
-				chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
-			let $chart_filter = $(dropdown_html);
+			let $chart_filter =
+				$(`<div class="${button_class} ${filter_class} btn-group pull-right">
+					<button class="btn btn-secondary btn-xs">
+						${icon_html}
+						<span class="filter-label">${__(filter.label)}</span>
+						${frappe.utils.icon("chevrons-up-down", "xs")}
+					</button>
+				</div>`);
 
 			if (append) {
 				$chart_filter.prependTo(container);
 			} else $chart_filter.appendTo(container);
 
-			$chart_filter.find(".dropdown-menu").on("click", "li a", (e) => {
-				let $el = $(e.currentTarget);
-				let fieldname;
-				if ($el.attr("data-fieldname")) {
-					fieldname = $el.attr("data-fieldname");
-				}
-
-				let selected_item = decodeURIComponent($el.data("option"));
-				$el.parents(`.${button_class}`).find(".filter-label").html(__(selected_item));
-				filter.action(selected_item, fieldname);
+			new frappe.ui.Dropdown({
+				trigger: $chart_filter.find("button"),
+				options: filter.options.map((option, i) => ({
+					label: __(option),
+					onclick: () => {
+						$chart_filter.find(".filter-label").text(__(option));
+						filter.action(String(option), filter.fieldnames?.[i]);
+					},
+				})),
 			});
 		});
 	},

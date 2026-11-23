@@ -32,9 +32,7 @@ frappe.ui.IconBar = class IconBar {
 				return false;
 			});
 
-		$li.find("i")
-			.attr("title", label)
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+		frappe.ui.tooltip($li.find("i"), { text: label, delay: 600 });
 
 		this.$wrapper.find(".iconbar-" + group).removeClass("hide");
 		this.show();

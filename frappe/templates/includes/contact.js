@@ -42,5 +42,5 @@ frappe.ready(function() {
 });
 
 var msgprint = function(txt) {
-	if(txt) $("#contact-alert").html(txt).toggle(true);
+	if(txt) $("#contact-alert").toggle(true).find(".es-alert__title").html(txt);
 }
