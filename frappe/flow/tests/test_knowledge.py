@@ -1079,7 +1079,7 @@ class TestDoctypeSync(IntegrationTestCase):
 		frappe.set_user("test@example.com")
 		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as mock:
 			sync_due_sources()
-		mock.assert_called_once_with(missing.name, rebuild=True)
+		mock.assert_called_once_with(missing.name, rebuild=True, deduplicate=True)
 
 
 class TestRetriever(IntegrationTestCase):
