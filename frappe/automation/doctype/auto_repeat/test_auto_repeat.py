@@ -9,6 +9,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	generate_message_preview,
 	get_auto_repeat_entries,
 	get_auto_repeat_period,
+	unlink_auto_repeat,
 	update_reference,
 	week_map,
 )
@@ -304,6 +305,25 @@ class TestAutoRepeat(IntegrationTestCase):
 			doc.reference_doctype, filters={"auto_repeat": doc.name}, fields=["docstatus"], limit=1
 		)
 		self.assertEqual(docnames[0].docstatus, 1)
+
+	def test_unlink_auto_repeat(self):
+		doctype = "Test Submittable DocType"
+		create_submittable_doctype(doctype)
+
+		reference = frappe.get_doc(doctype=doctype, test="test unlink auto repeat").insert()
+		reference.submit()
+		auto_repeat = make_auto_repeat(
+			reference_doctype=doctype, reference_document=reference.name, submit_on_creation=1
+		)
+		generated = [auto_repeat.make_new_document() for _ in range(2)]
+		self.assertEqual(generated[0].docstatus, 1)
+
+		unlink_auto_repeat(doctype, generated[0].name)
+		self.assertFalse(frappe.db.get_value(doctype, generated[0].name, "auto_repeat"))
+		self.assertEqual(frappe.db.get_value(doctype, generated[1].name, "auto_repeat"), auto_repeat.name)
+
+		self.assertRaises(frappe.ValidationError, unlink_auto_repeat, doctype, reference.name)
+		self.assertEqual(frappe.db.get_value(doctype, reference.name, "auto_repeat"), auto_repeat.name)
 
 	def test_reference_document_write_permission_on_create(self):
 		todo = frappe.get_doc(
