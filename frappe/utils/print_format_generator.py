@@ -338,6 +338,7 @@ def get_html(
 	settings=None,
 	no_letterhead=None,
 	doc=None,
+	print_filename=None,
 ):
 	from frappe.www.printview import validate_print
 
@@ -348,6 +349,7 @@ def get_html(
 	generator = PrintFormatGenerator(
 		print_format, doc, letterhead, style=style, settings=settings, no_letterhead=no_letterhead
 	)
+	generator.context.print_filename = print_filename
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
 
