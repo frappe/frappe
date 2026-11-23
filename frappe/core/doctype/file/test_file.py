@@ -30,6 +30,7 @@ from frappe.core.doctype.file.utils import (
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_files_path, get_user_by_email, set_request
 
@@ -977,6 +978,28 @@ class TestFile(IntegrationTestCase):
 				find_file_by_url("/private/files/casecheck.txt").owner, get_user_by_email("test4@example.com")
 			)
 
+	def test_find_file_by_url_checks_an_unreadable_doctype_once(self):
+		for i in range(3):
+			translation = frappe.get_doc(
+				doctype="Translation",
+				language="de",
+				source_text=f"Shared {i}",
+				translated_text=f"Geteilt {i}",
+			).insert()
+			file = frappe.get_doc(
+				doctype="File",
+				file_name="test_shared_translation.txt",
+				content="shared translation",
+				is_private=1,
+				attached_to_doctype="Translation",
+				attached_to_name=translation.name,
+			).insert()
+
+		with self.set_user("test4@example.com"):
+			find_file_by_url(file.file_url)
+			with self.assertQueryCount(3):
+				self.assertIsNone(find_file_by_url(file.file_url))
+
 	def test_remove_file_by_url_ignores_urls_that_differ_in_case(self):
 		note = frappe.get_doc(doctype="Note", title="Case check", public=1).insert()
 		self.addCleanup(note.delete)
@@ -986,6 +1009,21 @@ class TestFile(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("File", upper.name))
 		self.assertTrue(frappe.db.exists("File", lower.name))
+
+	def test_private_file_access_matches_the_exact_file_url(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test@example.com"):
+			file = frappe.get_doc(doctype="File", file_url="/private/files/casecheck.txt", is_private=1)
+			self.assertRaises(frappe.PermissionError, file.insert)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_private_file_access_without_an_exact_url_match(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test2@example.com"):
+			file = frappe.get_doc(doctype="File", file_url="/private/files/CASECHECK.txt", is_private=1)
+			self.assertRaises(frappe.PermissionError, file.insert)
 
 	def test_zip_files_adds_a_repeated_file_once(self):
 		from frappe.core.doctype.file.file import File
@@ -1604,6 +1642,48 @@ class TestAttachment(IntegrationTestCase):
 			frappe.delete_doc("File", file.name)
 
 		self.assertEqual([message.get("title") for message in frappe.message_log], ["Protected File"])
+
+	def test_protected_file_keeps_its_document(self):
+		doc = frappe.get_doc(doctype=self.test_protected_doctype, title="test protected reference").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_protected_reference.txt",
+				"content": "Protected Reference",
+				"attached_to_doctype": self.test_protected_doctype,
+				"attached_to_name": doc.name,
+			}
+		).insert()
+		doc.submit()
+
+		file = frappe.get_doc("File", file.name)
+		file.update({"attached_to_doctype": None, "attached_to_name": None})
+		with self.assertRaises(frappe.ValidationError):
+			file.save()
+
+	def test_attachment_change_checks_stored_record(self):
+		todo = frappe.get_doc(doctype="ToDo", description="test attachment move").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_attachment_move.txt",
+				"content": "Attachment Move",
+				"is_private": 1,
+				"attached_to_doctype": "ToDo",
+				"attached_to_name": todo.name,
+			}
+		).insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test2@example.com")
+		own_todo = frappe.get_doc(doctype="ToDo", description="test attachment target").insert()
+		file = frappe.get_doc("File", file.name)
+		file.attached_to_name = own_todo.name
+		with self.assertRaises(frappe.PermissionError):
+			file.save()
 
 	def test_document_delete_cascades_referenced_attachment(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test cascade delete").insert()

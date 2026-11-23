@@ -357,6 +357,7 @@ class SendMailContext:
 		else:
 			update_fields = {"status": "Sent"}
 
+		self.end_read_snapshot()
 		self.queue_doc.update_status(**update_fields, commit=True)
 
 		if not exc_type and self.queue_doc.redact_message_after_send:
@@ -386,7 +387,13 @@ class SendMailContext:
 
 	def update_recipient_status_to_sent(self, recipient):
 		self.sent_to_atleast_one_recipient = True
+		self.end_read_snapshot()
 		recipient.update_db(status="Sent", commit=True)
+
+	def end_read_snapshot(self):
+		"""Commit before writing the send result, so a write committed elsewhere during the slow send
+		does not make SQLite refuse this write as coming from a stale snapshot."""
+		frappe.db.commit()  # nosemgrep
 
 	def get_message_object(self, message):
 		policy = SMTP.clone(refold_source="none")
@@ -417,7 +424,7 @@ class SendMailContext:
 		message = message.replace(
 			self.message_placeholder("recipient"), self.get_recipient_str(recipient_email)
 		)
-		message = self.include_attachments(message)
+		message = self.include_attachments(message, recipient_email)
 		return message
 
 	def get_tracker_str(self, recipient_email) -> str:
@@ -470,13 +477,22 @@ class SendMailContext:
 	def get_recipient_str(self, recipient_email):
 		return recipient_email if self.queue_doc.expose_recipients != "header" else ""
 
-	def include_attachments(self, message):
+	def include_attachments(self, message, recipient_email=None):
 		message_obj = self.get_message_object(message)
+
+		if self.is_only_reply_to_address(message_obj, recipient_email):
+			del message_obj["Reply-To"]
 
 		for attachment in self.attachments:
 			add_attachment(**attachment, parent=message_obj)
 
 		return safe_encode(message_obj.as_string())
+
+	def is_only_reply_to_address(self, message_obj, recipient_email):
+		reply_to = message_obj["Reply-To"]
+		if not reply_to or len(reply_to.addresses) != 1:
+			return False
+		return reply_to.addresses[0].addr_spec.lower() == extract_email_id(recipient_email).lower()
 
 	@cached_property
 	def attachments(self) -> list[dict]:
@@ -590,12 +606,6 @@ def on_doctype_update():
 
 def get_email_retry_limit():
 	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
-
-
-def is_undeliverable(email: str) -> bool:
-	"""Whether `email` is Administrator's or Guest's placeholder, or on the reserved `.invalid` domain."""
-	email = extract_email_id(email).lower()
-	return email.endswith(".invalid") or email in ("admin@example.com", "guest@example.com")
 
 
 class QueueBuilder:
@@ -742,7 +752,7 @@ class QueueBuilder:
 
 	@property
 	def sender(self):
-		if not self._sender or self._sender == "Administrator" or is_undeliverable(self._sender):
+		if not self._sender or self._sender == "Administrator":
 			email_account = self.get_outgoing_email_account()
 			return email_account.default_sender
 		return self._sender
@@ -901,7 +911,9 @@ class QueueBuilder:
 		Sends email incase if it is requested to send now.
 		"""
 		final_recipients = self.final_recipients()
-		queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 100
+		queue_separately = (final_recipients and self.queue_separately) or (
+			len(final_recipients) > 100 and not self.is_notification
+		)
 		if not (final_recipients + self.final_cc() + self.final_bcc()):
 			return []
 

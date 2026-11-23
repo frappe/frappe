@@ -1178,6 +1178,17 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			found = user_query("User", "_test_find_me", "name", 0, 20, {})
 			self.assertIn(user.name, [row[0] for row in found])
 
+	def test_set_user_takes_an_email(self):
+		with test_user(roles=[], generated_id=True) as user:
+			with self.set_user(f" {user.email.upper()} "):
+				self.assertEqual(frappe.session.user, user.name)
+
+			with self.set_user(user.name):
+				self.assertEqual(frappe.session.user, user.name)
+
+		with self.set_user("_test_no_such_user@example.com"):
+			self.assertEqual(frappe.session.user, "_test_no_such_user@example.com")
+
 	def test_get_user_by_email(self):
 		with test_user(roles=[], generated_id=True) as user:
 			self.assertEqual(get_user_by_email(f" {user.email.upper()} "), user.name)

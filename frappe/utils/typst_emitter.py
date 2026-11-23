@@ -1131,6 +1131,9 @@ class TypstEmitter:
 	def _read_site_file(self, src: str) -> bytes | None:
 		import base64
 		import os
+		from urllib.parse import parse_qs, unquote, urlsplit
+
+		from frappe.core.doctype.file.utils import find_file_by_url
 
 		if src.startswith("data:"):
 			try:
@@ -1139,12 +1142,14 @@ class TypstEmitter:
 				return None
 		if src.startswith(("http://", "https://")):
 			return None
-		src = src.split("?", 1)[0]
+		url = urlsplit(src)
+		src, fid = unquote(url.path), parse_qs(url.query).get("fid", [None])[0]
+		if "\0" in src:
+			return None
 		if src.startswith("/private/files/"):
 			# private files are permission-gated through the File doctype — the
 			# browser path enforces this over HTTP, so the direct read must too
-			file_names = frappe.get_all("File", filters={"file_url": src}, pluck="name")
-			if not any(frappe.has_permission("File", doc=name, ptype="read") for name in file_names):
+			if frappe.session.user == "Guest" or not find_file_by_url(src):
 				return None
 			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
@@ -1172,7 +1177,12 @@ class TypstEmitter:
 			with open(path, "rb") as f:
 				return f.read()
 		except OSError:
-			return None
+			if src.startswith("/assets/"):
+				return None
+			from frappe.utils.chromium.page import read_blob_for_url, read_file_for_url
+
+			stored = read_blob_for_url(src[1:], fid) or read_file_for_url(src[1:], fid)
+			return base64.b64decode(stored[0]) if stored else None
 
 	@staticmethod
 	def _dimension(width) -> str | None:

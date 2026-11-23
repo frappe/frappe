@@ -103,7 +103,7 @@ class TestAssign(IntegrationTestCase):
 		self.assertFalse(get_assignments("ToDo", todo.name))
 
 	def test_assign_filter_with_equals_operator(self):
-		from frappe.model.db_query import DatabaseQuery
+		from frappe.model.qb_query import DatabaseQuery
 
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "assign filter test"}).insert()
 		frappe.db.set_value("ToDo", todo.name, "_assign", frappe.as_json(["test@example.com"]))

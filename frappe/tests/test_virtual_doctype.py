@@ -6,8 +6,8 @@ import frappe
 import frappe.modules.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.save import savedocs
-from frappe.model.db_query import DatabaseQuery
 from frappe.model.document import Document
+from frappe.model.qb_query import DatabaseQuery
 from frappe.model.virtual_doctype import validate_controller
 from frappe.tests import IntegrationTestCase
 

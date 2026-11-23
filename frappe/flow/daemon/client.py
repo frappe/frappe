@@ -23,6 +23,10 @@ class DaemonError(Exception):
 		self.detail = detail
 
 
+class DaemonDown(DaemonError):
+	"""Nothing is listening, as while the flow server restarts: it saw nothing of the call."""
+
+
 class DaemonClient:
 	def __init__(
 		self,
@@ -63,6 +67,8 @@ class DaemonClient:
 	def _call(self, method: str, path: str, *, timeout: float = TIMEOUT, **request: Any) -> Any:
 		try:
 			response = self._http.request(method, path, timeout=timeout, **request)
+		except httpx.ConnectError as exc:
+			raise DaemonDown(None, f"{type(exc).__name__}: {exc}") from None
 		except httpx.HTTPError as exc:
 			raise DaemonError(None, f"{type(exc).__name__}: {exc}") from None
 		if response.is_error:

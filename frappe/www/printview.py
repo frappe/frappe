@@ -113,6 +113,7 @@ def get_context(context) -> PrintContext:
 			trigger_print=cint(frappe.form_dict.trigger_print),
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
 			settings=settings,
+			print_filename=context["print_filename"],
 		)
 	else:
 		body = get_rendered_template(
@@ -365,7 +366,7 @@ def convert_markdown(doc: "Document") -> None:
 		if field.fieldtype == "Text Editor":
 			value = doc.get(field.fieldname)
 			if value and "<!-- markdown -->" in value:
-				doc.set(field.fieldname, frappe.utils.md_to_html(value))
+				doc.set(field.fieldname, frappe.utils.sanitize_html(frappe.utils.md_to_html(value)))
 
 
 @frappe.whitelist()

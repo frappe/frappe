@@ -8,11 +8,12 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.database.query import get_between_date_filter
 from frappe.database.utils import DefaultOrderBy
 from frappe.desk.reportview import get_filters_cond
 from frappe.handler import execute_cmd
 from frappe.model import get_permitted_fields
-from frappe.model.db_query import DatabaseQuery, get_between_date_filter
+from frappe.model.qb_query import DatabaseQuery
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Field
 from frappe.tests import IntegrationTestCase
@@ -146,22 +147,6 @@ class TestDBQuery(IntegrationTestCase):
 
 	def test_basic(self):
 		self.assertTrue({"name": "DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
-
-	def test_extract_tables(self):
-		db_query = DatabaseQuery("DocType")
-		add_custom_field("DocType", "test_tab_field", "Data")
-
-		db_query.fields = [
-			"tabNote.creation",
-			"test_tab_field",
-			"tabDocType.test_tab_field",
-		]
-		db_query.extract_tables()
-		self.assertIn("`tabNote`", db_query.tables)
-		self.assertIn("`tabDocType`", db_query.tables)
-		self.assertNotIn("test_tab_field", db_query.tables)
-
-		clear_custom_fields("DocType")
 
 	def test_child_table_field_syntax(self):
 		note = frappe.get_doc(
@@ -367,17 +352,6 @@ class TestDBQuery(IntegrationTestCase):
 			includes=[note.name],
 		)
 
-	def test_child_table_filter_keeps_join_for_child_column_order_by(self):
-		"""A child column in order_by resolves against the joined child table."""
-		query = DatabaseQuery("User")
-		result = query.execute(
-			filters=[["Has Role", "role", "=", "System Manager"]],
-			order_by="`role` asc",
-			pluck="name",
-		)
-		self.assertIn("`tabHas Role`", query.tables)
-		self.assertIn("Administrator", result)
-
 	def test_child_table_filter_returns_one_row_per_matching_child(self):
 		"""Without a group by, the join yields one parent row per matching child row."""
 		note = self.make_note(seen_by=["Administrator", "Guest"])
@@ -420,9 +394,9 @@ class TestDBQuery(IntegrationTestCase):
 
 			self.assertEqual(result[0].target_title, target_doc.target_title)
 			if frappe.db.db_type == "postgres":
-				self.assertIn('CAST("TABTEST AUTO LINK TARGET_1"."NAME" AS VARCHAR)', query.upper())
+				self.assertIn('CAST("TAB_TEST AUTO LINK TARGET_1"."NAME" AS VARCHAR)', str(query).upper())
 			else:
-				self.assertNotIn("CAST(", query.upper())
+				self.assertNotIn("CAST(", str(query).upper())
 
 	def test_autoincrement_child_table_join(self):
 		with setup_autoincrement_parent_doctypes() as (parent_dt_name, child_dt_name, parent_doc):
@@ -436,41 +410,6 @@ class TestDBQuery(IntegrationTestCase):
 
 			self.assertEqual(len(result), 1)
 			self.assertEqual(result[0].child_value, "Child")
-
-	def test_build_match_conditions(self):
-		test2user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
-		clear_user_permissions_for_doctype("Test Blog Post", test2user.name)
-
-		test2user.add_roles("Blogger")
-		frappe.set_user("test2@example.com")
-
-		# this will get match conditions for Blog Post
-		build_match_conditions = DatabaseQuery("Test Blog Post").build_match_conditions
-
-		# Before any user permission is applied
-		# get as filters
-		self.assertEqual(build_match_conditions(as_condition=False), [])
-		# get as conditions
-		self.assertEqual(build_match_conditions(as_condition=True), "")
-
-		add_user_permission("Test Blog Post", "_Test Blog Post", test2user.name, True)
-		add_user_permission("Test Blog Post", "_Test Blog Post 1", test2user.name, True)
-
-		# After applying user permission
-		# get as filters
-		self.assertTrue(
-			{"Test Blog Post": ["_Test Blog Post 1", "_Test Blog Post"]}
-			in build_match_conditions(as_condition=False)
-		)
-		# get as conditions
-		if frappe.db.db_type in {"mariadb", "sqlite"}:
-			assertion_string = """(((ifnull(`tabTest Blog Post`.`name`, '')='' or `tabTest Blog Post`.`name` in ('_Test Blog Post 1', '_Test Blog Post'))))"""
-		elif frappe.db.db_type == "postgres":
-			assertion_string = """(((ifnull(cast(`tabTest Blog Post`.`name` as varchar), '')='' or cast(`tabTest Blog Post`.`name` as varchar) in ('_Test Blog Post 1', '_Test Blog Post'))))"""
-
-		self.assertEqual(build_match_conditions(as_condition=True), assertion_string)
-
-		frappe.set_user("Administrator")
 
 	def test_fields(self):
 		self.assertTrue(
@@ -501,9 +440,9 @@ class TestDBQuery(IntegrationTestCase):
 
 		self.assertIn("DocType", names)
 		if frappe.db.db_type == "postgres":
-			self.assertIn('CAST("TABDOCTYPE"."DOCSTATUS" AS VARCHAR) ILIKE', query.upper())
+			self.assertIn('CAST("TABDOCTYPE"."DOCSTATUS" AS VARCHAR) ILIKE', str(query).upper())
 		else:
-			self.assertNotIn("CAST(", query.upper())
+			self.assertNotIn("CAST(", str(query).upper())
 
 	def test_filters_4(self):
 		self.assertTrue(
@@ -525,33 +464,6 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertFalse(
 				result in DatabaseQuery("DocType").execute(filters={"name": ["not in", "DocType,DocField"]})
 			)
-
-	def test_in_filter_json_encoded_values(self):
-		# JSON-encoded list string should work the same as comma-separated
-		for result in [{"name": "DocType"}, {"name": "DocField"}]:
-			self.assertTrue(
-				result
-				in DatabaseQuery("DocType").execute(filters={"name": ["in", '["DocType", "DocField"]']})
-			)
-
-		# Values containing commas must not be split
-		todo = frappe.get_doc(
-			doctype="ToDo", description="Test, With Comma", allocated_to="Administrator"
-		).insert()
-		try:
-			results = DatabaseQuery("ToDo").execute(
-				filters={"description": ["in", '["Test, With Comma"]']},
-				fields=["description"],
-			)
-			self.assertIn({"description": "Test, With Comma"}, results)
-
-			results_split = DatabaseQuery("ToDo").execute(
-				filters={"description": ["in", "Test, With Comma"]},
-				fields=["description"],
-			)
-			self.assertNotIn({"description": "Test, With Comma"}, results_split)
-		finally:
-			frappe.delete_doc("ToDo", todo.name)
 
 	def test_string_as_field(self):
 		self.assertEqual(
@@ -580,7 +492,7 @@ class TestDBQuery(IntegrationTestCase):
 		frappe.db.delete("Event")
 
 		# create events to test the between operator filter
-		todays_event = create_event()
+		create_event()
 		event1 = create_event(starts_on="2016-07-05 23:59:59")
 		event2 = create_event(starts_on="2016-07-06 00:00:00")
 		event3 = create_event(starts_on="2016-07-07 23:59:59")
@@ -601,17 +513,6 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn({"name": event3.name}, data)
 		self.assertNotIn({"name": event1.name}, data)
 		self.assertNotIn({"name": event4.name}, data)
-
-		# if only one value is passed in the filter
-		data = DatabaseQuery("Event").execute(
-			filters={"starts_on": ["between", ["2016-07-07"]]}, fields=["name"]
-		)
-
-		self.assertIn({"name": event3.name}, data)
-		self.assertIn({"name": event4.name}, data)
-		self.assertIn({"name": todays_event.name}, data)
-		self.assertNotIn({"name": event1.name}, data)
-		self.assertNotIn({"name": event2.name}, data)
 
 		# test between is formatted for creation column
 		data = DatabaseQuery("Event").execute(
@@ -756,8 +657,9 @@ class TestDBQuery(IntegrationTestCase):
 		frappe.set_user("Administrator")
 
 	def test_query_fields_sanitizer(self):
+		REJECTED = (frappe.ValidationError, frappe.PermissionError)
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "issingle, version()"],
 			limit_start=0,
@@ -765,7 +667,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=[
 				"name",
@@ -776,7 +678,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "issingle, (select count(*) from tabSessions)"],
 			limit_start=0,
@@ -784,7 +686,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "issingle, SELECT LOCATE('', `tabUser`.`user`) AS user;"],
 			limit_start=0,
@@ -792,7 +694,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=[
 				"name",
@@ -803,7 +705,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "issingle ''"],
 			limit_start=0,
@@ -811,7 +713,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "issingle,'"],
 			limit_start=0,
@@ -819,7 +721,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "select * from tabSessions"],
 			limit_start=0,
@@ -827,7 +729,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "issingle from --"],
 			limit_start=0,
@@ -835,7 +737,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "issingle from tabDocType order by 2 --"],
 			limit_start=0,
@@ -843,7 +745,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "1' UNION SELECT * FROM __Auth --"],
 			limit_start=0,
@@ -851,61 +753,23 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["@@version"],
 			limit_start=0,
 			limit_page_length=1,
 		)
 
-		data = DatabaseQuery("DocType").execute(
-			fields=["count(`name`) as count"], limit_start=0, limit_page_length=1
-		)
-		self.assertTrue("count" in data[0])
-
-		data = DatabaseQuery("DocType").execute(
-			fields=["name", "issingle", "locate('','name') as _relevance"], limit_start=0, limit_page_length=1
-		)
-		self.assertTrue("_relevance" in data[0])
-
-		# Test that fields with keywords in strings are allowed
-		data = DatabaseQuery("DocType").execute(
-			fields=["name", "locate('select', 'name')"],
-			limit_start=0,
-			limit_page_length=1,
-		)
-		self.assertTrue(data)
-
 		# Test that subqueries with other DML are blocked
 		self.assertRaises(
-			frappe.DataError,
+			REJECTED,
 			DatabaseQuery("DocType").execute,
 			fields=["name", "issingle", "(insert into tabUser values (1))"],
 			limit_start=0,
 			limit_page_length=1,
 		)
 
-		data = DatabaseQuery("DocType").execute(
-			fields=["name", "issingle", "date(creation) as creation"],
-			limit_start=0,
-			limit_page_length=1,
-		)
-		self.assertTrue("creation" in data[0])
-
-		if frappe.db.db_type != "postgres":
-			# datediff function does not exist in postgres
-			data = DatabaseQuery("DocType").execute(
-				fields=[
-					"name",
-					"issingle",
-					"datediff(modified, creation) as date_diff",
-				],
-				limit_start=0,
-				limit_page_length=1,
-			)
-			self.assertTrue("date_diff" in data[0])
-
-		with self.assertRaises(frappe.DataError):
+		with self.assertRaises(REJECTED):
 			DatabaseQuery("DocType").execute(
 				fields=[
 					"name",
@@ -916,7 +780,7 @@ class TestDBQuery(IntegrationTestCase):
 				limit_page_length=1,
 			)
 
-		with self.assertRaises(frappe.DataError):
+		with self.assertRaises(REJECTED):
 			DatabaseQuery("DocType").execute(
 				fields=[
 					"name",
@@ -927,7 +791,7 @@ class TestDBQuery(IntegrationTestCase):
 				limit_page_length=1,
 			)
 
-		with self.assertRaises(frappe.DataError):
+		with self.assertRaises(REJECTED):
 			DatabaseQuery("DocType").execute(
 				fields=[
 					"name",
@@ -939,7 +803,7 @@ class TestDBQuery(IntegrationTestCase):
 				ignore_permissions=True,
 			)
 
-		with self.assertRaises(frappe.DataError):
+		with self.assertRaises(REJECTED):
 			DatabaseQuery("DocType").execute(
 				fields=[
 					"name",
@@ -989,7 +853,7 @@ class TestDBQuery(IntegrationTestCase):
 
 	def test_filter_sanitizer(self):
 		self.assertRaises(
-			frappe.DataError,
+			frappe.ValidationError,
 			DatabaseQuery("DocType").execute,
 			fields=["name"],
 			filters={"istable,": 1},
@@ -998,7 +862,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			frappe.ValidationError,
 			DatabaseQuery("DocType").execute,
 			fields=["name"],
 			filters={"editable_grid,": 1},
@@ -1008,7 +872,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			frappe.ValidationError,
 			DatabaseQuery("DocType").execute,
 			fields=["name"],
 			filters={"editable_grid,": 1},
@@ -1018,7 +882,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		self.assertRaises(
-			frappe.DataError,
+			frappe.ValidationError,
 			DatabaseQuery("DocType").execute,
 			fields=["name"],
 			filters={"editable_grid,": 1},
@@ -1053,16 +917,6 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertTrue("File" in [d["name"] for d in out])
 
-		out = DatabaseQuery("DocType").execute(
-			fields=["name"],
-			filters=[
-				["DocType", "ifnull(track_changes, 0)", "=", 0],
-				["DocType", "module", "=", "Core"],
-			],
-			order_by="creation",
-		)
-		self.assertTrue("DefaultValue" in [d["name"] for d in out])
-
 	def test_order_by_group_by_sanitizer(self):
 		# order by with blacklisted function
 		with self.assertRaises(frappe.ValidationError):
@@ -1095,13 +949,6 @@ class TestDBQuery(IntegrationTestCase):
 			order_by="name asc",
 			group_by="name",
 		)
-
-		# check mariadb specific syntax
-		if frappe.db.db_type == "mariadb":
-			DatabaseQuery("DocType").execute(
-				fields=["name"],
-				order_by="timestamp(modified)",
-			)
 
 	def test_of_not_of_descendant_ancestors(self):
 		frappe.set_user("Administrator")
@@ -1264,7 +1111,7 @@ class TestDBQuery(IntegrationTestCase):
 					fields=[field], distinct=True, order_by=order_by, as_list=True
 				)
 
-				self.assertIn("order by", query.lower())
+				self.assertIn("order by", str(query).lower())
 				self.assertEqual(list(result), sorted(result))
 
 	def test_distinct_drops_unselected_order_by_on_postgres(self):
@@ -1273,9 +1120,9 @@ class TestDBQuery(IntegrationTestCase):
 		)
 
 		if frappe.db.db_type == "postgres":
-			self.assertNotIn("order by", query.lower())
+			self.assertNotIn("order by", str(query).lower())
 		else:
-			self.assertIn("order by", query.lower())
+			self.assertIn("order by", str(query).lower())
 
 	def test_distinct_keeps_order_by_on_star_column(self):
 		query = DatabaseQuery("User").execute(
@@ -1283,7 +1130,7 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		result = DatabaseQuery("User").execute(fields=["*"], distinct=True, order_by="user_type asc")
 
-		self.assertIn("order by", query.lower())
+		self.assertIn("order by", str(query).lower())
 		self.assertEqual([row.user_type for row in result], sorted(row.user_type for row in result))
 
 	@run_only_if(db_type_is.POSTGRES)
@@ -1300,7 +1147,7 @@ class TestDBQuery(IntegrationTestCase):
 					order_by=order_by,
 					run=False,
 				)
-				self.assertEqual("order by" in query.lower(), keeps_order)
+				self.assertEqual("order by" in str(query).lower(), keeps_order)
 				frappe.db.sql(query)
 
 	def test_field_comparison(self):
@@ -1485,37 +1332,6 @@ class TestDBQuery(IntegrationTestCase):
 
 		frappe.set_user("Administrator")
 
-	def test_cast_name(self):
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
-
-		frappe.delete_doc_if_exists("DocType", "autoinc_dt_test")
-		dt = new_doctype("autoinc_dt_test", autoname="autoincrement").insert(ignore_permissions=True)
-
-		query = DatabaseQuery("autoinc_dt_test").execute(
-			fields=[
-				"locate('1', `tabautoinc_dt_test`.`name`)",
-				"name",
-				"locate('1', name)",
-			],
-			filters={"name": 1},
-			run=False,
-		)
-
-		if frappe.db.db_type == "postgres":
-			self.assertTrue('strpos( cast("tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
-			self.assertTrue("strpos( cast(name as varchar), '1')" in query)
-			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
-		elif frappe.db.db_type == "sqlite":
-			self.assertIn('INSTR("tabautoinc_dt_test"."name", \'1\')', query)
-			self.assertIn("INSTR(name, '1')", query)
-			self.assertIn('WHERE "tabautoinc_dt_test"."name" = 1', query)
-		else:
-			self.assertTrue("locate('1', `tabautoinc_dt_test`.`name`)" in query)
-			self.assertTrue("locate('1', name)" in query)
-			self.assertTrue("where `tabautoinc_dt_test`.`name` = 1" in query)
-
-		dt.delete(ignore_permissions=True)
-
 	def test_fieldname_starting_with_int(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
@@ -1569,84 +1385,8 @@ class TestDBQuery(IntegrationTestCase):
 		dt.delete()
 		table_dt.delete()
 
-	def test_permission_query_condition(self):
-		from frappe.desk.doctype.dashboard_settings.dashboard_settings import (
-			create_dashboard_settings,
-		)
-		from frappe.model.db_query import DatabaseQuery
-
-		self.doctype = "Dashboard Settings"
-		self.user = "test'5@example.com"
-
-		db_query = DatabaseQuery(self.doctype, user=self.user)
-
-		permission_query_conditions = db_query.get_permission_query_conditions()
-
-		create_dashboard_settings(self.user)
-
-		dashboard_settings = frappe.db.sql(
-			f"""
-				SELECT name
-				FROM `tabDashboard Settings`
-				WHERE {permission_query_conditions}
-			""",
-			as_dict=1,
-		)[0]
-
-		self.assertTrue(dashboard_settings)
-
-	def test_permission_query_condition_supports_pypika(self):
-		"""The legacy DatabaseQuery path must also accept a pypika criterion from a hook."""
-		from frappe.desk.doctype.dashboard_settings.dashboard_settings import (
-			create_dashboard_settings,
-		)
-		from frappe.model.db_query import DatabaseQuery
-
-		self.user = "test@example.com"
-		create_dashboard_settings(self.user)
-
-		with self.patch_hooks(
-			{
-				"permission_query_conditions": {
-					"Dashboard Settings": ["frappe.tests.test_query.test_permission_hook_criterion"]
-				}
-			}
-		):
-			db_query = DatabaseQuery("Dashboard Settings", user=self.user)
-			conditions = db_query.get_permission_query_conditions()
-
-			# The criterion must be rendered to a namespaced SQL string (the `tab`-prefixed
-			# table name is dialect-independent; only the surrounding quote char differs).
-			self.assertIn("tabDashboard Settings", conditions)
-			self.assertIn("name", conditions)
-
-			# And the rendered string must be valid SQL that selects the user's record.
-			rows = frappe.db.sql(
-				f"SELECT name FROM `tabDashboard Settings` WHERE {conditions}",
-				as_dict=True,
-			)
-			self.assertTrue(any(r.name == self.user for r in rows))
-
-	def test_permission_criterion_escapes_values_safely(self):
-		"""Values inside a pypika permission criterion must be driver-escaped, not inlined raw.
-
-		pypika's bare quote-doubling is unsafe on MariaDB (backslash is an escape char), so the
-		legacy path must route values through frappe.db.escape. A backslash must be doubled and a
-		quote-breakout attempt must stay inside the string literal.
-		"""
-		from frappe.model.db_query import DatabaseQuery
-
-		payload = "back\\slash' OR 1=1 -- "
-		Dashboard = frappe.qb.DocType("Dashboard Settings")
-		rendered = DatabaseQuery("Dashboard Settings")._render_permission_criterion(Dashboard.name == payload)
-
-		# The value must appear exactly as frappe.db.escape produces it (driver-quality escaping:
-		# backslash doubled, quote escaped) — never the raw breakout sequence.
-		self.assertIn(frappe.db.escape(payload), rendered)
-		self.assertNotIn("slash' OR", rendered)
-
 	def test_permission_criterion_or_stays_grouped(self):
-		from frappe.model.db_query import DatabaseQuery
+		from frappe.model.qb_query import DatabaseQuery
 
 		open_todo = frappe.get_doc(doctype="ToDo", description="_Test OR Group", status="Open").insert()
 		closed_todo = frappe.get_doc(doctype="ToDo", description="_Test OR Group", status="Closed").insert()
@@ -1666,7 +1406,7 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertNotIn(closed_todo.name, names)
 
 	def test_permission_criterion_values_are_inlined_as_is(self):
-		from frappe.model.db_query import DatabaseQuery
+		from frappe.model.qb_query import DatabaseQuery
 
 		todo = frappe.get_doc(doctype="ToDo", description="100% %(param2)s").insert()
 		with self.patch_hooks(

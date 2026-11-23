@@ -11,16 +11,6 @@ export function parseResult(result) {
 	}
 }
 
-// The same text, unfolded: the callback serializes a return to one JSON line.
-export function pretty(content) {
-	if (!content) return "";
-	try {
-		return JSON.stringify(JSON.parse(content), null, 2);
-	} catch {
-		return content;
-	}
-}
-
 export function deskUrl(doctype, name) {
 	const slug = doctype.toLowerCase().replace(/ /g, "-");
 	return `/app/${slug}/${encodeURIComponent(name)}`;
@@ -41,14 +31,25 @@ export function columnsOf(records) {
 	return columns.length ? columns : order;
 }
 
-function blank(value) {
-	return value == null || value === "" || (Array.isArray(value) && !value.length);
+export function blank(value) {
+	if (value == null || value === "") return true;
+	return typeof value === "object" && !Object.keys(value).length;
 }
 
-export function cellText(value) {
+// A value in words: a list by its items, a record by its fields, a child table by its
+// count. With `whole`, a table reads a row per line, so nothing stays behind a count.
+export function cellText(value, whole = false) {
 	if (value == null) return "";
-	if (Array.isArray(value)) return value.length === 1 ? __("1 row") : __("{0} rows", [value.length]);
-	if (typeof value === "object") return JSON.stringify(value);
+	if (Array.isArray(value)) {
+		// an empty list counts like the tables beside it
+		if (!value.length || (isTable(value) && !whole))
+			return value.length === 1 ? __("1 row") : __("{0} rows", [value.length]);
+		return value.map((item) => cellText(item, whole)).join(isTable(value) ? "\n" : ", ");
+	}
+	if (typeof value === "object")
+		return Object.entries(value)
+			.map(([field, part]) => `${humanize(field)}: ${cellText(part, whole)}`)
+			.join(", ");
 	return String(value);
 }
 

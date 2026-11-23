@@ -524,7 +524,11 @@ def log(msg: str) -> None:
 def set_user(username: str):
 	"""Set current user.
 
-	:param username: **User** name to set as current user."""
+	:param username: **User** name to set as current user.
+
+	Best effort: a value with `@` that isn't a user ID is resolved to the ID of the user with that
+	email. If there's no such user, no DB connection, or the lookup fails, `username` is used as given."""
+	username = _resolve_user_id(username)
 	local.session.user = username
 	local.session.sid = username
 	local.cache = {}
@@ -535,6 +539,25 @@ def set_user(username: str):
 	local.role_permissions = {}
 	local.new_doc_templates = {}
 	local.user_perms = None
+
+
+def _resolve_user_id(user: str) -> str:
+	if not user or user in STANDARD_USERS or "@" not in user or not getattr(local, "db", None):
+		return user
+
+	try:
+		user_ids = get_all(
+			"User",
+			filters={"name": ("not in", STANDARD_USERS)},
+			or_filters={"name": user, "email": user.strip().lower()},
+			pluck="name",
+		)
+	except Exception:
+		return user
+
+	if user in user_ids or not user_ids:
+		return user
+	return user_ids[0]
 
 
 def get_user():
@@ -1287,7 +1310,7 @@ def build_match_conditions(doctype, as_condition=True):
 
 
 def get_list(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will also check for permissions.
+	"""List database query via `frappe.model.qb_query`. Will also check for permissions.
 
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`.
@@ -1310,7 +1333,7 @@ def get_list(doctype, *args, **kwargs):
 
 
 def get_all(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will **not** check for permissions.
+	"""List database query via `frappe.model.qb_query`. Will **not** check for permissions.
 	Parameters are same as `frappe.get_list`
 
 	:param doctype: DocType on which query is to be made.

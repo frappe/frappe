@@ -550,6 +550,8 @@ def decode_file_content(content: bytes) -> bytes:
 
 
 def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
+	from frappe.core.doctype.file.file import _without_unreadable_attachments
+
 	filters = {"file_url": str(path)}
 	if name:
 		filters["name"] = str(name)
@@ -559,7 +561,7 @@ def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
-	for file_data in files:
+	for file_data in _without_unreadable_attachments(files):
 		# the database collation ignores case, the filesystem does not
 		if file_data.file_url != filters["file_url"]:
 			continue

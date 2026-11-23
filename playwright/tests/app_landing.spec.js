@@ -30,9 +30,9 @@ function framework_landing(page) {
 
 async function framework_tile_href(page) {
 	await page.evaluate(() => frappe.set_route("desktop"));
-	const tile = page.locator(".desktop-icon", { hasText: "Framework" }).locator(".icon-title");
-	await expect(tile).toBeVisible();
-	return tile.getAttribute("href");
+	const tile = page.locator(".desktop-icon", { hasText: "Framework" });
+	await expect(tile.locator(".icon-title")).toBeVisible();
+	return tile.locator("a.icon-title, .module-folder-app").first().getAttribute("href");
 }
 
 test.describe("Where an app's icon leads", () => {

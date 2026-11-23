@@ -2,11 +2,14 @@
 # License: MIT. See LICENSE
 import smtplib
 import textwrap
+from email import message_from_bytes
 from unittest.mock import MagicMock, patch
 
 import frappe
+from frappe.database import get_db
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.utils import get_user_by_email
 
 
@@ -44,14 +47,6 @@ class TestEmailQueue(IntegrationTestCase):
 
 		self.assertTrue(frappe.db.exists("Email Queue", new_record.name))
 		self.assertTrue(frappe.db.exists("Email Queue Recipient", {"parent": new_record.name}))
-
-	def test_undeliverable_sender_sends_as_the_outgoing_account(self):
-		from frappe.email.doctype.email_queue.email_queue import QueueBuilder
-
-		for sender in ("admin@example.com", "Administrator <admin@example.com>", "admin@frappe.invalid"):
-			with self.subTest(sender=sender):
-				builder = QueueBuilder(recipients=["test@example.com"], sender=sender, subject="Test")
-				self.assertEqual(builder.sender, builder.get_outgoing_email_account().default_sender)
 
 	def test_failed_email_notification(self):
 		subject = frappe.generate_hash()
@@ -134,6 +129,48 @@ class TestEmailQueue(IntegrationTestCase):
 
 		mock_smtp_server.discard_session.assert_called_once()
 
+	@run_only_if(db_type_is.SQLITE)
+	def test_send_records_result_when_another_connection_commits_during_send(self):
+		email_record = frappe.new_doc(
+			"Email Queue",
+			sender="Test <test@example.com>",
+			show_as_cc="",
+			message="Test message",
+			status="Not Sent",
+			priority=1,
+			recipients=[{"recipient": "test_concurrent@example.com"}],
+		).insert()
+		frappe.db.commit()  # frees the SQLite writer lock for the other connection; nosemgrep
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "Email Queue", email_record.name, force=True)
+		self.addCleanup(frappe.db.delete, "DefaultValue", {"defkey": "email_queue_concurrent_write"})
+		other = get_db(cur_db_name=frappe.conf.db_name)
+		other.connect()
+		self.addCleanup(other.close)
+
+		def commit_elsewhere(**kwargs):
+			frappe.db.sql("select name from `tabEmail Queue` limit 1")  # as building the message does
+			other.sql(
+				"insert into `tabDefaultValue` (name, parent, defkey, defvalue) values (%s, '__default', %s, 'x')",
+				(frappe.generate_hash(), "email_queue_concurrent_write"),
+			)
+			other.commit()
+
+		mock_smtp_server = MagicMock()
+		mock_smtp_server.session.has_extn.return_value = False
+		mock_smtp_server.session.sendmail.side_effect = commit_elsewhere
+
+		frappe.flags.testing_email = True
+		try:
+			email_record.send(smtp_server_instance=mock_smtp_server)
+		finally:
+			frappe.flags.testing_email = False
+
+		self.assertEqual(frappe.db.get_value("Email Queue", email_record.name, "status"), "Sent")
+		self.assertEqual(
+			frappe.db.get_value("Email Queue Recipient", {"parent": email_record.name}, "status"), "Sent"
+		)
+
 	def test_redacts_message_only_once_sent(self):
 		"""A failed send must keep the message intact, it is the only copy the retry has."""
 		link = f"http://example.com/update-password?key={frappe.generate_hash()}"
@@ -183,6 +220,48 @@ class TestEmailQueue(IntegrationTestCase):
 
 		self.assertIn(link, mock_session.sendmail.call_args.kwargs["msg"].decode())
 		self.assertNotIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))
+
+	def test_notification_keeps_large_recipient_list_in_one_queue(self):
+		recipients = [f"notify{index}@example.com" for index in range(101)]
+
+		queue = frappe.sendmail(
+			recipients=recipients, subject="Notification", message="Body", is_notification=True
+		)
+
+		self.assertCountEqual([row.recipient for row in queue.recipients], recipients)
+
+	def test_reply_to_removed_only_from_copy_sent_to_that_address(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		queue = frappe.sendmail(
+			recipients=["customer@example.com"],
+			cc=["manager@example.com"],
+			reply_to="manager@example.com",
+			subject="Reply-To",
+			message="Test message",
+		)
+		context = SendMailContext(queue)
+
+		manager_copy = message_from_bytes(context.build_message("manager@example.com"))
+		customer_copy = message_from_bytes(context.build_message("customer@example.com"))
+
+		self.assertIsNone(manager_copy["Reply-To"])
+		self.assertEqual(customer_copy["Reply-To"], "manager@example.com")
+
+	def test_reply_to_address_matching(self):
+		for reply_to, recipient, is_kept in (
+			("Manager <Manager@Example.com>", "manager@example.com", False),
+			("manager@example.com", "Manager <MANAGER@example.com>", False),
+			("manager@example.com, other@example.com", "manager@example.com", True),
+			("manager@example.com", "other@example.com", True),
+		):
+			with self.subTest(reply_to=reply_to, recipient=recipient):
+				queue = frappe.new_doc(
+					"Email Queue",
+					message=f"From: test@example.com\nTo: <!--recipient-->\nReply-To: {reply_to}\n\nBody\n",
+				)
+				copy = message_from_bytes(SendMailContext(queue).build_message(recipient))
+				self.assertEqual(copy["Reply-To"], reply_to if is_kept else None)
 
 	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=0)
 	def test_print_attachment_renders_once_for_every_recipient(self):

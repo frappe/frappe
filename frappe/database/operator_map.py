@@ -6,9 +6,8 @@ from collections.abc import Callable
 
 import frappe
 from frappe.database.utils import NestedSetHierarchy
-from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Field
-from frappe.utils import cstr
+from frappe.utils import cstr, get_timespan_date_range
 
 
 def like(key: Field, value: str):

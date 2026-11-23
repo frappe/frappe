@@ -9,6 +9,7 @@
   "agent",
   "model",
   "source",
+  "personal_trigger",
   "approval_mode",
   "general_access",
   "last_synced_seq",
@@ -54,6 +55,16 @@
    "label": "Source",
    "options": "Manual\nTrigger",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Started by a Flow User's own trigger, so System Managers do not see it.",
+   "fieldname": "personal_trigger",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Personal Trigger",
+   "read_only": 1,
+   "set_only_once": 1
   },
   {
    "default": "Auto",
@@ -128,7 +139,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-11-18 12:00:00",
+ "modified": "2026-11-20 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",

@@ -40,7 +40,10 @@ const real = new Set([
 	"NamesView.vue",
 	"CodeView.vue",
 	"SnippetView.vue",
-	"JsonView.vue",
+	"ResultView.vue",
+	"DataView.vue",
+	"ApiView.vue",
+	"ArgsView.vue",
 	"CodeBlock.vue",
 ]);
 const stubs = new Map();

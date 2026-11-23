@@ -8,11 +8,11 @@ from __future__ import annotations
 import json
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import frappe
 from frappe import _
-from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.daemon.client import DaemonClient, DaemonDown, DaemonError
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_agent.flow_agent import FlowAgent
@@ -45,6 +45,12 @@ USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write
 PENDING_KEYS = ("id", "name", "args", "prompt")
 
 
+class FlowServerDown(frappe.ValidationError):
+	"""The flow server is restarting and saw nothing of the call, so the caller can send it again."""
+
+	http_status_code = 503
+
+
 def new_session(
 	agent: FlowAgent | str | None = None,
 	*,
@@ -53,6 +59,7 @@ def new_session(
 	source: str = "Manual",
 	approval_mode: str | None = None,
 	guest_token: str | None = None,
+	personal_trigger: bool = False,
 ) -> FlowSession:
 	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant.
 	`guest_token` is the hash of the token that opens a guest chat."""
@@ -69,6 +76,7 @@ def new_session(
 			"model": model,
 			"title": title,
 			"source": source,
+			"personal_trigger": personal_trigger,
 			"approval_mode": "Auto-approve" if source == "Trigger" else approval_mode or "Auto",
 			"guest_token": guest_token,
 		}
@@ -127,7 +135,12 @@ def flow_server() -> Generator[DaemonClient]:
 		with DaemonClient.for_site() as client:
 			yield client
 	except DaemonError as exc:
-		frappe.throw(str(exc), title=_("Flow Server"))
+		throw_server_error(exc)
+
+
+def throw_server_error(exc: DaemonError) -> NoReturn:
+	kind = FlowServerDown if isinstance(exc, DaemonDown) else frappe.ValidationError
+	frappe.throw(str(exc), exc=kind, title=_("Flow Server"))
 
 
 class LogRecorder:
