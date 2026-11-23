@@ -400,7 +400,7 @@ frappe.views.CommunicationComposer = class {
 				},
 				options: () =>
 					formats.map((format) => ({
-						label: format,
+						label: __(format),
 						selected:
 							!!fields.attach_document_print.get_value() &&
 							fields.select_print_format.get_value() === format,
