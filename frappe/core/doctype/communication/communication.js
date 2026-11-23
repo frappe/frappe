@@ -278,8 +278,12 @@ frappe.ui.form.on("Communication", {
 		$.extend(args, {
 			subject: __("Res: {0}", [frm.doc.subject]),
 			recipients: frm.doc.sender,
-			cc: frm.doc.cc,
+			cc: frappe.utils
+				.split_emails([frm.doc.recipients, frm.doc.cc].filter(Boolean).join(","))
+				.filter((email) => ![frappe.session.user_email, args.sender].includes(email))
+				.join(", "),
 			is_a_reply: true,
+			reply_all: true,
 		});
 		new frappe.views.CommunicationComposer(args);
 	},
