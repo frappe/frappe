@@ -64,6 +64,7 @@ test.describe("Text Editor images", () => {
 		await expect.poll(() => page.evaluate(() => cur_frm.doc.content)).toContain(centered);
 
 		await desk.save();
+		await expect(page.locator("body")).not.toHaveAttribute("data-route", /\/new-/);
 		await page.reload();
 		await expect(page.locator("body")).toHaveAttribute("data-ajax-state", "complete");
 		await expect(desk.get_field("content", "Text Editor").locator("img")).toHaveAttribute(
