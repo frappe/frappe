@@ -39,7 +39,9 @@ class CodeFieldGuard:
 		doc = self.doc
 		saved = None if doc.is_new() else doc.get_latest()
 		reference = saved or frappe.new_doc(doc.doctype, as_dict=True)
-		changed = [_(df.label) for df in self.fields if is_changed(doc, reference, df.fieldname)]
+		changed = [
+			_(df.label) for df in self.fields if self.is_authored(doc, reference, df, is_new=not saved)
+		]
 
 		for table_df, child_fields in self.tables:
 			changed.extend(self.get_changed_row_labels(table_df, child_fields, saved))
@@ -55,7 +57,8 @@ class CodeFieldGuard:
 
 		for row in self.doc.get(table_df.fieldname):
 			reference = saved_rows.get(row.name)
-			if reference is None:
+			is_new = reference is None
+			if is_new:
 				defaults = defaults or frappe.new_doc(
 					table_df.options, parent_doc=self.doc, parentfield=table_df.fieldname, as_dict=True
 				)
@@ -64,10 +67,22 @@ class CodeFieldGuard:
 			changed.extend(
 				_("{0} (row {1})").format(_(df.label), row.idx)
 				for df in child_fields
-				if is_changed(row, reference, df.fieldname)
+				if self.is_authored(row, reference, df, is_new, child_doctype=table_df.options)
 			)
 
 		return changed
+
+	def is_authored(self, row, reference, df, is_new, child_doctype=None):
+		if not is_changed(row, reference, df.fieldname):
+			return False
+		# a new document or row may reuse code the user can already read, e.g. after Duplicate
+		return not (
+			is_new and self.exists_in_readable_doc(df.fieldname, row.get(df.fieldname), child_doctype)
+		)
+
+	def exists_in_readable_doc(self, fieldname, value, child_doctype=None):
+		filters = [[child_doctype, fieldname, "=", value]] if child_doctype else {fieldname: value}
+		return bool(frappe.get_list(self.doc.doctype, filters=filters, limit=1, pluck="name"))
 
 
 def is_code_author(user=None):
