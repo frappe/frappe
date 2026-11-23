@@ -252,7 +252,7 @@ class StudioApp(WebsiteGenerator):
 		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
 			self.delete_app_folder()
 		if self.has_value_changed("hide_on_desktop"):
-			frappe.cache.delete_key("bootinfo")
+			frappe.db.after_commit.add(lambda: frappe.cache.delete_key("bootinfo"))
 		publish_doc_change("Studio App", self.name, self.name)
 
 	def on_trash(self):
