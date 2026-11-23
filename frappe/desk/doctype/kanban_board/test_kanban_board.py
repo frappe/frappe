@@ -308,20 +308,18 @@ class TestKanbanBoard(IntegrationTestCase):
 			update_order_for_single_card,
 		)
 
-		email = "kanban_perm_test@example.com"
-		if not get_user_by_email(email):
+		other = "kanban_perm_test@example.com"
+		if not get_user_by_email(other):
 			frappe.get_doc(
 				{
 					"doctype": "User",
-					"email": email,
+					"email": other,
 					"first_name": "Kanban",
 					"last_name": "Perm",
 					"send_welcome_email": 0,
 					"roles": [{"role": "System Manager"}],
 				}
 			).insert(ignore_permissions=True)
-
-		other = get_user_by_email(email)
 
 		# Board is private and owned by the test session user, not `other`.
 		frappe.set_user(other)

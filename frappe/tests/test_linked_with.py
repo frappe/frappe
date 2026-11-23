@@ -11,7 +11,6 @@ from frappe.database import savepoint
 from frappe.desk.form import linked_with
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_linked_docs
 from frappe.tests import IntegrationTestCase
-from frappe.utils import get_user_by_email
 
 
 def hard_delete_referencing_child2_records(doc, method=None):
@@ -984,7 +983,7 @@ class TestLinkedWith(IntegrationTestCase):
 		linking_doctype = new_doctype(fields=link_fields, permissions=all_can_edit).insert().name
 		try:
 			# outside tests the dynamic link map is built once per request
-			with self.set_user(get_user_by_email("test@example.com")), patch.object(frappe, "in_test", False):
+			with self.set_user("test@example.com"), patch.object(frappe, "in_test", False):
 				frappe.local.dynamic_link_map = None
 				target = frappe.new_doc(target_doctype).insert()
 				self.assertNotIn(linking_doctype, linked_with.get(target_doctype, target.name))
@@ -1171,7 +1170,7 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(next_page["Linked Entry"]["hidden_count"], 0)
 
 	def test_get_lists_only_the_requested_linked_doctype(self):
-		with self.set_user(get_user_by_email("test@example.com")):
+		with self.set_user("test@example.com"):
 			parent = frappe.new_doc("Parent DocType").insert()
 			frappe.new_doc("Child DocType1", parent_doctype=parent.name).insert()
 			frappe.new_doc("Child DocType2", parent_doctype=parent.name).insert()
@@ -1182,7 +1181,7 @@ class TestLinkedWith(IntegrationTestCase):
 	def test_get_lists_linked_docs_of_a_doctype_sorted_by_several_fields(self):
 		frappe.db.set_value("DocType", "Child DocType1", "sort_field", "idx desc, creation desc")
 		frappe.clear_cache(doctype="Child DocType1")
-		with self.set_user(get_user_by_email("test@example.com")):
+		with self.set_user("test@example.com"):
 			parent = frappe.new_doc("Parent DocType").insert()
 			child = frappe.new_doc("Child DocType1", parent_doctype=parent.name).insert()
 			linked_docs = linked_with.get(parent.doctype, parent.name)

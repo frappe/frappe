@@ -39,7 +39,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		user.email = emails[0]
 		user.append_roles("System Manager")
 		user.insert()
-		frappe.set_user(user.name)
+		frappe.set_user(emails[0])
 
 	@classmethod
 	def tearDownClass(cls):

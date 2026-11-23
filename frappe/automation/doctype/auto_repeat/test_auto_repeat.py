@@ -17,7 +17,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_model_utils import set_user
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_days, add_months, get_user_by_email, getdate, today
+from frappe.utils import add_days, add_months, getdate, today
 
 if TYPE_CHECKING:
 	from frappe.custom.doctype.custom_field.custom_field import CustomField
@@ -463,7 +463,7 @@ class TestAutoRepeat(IntegrationTestCase):
 
 	def test_message_preview_without_attach_print(self):
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user(get_user_by_email("test@example.com"))
+		frappe.set_user("test@example.com")
 		todo = frappe.get_doc(doctype="ToDo", description="Test message preview without print").insert()
 		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@example.com")
 		doc.db_set("attach_print", 0)

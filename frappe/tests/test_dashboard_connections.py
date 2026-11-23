@@ -282,7 +282,7 @@ class TestDashboardConnections(IntegrationTestCase):
 
 			with (
 				self.subTest(internal_and_external_links=internal_and_external_links),
-				self.set_user(user),
+				self.set_user("test@example.com"),
 				patch.object(todo.meta, "get_dashboard_data", return_value=dashboard),
 			):
 				connections = get_open_count("ToDo", todo.name)["count"]

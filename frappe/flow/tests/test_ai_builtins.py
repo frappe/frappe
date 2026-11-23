@@ -187,8 +187,8 @@ class TestDescribe(IntegrationTestCase):
 
 class TestFindApis(IntegrationTestCase):
 	def setUp(self):
+		self.enterContext(self.set_user("test@example.com"))
 		self.user = get_user_by_email("test@example.com")
-		self.enterContext(self.set_user(self.user))
 		self.ctx = ToolContext(session_id="test", agent="Test Agent", user=self.user)
 
 	def test_finds_and_describes_python_apis(self):

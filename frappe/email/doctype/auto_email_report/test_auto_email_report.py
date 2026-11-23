@@ -55,12 +55,12 @@ class TestAutoEmailReport(IntegrationTestCase):
 		auto_email_report.filters = json.dumps({"user": test1.name, "doctype": "DocType"})
 		auto_email_report.save()
 
-		with self.set_user(test2.name):
+		with self.set_user("test2@example.com"):
 			auto_email_report.user = test1.name
 			self.assertRaises(frappe.PermissionError, auto_email_report.save)
 
 		auto_email_report.reload()
-		with self.set_user(get_user_by_email("test@example.com")):
+		with self.set_user("test@example.com"):
 			auto_email_report.user = "Administrator"
 			self.assertRaises(frappe.PermissionError, auto_email_report.save)
 

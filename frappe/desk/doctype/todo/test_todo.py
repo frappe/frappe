@@ -56,11 +56,11 @@ class TestToDo(IntegrationTestCase):
 	def test_todo_list_access(self):
 		create_new_todo("Test1", get_user_by_email("testperm@example.com"))
 
-		frappe.set_user(get_user_by_email("test4@example.com"))
+		frappe.set_user("test4@example.com")
 		create_new_todo("Test2", get_user_by_email("test4@example.com"))
 		test_user_data = DatabaseQuery("ToDo").execute()
 
-		frappe.set_user(get_user_by_email("testperm@example.com"))
+		frappe.set_user("testperm@example.com")
 		system_manager_data = DatabaseQuery("ToDo").execute()
 
 		self.assertNotEqual(test_user_data, system_manager_data)
@@ -76,7 +76,7 @@ class TestToDo(IntegrationTestCase):
 		# owner is testperm, but assigned_by is test4
 		todo2 = create_new_todo("Test2", get_user_by_email("test4@example.com"))
 
-		frappe.set_user(get_user_by_email("test4@example.com"))
+		frappe.set_user("test4@example.com")
 		# owner and assigned_by is test4
 		todo3 = create_new_todo("Test3", get_user_by_email("test4@example.com"))
 
@@ -97,7 +97,7 @@ class TestToDo(IntegrationTestCase):
 		test_user.add_roles("Website Manager")
 		add_permission("ToDo", "Website Manager")
 
-		frappe.set_user(get_user_by_email("test4@example.com"))
+		frappe.set_user("test4@example.com")
 
 		# user with only read access to todo document, not an owner or assigned_by
 		self.assertTrue(todo1.has_permission("read"))
@@ -111,7 +111,7 @@ class TestToDo(IntegrationTestCase):
 
 	def test_owner_only_access(self):
 		# owner is test4, but assigned_by and allocated_to belong to someone else
-		frappe.set_user(get_user_by_email("test4@example.com"))
+		frappe.set_user("test4@example.com")
 		todo = frappe.get_doc(
 			doctype="ToDo",
 			description="Owner only todo",

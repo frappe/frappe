@@ -53,7 +53,7 @@ class TestSystemHealthReport(IntegrationTestCase):
 		user = get_user_by_email("test1@example.com")
 		frappe.get_doc("User", user).add_roles("System Manager")
 
-		with self.set_user(user), patch("frappe.enqueue") as enqueue:
+		with self.set_user("test1@example.com"), patch("frappe.enqueue") as enqueue:
 			self.assertTrue(frappe.has_permission("System Health Report"))
 
 		enqueue.assert_not_called()

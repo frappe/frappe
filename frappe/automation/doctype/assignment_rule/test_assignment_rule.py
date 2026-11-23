@@ -263,7 +263,7 @@ class TestAutoAssign(IntegrationTestCase):
 		self.assertEqual(todo.allocated_to, self.user)
 
 	def test_closed_assignments_looked_up_once_per_save(self):
-		frappe.set_user(self.user)
+		frappe.set_user("test@example.com")
 		note = _make_test_record(public=1, content="valid")
 
 		with patch(

@@ -64,7 +64,7 @@ class TestUserPermission(IntegrationTestCase):
 		param = get_params(user, "Test Blog Category", "public")
 		add_user_permissions(param)
 
-		frappe.set_user(user.name)
+		frappe.set_user("test_user_perm1@example.com")
 		doc = frappe.new_doc("Test Blog Post")
 
 		self.assertEqual(doc.blog_category, "general")
@@ -102,7 +102,7 @@ class TestUserPermission(IntegrationTestCase):
 				"DocType", "", "name", start, page_len, {"doctype": "User"}
 			)
 
-		with self.set_user(get_user_by_email("test@example.com")):
+		with self.set_user("test@example.com"):
 			applicable = applicable_for(0, 1000)
 			self.assertEqual(len(applicable), len({doctype for (doctype,) in applicable}))
 			self.assertEqual(applicable_for(5, 5), applicable[5:10])
@@ -277,7 +277,7 @@ class TestUserPermission(IntegrationTestCase):
 
 		# make User Perm on DocType 'ToDo' in Assignment Rule (unrelated doctype)
 		add_user_permissions(get_params(user, "DocType", "ToDo", applicable=["Assignment Rule"]))
-		frappe.set_user(user.name)
+		frappe.set_user("new_doc_test@example.com")
 
 		new_doc = frappe.new_doc("Doc A")
 
@@ -324,7 +324,7 @@ class TestUserPermission(IntegrationTestCase):
 		add_user_permissions(get_params(user, "DocType", "ToDo", applicable=["Assignment Rule"]))
 
 		# User default Doctype value is ToDo via Session Defaults
-		frappe.set_user(user.name)
+		frappe.set_user("user_default_test@example.com")
 		set_session_default_values({"doc": "ToDo"})
 
 		new_doc = frappe.new_doc("Doc A")

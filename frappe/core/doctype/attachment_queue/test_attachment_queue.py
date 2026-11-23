@@ -46,8 +46,6 @@ def minimal_pdf(marker: str) -> bytes:
 
 class TestAttachmentQueue(IntegrationTestCase):
 	def setUp(self):
-		self.test_user = get_user_by_email(TEST_USER)
-		self.plain_user = get_user_by_email(PLAIN_USER)
 		self.enable_upload_first(TARGET_DOCTYPE)
 
 	def enable_upload_first(self, doctype: str):
@@ -141,7 +139,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		)
 
 	def test_linking_files_the_source_file_against_the_document(self):
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			file_doc = self.make_file("LINKED", "linked.pdf")
 			queue_doc = self.make_queue(file_doc.file_url)
 			target = self.make_target_document()
@@ -156,7 +154,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertIn(file_doc.file_url, self.attachments_of(queue_doc))
 
 	def test_linking_rejects_a_document_that_does_not_exist(self):
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			queue_doc = self.make_queue(self.make_file("MISSING", "missing.pdf").file_url)
 
 			self.assertRaisesRegex(
@@ -173,7 +171,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		queue_doc = self.make_committed_queue("DENIED", "denied.pdf", unreadable_target)
 		target = frappe.get_doc({"doctype": unreadable_target}).insert(ignore_permissions=True)
 
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			self.assertRaises(
 				frappe.PermissionError,
 				queue_doc.link_to_document,
@@ -184,7 +182,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		self.assertFalse(queue_doc.created_document)
 
 	def test_a_linked_entry_cannot_produce_a_second_document(self):
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			queue_doc = self.make_queue(self.make_file("CLAIMED", "claimed.pdf").file_url)
 			first = self.make_target_document()
 			second = self.make_target_document()
@@ -202,7 +200,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertFalse(self.attachments_of(second))
 
 	def test_a_failed_link_leaves_the_entry_unclaimed(self):
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			file_doc = self.make_file("ORPHANED", "orphaned.pdf")
 			queue_doc = self.make_queue(file_doc.file_url)
 			target = self.make_target_document()
@@ -221,7 +219,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertFalse(self.attachments_of(target))
 
 	def test_deleting_the_document_returns_the_entry_to_the_queue(self):
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			file_doc = self.make_file("UNLINKED", "unlinked.pdf")
 			queue_doc = self.make_queue(file_doc.file_url)
 			target = self.make_target_document()
@@ -255,7 +253,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		readable = self.make_committed_queue("READABLE", "readable.pdf")
 		hidden = self.make_committed_queue("HIDDEN", "hidden.pdf", unreadable_target)
 
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			self.assertTrue(frappe.has_permission("Attachment Queue", doc=readable))
 			self.assertFalse(frappe.has_permission("Attachment Queue", doc=hidden))
 
@@ -264,7 +262,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		readable = self.make_committed_queue("LISTED", "listed.pdf")
 		hidden = self.make_committed_queue("UNLISTED", "unlisted.pdf", unreadable_target)
 
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			# get_list applies the permission query condition; get_all would skip it.
 			names = frappe.get_list("Attachment Queue", pluck="name")
 
@@ -273,7 +271,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 
 	def test_a_doctype_without_the_workflow_enabled_is_rejected(self):
 		# The target is checked before the file is, so this needs no uploaded file.
-		with self.set_user(self.test_user):
+		with self.set_user(TEST_USER):
 			queue_doc = frappe.get_doc(
 				{
 					"doctype": "Attachment Queue",
@@ -290,12 +288,12 @@ class TestAttachmentQueue(IntegrationTestCase):
 	def test_linking_accepts_an_integer_document_name(self):
 		target_doctype = self.make_target(
 			{"read": 1, "write": 1, "create": 1},
-			self.plain_user,
+			get_user_by_email(PLAIN_USER),
 			naming_rule="Autoincrement",
 			autoname="autoincrement",
 		)
 
-		with self.set_user(self.plain_user):
+		with self.set_user(PLAIN_USER):
 			queue_doc = self.make_committed_queue("NUMBERED", "numbered.pdf", target_doctype)
 			target = frappe.get_doc({"doctype": target_doctype}).insert()
 			self.assertIsInstance(target.name, int)

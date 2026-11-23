@@ -1894,7 +1894,7 @@ class TestSidebarIsAppContent(IntegrationTestCase):
 
 	def test_a_system_manager_is_no_more_privileged_than_anyone_else(self):
 		"""'Regardless of role' includes the roles that can do everything else on a site."""
-		self.enterContext(self.set_user(get_user_by_email("test@example.com")))
+		self.enterContext(self.set_user("test@example.com"))
 		self.assertIn("System Manager", frappe.get_roles())
 
 		with no_developer_mode(), self.assertRaises(frappe.ValidationError):

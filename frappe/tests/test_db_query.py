@@ -442,7 +442,7 @@ class TestDBQuery(IntegrationTestCase):
 		clear_user_permissions_for_doctype("Test Blog Post", test2user.name)
 
 		test2user.add_roles("Blogger")
-		frappe.set_user(test2user.name)
+		frappe.set_user("test2@example.com")
 
 		# this will get match conditions for Blog Post
 		build_match_conditions = DatabaseQuery("Test Blog Post").build_match_conditions
@@ -750,7 +750,7 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertEqual(rows, [{"name": folder.name}])
 
 	def test_ignore_permissions_for_get_filters_cond(self):
-		frappe.set_user(get_user_by_email("test2@example.com"))
+		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, get_filters_cond, "DocType", dict(istable=1), [])
 		self.assertTrue(get_filters_cond("DocType", dict(istable=1), [], ignore_permissions=True))
 		frappe.set_user("Administrator")
@@ -975,7 +975,7 @@ class TestDBQuery(IntegrationTestCase):
 		# to avoid if_owner filter
 		update("Nested DocType", "All", 0, "if_owner", 0)
 
-		with self.set_user(user):
+		with self.set_user("test2@example.com"):
 			data = DatabaseQuery("Nested DocType").execute()
 
 		# children of root folder (for which we added user permission) should be accessible

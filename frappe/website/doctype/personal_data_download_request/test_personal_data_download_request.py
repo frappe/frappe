@@ -60,8 +60,8 @@ class TestRequestPersonalData(IntegrationTestCase):
 			)
 
 	def test_file_and_email_creation(self):
+		frappe.set_user("test_privacy@example.com")
 		user = get_user_by_email("test_privacy@example.com")
-		frappe.set_user(user)
 		download_request = frappe.get_doc(
 			{"doctype": "Personal Data Download Request", "user": "test_privacy@example.com"}
 		)
@@ -115,7 +115,7 @@ class TestRequestPersonalData(IntegrationTestCase):
 		frappe.db.delete("File")
 		frappe.db.delete("Email Queue")
 
-		frappe.set_user(get_user_by_email("test_privacy@example.com"))
+		frappe.set_user("test_privacy@example.com")
 
 		with patch("frappe.sendmail"):
 			req = frappe.new_doc("Personal Data Download Request")

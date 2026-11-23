@@ -6,7 +6,6 @@ from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
 from frappe.desk.doctype.sidebar.test_sidebar import developer_mode
 from frappe.tests import IntegrationTestCase
-from frappe.utils import get_user_by_email
 from frappe.utils.logging import get_log_db
 
 
@@ -25,7 +24,7 @@ class TestBootData(IntegrationTestCase):
 		)
 		note.insert()
 
-		frappe.set_user(get_user_by_email("test@example.com"))
+		frappe.set_user("test@example.com")
 		_get_unseen_notes()
 		unseen_notes = [d.title for d in get_unseen_notes()]
 		self.assertListEqual(unseen_notes, ["Test Note"])
@@ -109,7 +108,7 @@ class TestBootData(IntegrationTestCase):
 		# stands in for a report whose DocType was deleted
 		frappe.db.set_value("Report", orphan, "ref_doctype", "Test Uninstalled DocType")
 
-		frappe.set_user(get_user_by_email("test@example.com"))
+		frappe.set_user("test@example.com")
 		frappe.clear_messages()
 		error_logs = get_log_db().count("Error Log")
 
@@ -285,7 +284,7 @@ class TestAllowedDashboards(IntegrationTestCase):
 		dashboard = self.dashboard(cards=[{"card": card.name}])
 		frappe.db.delete("Number Card", card.name)
 
-		frappe.set_user(get_user_by_email("test@example.com"))
+		frappe.set_user("test@example.com")
 		frappe.clear_messages()
 
 		self.assertEqual(get_permitted_cards(dashboard.name), [])
@@ -324,7 +323,7 @@ class TestPermissionQueries(IntegrationTestCase):
 		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
 
 		# Create a ToDo custom report with test user
-		frappe.set_user(get_user_by_email("test@example.com"))
+		frappe.set_user("test@example.com")
 		frappe.get_doc(
 			{
 				"doctype": "Report",

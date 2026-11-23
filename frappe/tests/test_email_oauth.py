@@ -18,7 +18,7 @@ from frappe.integrations.frappe_providers import email_oauth
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import wait_for_job
-from frappe.utils import get_user_by_email, set_request
+from frappe.utils import set_request
 
 V2 = {"pilot_endpoint": "http://pilot.test", "pilot_auth_token": "pt"}
 AUTHORIZE = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
@@ -208,7 +208,7 @@ class TestBoot(IntegrationTestCase):
 	def test_desk_boot_says_whether_the_site_is_on_frappe_cloud_v2(self) -> None:
 		from frappe.boot import get_bootinfo
 
-		with self.set_user(get_user_by_email("test@example.com")):
+		with self.set_user("test@example.com"):
 			with patch.dict(frappe.conf, V2):
 				self.assertTrue(get_bootinfo().is_v2_site)
 			with patch.dict(frappe.conf, {key: None for key in V2}):

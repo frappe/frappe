@@ -187,8 +187,8 @@ class TestEmailQueue(IntegrationTestCase):
 	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=0)
 	def test_print_attachment_renders_once_for_every_recipient(self):
 		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		user = get_user_by_email("test@example.com")
-		frappe.set_user(user)
 		email_record = frappe.sendmail(
 			recipients=["test_to@example.com"],
 			cc=["test_cc@example.com"],
@@ -208,8 +208,8 @@ class TestEmailQueue(IntegrationTestCase):
 
 	def test_print_attachment_queued_in_job_uses_user_language(self):
 		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		user = get_user_by_email("test@example.com")
-		frappe.set_user(user)
 		frappe.local.job = frappe._dict(user=user)
 		self.addCleanup(delattr, frappe.local, "job")
 		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
@@ -230,8 +230,8 @@ class TestEmailQueue(IntegrationTestCase):
 		from frappe.core.doctype.communication.email import make
 
 		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		user = get_user_by_email("test@example.com")
-		frappe.set_user(user)
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "Print attachment"}).insert()
 		communication = make(
 			doctype="ToDo",

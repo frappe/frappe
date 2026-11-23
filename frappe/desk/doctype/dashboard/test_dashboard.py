@@ -3,13 +3,12 @@
 import frappe
 from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
-from frappe.utils import get_user_by_email
 from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class TestDashboard(IntegrationTestCase):
 	def test_permission_query(self):
-		for user in ["Administrator", get_user_by_email("test@example.com")]:
+		for user in ["Administrator", "test@example.com"]:
 			with self.set_user(user):
 				frappe.get_list("Dashboard")
 

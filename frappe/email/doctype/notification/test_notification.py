@@ -73,7 +73,7 @@ def create_test_file(file_name="test_attachment.txt", content="Test file content
 class TestNotification(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(patch.object(frappe.db, "_disable_transaction_control", 1))
-		frappe.set_user(get_user_by_email("test@example.com"))
+		frappe.set_user("test@example.com")
 
 		if not frappe.db.exists("Notification", {"name": "ToDo Status Update"}, "name"):
 			notification = frappe.new_doc("Notification")
@@ -780,7 +780,7 @@ class TestNotification(IntegrationTestCase):
 
 	def test_attach_print_without_print_format_sets_no_language(self):
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user(get_user_by_email("test@example.com"))
+		frappe.set_user("test@example.com")
 		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		user.language = None
 

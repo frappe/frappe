@@ -11,7 +11,6 @@ from frappe.flow.api import setup
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
-from frappe.utils import get_user_by_email
 
 
 class TestFlowSetup(IntegrationTestCase):
@@ -230,7 +229,7 @@ class TestSiteKeyProvider(IntegrationTestCase):
 	def test_another_grove_model_is_checked_with_the_site_key_at_the_gateway(self):
 		self._accept()
 		with (
-			self.set_user(get_user_by_email("test@example.com")),
+			self.set_user("test@example.com"),
 			patch.dict(frappe.conf, SITE_KEY),
 			patch("litellm.completion") as completion,
 		):

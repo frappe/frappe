@@ -966,7 +966,7 @@ class TestQuery(IntegrationTestCase):
 		clear_user_permissions_for_doctype("Test Blog Post", test2user.name)
 
 		test2user.add_roles("Blogger")
-		frappe.set_user(test2user.name)
+		frappe.set_user("test2@example.com")
 
 		# Before any user permission is applied, there should be no conditions
 		query = frappe.qb.get_query("Test Blog Post", ignore_permissions=False)
@@ -991,7 +991,7 @@ class TestQuery(IntegrationTestCase):
 		test2user.remove_roles("Blogger")
 
 	def test_ignore_permissions_for_query(self):
-		frappe.set_user(get_user_by_email("test2@example.com"))
+		frappe.set_user("test2@example.com")
 
 		with self.assertRaises(frappe.PermissionError):
 			frappe.qb.get_query("DocType", filters={"istable": 1}, ignore_permissions=False)
@@ -1069,7 +1069,7 @@ class TestQuery(IntegrationTestCase):
 			doctype="Note", title=test_note_title, public=1, seen_by=[{"user": "Administrator"}]
 		).insert(ignore_permissions=True)
 
-		frappe.set_user(test_user.name)
+		frappe.set_user(test_user_email)
 		query = frappe.qb.get_query(
 			"Note",
 			filters={"name": note.name},
@@ -1126,7 +1126,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.addCleanup(cleanup)
 
-		frappe.set_user(test_user.name)
+		frappe.set_user(test_user_email)
 
 		# 'content' is a permlevel 0 field but NOT a search field
 		result = frappe.qb.get_query(
@@ -1161,7 +1161,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.addCleanup(cleanup)
 
-		frappe.set_user(test_user.name)
+		frappe.set_user(test_user_email)
 
 		# filter by user_type and enabled — the exact filters used by search_link for assignment
 		result = frappe.qb.get_query(
@@ -1195,7 +1195,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.addCleanup(cleanup)
 
-		frappe.set_user(test_user.name)
+		frappe.set_user(test_user_email)
 
 		self.assertFalse(
 			frappe.only_has_select_perm("User"),
@@ -1246,7 +1246,7 @@ class TestQuery(IntegrationTestCase):
 		update("Nested DocType", "All", 0, "if_owner", 0)
 
 		test2user.add_roles("Blogger")
-		with self.set_user(test2user.name):
+		with self.set_user("test2@example.com"):
 			data = frappe.qb.get_query("Nested DocType", ignore_permissions=False).run(as_dict=1)
 
 		# Children of the permitted node should be accessible
@@ -2176,7 +2176,7 @@ class TestQuery(IntegrationTestCase):
 		update_permission_property(child_dt_name, test_role, 1, "read", 0, validate=False)
 		test_user_doc.add_roles(test_role)
 
-		frappe.set_user(test_user_doc.name)
+		frappe.set_user(test_user_email)
 
 		try:
 			frappe.qb.get_query(
@@ -2607,7 +2607,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.assertIn("IS NULL", frappe.qb.get_query("ToDo", filters=[["date", "in", [None]]]).get_sql())
 
-		with self.set_user(get_user_by_email("test2@example.com")):
+		with self.set_user("test2@example.com"):
 			todo = frappe.get_doc(
 				{
 					"doctype": "ToDo",
@@ -2647,7 +2647,7 @@ class TestQuery(IntegrationTestCase):
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
 	def test_order_by_expression_alias_with_group_by(self):
-		with self.set_user(get_user_by_email("test2@example.com")):
+		with self.set_user("test2@example.com"):
 			for priority, count in (("Low", 1), ("Medium", 2), ("High", 3)):
 				for _ in range(count):
 					frappe.get_doc(
@@ -3475,7 +3475,7 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn("OFFSET 10", query)
 
 	def test_get_list_with_offset_and_no_limit(self):
-		with self.set_user(get_user_by_email("test2@example.com")):
+		with self.set_user("test2@example.com"):
 			for _ in range(12):
 				frappe.get_doc({"doctype": "ToDo", "description": "_Test offset without limit"}).insert()
 			query = {

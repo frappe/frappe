@@ -38,14 +38,7 @@ from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import (
-	add_to_date,
-	execute_in_shell,
-	get_bench_path,
-	get_bench_relative_path,
-	get_user_by_email,
-	now,
-)
+from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.logging import get_log_db
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
@@ -1111,7 +1104,7 @@ class TestRemoveApp(IntegrationTestCase):
 		self.make_app_module(app, module, doctypes)
 		add_to_installed_apps(app)
 
-		with fake_app_without_hooks(app), self.set_user(get_user_by_email("test@example.com")):
+		with fake_app_without_hooks(app), self.set_user("test@example.com"):
 			with failure, self.assertRaises(frappe.QueryTimeoutError):
 				remove_app(app, yes=True, no_backup=True)
 			frappe.db.rollback()
@@ -1236,7 +1229,7 @@ class TestRemoveApp(IntegrationTestCase):
 		self.make_app_module(app, module, doctypes)
 		add_to_installed_apps(missing_app)
 
-		with fake_app_without_hooks(app), self.set_user(get_user_by_email("test@example.com")):
+		with fake_app_without_hooks(app), self.set_user("test@example.com"):
 			remove_app(app, yes=True, no_backup=True, force=True)
 
 		self.assertFalse(frappe.db.exists("Module Def", module))

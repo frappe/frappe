@@ -630,7 +630,7 @@ class TestWebhook(IntegrationTestCase):
 			enqueue_webhook(doc, wh)
 
 			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
-			with self.set_user(get_user_by_email("test@example.com")):
+			with self.set_user("test@example.com"):
 				log.retry()
 
 			log.reload()
@@ -650,7 +650,7 @@ class TestWebhook(IntegrationTestCase):
 
 			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
 			log.status = "Failed"
-			with self.set_user(get_user_by_email("test@example.com")):
+			with self.set_user("test@example.com"):
 				self.assertRaises(frappe.ValidationError, log.retry)
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
@@ -681,7 +681,7 @@ class TestWebhook(IntegrationTestCase):
 
 			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
 			frappe.db.set_value("Webhook", wh.name, "enabled", 0)
-			with self.set_user(get_user_by_email("test@example.com")):
+			with self.set_user("test@example.com"):
 				self.assertRaises(frappe.ValidationError, log.retry)
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
@@ -697,7 +697,7 @@ class TestWebhook(IntegrationTestCase):
 
 			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
 			with (
-				self.set_user(get_user_by_email("test@example.com")),
+				self.set_user("test@example.com"),
 				patch("frappe.integrations.doctype.webhook.webhook.is_job_enqueued", return_value=True),
 			):
 				self.assertRaises(frappe.ValidationError, log.retry)

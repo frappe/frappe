@@ -385,8 +385,8 @@ class TestReportview(IntegrationTestCase):
 
 	def test_get_sends_link_titles_when_requested(self):
 		self.enable_link_titles("User")
-		user = get_user_by_email("test@example.com")
-		with self.set_user(user):
+		with self.set_user("test@example.com"):
+			user = get_user_by_email("test@example.com")
 			todo = self.make_todo("Report view link title task")
 			response = self.get_todo_rows(todo.name, with_link_titles=1)
 
@@ -396,7 +396,7 @@ class TestReportview(IntegrationTestCase):
 
 	def test_get_skips_link_titles_unless_requested(self):
 		self.enable_link_titles("User")
-		with self.set_user(get_user_by_email("test@example.com")):
+		with self.set_user("test@example.com"):
 			todo = self.make_todo("Report view task without titles")
 			self.get_todo_rows(todo.name)
 			self.assertNotIn("_link_titles", frappe.local.response)
@@ -428,7 +428,7 @@ class TestReportview(IntegrationTestCase):
 		full_name = frappe.db.get_value("User", user, "full_name")
 		self.assertNotEqual(full_name, user)
 
-		with self.set_user(user):
+		with self.set_user("test@example.com"):
 			result = self.get_rows(
 				doctype="User Group",
 				fields=[

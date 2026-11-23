@@ -85,7 +85,7 @@ class TestUser(IntegrationTestCase):
 		self.assertRaises(frappe.PermissionError, get_all_roles)
 		self.assertRaises(frappe.PermissionError, get_perm_info, "System Manager")
 
-		frappe.set_user(get_user_by_email("test@example.com"))
+		frappe.set_user("test@example.com")
 		self.assertIn("System Manager", get_all_roles())
 		self.assertTrue(get_perm_info("System Manager"))
 
@@ -317,7 +317,7 @@ class TestUser(IntegrationTestCase):
 		me = frappe.get_doc("User", user)
 		me.remove_roles("System Manager")
 
-		frappe.set_user(user)
+		frappe.set_user("testperm@example.com")
 
 		me = frappe.get_doc("User", user)
 		me.add_roles("System Manager")
@@ -753,7 +753,7 @@ class TestUser(IntegrationTestCase):
 		# used by rate limiter when calling reset_password
 		frappe.local.request_ip = "127.0.0.69"
 
-		frappe.set_user(get_user_by_email("testpassword@example.com"))
+		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", get_user_by_email("testpassword@example.com"))
 		key = self.reset_password(test_user)
 		self.assertEqual(update_password(new_password, key=key), "/desk")
@@ -786,7 +786,7 @@ class TestUser(IntegrationTestCase):
 			)
 
 		# test redirect URL for website users
-		frappe.set_user(get_user_by_email("test2@example.com"))
+		frappe.set_user("test2@example.com")
 		self.assertEqual(update_password(new_password, old_password=old_password), "me")
 		# reset password
 		update_password(old_password, old_password=new_password)
@@ -907,7 +907,7 @@ class TestUser(IntegrationTestCase):
 	@IntegrationTestCase.change_settings("System Settings", reset_password_link_expiry_duration=1)
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
-		frappe.set_user(get_user_by_email("testpassword@example.com"))
+		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", get_user_by_email("testpassword@example.com"))
 		key = self.reset_password(test_user)
 		time.sleep(1)
@@ -918,7 +918,7 @@ class TestUser(IntegrationTestCase):
 		)
 
 	def test_update_password_needs_a_reset_key_or_old_password(self):
-		for user in ("Guest", get_user_by_email("testpassword@example.com")):
+		for user in ("Guest", "testpassword@example.com"):
 			frappe.set_user(user)
 			self.assertRaisesRegex(
 				frappe.ValidationError,

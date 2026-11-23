@@ -56,7 +56,7 @@ class TestUser(IntegrationTestCase):
 	def test_has_role_query_needs_parent_doctype(self):
 		user = get_user_by_email("test@example.com")
 		frappe.get_doc("User", user).add_roles("_Test Role 2")
-		frappe.set_user(user)
+		frappe.set_user("test@example.com")
 		try:
 			self.assertRaises(
 				frappe.PermissionError,
