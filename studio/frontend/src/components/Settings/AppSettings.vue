@@ -59,6 +59,12 @@
 					</span>
 				</div>
 			</div>
+			<FormControl
+				type="checkbox"
+				label="Hide on Desktop"
+				:modelValue="Boolean(app.hide_on_desktop)"
+				@update:modelValue="(value: boolean) => update('hide_on_desktop', value ? 1 : 0)"
+			/>
 		</div>
 
 		<template v-if="isDeveloperMode">
@@ -81,7 +87,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Button, FileUploader, toast } from "frappe-ui"
+import { Button, FileUploader, FormControl, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import AppRenameDialog from "@/components/Settings/AppRenameDialog.vue"
 import ExportAppDialog from "@/components/ExportAppDialog.vue"
@@ -101,9 +107,15 @@ const isDeveloperMode = Boolean(window.is_developer_mode)
 const showExportDialog = ref(false)
 const exportFolder = computed(() => `${app.value?.frappe_app}/studio/${scrub(app.value?.app_name || "")}`)
 
-const FIELD_LABELS = { app_title: "Title", route: "Route", app_home: "App Home", favicon: "Favicon" }
+const FIELD_LABELS = {
+	app_title: "Title",
+	route: "Route",
+	app_home: "App Home",
+	favicon: "Favicon",
+	hide_on_desktop: "Hide on Desktop",
+}
 
-function update(field: keyof typeof FIELD_LABELS, value: string) {
+function update(field: keyof typeof FIELD_LABELS, value: string | number) {
 	const label = FIELD_LABELS[field]
 	store
 		.updateActiveApp(field, value)
