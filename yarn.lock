@@ -1198,13 +1198,13 @@ frappe-charts@2.3.0:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.3.0.tgz#93a6970a6a5dd895aa17e65a6ab03911ecf6f62d"
   integrity sha512-dj+fcBC5hHHiW3rchKfdw7L0B6LG+nm5OnZMfAykOvSi/iZO3HM69uSNMyAISFLBV7n4CjgAwRB2nEWMv0UexQ==
 
-frappe-datatable@1.26.0:
-  version "1.26.0"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.26.0.tgz#a9ccd71840f8b1141d66e2d87b735271a0aca061"
-  integrity sha512-K/PI4kPCP6AQezuCW/F3oBH3qmrvJ3eq8eumoBh+yCrleVIGhF77U8I4cPwTq2ZGqqBu2j7IIjHIEAW38F6zDA==
+frappe-datatable@1.27.0:
+  version "1.27.0"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.27.0.tgz#c38639b54ee9f97c7fbb04cdf1be1fd7b6737857"
+  integrity sha512-7Hb29a09znoZl+2YYVLbK43FhU1VZlzYkuHUAPm9bEgdgttngduouEuQsEmg3gokmmFsiaRaVcy59XB8Gv8t+A==
   dependencies:
     hyperlist "^1.0.0-beta"
-    lodash "^4.17.5"
+    lodash "^4.18.1"
     sortablejs "^1.7.0"
 
 frappe-gantt@^1.2.1:
@@ -1500,10 +1500,15 @@ lodash.merge@^4.6.2:
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
-lodash@^4.17.4, lodash@^4.17.5:
+lodash@^4.17.4:
   version "4.17.23"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.23.tgz#f113b0378386103be4f6893388c73d0bde7f2c5a"
   integrity sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==
+
+lodash@^4.18.1:
+  version "4.18.1"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.18.1.tgz#ff2b66c1f6326d59513de2407bf881439812771c"
+  integrity sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==
 
 lucide-static@1.47.0:
   version "1.47.0"
