@@ -374,6 +374,74 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		self.assertTrue(PdfReader(io.BytesIO(pdf)).decrypt("qwe"))
 
+	def test_typst_pdf_standard_writes_pdfa(self):
+		import io
+
+		from pypdf import PdfReader
+
+		print_format = self._make_print_format(pdf_generator="Typst", pdf_standard="PDF/A-3b")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		pdf = frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True)
+
+		self.assertIn("/OutputIntents", PdfReader(io.BytesIO(pdf)).trailer["/Root"])
+
+	def test_typst_pdf_standard_refuses_a_password(self):
+		print_format = self._make_print_format(pdf_generator="Typst", pdf_standard="PDF/A-3b")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True, password="qwe")
+
+	def test_bulk_print_keeps_a_document_pdfa_cannot_draw(self):
+		import io
+		from unittest.mock import patch
+
+		import typst
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		print_format = self._make_print_format(pdf_generator="Typst", pdf_standard="PDF/A-3b")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "株式会社"}).insert()
+
+		with patch(
+			"frappe.utils.typst_emitter.typst_fonts",
+			return_value=typst.Fonts(include_system_fonts=False),
+		):
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name]), format=print_format.name)
+
+		self.assertEqual(len(PdfReader(io.BytesIO(frappe.local.response.filecontent)).pages), 1)
+
+	def test_pdf_standard_throws_for_text_its_font_cannot_draw(self):
+		from unittest.mock import patch
+
+		import typst
+
+		print_format = self._make_print_format(pdf_generator="Typst", pdf_standard="PDF/A-3b")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "株式会社"}).insert()
+
+		with (
+			patch(
+				"frappe.utils.typst_emitter.typst_fonts",
+				return_value=typst.Fonts(include_system_fonts=False),
+			),
+			self.assertRaises(frappe.ValidationError),
+		):
+			frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True)
+
 	def test_permlevel_restricted_fields_are_dropped(self):
 		"""A layout may reference permlevel-restricted fields; readers without access
 		to that permlevel must not get them in the print output."""

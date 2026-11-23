@@ -34,6 +34,7 @@ BUILDER_DRAFT_FIELDS = (
 	"print_format_builder",
 	"print_format_builder_beta",
 	"pdf_generator",
+	"pdf_standard",
 	"roles",
 )
 
@@ -80,6 +81,7 @@ class PrintFormat(Document):
 		]
 		paper_width: DF.Float
 		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
+		pdf_standard: DF.Literal["", "PDF/A-2b", "PDF/A-3b"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]

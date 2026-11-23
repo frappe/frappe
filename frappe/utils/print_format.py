@@ -291,7 +291,12 @@ def _download_multi_pdf(
 			_run_print_pdf_hooks(print_doctype, print_name, format)
 			pf = pf_doc or get_default_print_format(print_doctype)
 			generator = PrintFormatGenerator(
-				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
+				pf,
+				doc,
+				letterhead,
+				no_letterhead=no_letterhead,
+				settings=page_settings(options),
+				ignore_pdf_standard=True,
 			)
 			pdf = generator.render_pdf()
 			make_access_log(
