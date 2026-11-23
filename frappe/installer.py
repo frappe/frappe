@@ -1022,7 +1022,9 @@ def rename_conflicting_custom_module(module: str, app: str) -> str | None:
 	# The collision is on the title, not the module. Two sidebars may share a module but cannot
 	# share a name, so a site sidebar titled "Leads" collides with an app's "Leads" whichever
 	# modules the two belong to.
-	if held := frappe.db.get_value("Sidebar", {"title": module}, "name"):
+	if frappe.db.table_exists("Sidebar") and (
+		held := frappe.db.get_value("Sidebar", {"title": module}, "name")
+	):
 		rename_doc(
 			doctype="Sidebar",
 			old=held,
