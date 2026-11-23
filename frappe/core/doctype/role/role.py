@@ -139,16 +139,19 @@ def get_info_based_on_role(role, field="email", ignore_permissions=False):
 
 def get_user_info(users, field="email"):
 	"""Fetch details about users for the specified field"""
-	info_list = []
-	for user in users:
-		user_name = user.get("user_name")
-		if user_name in frappe.STANDARD_USERS:
-			continue
+	user_names = [user.get("user_name") for user in users]
+	if not user_names:
+		return []
 
-		user_info, enabled = frappe.db.get_value("User", user_name, [field, "enabled"])
-		if enabled:
-			info_list.append(user_info)
-	return info_list
+	return frappe.get_all(
+		"User",
+		filters=[
+			["name", "in", user_names],
+			["name", "not in", frappe.STANDARD_USERS],
+			["enabled", "=", 1],
+		],
+		pluck=field,
+	)
 
 
 def get_users(role):
