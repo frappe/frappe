@@ -13,7 +13,7 @@
   "column_break_aroi",
   "app_home",
   "favicon",
-  "hide_from_desktop",
+  "hide_on_desktop",
   "export_section",
   "is_standard",
   "frappe_app",
@@ -46,7 +46,7 @@
   {
    "default": "0",
    "description": "Keep this app off the desktop and the app switcher",
-   "fieldname": "hide_from_desktop",
+   "fieldname": "hide_on_desktop",
    "fieldtype": "Check",
    "label": "Hide from Desktop"
   },
