@@ -81,7 +81,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 					let txt = e.target.value;
 					let filtered_options = this._options.filter((opt) => {
 						let match = false;
-						if (this.values.includes(opt.value)) {
+						if (this.df.get_data || this.values.includes(opt.value)) {
 							return true;
 						}
 						match =
