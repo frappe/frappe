@@ -2,11 +2,43 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.desk.reportview import export_query, extract_fieldnames
+from frappe.desk.reportview import export_query, extract_fieldnames, get
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestReportview(FrappeTestCase):
+	def setUp(self):
+		super().setUp()
+		previous_form_dict = frappe.local.form_dict
+		self.addCleanup(setattr, frappe.local, "form_dict", previous_form_dict)
+
+	def make_todo(self, description):
+		return frappe.get_doc(
+			doctype="ToDo",
+			description=description,
+			allocated_to=frappe.session.user,
+			assigned_by=frappe.session.user,
+		).insert()
+
+	def test_get_leaves_out_comments_field(self):
+		with self.set_user("test@example.com"):
+			todo = self.make_todo("Report view comments field")
+			todo.add_comment("Comment", "First comment")
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo",
+				fields=["name", "_comments", "`tabToDo`.`_comments`"],
+				filters={"name": todo.name},
+				with_comment_count=1,
+			)
+			result = get()
+			self.assertEqual(result["keys"], ["name", "_comment_count"])
+			self.assertEqual(result["values"], [[todo.name, 1]])
+
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo", fields=["name"], filters=[["ToDo", "_comments", "like", "%a%"]]
+			)
+			self.assertRaises(frappe.DataError, get)
+
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
