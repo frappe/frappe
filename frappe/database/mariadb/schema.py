@@ -145,12 +145,22 @@ class MariaDBTable(DBTable):
 		# drop each index only once
 		drop_index_query = list(dict.fromkeys(drop_index_query))
 
+		plain_indexes = {}
+		if self.add_unique:
+			plain_indexes = {
+				name.lower(): name
+				for name in frappe.db.sql(
+					"""select distinct index_name from information_schema.statistics
+					where table_schema = %s and table_name = %s and non_unique = 1""",
+					(frappe.db.cur_db_name, self.table_name),
+					pluck=True,
+				)
+			}
+
 		for col in self.add_unique:
-			drop_name_clash = f"DROP INDEX `{col.fieldname}`"
-			if drop_name_clash not in drop_index_query and frappe.db.sql(
-				f"SHOW INDEX FROM `{self.table_name}` WHERE Key_name = BINARY %s AND Non_unique = 1",
-				col.fieldname,
-			):
+			name_clash = plain_indexes.get(col.fieldname.lower())
+			drop_name_clash = f"DROP INDEX `{name_clash}`"
+			if name_clash and drop_name_clash not in drop_index_query:
 				modify_column_query.append(
 					f"{drop_name_clash}, ADD UNIQUE INDEX `{col.fieldname}` (`{col.fieldname}`)"
 				)
