@@ -813,7 +813,7 @@ def has_permission(
 	Raise `frappe.PermissionError` if user isn't permitted and `throw` is truthy
 
 	:param doctype: DocType for which permission is to be check.
-	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
+	:param ptype: Permission type from `frappe.permissions.std_rights` or a custom Permission Type of the DocType. Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
 	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified).
@@ -849,7 +849,7 @@ def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doc
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
-	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
+	:param ptype: Permission type from `frappe.permissions.std_rights`. Default: `read`.
 	:param doc: Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user."""
 
