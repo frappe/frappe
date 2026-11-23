@@ -1770,7 +1770,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					const selected_items = this.get_checked_items(true);
 
 					let extra_fields = [];
-					if (this.list_view_settings.disable_count) {
+					if (
+						this.list_view_settings.disable_count ||
+						(this.count_upper_bound &&
+							(this.total_count == this.count_upper_bound ||
+								this.total_count == null))
+					) {
 						extra_fields = [
 							{
 								fieldtype: "Check",
