@@ -16,6 +16,18 @@ CDP commands documentation can be found here.
 https://chromedevtools.github.io/devtools-protocol/
 """
 
+EXTERNAL_FETCH_SECONDS = 30
+EXTERNAL_STALL_SECONDS = 10
+EXTERNAL_REQUEST_HEADERS_SKIPPED = ("accept-encoding", "connection", "content-length", "cookie", "host")
+EXTERNAL_RESPONSE_HEADERS_SKIPPED = (
+	"connection",
+	"content-encoding",
+	"content-length",
+	"keep-alive",
+	"set-cookie",
+	"transfer-encoding",
+)
+
 
 def read_blob_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str] | None:
 	"""Return the base64 body and Content-Type of a ``files/`` or
@@ -125,6 +137,77 @@ def get_origin(url: str) -> str:
 	return f"{parts.scheme}://{parts.netloc.rpartition('@')[2]}"
 
 
+def allows_internal_print_urls() -> bool:
+	return bool(frappe.get_common_site_config(cached=True).get("allow_internal_print_urls"))
+
+
+def read_external_resource(
+	url: str,
+	max_size: int,
+	headers: dict | None = None,
+	return_redirects: bool = False,
+	method: str = "GET",
+	data: bytes | None = None,
+) -> tuple[bytes, dict, int] | None:
+	"""Read a URL through the guarded session, which checks every redirect and the connected
+	address, within one time and size budget. Return its body, headers and status, else None.
+	With `return_redirects`, a redirect comes back unfollowed for the caller to request."""
+	import zlib
+
+	import requests
+	import urllib3
+	from requests.adapters import Retry
+
+	from frappe.utils.safe_exec import BlockedRequest, get_safe_request_session
+
+	deadline = time.monotonic() + EXTERNAL_FETCH_SECONDS
+	content = bytearray()
+	try:
+		with get_safe_request_session() as session:
+			for adapter in session.adapters.values():
+				adapter.max_retries = Retry(total=0, read=False)
+			for _hop in range(session.max_redirects + 1):
+				with session.request(
+					method,
+					url,
+					data=data,
+					headers={**(headers or {}), "Accept-Encoding": "identity"},
+					timeout=min(deadline - time.monotonic(), EXTERNAL_STALL_SECONDS),
+					stream=True,
+					allow_redirects=False,
+				) as response:
+					if redirect_url := session.get_redirect_target(response):
+						if return_redirects:
+							return b"", response.headers, response.status_code
+						url = urllib.parse.urljoin(url, redirect_url)
+						continue
+					response.raise_for_status()
+					while chunk := response.raw.read1(65536):
+						content += chunk
+						if len(content) > max_size or time.monotonic() > deadline:
+							return None
+					encoding = response.headers.get("Content-Encoding", "identity").lower()
+					if encoding == "gzip":
+						decoder = zlib.decompressobj(zlib.MAX_WBITS | 16)
+						content = decoder.decompress(bytes(content), max_size + 1)
+						if not decoder.eof or decoder.unused_data:
+							return None
+					elif encoding != "identity":
+						return None
+					if len(content) > max_size:
+						return None
+					return bytes(content), response.headers, response.status_code
+	except (
+		requests.RequestException,
+		urllib3.exceptions.HTTPError,
+		BlockedRequest,
+		OSError,
+		ValueError,
+		zlib.error,
+	):
+		return None
+
+
 class Page:
 	def __init__(self, session, browser_context_id, page_type):
 		self.session = session
@@ -156,6 +239,60 @@ class Page:
 		if timeout:
 			return self.session.send(method, params, self.session_id, return_future, timeout=timeout)
 		return self.session.send(method, params, self.session_id, return_future)
+
+	def fulfill_external_request(self, request_id: str, request: dict) -> None:
+		from frappe.core.api.file import get_max_file_size
+
+		def fail_request():
+			self.send(
+				"Fetch.failRequest",
+				{"requestId": request_id, "errorReason": "AccessDenied"},
+				return_future=True,
+			)
+
+		def send_resource(read):
+			if read.cancelled():
+				return
+			if not (resource := read.result()):
+				fail_request()
+				return
+			content, headers, status_code = resource
+			self.send(
+				"Fetch.fulfillRequest",
+				{
+					"requestId": request_id,
+					"responseCode": status_code,
+					"responseHeaders": [
+						{"name": name, "value": value}
+						for name, value in headers.items()
+						if name.lower() not in EXTERNAL_RESPONSE_HEADERS_SKIPPED
+					],
+					"body": base64.b64encode(content).decode(),
+				},
+				return_future=True,
+			)
+
+		post_data = request.get("postData")
+		if request.get("hasPostData") and post_data is None:
+			fail_request()
+			return
+
+		headers = {
+			name: value
+			for name, value in request.get("headers", {}).items()
+			if name.lower() not in EXTERNAL_REQUEST_HEADERS_SKIPPED
+		}
+		# reading on the CDP reader would stall every page event behind one slow host
+		self.session.loop.run_in_executor(
+			None,
+			read_external_resource,
+			request["url"],
+			get_max_file_size(),
+			headers,
+			True,
+			request["method"],
+			post_data.encode() if post_data is not None else None,
+		).add_done_callback(send_resource)
 
 	def get_frame_id_on_demand(self):
 		if self.frame_id:
@@ -261,7 +398,11 @@ class Page:
 							return_future=True,
 						)
 						return
-					elif urllib.parse.urlparse(url).path.lstrip("/"):
+					elif (
+						urllib.parse.urlparse(url).path.lstrip("/")
+						or params.get("resourceType") != "Document"
+						or params.get("frameId") != self.frame_id
+					):
 						self.send(
 							"Fetch.failRequest",
 							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
@@ -274,6 +415,9 @@ class Page:
 						{"requestId": data["request_id"], "errorReason": "BlockedByClient"},
 						return_future=True,
 					)
+					return
+				elif url.startswith(("http://", "https://")) and not allows_internal_print_urls():
+					self.fulfill_external_request(data["request_id"], params["request"])
 					return
 				self.send(
 					"Fetch.continueRequest",
