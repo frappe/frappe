@@ -59,9 +59,18 @@
 					</span>
 				</div>
 			</div>
-			<FormControl
-				type="checkbox"
-				label="Hide on Desktop"
+		</div>
+
+		<hr class="w-full border-outline-gray-2" />
+
+		<div class="flex items-center justify-between gap-5">
+			<div class="flex flex-col gap-1.5">
+				<span class="text-md-semibold text-ink-gray-9">Hide on Desktop</span>
+				<span class="text-p-sm text-ink-gray-6">Keep this app off the desktop and the app switcher</span>
+			</div>
+			<Switch
+				size="sm"
+				aria-label="Hide on Desktop"
 				:modelValue="Boolean(app.hide_on_desktop)"
 				@update:modelValue="(value: boolean) => update('hide_on_desktop', value ? 1 : 0)"
 			/>
@@ -87,7 +96,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Button, FileUploader, FormControl, toast } from "frappe-ui"
+import { Button, FileUploader, Switch, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import AppRenameDialog from "@/components/Settings/AppRenameDialog.vue"
 import ExportAppDialog from "@/components/ExportAppDialog.vue"
