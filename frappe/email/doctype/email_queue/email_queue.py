@@ -27,6 +27,7 @@ from frappe.utils import (
 	add_days,
 	cint,
 	cstr,
+	extract_email_id,
 	get_hook_method,
 	get_string_between,
 	get_url,

@@ -156,9 +156,6 @@ class TestEmailQueue(FrappeTestCase):
 
 		self.assertCountEqual([row.recipient for row in queue.recipients], recipients)
 
-<<<<<<< HEAD
-	@change_settings("System Settings", store_attached_pdf_document=0)
-=======
 	def test_reply_to_removed_only_from_copy_sent_to_that_address(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
@@ -192,8 +189,7 @@ class TestEmailQueue(FrappeTestCase):
 				copy = message_from_bytes(SendMailContext(queue).build_message(recipient))
 				self.assertEqual(copy["Reply-To"], reply_to if is_kept else None)
 
-	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=0)
->>>>>>> 86d9e4a (fix(email): drop Reply-To from the copy sent to that address)
+	@change_settings("System Settings", store_attached_pdf_document=0)
 	def test_print_attachment_renders_once_for_every_recipient(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
