@@ -61,6 +61,9 @@ def read_local_resource(url: str) -> tuple[str, str | None] | None:
 	read from disk or blob storage, else None."""
 	import os
 
+	if "\0" in urllib.parse.unquote(url):
+		return None
+
 	parsed = urllib.parse.urlparse(url)
 	clean_path = urllib.parse.unquote(parsed.path).lstrip("/")
 	query_params = urllib.parse.parse_qs(parsed.query)
