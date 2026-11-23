@@ -696,9 +696,9 @@ def get_header(header=None):
 
 
 def get_display_name(name: str) -> str:
-	"""Return the decoded name, or an empty string if it contains an email address."""
+	"""Return the decoded name, or an empty string if it has an email address or a nested encoded word."""
 	decoded_name = " ".join(str(policy.SMTP.header_factory("Subject", name)).split())
-	return "" if EMAIL_STRING_PATTERN.search(decoded_name) else decoded_name
+	return "" if "=?" in decoded_name or EMAIL_STRING_PATTERN.search(decoded_name) else decoded_name
 
 
 def format_sender(display_name: str, email_id: str) -> str:
