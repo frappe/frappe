@@ -113,7 +113,7 @@ class StudioAppRenderer(DocumentPage):
 
 
 def get_desktop_apps() -> list[dict]:
-	"""Apps with a published page, which is what makes `/<route>` serve them."""
+	"""Apps with a published page, which is what makes `/<route>` serve them, minus the ones hidden from the desktop."""
 	StudioApp = frappe.qb.DocType("Studio App")
 	StudioPage = frappe.qb.DocType("Studio Page")
 	return (
@@ -122,6 +122,7 @@ def get_desktop_apps() -> list[dict]:
 		.on(StudioPage.studio_app == StudioApp.name)
 		.select(StudioApp.name, StudioApp.app_title, StudioApp.route, StudioApp.favicon)
 		.where(StudioPage.published == 1)
+		.where(StudioApp.hide_on_desktop == 0)
 		.distinct()
 		.orderby(StudioApp.app_title)
 		.run(as_dict=True)
@@ -142,6 +143,7 @@ class StudioApp(WebsiteGenerator):
 		app_title: DF.Data
 		favicon: DF.AttachImage | None
 		frappe_app: DF.Literal[None]
+		hide_on_desktop: DF.Check
 		is_standard: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
@@ -249,6 +251,8 @@ class StudioApp(WebsiteGenerator):
 		self.export_app()
 		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
 			self.delete_app_folder()
+		if self.has_value_changed("hide_on_desktop"):
+			frappe.cache.delete_key("bootinfo")
 		publish_doc_change("Studio App", self.name, self.name)
 
 	def on_trash(self):
