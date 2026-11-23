@@ -39,7 +39,18 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertIn("window.addEventListener('beforeprint'", html)
 		self.assertIn("window.addEventListener('afterprint'", html)
 
-<<<<<<< HEAD
+	def test_builder_format_print_filename_uses_docname(self):
+		from frappe.www.printview import get_context
+
+		note = frappe.get_doc(doctype="Note", title=frappe.generate_hash(), public=1).insert()
+		print_format = self._beta_format("Note", pdf_generator="chrome", format_data="{}")
+		params = frappe._dict(doctype="Note", name=note.name, format=print_format.name)
+		with self.set_user("test@example.com"), patch.object(frappe.local, "form_dict", params):
+			context = get_context({})
+
+		self.assertTrue(context["standalone"])
+		self.assertIn(f'document.title = "{note.name}"', context["body"])
+
 	def test_print_view_without_errors(self):
 		user = frappe.get_last_doc("User")
 
@@ -174,18 +185,6 @@ class PrintViewTest(IntegrationTestCase):
 		).insert()
 		self.addCleanup(frappe.delete_doc, "Print Format", pf.name, force=True)
 		return pf
-=======
-	def test_builder_format_print_filename_uses_docname(self):
-		from frappe.www.printview import get_context
-
-		note = frappe.get_doc(doctype="Note", title=frappe.generate_hash(), public=1).insert()
-		params = frappe._dict(doctype="Note", name=note.name)
-		with self.set_user("test@example.com"), patch.object(frappe.local, "form_dict", params):
-			context = get_context({})
-
-		self.assertTrue(context["standalone"])
-		self.assertIn(f'document.title = "{note.name}"', context["body"])
->>>>>>> f4668f1 (test(print): builder formats print under the document name)
 
 	def test_print_preview_displays_link_titles(self):
 		from frappe.www.printpreview import get_context
