@@ -21,6 +21,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
+from frappe.model.rename_doc import rename_doc
 from frappe.query_builder import Criterion, DocType, Table
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions, hash_sid
@@ -811,6 +812,21 @@ class User(Document):
 
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
+
+		for token_cache, connected_app in frappe.get_all(
+			"Token Cache", filters={"user": new_name}, fields=["name", "connected_app"], as_list=True
+		):
+			new_token_cache = f"{connected_app}-{new_name}"
+			if token_cache != new_token_cache:
+				rename_doc(
+					"Token Cache",
+					token_cache,
+					new_token_cache,
+					merge=bool(frappe.db.exists("Token Cache", new_token_cache)),
+					force=True,
+					ignore_permissions=True,
+					show_alert=False,
+				)
 
 		frappe.db.set_value("User", new_name, "email", new_name)
 
