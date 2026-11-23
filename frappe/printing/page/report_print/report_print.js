@@ -144,8 +144,6 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			report_name
 		);
 		const saved = frappe.model.user_settings[report_name].print_columns;
-		const visible = this.report.get_visible_columns().map((df) => df.fieldname);
-		const checked = saved?.fieldnames?.filter((fieldname) => visible.includes(fieldname));
 
 		this.sidebar.append(`<div class="print-sidebar-heading">${__("Format")}</div>`);
 		this.format_field = this.add_control({
@@ -230,7 +228,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				options: this.report.get_visible_columns().map((df) => ({
 					label: __(df.label, null, df.parent),
 					value: df.fieldname,
-					checked: checked ? checked.includes(df.fieldname) : 1,
+					checked: !saved?.unchecked?.includes(df.fieldname),
 				})),
 				on_change: () => this.save_print_columns(),
 			},
@@ -243,7 +241,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		const settings = frappe.model.user_settings[this.report.report_name];
 		settings.print_columns = {
 			pick_columns: this.pick_columns_field.get_value(),
-			fieldnames: this.columns_field.get_checked_options(),
+			unchecked: this.columns_field.get_unchecked_options(),
 		};
 		frappe.model.user_settings.update(this.report.report_name, settings);
 		this.refresh();
