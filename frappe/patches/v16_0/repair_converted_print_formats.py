@@ -49,9 +49,26 @@ def repair_converted_labels():
 		pluck="name",
 	)
 	for name in names:
-		repaired = decode_labels(frappe.db.get_value("Print Format", name, "format_data"))
-		if repaired:
-			frappe.db.set_value("Print Format", name, "format_data", repaired, update_modified=False)
+		row = frappe.db.get_value("Print Format", name, ["format_data", "draft_data"], as_dict=True)
+		values = {}
+		if repaired := decode_labels(row.format_data):
+			values["format_data"] = repaired
+		if repaired_draft := decode_draft_labels(row.draft_data):
+			values["draft_data"] = repaired_draft
+		if values:
+			frappe.db.set_value("Print Format", name, values, update_modified=False)
+
+
+def decode_draft_labels(draft_data):
+	try:
+		draft = json.loads(draft_data)
+	except (TypeError, ValueError):
+		return None
+	if not isinstance(draft, dict):
+		return None
+
+	repaired = decode_labels(draft.get("format_data"))
+	return frappe.as_json({**draft, "format_data": repaired}) if repaired else None
 
 
 def decode_labels(format_data):
