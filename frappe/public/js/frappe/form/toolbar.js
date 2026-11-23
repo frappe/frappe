@@ -656,6 +656,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 			this.page.add_menu_item(
 				__("Unlink Auto Repeat"),
 				() => {
+					if (this.frm.is_dirty()) {
+						frappe.msgprint(__("Save the document before unlinking its Auto Repeat."));
+						return;
+					}
 					frappe.confirm(__("Remove the Auto Repeat link from this document?"), () => {
 						frappe
 							.xcall(
