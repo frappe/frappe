@@ -112,6 +112,15 @@ export function resolve_content(content, arg) {
 	return (content && $(content)[0]) || null;
 }
 
+/** True while a classic Link / Autocomplete suggestion list or the date picker is open on the field. */
+export function field_popup_open(target) {
+	const list = target
+		.closest?.(".awesomplete")
+		?.querySelector(":scope > ul, :scope > [role='listbox']");
+	if (list && !list.hidden && list.children.length) return true;
+	return !!document.querySelector(".datepicker.active");
+}
+
 /** True for promises and other thenables (async options, submenus...). */
 export function is_thenable(value) {
 	return !!value && typeof value.then === "function";

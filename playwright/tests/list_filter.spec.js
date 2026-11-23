@@ -182,6 +182,52 @@ test.describe("List filter", () => {
 			expect(await applied(page)).toContainEqual(["description", "like", "%todo"]);
 		});
 
+		test("clearing a toolbar date box drops its filter", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			await page.evaluate(() =>
+				cur_list.page.fields_dict.date.set_value(frappe.datetime.get_today())
+			);
+			const url = () => page.evaluate(() => location.search);
+			await expect.poll(url).toContain("date=");
+
+			const box = page.locator('.standard-filter-section input[data-fieldname="date"]');
+			await box.fill("");
+			await box.blur();
+			await expect.poll(url).not.toContain("date=");
+		});
+
+		test("Escape closes a Link field's list before the panel", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			// the classic Link list for this page only
+			await page.evaluate(() => (frappe.sys_defaults.enable_combobox_link_field = 0));
+			await desk.open_list_filter();
+			await desk.pick_filter_field("Assigned By");
+
+			const value = page.locator(
+				'.filter-popover .filter-field input[data-fieldname="assigned_by"]'
+			);
+			const list = page.locator(".filter-popover .awesomplete > ul:not([hidden])");
+			await value.pressSequentially("adm");
+			await expect(list).toBeVisible();
+
+			await value.press("Escape");
+			await expect(list).toHaveCount(0);
+			await expect(page.locator(".filter-popover")).toBeVisible();
+			await expect(value).toBeFocused();
+			await settled(page);
+			expect(await page.evaluate(() => location.search)).not.toContain("assigned_by");
+		});
+
+		test("a URL value that looks like a list is a plain value", async ({ page }) => {
+			await page.goto("/desk/todo/view/report?description=%5BA%5D");
+			await page.waitForFunction(
+				() => window.cur_list?.view_name === "Report" && cur_list.filter_area
+			);
+			await expect.poll(() => applied(page)).toContainEqual(["description", "=", "[A]"]);
+		});
+
 		test("a Check field filters only once Yes or No is chosen", async ({ page, desk }) => {
 			await desk.go_to_list("Web Page");
 			await desk.clear_filters();
