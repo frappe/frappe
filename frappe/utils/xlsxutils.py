@@ -370,8 +370,11 @@ class XLSXStyleBuilder:
 		if not currency or frappe.db.get_default("hide_currency_symbol") in ("1", "Yes"):
 			return "", False
 
-		symbol, on_right = frappe.db.get_value("Currency", currency, ["symbol", "symbol_on_right"])
+		currency_info = frappe.db.get_value("Currency", currency, ["symbol", "symbol_on_right"])
+		if not currency_info:
+			return "", False
 
+		symbol, on_right = currency_info
 		return (symbol or currency), bool(on_right)
 
 	@staticmethod
