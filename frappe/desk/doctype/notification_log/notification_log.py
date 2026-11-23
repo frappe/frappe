@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.core.utils import html_to_plain_text
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 	is_notifications_enabled,
@@ -49,7 +50,7 @@ class NotificationLog(Document):
 		if not self.subject and self.title:
 			self.subject = self.title
 		if not self.description and self.email_content:
-			self.description = self.email_content
+			self.description = html_to_plain_text(self.email_content)
 		if not self.email_content and self.description:
 			self.email_content = self.description
 

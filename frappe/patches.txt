@@ -335,6 +335,7 @@ frappe.patches.v17_0.strip_display_names_from_email_unsubscribe
 frappe.patches.v16_0.unsubscribe_placeholder_emails
 frappe.patches.v17_0.keep_flow_user_trigger_sessions_private
 frappe.patches.v16_0.set_language_and_time_zone_on_sites_without_a_region
+frappe.patches.v17_0.strip_html_from_notification_log_description
 
 
 [post_fixture_sync]
