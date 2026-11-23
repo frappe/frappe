@@ -3,6 +3,7 @@
 
 import time
 from functools import partial
+from unittest.mock import patch
 
 from werkzeug.wrappers import Response
 
@@ -176,6 +177,14 @@ class TestRateLimitDecorator(IntegrationTestCase):
 		fn = rate_limit(limit=1, seconds=60, endpoint="server_script:x")(partial(lambda: "x"))
 		fn()
 		self.assertRaises(frappe.RateLimitExceededError, fn)
+
+	def test_counter_is_not_reset_by_concurrent_first_requests(self):
+		frappe.form_dict.cmd = None
+		# every request reads the counter as missing, as when they all start together
+		with patch.object(frappe.cache, "get", return_value=None):
+			_limited_a()
+			_limited_a()
+			self.assertRaises(frappe.RateLimitExceededError, _limited_a)
 
 	def test_limit_is_not_shared_across_endpoints(self):
 		frappe.form_dict.cmd = None
