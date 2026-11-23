@@ -1385,7 +1385,6 @@ frappe.views.CommunicationComposer = class {
 					fieldtype: "Link",
 					options: "Letter Head",
 					default: fields.select_letter_head?.get_value(),
-					get_query: () => ({ filters: { letter_head_for: "DocType" } }),
 				},
 				{
 					label: __("Print Language"),
