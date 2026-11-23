@@ -819,6 +819,7 @@ class FilterArea {
 		}
 
 		const fields_dict = this.list_view.page.fields_dict;
+		const boxed_fields = new Set();
 
 		return filters.reduce((out, filter) => {
 			const [dt, fieldname, condition, value] = filter;
@@ -826,7 +827,11 @@ class FilterArea {
 			out.non_standard_filters = out.non_standard_filters || [];
 
 			// set in list view area if filters are present
-			if (frappe.ui.FilterGroup.fits_box(fields_dict[fieldname], condition, value)) {
+			if (
+				!boxed_fields.has(fieldname) &&
+				frappe.ui.FilterGroup.fits_box(fields_dict[fieldname], condition, value)
+			) {
+				boxed_fields.add(fieldname);
 				// standard filter
 				out.promise = out.promise.then(() => {
 					// Set match type for fields that support it
