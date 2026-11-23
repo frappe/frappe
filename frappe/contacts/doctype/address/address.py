@@ -11,7 +11,6 @@ from frappe.contacts.address_and_contact import set_link_title
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.query_builder.functions import Lower
 from frappe.utils import cstr, get_email_address
 
 
@@ -241,7 +240,7 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 
 
 def get_user_contacts(user: str) -> list[str]:
-	"""Return the contacts linked to the user that have the user's email as primary."""
+	"""Return the contacts that have the user's email as primary."""
 	if user in frappe.STANDARD_USERS:
 		return []
 
@@ -249,13 +248,7 @@ def get_user_contacts(user: str) -> list[str]:
 	if not email:
 		return []
 
-	Contact = frappe.qb.DocType("Contact")
-	return (
-		frappe.qb.from_(Contact)
-		.select(Contact.name)
-		.where((Contact.user == user) & (Lower(Contact.email_id) == email.lower()))
-		.run(pluck=True)
-	)
+	return frappe.get_all("Contact", filters={"email_id": email}, pluck="name")
 
 
 def has_website_permission(doc, ptype, user, verbose=False):
