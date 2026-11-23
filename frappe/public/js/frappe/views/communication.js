@@ -1119,18 +1119,11 @@ frappe.views.CommunicationComposer = class {
 			fields.recipients.set_value(this.as_recipient_list(this.last_email.sender));
 			if (this.reply_all) {
 				// if sending reply add ( last email's recipients - sender's email_id ) to cc.
-				const recipients = this.last_email.recipients.split(",").map((r) => r.trim());
-				if (!this.cc) {
-					this.cc = "";
+				const cc = frappe.utils.split_emails(this.cc);
+				for (const r of frappe.utils.split_emails(this.last_email.recipients)) {
+					if (!cc.includes(r)) cc.push(r);
 				}
-				const cc_array = this.cc.split(",").map((r) => r.trim());
-				if (this.cc && !this.cc.endsWith(", ")) {
-					this.cc += ", ";
-				}
-				this.cc += recipients
-					.filter((r) => !cc_array.includes(r) && r != sender)
-					.join(", ");
-				this.cc = this.cc.replace(sender + ", ", "");
+				this.cc = cc.filter((r) => frappe.utils.extract_email(r) != sender).join(", ");
 				fields.cc.set_value(this.as_recipient_list(this.cc));
 			}
 		}
