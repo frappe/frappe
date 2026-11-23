@@ -596,7 +596,8 @@ class File(Document):
 				exc=frappe.MandatoryError,
 			)
 		elif not self.file_name and self.file_url:
-			self.file_name = self.file_url.split("/")[-1].split("?")[0]
+			stem, ext = os.path.splitext(self.file_url.split("/")[-1].split("?")[0])
+			self.file_name = stem[: max(0, frappe.db.VARCHAR_LEN - len(ext))] + ext[: frappe.db.VARCHAR_LEN]
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
 
