@@ -423,9 +423,10 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		comm.delete()
 
 	def test_inbound_notification_is_addressed_to_assignee(self):
+		owner = self.new_user(email="inbound.owner@example.com", thread_notify=1)
 		assignee = self.new_user(email="inbound.assignee@example.com", thread_notify=1)
 
-		with self.set_user("test@example.com"):
+		with self.set_user(owner.name):
 			reference = frappe.new_doc("ToDo", description="Inbound mail").insert(ignore_permissions=True)
 			frappe.new_doc(
 				"ToDo",
@@ -448,12 +449,10 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		queue = EmailQueue.find_one_by_filters(communication=comm.name)
 		message = email.message_from_string(queue.message)
 
-		self.assertCountEqual(message["To"].split(", "), ["test@example.com", assignee.email])
+		self.assertCountEqual(message["To"].split(", "), [owner.email, assignee.email])
 		self.assertIsNone(message["CC"])
 		self.assertFalse(queue.show_as_cc)
-		self.assertCountEqual(
-			[row.recipient for row in queue.recipients], ["test@example.com", assignee.email]
-		)
+		self.assertCountEqual([row.recipient for row in queue.recipients], [owner.email, assignee.email])
 
 	def test_add_attachments_by_filename(self):
 		to_list = ["to <to@test.com>"]
