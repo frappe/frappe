@@ -1997,7 +1997,7 @@ frappe.ui.form.Form = class FrappeForm {
 			const id = decodeURIComponent(window.location.hash.substring(1));
 			const element = id && document.getElementById(id);
 			if (element) {
-				frappe.utils.scroll_to(element, true, 200, null, null, true);
+				frappe.utils.scroll_to(element, true, 200, $(".main-section"), null, true);
 			} else if (id) {
 				this.scroll_to_field(id) && history.replaceState(null, null, " ");
 			}
