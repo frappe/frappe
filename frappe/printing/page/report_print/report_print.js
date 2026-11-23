@@ -139,6 +139,13 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			limit: 100,
 		});
 		const names = formats.map((format) => format.name);
+		const report_name = this.report.report_name;
+		frappe.model.user_settings[report_name] = await frappe.model.user_settings.get(
+			report_name
+		);
+		const saved = frappe.model.user_settings[report_name].print_columns;
+		const visible = this.report.get_visible_columns().map((df) => df.fieldname);
+		const checked = saved?.fieldnames?.filter((fieldname) => visible.includes(fieldname));
 
 		this.sidebar.append(`<div class="print-sidebar-heading">${__("Format")}</div>`);
 		this.format_field = this.add_control({
@@ -204,7 +211,8 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				fieldtype: "Check",
 				fieldname: "pick_columns",
 				label: __("Pick columns"),
-				change: () => this.refresh(),
+				default: saved?.pick_columns ? 1 : 0,
+				change: () => this.save_print_columns(),
 			},
 			$page
 		);
@@ -222,13 +230,21 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				options: this.report.get_visible_columns().map((df) => ({
 					label: __(df.label, null, df.parent),
 					value: df.fieldname,
-					checked: 1,
+					checked: checked?.length ? checked.includes(df.fieldname) : 1,
 				})),
-				on_change: () => this.refresh(),
+				on_change: () => this.save_print_columns(),
 			},
 			this.$columns
 		);
 		this.columns_field.$checkbox_area.css("padding", "");
+	}
+
+	save_print_columns() {
+		frappe.model.user_settings.save(this.report.report_name, "print_columns", {
+			pick_columns: this.pick_columns_field.get_value(),
+			fieldnames: this.columns_field.get_checked_options(),
+		});
+		this.refresh();
 	}
 
 	add_control(df, parent) {
