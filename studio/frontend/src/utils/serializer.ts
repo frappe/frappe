@@ -141,7 +141,8 @@ function getBlockCopy(block: BlockOptions | Block, retainId = false): Block {
 }
 
 function getBlockCopyWithoutParent(block: BlockOptions | Block): BlockOptions {
-	return deepCloneObject(block, ["parentBlock", "slotScope", "componentContext"])
+	// A Block does not enumerate slotScope and componentContext, so the copy does not include them.
+	return deepCloneObject(block, ["parentBlock"])
 }
 
 export {
