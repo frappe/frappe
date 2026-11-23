@@ -1693,61 +1693,60 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
-		with savepoint(catch=frappe.DuplicateEntryError):
-			contact = frappe.get_doc(
-				{
-					"doctype": "Contact",
-					"first_name": user.first_name,
-					"last_name": user.last_name,
-					"user": user.name,
-					"gender": user.gender,
-				}
-			)
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": user.first_name,
+				"last_name": user.last_name,
+				"user": user.name,
+				"gender": user.gender,
+			}
+		)
 
-			if user.email:
-				contact.add_email(user.email, is_primary=True)
+		if user.email:
+			contact.add_email(user.email, is_primary=True)
 
-			if user.phone:
-				contact.add_phone(user.phone, is_primary_phone=True)
+		if user.phone:
+			contact.add_phone(user.phone, is_primary_phone=True)
 
-			if user.mobile_no:
-				contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
-
-			contact.insert(
-				ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
-			)
+		if user.mobile_no:
+			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
 	else:
-		try:
-			contact = frappe.get_doc("Contact", contact_name)
-			contact.first_name = user.first_name
-			contact.last_name = user.last_name
-			contact.gender = user.gender
+		contact = frappe.get_doc("Contact", contact_name)
+		contact.first_name = user.first_name
+		contact.last_name = user.last_name
+		contact.gender = user.gender
 
-			# Add mobile number if phone does not exists in contact
-			if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
-				# Set primary phone if there is no primary phone number
-				contact.add_phone(
-					user.phone,
-					is_primary_phone=not any(
-						new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
-					),
-				)
+		# Add mobile number if phone does not exists in contact
+		if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
+			# Set primary phone if there is no primary phone number
+			contact.add_phone(
+				user.phone,
+				is_primary_phone=not any(
+					new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
+				),
+			)
 
-			# Add mobile number if mobile does not exists in contact
-			if user.mobile_no and not any(
-				new_contact.phone == user.mobile_no for new_contact in contact.phone_nos
-			):
-				# Set primary mobile if there is no primary mobile number
-				contact.add_phone(
-					user.mobile_no,
-					is_primary_mobile_no=not any(
-						new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
-					),
-				)
+		# Add mobile number if mobile does not exists in contact
+		if user.mobile_no and not any(
+			new_contact.phone == user.mobile_no for new_contact in contact.phone_nos
+		):
+			# Set primary mobile if there is no primary mobile number
+			contact.add_phone(
+				user.mobile_no,
+				is_primary_mobile_no=not any(
+					new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
+				),
+			)
 
-			contact.save(ignore_permissions=True)
-		except frappe.TimestampMismatchError:
-			raise frappe.RetryBackgroundJobError
+	contact.flags.ignore_permissions = True
+	contact.flags.ignore_links = ignore_links
+	contact.flags.ignore_mandatory = ignore_mandatory
+	try:
+		with savepoint(catch=frappe.DuplicateEntryError):
+			contact.save()
+	except frappe.TimestampMismatchError:
+		raise frappe.RetryBackgroundJobError
 
 
 def get_restricted_ip_list(user):
