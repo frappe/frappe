@@ -22,13 +22,9 @@ from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read, get_rol
 from frappe.utils import (
 	call_hook_method,
 	cint,
-<<<<<<< HEAD
+	cstr,
 	get_files_path,
 	get_hook_method,
-=======
-	cstr,
-	get_link_to_form,
->>>>>>> 8515442 (fix(file): check the saved record before a file's attachment changes)
 	get_table_name,
 	get_url,
 )
@@ -219,12 +215,7 @@ class File(Document):
 		if is_moved:
 			doc_before_save.check_permission("write")
 
-		is_stored_blob = (
-			self.get("blob") and self.has_value_changed("blob") and self.blob == self.flags.stored_blob
-		)
-		if is_moved or (
-			not is_stored_blob and (self.has_value_changed("file_url") or self.has_value_changed("blob"))
-		):
+		if is_moved or self.has_value_changed("file_url"):
 			doc_before_save.validate_protected_file()
 
 	def validate_attachment_references(self):
