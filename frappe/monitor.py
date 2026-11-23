@@ -14,6 +14,9 @@ from frappe.utils.synchronization import filelock
 
 MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
+# Log shippers parse this exact format. str(datetime) is not stable: it adds "+00:00" for aware
+# datetimes and drops the fraction when microsecond is 0. Value is always UTC.
+MONITOR_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 # Trace IDs are only ever meant to look like a UUID; anything else is rejected outright.
 TRACE_ID_PATTERN = re.compile(r"[0-9a-fA-F-]{8,64}")
@@ -122,7 +125,8 @@ class Monitor:
 			traceback.print_exc()
 
 	def store(self):
-		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
+		data = {**self.data, "timestamp": self.data.timestamp.strftime(MONITOR_TIMESTAMP_FORMAT)}
+		serialized = json.dumps(data, sort_keys=True, default=str, separators=(",", ":"))
 		length = frappe.cache.rpush(MONITOR_REDIS_KEY, serialized)
 		if cint(length) > MONITOR_MAX_ENTRIES:
 			frappe.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
