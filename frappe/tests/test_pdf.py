@@ -330,6 +330,7 @@ class TestPdf(IntegrationTestCase):
 		import threading
 		import time
 		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+		from unittest.mock import patch
 
 		class SlowImageHandler(BaseHTTPRequestHandler):
 			def do_GET(self):
@@ -346,10 +347,11 @@ class TestPdf(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 
-		pdf = pdfgen.get_pdf(
-			f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
-			+ "<p>row</p>" * 10
-		)
+		with patch("frappe.utils.chromium.page.allows_internal_print_urls", return_value=True):
+			pdf = pdfgen.get_pdf(
+				f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
+				+ "<p>row</p>" * 10
+			)
 		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
 
 	def test_bulk_pdf_with_password_keeps_every_document(self):

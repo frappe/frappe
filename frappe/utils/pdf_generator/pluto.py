@@ -296,8 +296,14 @@ def cached_inter_faces(css: str) -> str:
 
 def local_resource_fetcher(block_external_requests=False):
 	import plutoprint
+	from werkzeug.http import parse_options_header
 
-	from frappe.utils.chromium.page import read_local_resource
+	from frappe.core.api.file import get_max_file_size
+	from frappe.utils.chromium.page import (
+		allows_internal_print_urls,
+		read_external_resource,
+		read_local_resource,
+	)
 
 	class Fetcher(plutoprint.ResourceFetcher):
 		def __init__(self):
@@ -328,7 +334,18 @@ def local_resource_fetcher(block_external_requests=False):
 				return plutoprint.default_resource_fetcher.fetch_url(f"data:{content_type};base64,{content}")
 			if block_external_requests and not url.startswith("data:"):
 				raise plutoprint.Error(f"Blocked {url}")
-			resource = plutoprint.default_resource_fetcher.fetch_url(url)
+			if url.startswith("data:") or allows_internal_print_urls():
+				resource = plutoprint.default_resource_fetcher.fetch_url(url)
+			elif external := read_external_resource(url, get_max_file_size(), {"User-Agent": "Mozilla/4.0"}):
+				content, headers, _status_code = external
+				mime_type, options = parse_options_header(headers.get("Content-Type"))
+				resource = plutoprint.ResourceData(
+					content,
+					mime_type or mimetypes.guess_type(url.split("?")[0])[0] or "application/octet-stream",
+					options.get("charset", ""),
+				)
+			else:
+				raise plutoprint.Error(f"Cannot read {url}")
 			if resource.get_mime_type() == "text/html":
 				raise plutoprint.Error(f"Not a page resource: {url}")
 			return resource
