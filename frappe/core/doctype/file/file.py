@@ -22,13 +22,9 @@ from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read, get_rol
 from frappe.utils import (
 	call_hook_method,
 	cint,
-<<<<<<< HEAD
+	cstr,
 	get_files_path,
 	get_hook_method,
-=======
-	cstr,
-	get_link_to_form,
->>>>>>> 8515442 (fix(file): check the saved record before a file's attachment changes)
 	get_table_name,
 	get_url,
 )
@@ -201,8 +197,6 @@ class File(Document):
 		self.validate_file_on_disk()
 		self.file_size = frappe.form_dict.file_size or self.file_size
 
-<<<<<<< HEAD
-=======
 	def validate_attachment_change(self):
 		"""Apply the stored row's permission and protection before its document or content changes."""
 		doc_before_save = self.get_doc_before_save()
@@ -216,35 +210,9 @@ class File(Document):
 		if is_moved:
 			doc_before_save.check_permission("write")
 
-		is_stored_blob = (
-			self.get("blob") and self.has_value_changed("blob") and self.blob == self.flags.stored_blob
-		)
-		if is_moved or (
-			not is_stored_blob and (self.has_value_changed("file_url") or self.has_value_changed("blob"))
-		):
+		if is_moved or self.has_value_changed("file_url"):
 			doc_before_save.validate_protected_file()
 
-	def validate_attachment_references(self):
-		if not self.attached_to_doctype:
-			return
-
-		if not self.attached_to_name or not isinstance(self.attached_to_name, str | int):
-			frappe.throw(
-				_("Attached To Name must be a string or an integer"),
-				frappe.ValidationError,
-			)
-
-		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
-			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
-
-		if self.flags.ignore_permissions or frappe.flags.in_install:
-			return
-
-		from frappe.handler import check_write_permission
-
-		check_write_permission(self.attached_to_doctype, self.attached_to_name)
-
->>>>>>> 8515442 (fix(file): check the saved record before a file's attachment changes)
 	def enforce_public_file_restrictions(self):
 		if not self.is_private and frappe.get_system_settings(
 			"only_allow_system_managers_to_upload_public_files"
