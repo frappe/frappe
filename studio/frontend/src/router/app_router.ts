@@ -1,6 +1,7 @@
 import {
 	createRouter,
 	createWebHistory,
+	type RouterHistory,
 	type RouteRecordRaw,
 	type Router,
 	type RouterOptions,
@@ -30,6 +31,7 @@ export type RendererApp = {
 	pages: Page[]
 	home?: string | null
 	isGuest?: boolean
+	history?: RouterHistory
 }
 
 declare global {
@@ -62,16 +64,17 @@ export async function createAppRouter(config: RouterConfig | undefined, app: Ren
 	}
 	const { routerOptions: options = {}, extendRoute } = config
 	const routes = getPageRoutes(app)
-	if (extendRoute) await runHook("extendRoute", () => routes.forEach((route) => extendPageRoute(route, extendRoute)))
+	if (extendRoute)
+		await runHook("extendRoute", () => routes.forEach((route) => extendPageRoute(route, extendRoute)))
 
 	const router = createRouter({
 		...options,
-		history: createWebHistory(`/${app.route}`),
+		history: app.history || createWebHistory(`/${app.route}`),
 		routes,
 	})
 	await runHook("setup", () => config.setup?.(router))
 	addHomeRouteFallback(router, app)
-	addNotFoundRouteFallback(router, app)
+	addNotFoundRouteFallback(router)
 	router.beforeEach((to) => sendGuestToLogin(to, app))
 	router.beforeResolve((to, from) => loadPage(router, to, from))
 	router.afterEach((to, _from, failure) => discardPage(to, failure))
@@ -115,13 +118,13 @@ function addHomeRouteFallback(router: Router, app: RendererApp) {
 	router.addRoute({ path: "/", component: AppPage, beforeEnter: () => home.path })
 }
 
-function addNotFoundRouteFallback(router: Router, app: RendererApp) {
+function addNotFoundRouteFallback(router: Router) {
 	if (router.getRoutes().some((route) => route.path.includes("(.*)"))) return
 	router.addRoute({
 		path: "/:pathMatch(.*)*",
 		name: "Not Found",
 		component: NotFound,
-		props: { home: `/${app.route}/` },
+		props: { home: "/" },
 		meta: { notFound: true },
 	})
 }
