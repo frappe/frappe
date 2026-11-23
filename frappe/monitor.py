@@ -126,11 +126,16 @@ class Monitor:
 			traceback.print_exc()
 
 	def store(self):
-		data = {**self.data, "timestamp": self.data.timestamp.strftime(MONITOR_TIMESTAMP_FORMAT)}
-		serialized = json.dumps(data, sort_keys=True, default=str, separators=(",", ":"))
+		serialized = json.dumps(self.data, sort_keys=True, default=_json_default, separators=(",", ":"))
 		length = frappe.cache.rpush(MONITOR_REDIS_KEY, serialized)
 		if cint(length) > MONITOR_MAX_ENTRIES:
 			frappe.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
+
+
+def _json_default(obj):
+	if isinstance(obj, datetime.datetime):
+		return obj.strftime(MONITOR_TIMESTAMP_FORMAT)
+	return str(obj)
 
 
 def flush():
