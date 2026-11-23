@@ -902,7 +902,9 @@ class QueueBuilder:
 		Sends email incase if it is requested to send now.
 		"""
 		final_recipients = self.final_recipients()
-		queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 100
+		queue_separately = (final_recipients and self.queue_separately) or (
+			len(final_recipients) > 100 and not self.is_notification
+		)
 		if not (final_recipients + self.final_cc() + self.final_bcc()):
 			return []
 
