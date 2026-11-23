@@ -65,14 +65,14 @@
 
 		<div class="flex items-center justify-between gap-5">
 			<div class="flex flex-col gap-1.5">
-				<span class="text-md-semibold text-ink-gray-9">Hide on Desktop</span>
+				<span class="text-md-semibold text-ink-gray-9">Hide from Desktop</span>
 				<span class="text-p-sm text-ink-gray-6">Keep this app off the desktop and the app switcher</span>
 			</div>
 			<Switch
 				size="sm"
-				aria-label="Hide on Desktop"
-				:modelValue="Boolean(app.hide_on_desktop)"
-				@update:modelValue="(value: boolean) => update('hide_on_desktop', value ? 1 : 0)"
+				aria-label="Hide from Desktop"
+				:modelValue="Boolean(app.hide_from_desktop)"
+				@update:modelValue="(value: boolean) => update('hide_from_desktop', value ? 1 : 0)"
 			/>
 		</div>
 
@@ -121,7 +121,7 @@ const FIELD_LABELS = {
 	route: "Route",
 	app_home: "App Home",
 	favicon: "Favicon",
-	hide_on_desktop: "Hide on Desktop",
+	hide_from_desktop: "Hide from Desktop",
 }
 
 function update(field: keyof typeof FIELD_LABELS, value: string | number) {
