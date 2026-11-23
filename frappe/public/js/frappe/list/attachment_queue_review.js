@@ -114,7 +114,14 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 					frappe.db.get_list(QUEUE_DOCTYPE, {
 						// document_type travels with the row: the review opens a new
 						// document of it
-						fields: ["name", "document_type", "source_file", "owner", "creation"],
+						fields: [
+							"name",
+							"document_type",
+							"source_file",
+							"owner",
+							"creation",
+							"extraction_status",
+						],
 						filters: { document_type, created_document: ["is", "not set"] },
 						order_by: "creation desc",
 						start,
@@ -136,6 +143,7 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 						label: __("Uploaded"),
 						render: (row) => comment_when(row.creation),
 					},
+					...extraction_column(document_type),
 				],
 				on_row_click: select,
 				after_render: () => mark_selected_row(),
@@ -152,6 +160,30 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 			});
 		});
 };
+
+const EXTRACTION_THEMES = { Started: "blue", Completed: "green", Failed: "red" };
+
+/**
+ * How far Flow has got with each file, for a DocType that asks it to read them. A DocType
+ * that does not shows no column, since every row would be blank.
+ * @param {string} document_type the DocType the queue is being reviewed for
+ */
+function extraction_column(document_type) {
+	if (!frappe.get_meta(document_type).enable_flow_extraction) return [];
+
+	return [
+		{
+			label: __("Read"),
+			render: (row) =>
+				row.extraction_status
+					? frappe.ui.badge.html({
+							label: __(row.extraction_status),
+							theme: EXTRACTION_THEMES[row.extraction_status],
+					  })
+					: "",
+		},
+	];
+}
 
 /**
  * Open the picked entry for review, beside a new document of its DocType.

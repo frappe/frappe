@@ -5,6 +5,15 @@
 	height: 60vh;
 }
 
+// A value that came from the file rather than from the reader, marked until they edit it.
+// The same highlight the review list uses for the row being read.
+.filled-from-file {
+	.control-value,
+	.control-input .input-with-feedback {
+		background: var(--highlight-color);
+	}
+}
+
 .attachment-queue-review-list {
 	// the pane scrolls as a whole, so the table inside it does not scroll on its own
 	.embedded-list-table-wrap {
