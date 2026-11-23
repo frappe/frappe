@@ -1594,6 +1594,40 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("LETTERHEAD_TOP", gen.context.chrome_layout_header)
 		self.assertNotIn("LETTERHEAD_TOP", gen.context.header)
 
+	def test_first_page_header_keeps_its_page_number(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		page_no = {"fieldtype": "Static Text", "text": "Page {page}"}
+		header = {"columns": [{"label": "", "fields": [page_no]}], "show_on": "first_page"}
+		pf = self._make_print_format(format_data=json.dumps({"header": header, "sections": []}))
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		gen = PrintFormatGenerator(pf.name, todo)
+		gen._build_html_for_chrome()
+
+		self.assertIn('<span class="page">', gen.context.header)
+		self.assertEqual(gen.context.chrome_layout_header, "")
+
+	def test_full_page_print_opens_the_pdf_for_a_last_page_footer(self):
+		from unittest.mock import patch
+
+		from frappe.www.printview import get_context
+
+		footer = {"columns": [], "show_on": "last_page"}
+		pf = self._make_print_format(format_data=json.dumps({"footer": footer, "sections": []}))
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Send the Q3 price list"}).insert()
+
+		params = frappe._dict(doctype="ToDo", name=todo.name, format=pf.name, trigger_print=1)
+		with patch.object(frappe.local, "form_dict", params):
+			body = get_context({})["body"]
+
+		self.assertNotIn("window.print()", body)
+		self.assertIn("location.replace", body)
+
 	def test_every_page_footer_repeats_with_the_setting_off(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 

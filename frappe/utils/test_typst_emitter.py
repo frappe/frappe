@@ -798,7 +798,8 @@ class TestTypstRender(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 
-		pdf = PrintFormatGenerator(pf, todo).render_typst_pdf()
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			pdf = PrintFormatGenerator(pf, todo).render_typst_pdf()
 
 		texts = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
 		self.assertGreater(len(texts), 1)
