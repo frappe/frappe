@@ -509,12 +509,22 @@ class PrintFormatGenerator:
 		{"space-between", "space-evenly", "center", "right-end"}
 	)
 
-	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None, no_letterhead=None):
+	def __init__(
+		self,
+		print_format,
+		doc,
+		letterhead=None,
+		style=None,
+		settings=None,
+		no_letterhead=None,
+		ignore_pdf_standard=False,
+	):
 		self.print_format = (
 			print_format
 			if not isinstance(print_format, str)
 			else frappe.get_doc("Print Format", print_format)
 		)
+		self.ignore_pdf_standard = ignore_pdf_standard
 		self.doc = doc
 		self.style = style
 		self.settings_override = settings or {}
@@ -818,7 +828,7 @@ class PrintFormatGenerator:
 				title=_("Typst renderer unavailable"),
 			)
 
-		pdf_standard = self.print_format.get("pdf_standard")
+		pdf_standard = None if self.ignore_pdf_standard else self.print_format.get("pdf_standard")
 		if pdf_standard and password:
 			frappe.throw(
 				_(

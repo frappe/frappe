@@ -34,6 +34,7 @@ BUILDER_DRAFT_FIELDS = (
 	"print_format_builder",
 	"print_format_builder_beta",
 	"pdf_generator",
+	"pdf_standard",
 	"roles",
 )
 
@@ -222,9 +223,6 @@ class PrintFormat(Document):
 			layout = {}
 
 		if self.pdf_generator != "Typst":
-			if self.pdf_standard:
-				self.pdf_standard = None
-				frappe.msgprint(_("PDF Standard cleared: only the Typst renderer writes PDF/A."), alert=True)
 			# the mirror gate: raw Typst markup can't render anywhere else
 			if has_typst_blocks(layout):
 				frappe.throw(
