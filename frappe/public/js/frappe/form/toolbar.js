@@ -652,6 +652,21 @@ frappe.ui.form.Toolbar = class Toolbar {
 				},
 				true
 			);
+		} else if (this.can_unlink_auto_repeat()) {
+			this.page.add_menu_item(
+				__("Unlink Auto Repeat"),
+				() => {
+					frappe.confirm(__("Remove the Auto Repeat link from this document?"), () => {
+						frappe
+							.xcall(
+								"frappe.automation.doctype.auto_repeat.auto_repeat.unlink_auto_repeat",
+								{ doctype: this.frm.doctype, docname: this.frm.docname }
+							)
+							.then(() => this.frm.reload_doc());
+					});
+				},
+				true
+			);
 		}
 	}
 
@@ -753,6 +768,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 	can_repeat() {
 		return this.frm.meta.allow_auto_repeat && !this.frm.is_new() && !this.frm.doc.auto_repeat;
+	}
+	can_unlink_auto_repeat() {
+		return this.frm.doc.auto_repeat && this.frm.perm[0].write;
 	}
 	can_save() {
 		return this.get_docstatus() === 0;
