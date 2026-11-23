@@ -9,7 +9,7 @@ import { hasBuiltPageScript, loadBuiltPageScript } from "@/data/studioPageScript
 import { compilePageScript } from "@/browserRuntime/appRuntime"
 import * as globalUtils from "@/utils/globalUtils"
 import { useSocket } from "@/socket"
-import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
+import { getInitialVariableValue, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import { DYNAMIC_EXPRESSION_CONTENT_REGEX } from "@/utils/constants"
 import { isFunctionExpression, toOptionalChaining } from "@/utils/parseCode"
@@ -348,9 +348,10 @@ export function createPageScope(
 		})
 	}
 
-	function getValueFromVariable(variablePath: string, localContext?: ExpressionEvaluationContext) {
-		const context = { ...variables.value, ...pageScriptTemplateBindings.value, ...localContext }
-		return getValueFromObject(context, variablePath)
+	function getValueFromVariable(variablePath: string, localContext: ExpressionEvaluationContext = {}) {
+		const [name, ...path] = variablePath.split(".")
+		const value = findValue(name, [localContext, pageScriptBindings.value, variables.value])
+		return path.reduce((current, key) => (current && typeof current === "object" ? current[key] : null), value)
 	}
 
 	// `componentBindings` is what the script of the enclosing Studio Component returned. The local
@@ -461,17 +462,30 @@ export function createPageScope(
 	}
 
 	// SCRIPT CONTEXTS
-	const evalContext = computed(() => {
-		return {
-			...variables.value,
-			...resources.value,
-			...pageScriptTemplateBindings.value,
-			...globalUtils,
-			socket: useSocket(),
-			route: unref(routeObject.value),
-			router: routerObject.value,
-		}
-	})
+	const contextValues = {
+		get socket() {
+			return useSocket()
+		},
+		get route() {
+			return unref(routeObject.value)
+		},
+		get router() {
+			return routerObject.value
+		},
+	}
+
+	// Look up names on demand so each binding tracks only the values it reads.
+	// Spreading the sources would make every variable a dependency of every binding.
+	function getEvaluationContext(localContext: ExpressionEvaluationContext = {}) {
+		const sources = [localContext, contextValues, globalUtils, pageScriptBindings.value, resources.value, variables.value]
+		return new Proxy(
+			{},
+			{
+				has: (_, name) => sources.some((source) => hasOwnName(source, name)) || name in Object.prototype,
+				get: (_, name) => findValue(name, sources),
+			},
+		)
+	}
 
 	// Base context for every script scope — event/success/error handlers, function-value props, and page-script setup
 	const scriptContext = computed(() => {
@@ -525,10 +539,8 @@ export function createPageScope(
 		let result = ""
 		let lastIndex = 0
 
-		const context = { ...evalContext.value, ...localContext }
-
 		if (!isDynamicValue(value)) {
-			return evaluateExpression(value, context)
+			return evaluateExpression(value, localContext)
 		}
 
 		// Find all dynamic expressions in the prop value
@@ -537,7 +549,7 @@ export function createPageScope(
 		// Evaluate each dynamic expression and add it to the result
 		for (const match of matches) {
 			const expression = match[1].trim()
-			const dynamicValue = evaluateExpression(expression, context)
+			const dynamicValue = evaluateExpression(expression, localContext)
 
 			if (dynamicValue !== null && typeof dynamicValue === "object") {
 				// for proptype as object, return the evaluated object as is
@@ -598,7 +610,7 @@ export function createPageScope(
 	const reportedBindingErrors = new Set<string>()
 	function evaluateExpression(expression: string, localContext: ExpressionEvaluationContext) {
 		try {
-			const context = { ...evalContext.value, ...localContext }
+			const context = getEvaluationContext(localContext)
 			// Replace dot notation with optional chaining via AST
 			const safeExpression = toOptionalChaining(expression)
 
@@ -747,7 +759,6 @@ export function createPageScope(
 		runPageSetup,
 		applyPageScriptHotUpdate,
 		// code execution
-		evalContext,
 		scriptContext,
 		getDynamicValue,
 		evaluateDynamicValues,
@@ -760,3 +771,16 @@ export function createPageScope(
 }
 
 export type PageScope = ReturnType<typeof createPageScope>
+
+// Prefer the first source that owns the name; fall back to Object.prototype
+// for inherited names such as toString, as a plain object would.
+function findValue(name: string | symbol, sources: object[]) {
+	const source = sources.find((source) => hasOwnName(source, name))
+	return source ? unref((source as Record<string | symbol, any>)[name]) : Reflect.get(Object.prototype, name)
+}
+
+// `in` lets Vue track names added later; the own-property check prevents inherited names
+// such as valueOf from hiding a variable with the same name.
+function hasOwnName(source: object, name: string | symbol) {
+	return name in source && Object.prototype.hasOwnProperty.call(source, name)
+}
