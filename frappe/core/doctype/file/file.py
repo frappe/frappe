@@ -22,6 +22,7 @@ from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read, get_rol
 from frappe.utils import (
 	call_hook_method,
 	cint,
+	cstr,
 	get_files_path,
 	get_hook_method,
 	get_table_name,
@@ -166,6 +167,10 @@ class File(Document):
 		attachment.flags.copy_from_existing_file = True
 		return attachment.insert(ignore_permissions=ignore_permissions)
 
+	def before_validate(self):
+		# here, not in validate(): a File subclass may skip super().validate()
+		self.validate_attachment_change()
+
 	def validate(self):
 		if self.is_folder:
 			if self.file_url:
@@ -191,6 +196,22 @@ class File(Document):
 		self.validate_file_url()
 		self.validate_file_on_disk()
 		self.file_size = frappe.form_dict.file_size or self.file_size
+
+	def validate_attachment_change(self):
+		"""Apply the stored row's permission and protection before its document or content changes."""
+		doc_before_save = self.get_doc_before_save()
+		if not doc_before_save or self.flags.ignore_permissions or frappe.flags.in_install:
+			return
+
+		is_moved = any(
+			cstr(self.get(fieldname)) != cstr(doc_before_save.get(fieldname))
+			for fieldname in ("attached_to_doctype", "attached_to_name")
+		)
+		if is_moved:
+			doc_before_save.check_permission("write")
+
+		if is_moved or self.has_value_changed("file_url"):
+			doc_before_save.validate_protected_file()
 
 	def enforce_public_file_restrictions(self):
 		if not self.is_private and frappe.get_system_settings(
@@ -630,6 +651,13 @@ class File(Document):
 			ref_doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
 		except DoesNotExistError:
 			return
+		except ImportError:
+			if (
+				frappe.db.exists("DocType", self.attached_to_doctype)
+				and frappe.get_meta(self.attached_to_doctype).protect_attached_files
+			):
+				raise
+			return
 
 		if ref_doc.docstatus == 0:
 			# If the document is not submitted yet, users can correct wrong attachments
@@ -643,7 +671,7 @@ class File(Document):
 			return
 
 		frappe.throw(
-			msg=_("This file is attached to a protected document and cannot be deleted."),
+			msg=_("This file is attached to a protected document and cannot be changed or deleted."),
 			title=_("Protected File"),
 		)
 
