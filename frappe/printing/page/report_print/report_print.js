@@ -230,7 +230,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				options: this.report.get_visible_columns().map((df) => ({
 					label: __(df.label, null, df.parent),
 					value: df.fieldname,
-					checked: checked?.length ? checked.includes(df.fieldname) : 1,
+					checked: checked ? checked.includes(df.fieldname) : 1,
 				})),
 				on_change: () => this.save_print_columns(),
 			},
