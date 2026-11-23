@@ -1257,8 +1257,6 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 		if field.get("fieldname") in filters and field.get("fieldtype") == "Link":
 			linked_doctype = field.get("options")
 			if not has_permission(
-				doctype=linked_doctype, ptype="read", doc=filters[field.get("fieldname")], user=user
-			) and not has_permission(
 				doctype=linked_doctype, ptype="select", doc=filters[field.get("fieldname")], user=user
 			):
 				frappe.throw(
