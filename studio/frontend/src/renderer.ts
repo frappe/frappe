@@ -3,7 +3,7 @@ import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import { createAppRouter, type RouterConfig } from "@/router/app_router"
+import { createAppRouter, getWindowApp, type RouterConfig } from "@/router/app_router"
 import ErrorPage from "@/pages/ErrorPage.vue"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
@@ -57,7 +57,7 @@ async function prepareApp(): Promise<RouterConfig | undefined> {
 }
 
 prepareApp()
-	.then((routerConfig) => createAppRouter(routerConfig))
+	.then((routerConfig) => createAppRouter(routerConfig, getWindowApp()))
 	.then((router) => app.use(router).mount("#app"))
 	.catch((error) => {
 		console.error(error)

@@ -26,7 +26,8 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 	// same page, new params: the mounted page follows its route. A forced replace (preview reload) loads afresh.
 	if (pageName === from.meta.pageName && to.fullPath !== from.fullPath) return
 
-	const page = await fetchAppPage(window.app_name, pageName, Boolean(window.is_preview))
+	const appName = to.meta.appName as string
+	const page = await fetchAppPage(appName, pageName, Boolean(window.is_preview))
 	if (navigation !== latestNavigation) return
 	if (!page) return redirectToNotFound(router, to)
 
@@ -39,7 +40,9 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 		await scope.loadPageScript(page)
 		if (navigation !== latestNavigation) return scope.teardownPage()
 		// before the block tree, so no block fetches its component (Guests can't read Studio Component)
-		await useComponentStore().setComponents(page.components || [])
+		const componentStore = useComponentStore()
+		componentStore.setStudioApp(appName)
+		await componentStore.setComponents(page.components || [])
 		if (navigation !== latestNavigation) return scope.teardownPage()
 		const root = getBlockInstance(JSON.parse(page.blocks)[0])
 		loadedPages.set(to.fullPath, { page, scope, pageRoute, root })

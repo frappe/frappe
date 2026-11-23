@@ -263,13 +263,13 @@ ${componentScriptEntries
 
 	// An app without a router file falls back to Studio's own routing.
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
-	const routerConfig = routerFile ? "routerConfig" : ""
+	const routerConfig = routerFile ? "routerConfig" : "undefined"
 
 	const rendererContent = `import "@/index.css"
 import { createApp, defineAsyncComponent } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import { createAppRouter } from "@/router/app_router"
+import { createAppRouter, getWindowApp } from "@/router/app_router"
 import ErrorPage from "@/pages/ErrorPage.vue"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
@@ -298,7 +298,7 @@ window.__APP_COMPONENTS__ = app._context.components
 ${pageScriptSetup}
 ${componentScriptSetup}
 
-createAppRouter(${routerConfig})
+createAppRouter(${routerConfig}, getWindowApp())
 	.then((router) => app.use(router).mount("#app"))
 	.catch((error) => {
 		console.error(error)
