@@ -148,7 +148,8 @@ class MariaDBTable(DBTable):
 		for col in self.add_unique:
 			drop_name_clash = f"DROP INDEX `{col.fieldname}`"
 			if drop_name_clash not in drop_index_query and frappe.db.sql(
-				f"SHOW INDEX FROM `{self.table_name}` WHERE Key_name = %s AND Non_unique = 1", col.fieldname
+				f"SHOW INDEX FROM `{self.table_name}` WHERE Key_name = BINARY %s AND Non_unique = 1",
+				col.fieldname,
 			):
 				modify_column_query.append(
 					f"{drop_name_clash}, ADD UNIQUE INDEX `{col.fieldname}` (`{col.fieldname}`)"
