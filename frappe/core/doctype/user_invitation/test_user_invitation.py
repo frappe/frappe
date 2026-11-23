@@ -198,6 +198,16 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertSequenceEqual(res["invited_emails"], [])
 		frappe.delete_doc("User", user.email)
 
+	def test_invite_by_email_api_skips_standard_users(self):
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		res = invite_by_email(
+			emails=f"{admin_email.upper()}, {emails[4]}",
+			roles=["System Manager"],
+			redirect_to_path="/xyz",
+		)
+		self.assertSequenceEqual(res["standard_user_emails"], [admin_email.upper()])
+		self.assertSequenceEqual(res["invited_emails"], [emails[4]])
+
 	def test_accept_invitation_api_pass_redirect(self):
 		invitation = frappe.get_doc(
 			doctype="User Invitation",

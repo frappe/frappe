@@ -16,11 +16,8 @@ def invite_by_email(
 	email_list = frappe.utils.split_emails(emails)
 	if not email_list:
 		frappe.throw(title=_("Invalid input"), msg=_("No email addresses to invite"))
-	standard_user_emails = frappe.get_all(
-		"User", filters={"name": ["in", frappe.STANDARD_USERS]}, pluck="email"
-	)
-	if {email.lower() for email in email_list} & set(standard_user_emails):
-		frappe.throw(title=_("Error"), msg=_("Standard users can't be invited"))
+	standard_users = frappe.get_all("User", filters={"name": ["in", frappe.STANDARD_USERS]}, pluck="email")
+	standard_user_emails = [email for email in email_list if email.lower() in standard_users]
 
 	# get relevant data from the database
 	disabled_user_emails = frappe.db.get_all(
@@ -46,7 +43,11 @@ def invite_by_email(
 
 	# create invitation documents
 	to_invite = list(
-		set(email_list) - set(disabled_user_emails) - set(accepted_invite_emails) - set(pending_invite_emails)
+		set(email_list)
+		- set(standard_user_emails)
+		- set(disabled_user_emails)
+		- set(accepted_invite_emails)
+		- set(pending_invite_emails)
 	)
 
 	extra_args = get_allowed_invite_params(app_name, kwargs)
@@ -62,6 +63,7 @@ def invite_by_email(
 		).insert(ignore_permissions=True)
 
 	return {
+		"standard_user_emails": standard_user_emails,
 		"disabled_user_emails": disabled_user_emails,
 		"accepted_invite_emails": accepted_invite_emails,
 		"pending_invite_emails": pending_invite_emails,
