@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import email
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
@@ -479,6 +480,39 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		self.assertCountEqual(to_list + cc_list, mail_receivers)
 		doc.delete()
 		comm.delete()
+
+	def test_inbound_notification_is_addressed_to_assignee(self):
+		assignee = self.new_user(email="inbound.assignee@example.com", thread_notify=1)
+
+		with self.set_user("test@example.com"):
+			reference = frappe.new_doc("ToDo", description="Inbound mail").insert(ignore_permissions=True)
+			frappe.new_doc(
+				"ToDo",
+				description="Assigned",
+				allocated_to=assignee.name,
+				reference_type="ToDo",
+				reference_name=reference.name,
+			).insert(ignore_permissions=True)
+
+			comm = self.new_communication(recipients=["support@example.com"])
+			comm.db_set(
+				{
+					"reference_doctype": "ToDo",
+					"reference_name": reference.name,
+					"sent_or_received": "Received",
+				}
+			)
+			comm.send_email(is_inbound_mail_communcation=True)
+
+		queue = EmailQueue.find_one_by_filters(communication=comm.name)
+		message = email.message_from_string(queue.message)
+
+		self.assertCountEqual(message["To"].split(", "), ["test@example.com", assignee.email])
+		self.assertIsNone(message["CC"])
+		self.assertFalse(queue.show_as_cc)
+		self.assertCountEqual(
+			[row.recipient for row in queue.recipients], ["test@example.com", assignee.email]
+		)
 
 	def test_add_attachments_by_filename(self):
 		to_list = ["to <to@test.com>"]
