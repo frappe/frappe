@@ -194,7 +194,7 @@ def _notification_exists(doc, user, dedupe_on) -> bool:
 def _get_user_ids(users):
 	user_names = frappe.get_all(
 		"User",
-		filters={"enabled": 1},
+		filters={"enabled": 1, "name": ("!=", "Guest")},
 		or_filters={"name": ("in", users), "email": ("in", users)},
 		pluck="name",
 	)
