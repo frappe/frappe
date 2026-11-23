@@ -69,6 +69,7 @@
   "allow_bulk_edit",
   "make_attachment_public",
   "ignore_xss_filter",
+  "executes_code",
   "translatable",
   "hide_border",
   "show_dashboard",
@@ -567,6 +568,13 @@
    "fieldname": "in_import_template",
    "fieldtype": "Check",
    "label": "Include in Import Template"
+  },
+  {
+   "default": "0",
+   "description": "The value runs on the server as Jinja or Python. Only users with the Code Author role can change it.",
+   "fieldname": "executes_code",
+   "fieldtype": "Check",
+   "label": "Executes Code"
   }
  ],
  "grid_page_length": 50,
@@ -574,7 +582,7 @@
  "idx": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-24 12:54:37.864038",
+ "modified": "2026-11-24 12:55:37.864038",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

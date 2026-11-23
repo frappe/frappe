@@ -711,6 +711,14 @@ class Meta(Document):
 	def high_permlevel_fields(self):
 		return [df for df in self.fields if (df.permlevel or 0) > 0]
 
+	def get_executable_fields(self):
+		"""Return fields marked `executes_code`. Not the same as `get_code_fields` (fieldtype Code)."""
+		return self.executable_fields
+
+	@cached_property
+	def executable_fields(self):
+		return [df for df in self.fields if df.get("executes_code")]
+
 	def get_permitted_fieldnames(
 		self,
 		parenttype=None,

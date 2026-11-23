@@ -299,6 +299,11 @@ $.extend(frappe.perm, {
 		}
 		if (explain) console.log("By Read Only:" + status);
 
+		if (status === "Write" && df.executes_code && !frappe.user.has_role("Code Author")) {
+			status = "Read";
+		}
+		if (explain) console.log("By Executes Code:" + status);
+
 		if (status === "Write" && df.set_only_once && !doc.__islocal) {
 			status = "Read";
 		}
