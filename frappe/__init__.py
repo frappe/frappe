@@ -524,7 +524,10 @@ def log(msg: str) -> None:
 def set_user(username: str):
 	"""Set current user.
 
-	:param username: **User** name to set as current user. An email is resolved to its user, if found."""
+	:param username: **User** name to set as current user.
+
+	Best effort: a value with `@` that isn't a user ID is resolved to the ID of the user with that
+	email. If there's no such user, no DB connection, or the lookup fails, `username` is used as given."""
 	username = _resolve_user_id(username)
 	local.session.user = username
 	local.session.sid = username
