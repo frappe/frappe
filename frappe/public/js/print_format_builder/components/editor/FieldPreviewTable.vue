@@ -155,6 +155,10 @@ function start_col_resize(e, ci) {
 </script>
 
 <style scoped>
+.table {
+	color: var(--text-muted);
+}
+
 .column-header {
 	position: relative;
 }
