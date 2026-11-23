@@ -1340,7 +1340,7 @@ def validate_links_table_fieldnames(meta):
 
 		if not field_exists:
 			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(
-				index, frappe.bold(link.table_fieldname), frappe.bold(meta.name)
+				index, frappe.bold(link.table_fieldname), frappe.bold(link.parent_doctype)
 			)
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
 
