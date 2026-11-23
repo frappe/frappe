@@ -13,7 +13,7 @@ body {
 	&.full-width {
 		@include media-breakpoint-up(md) {
 			.container {
-				width: 90%;
+				width: 100%;
 				max-width: 100%;
 			}
 		}
