@@ -352,7 +352,7 @@ frappe.views.Calendar = class Calendar {
 			},
 			editable: true,
 			droppable: true,
-			selectable: true,
+			selectable: frappe.model.can_create(me.doctype) && !frappe.boot.read_only,
 			selectMirror: true,
 			forceEventDuration: true,
 			displayEventTime: true,
