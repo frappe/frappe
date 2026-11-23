@@ -78,7 +78,7 @@ class CodeFieldGuard:
 		return changed
 
 	def is_authored(self, row, reference, df, is_new, child_doctype=None):
-		if not is_changed(row, reference, df.fieldname):
+		if not is_changed(row, reference, df):
 			return False
 		# a new document or row may reuse code the user can already read, e.g. after Duplicate
 		return not (
@@ -94,10 +94,13 @@ def is_code_author(user=None):
 	return CODE_AUTHOR_ROLE in frappe.get_roles(user)
 
 
-def is_changed(doc, reference, fieldname):
-	return normalize(doc.get(fieldname)) != normalize(reference.get(fieldname))
+def is_changed(doc, reference, df):
+	return normalize(doc.get(df.fieldname), df) != normalize(reference.get(df.fieldname), df)
 
 
-def normalize(value):
+def normalize(value, df):
+	if df.fieldtype == "JSON" and value not in (None, ""):
+		# APIs may send a JSON field parsed, the database holds it as text
+		return frappe.parse_json(value)
 	# code editors and APIs differ in line endings, trailing whitespace and None vs ""
 	return cstr(value).replace("\r\n", "\n").strip()

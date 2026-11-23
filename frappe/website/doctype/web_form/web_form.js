@@ -275,9 +275,14 @@ frappe.ui.form.on("Web Form", {
 	},
 	render_dynamic_filters_table(frm) {
 		let wrapper = $(frm.get_field("dynamic_filters_json").wrapper).empty();
+		let can_edit =
+			frappe.perm.get_field_display_status(
+				frm.get_docfield("dynamic_filters_json"),
+				frm.doc
+			) === "Write";
 
 		frm.dynamic_filter_table = $(`<table class="table table-bordered" style="cursor:${
-			frm.has_perm("write") ? "pointer" : "default"
+			can_edit ? "pointer" : "default"
 		}; margin: 0 0 var(--margin-lg); border-radius: 10px; border-spacing: 0; border-collapse: separate;">
 			<thead>
 				<tr>
@@ -317,7 +322,7 @@ frappe.ui.form.on("Web Form", {
 		}
 
 		frm.dynamic_filter_table.on("click", () => {
-			if (!frm.has_perm("write")) {
+			if (!can_edit) {
 				return;
 			}
 
