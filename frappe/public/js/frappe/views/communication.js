@@ -1123,7 +1123,7 @@ frappe.views.CommunicationComposer = class {
 				for (const r of frappe.utils.split_emails(this.last_email.recipients)) {
 					if (!cc.includes(r)) cc.push(r);
 				}
-				this.cc = cc.filter((r) => r != sender).join(", ");
+				this.cc = cc.filter((r) => frappe.utils.extract_email(r) != sender).join(", ");
 				fields.cc.set_value(this.as_recipient_list(this.cc));
 			}
 		}

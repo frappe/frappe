@@ -921,6 +921,9 @@ Object.assign(frappe.utils, {
 
 		return email_list;
 	},
+	extract_email: function (address) {
+		return address.match(/<([^>]+)>\s*$/)?.[1].trim() || address.trim();
+	},
 	supportsES6: (function () {
 		try {
 			new Function("(a = 0) => a");
