@@ -17,10 +17,12 @@ from frappe.core.doctype.user.user import (
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
+	confirm_email_change,
 	get_all_roles,
 	get_perm_info,
 	handle_password_test_fail,
 	needs_password_setup,
+	request_email_change,
 	reset_password,
 	rewrite_owner_fields,
 	set_first_password,
@@ -1157,6 +1159,108 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			user.first_name = "Renamed"
 			user.save()
 			self.assertEqual(user.email, "_test_random_id@example.com")
+
+	def request_email_change_key(self, user, new_email, password="Eastern_43A1W"):
+		with self.set_user(user.name), patch("frappe.sendmail") as sendmail:
+			request_email_change(new_email, password)
+
+		self.assertEqual(sendmail.call_args.kwargs["recipients"], new_email.strip().lower())
+		return parse_qs(urlparse(sendmail.call_args.kwargs["args"]["link"]).query)["key"][0]
+
+	def confirm_email_change_as_guest(self, key):
+		with self.set_user("Guest"), patch("frappe.sendmail") as sendmail:
+			confirm_email_change(key)
+		return sendmail
+
+	def test_users_change_their_email_through_a_link(self):
+		from frappe.utils.password import update_password as set_password
+
+		with test_user(roles=[], generated_id=True) as user:
+			set_password(user.name, "Eastern_43A1W")
+			old_email = user.email
+			key = self.request_email_change_key(user, " _Test_Changed_Email@Example.com ")
+			self.assertEqual(frappe.db.get_value("User", user.name, "email"), old_email)
+
+			sendmail = self.confirm_email_change_as_guest(key)
+			self.assertEqual(frappe.local.message_title, "Email changed")
+			self.assertEqual(
+				frappe.db.get_value("User", user.name, "email"), "_test_changed_email@example.com"
+			)
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], old_email)
+
+			self.confirm_email_change_as_guest(key)
+			self.assertEqual(frappe.local.message_title, "Email not changed")
+
+	def test_email_change_needs_the_current_password(self):
+		from frappe.utils.password import update_password as set_password
+
+		with test_user(roles=[], generated_id=True) as user:
+			set_password(user.name, "Eastern_43A1W")
+			with self.set_user(user.name), patch("frappe.sendmail") as sendmail:
+				self.assertRaises(
+					frappe.AuthenticationError, request_email_change, "_test_new_email@example.com", "wrong"
+				)
+				self.assertRaises(
+					frappe.AuthenticationError, request_email_change, "_test_new_email@example.com"
+				)
+			sendmail.assert_not_called()
+
+	def test_a_new_email_change_request_replaces_the_old_one(self):
+		from frappe.utils.password import update_password as set_password
+
+		with test_user(roles=[], generated_id=True) as user:
+			set_password(user.name, "Eastern_43A1W")
+			first_key = self.request_email_change_key(user, "_test_first_new_email@example.com")
+			second_key = self.request_email_change_key(user, "_test_second_new_email@example.com")
+
+			self.confirm_email_change_as_guest(first_key)
+			self.assertEqual(frappe.local.message_title, "Email not changed")
+
+			self.confirm_email_change_as_guest(second_key)
+			self.assertEqual(
+				frappe.db.get_value("User", user.name, "email"), "_test_second_new_email@example.com"
+			)
+
+	def test_email_change_is_refused_for_a_taken_email(self):
+		from frappe.utils.password import update_password as set_password
+
+		with (
+			test_user(roles=[], generated_id=True) as user,
+			test_user(roles=[], generated_id=True) as other,
+		):
+			set_password(user.name, "Eastern_43A1W")
+			with self.set_user(user.name), patch("frappe.sendmail"):
+				self.assertRaises(frappe.ValidationError, request_email_change, other.email, "Eastern_43A1W")
+
+			key = self.request_email_change_key(user, "_test_taken_later@example.com")
+			other.reload()
+			other.email = "_test_taken_later@example.com"
+			other.save()
+
+			self.confirm_email_change_as_guest(key)
+			self.assertEqual(frappe.local.message_title, "Email not changed")
+			self.assertNotEqual(
+				frappe.db.get_value("User", user.name, "email"), "_test_taken_later@example.com"
+			)
+
+	def test_email_change_can_be_disallowed(self):
+		from frappe.utils.password import update_password as set_password
+
+		with test_user(roles=[], generated_id=True) as user:
+			set_password(user.name, "Eastern_43A1W")
+			key = self.request_email_change_key(user, "_test_disallowed_email@example.com")
+
+			with change_settings("System Settings", disallow_email_change=1):
+				with self.set_user(user.name), patch("frappe.sendmail"):
+					self.assertRaises(
+						frappe.PermissionError,
+						request_email_change,
+						"_test_disallowed_email@example.com",
+						"Eastern_43A1W",
+					)
+
+				self.confirm_email_change_as_guest(key)
+				self.assertEqual(frappe.local.message_title, "Email not changed")
 
 	def test_only_system_managers_change_emails(self):
 		with test_user(roles=["Desk User"], generated_id=True) as user, self.set_user(user.name):

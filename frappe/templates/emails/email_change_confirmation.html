@@ -1,0 +1,12 @@
+<h1 class="email-title">{{ _("Confirm your new email") }}</h1>
+<div class="email-body">
+	<p>{{ _("Click below to use this address for your {0} account. The link expires in {1} hours.").format(app_name, hours) }}</p>
+	<div class="email-action">
+		<a class="email-btn email-btn-primary" href="{{ link }}">{{ _("Confirm email") }}</a>
+	</div>
+	<div class="email-copy">
+		<p>{{ _("Or copy and paste:") }}</p>
+		<a href="{{ link }}">{{ link }}</a>
+	</div>
+	<p class="email-ignore">{{ _("If you didn't request this, you can safely ignore this email. Nothing will change.") }}</p>
+</div>

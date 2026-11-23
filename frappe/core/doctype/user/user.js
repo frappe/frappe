@@ -172,6 +172,14 @@ frappe.ui.form.on("User", {
 				);
 			}
 
+			if (
+				frm.doc.name === frappe.session.user &&
+				!frappe.user.has_role("System Manager") &&
+				!cint(frappe.boot.sysdefaults.disallow_email_change)
+			) {
+				frm.add_custom_button(__("Change Email"), () => frm.events.change_email(frm));
+			}
+
 			frm.add_custom_button(
 				__("Reset Password"),
 				function () {
@@ -316,6 +324,45 @@ frappe.ui.form.on("User", {
 		}
 
 		frm.toggle_enable("email", frm.is_new() || frappe.user.has_role("System Manager"));
+	},
+	change_email(frm) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Change Email"),
+			fields: [
+				{
+					fieldname: "new_email",
+					fieldtype: "Data",
+					options: "Email",
+					label: __("New Email"),
+					reqd: 1,
+				},
+				{
+					fieldname: "password",
+					fieldtype: "Password",
+					label: __("Current Password"),
+					description: __("Leave empty if you don't log in with a password."),
+				},
+			],
+			primary_action_label: __("Send Confirmation Link"),
+			primary_action(values) {
+				frappe
+					.call({
+						method: "frappe.core.doctype.user.user.request_email_change",
+						args: values,
+						freeze: true,
+					})
+					.then(() => {
+						dialog.hide();
+						frappe.msgprint(
+							__(
+								"We've sent a confirmation link to {0}. Your email changes once you open it.",
+								[frappe.utils.escape_html(values.new_email)]
+							)
+						);
+					});
+			},
+		});
+		dialog.show();
 	},
 	create_user_email: function (frm) {
 		frappe.call({
