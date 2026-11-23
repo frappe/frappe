@@ -1168,7 +1168,7 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		return parse_qs(urlparse(sendmail.call_args.kwargs["args"]["link"]).query)["key"][0]
 
 	def confirm_email_change_as_guest(self, key):
-		with self.set_user("Guest"), patch("frappe.sendmail") as sendmail:
+		with self.set_user("Guest"), patch("frappe.sendmail") as sendmail, patch.object(frappe.db, "commit"):
 			confirm_email_change(key)
 		return sendmail
 
@@ -1178,13 +1178,13 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		with test_user(roles=[], generated_id=True) as user:
 			set_password(user.name, "Eastern_43A1W")
 			old_email = user.email
-			key = self.request_email_change_key(user, " _Test_Changed_Email@Example.com ")
+			key = self.request_email_change_key(user, " _Test_Email_Change_Link@Example.com ")
 			self.assertEqual(frappe.db.get_value("User", user.name, "email"), old_email)
 
 			sendmail = self.confirm_email_change_as_guest(key)
 			self.assertEqual(frappe.local.message_title, "Email changed")
 			self.assertEqual(
-				frappe.db.get_value("User", user.name, "email"), "_test_changed_email@example.com"
+				frappe.db.get_value("User", user.name, "email"), "_test_email_change_link@example.com"
 			)
 			self.assertEqual(sendmail.call_args.kwargs["recipients"], old_email)
 
