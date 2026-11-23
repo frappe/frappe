@@ -6,14 +6,19 @@ import frappe
 from frappe.printing.layout import iter_fields, iter_zones
 
 HTML_ENTITY = re.compile(r"&(?:#\d+|#x[\da-f]+|[a-z][a-z\d]*);", re.IGNORECASE)
-CUSTOM_HTML_LABEL_END = re.compile(r":(?:&amp;nbsp;)+</span>")
+ESCAPED_ENTITY = re.compile(r"&amp;(?=(?:#\d+|#x[\da-f]+|[a-z][a-z\d]*);)", re.IGNORECASE)
+CUSTOM_HTML_LABEL = re.compile(
+	r'(<span style="[^>]*">|<th width="[^>]*">)([^<]*)'
+	r'(?=</th>|</span> (?:\{\{ (?:doc\.get_formatted|frappe\.format)\(|<span class="(?:page|topage)">))'
+)
+CONVERTED_LABEL_MARKERS = (':&nbsp;"', "&amp;%</span> {{ ", "&amp;%</span> <span class=", "&amp;%</th>")
 
 
 def execute():
 	"""Print Designer formats converted before the converter decoded labels still store
 	its entities and print them literally. A conversion keeps its design on the record;
-	without the app's fields, its own `In Words :&nbsp;` label is the only mark left."""
-	or_filters = [["format_data", "like", '%:&nbsp;"%'], ["format_data", "like", "%:&amp;nbsp;%"]]
+	without the app's fields, the labels it wrote are the only mark left."""
+	or_filters = [["format_data", "like", f"%{marker}%"] for marker in CONVERTED_LABEL_MARKERS]
 	if frappe.get_meta("Print Format").has_field("print_designer_body"):
 		or_filters.append(["print_designer_body", "is", "set"])
 	names = frappe.get_all(
@@ -63,8 +68,8 @@ def decode_labels(format_data):
 				changed = True
 			custom_html = field.get("html")
 			if isinstance(custom_html, str):
-				decoded_html = CUSTOM_HTML_LABEL_END.sub(
-					lambda label_end: label_end.group().replace("&amp;nbsp;", "\xa0"), custom_html
+				decoded_html = CUSTOM_HTML_LABEL.sub(
+					lambda label: label[1] + ESCAPED_ENTITY.sub("&", label[2]), custom_html
 				)
 				if decoded_html != custom_html:
 					field["html"] = decoded_html
