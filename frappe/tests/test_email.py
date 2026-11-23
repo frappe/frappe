@@ -331,6 +331,16 @@ class TestEmail(IntegrationTestCase):
 			"jane@customer.example",
 		)
 
+		longest_name = "山" * (frappe.db.VARCHAR_LEN - len(" <support@example.com>"))
+		self.assertEqual(
+			get_mail(f"{longest_name} <taro@customer.example>").sender,
+			f"{longest_name} <support@example.com>",
+		)
+		self.assertEqual(
+			get_mail(f"{longest_name}山 <taro@customer.example>").sender, "Support <support@example.com>"
+		)
+		self.assertEqual(get_mail("jane@customer.example", "A" * 130).sender, "support@example.com")
+
 		sender = "jane@customer.example"
 		mail = get_mail(sender)
 		self.assertEqual(mail.reply_to, sender)

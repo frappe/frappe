@@ -321,13 +321,12 @@ class EMail:
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):
 			sender_name, _ = email.utils.parseaddr(self.sender)
-			display_name = get_display_name(sender_name) or get_display_name(self.email_account.name)
-			self.sender = format_sender(display_name, self.email_account.email_id)
+			self.sender = format_sender((sender_name, self.email_account.name), self.email_account.email_id)
 
 	def replace_sender_name(self):
 		if cint(self.email_account.always_use_account_name_as_sender_name):
 			_, sender_email = parse_addr(self.sender)
-			self.sender = format_sender(get_display_name(self.email_account.name), sender_email)
+			self.sender = format_sender((self.email_account.name,), sender_email)
 
 	def set_message_id(self, message_id, is_notification=False):
 		if message_id:
@@ -701,9 +700,14 @@ def get_display_name(name: str) -> str:
 	return "" if "=?" in decoded_name or EMAIL_STRING_PATTERN.search(decoded_name) else decoded_name
 
 
-def format_sender(display_name: str, email_id: str) -> str:
-	"""Return an unencoded address, because `Email Queue.sender` cannot hold long encoded names."""
-	return str(policy.SMTP.header_factory("From", formataddr((display_name, email_id))))
+def format_sender(names: tuple[str, ...], email_id: str) -> str:
+	"""Return an unencoded address with the first valid name that fits `Email Queue.sender`."""
+	for name in names:
+		display_name = get_display_name(name)
+		sender = str(policy.SMTP.header_factory("From", formataddr((display_name, email_id))))
+		if display_name and len(sender) <= frappe.db.VARCHAR_LEN:
+			return sender
+	return email_id
 
 
 def sanitize_email_header(header: str):
