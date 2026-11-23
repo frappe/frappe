@@ -14,7 +14,7 @@ from frappe import _, bold, is_whitelisted
 from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model import get_permitted_fields
-from frappe.model.db_query import get_order_by
+from frappe.model.qb_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, sbool, unique
 from frappe.utils.caching import http_cache
