@@ -291,6 +291,7 @@ class Importer:
 					)
 					continue
 
+				frappe.clear_messages()
 				start = timeit.default_timer()
 				try:
 					doc, import_action = self.process_doc(doc)
@@ -341,7 +342,6 @@ class Importer:
 
 					# commit after every successful import
 					frappe.db.commit()
-					frappe.clear_messages()
 
 				except Exception:
 					messages = frappe.local.message_log
