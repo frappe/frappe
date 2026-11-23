@@ -1068,6 +1068,19 @@ class TestDoctypeSync(IntegrationTestCase):
 			sync_due_sources()
 		mock.assert_called_once_with(source.name, rebuild=True)
 
+	def test_a_source_missing_from_the_store_is_rebuilt(self):
+		self._todo("SYNCTEST alpha")
+		indexed, missing = self._source(), self._source()
+		self._sync(indexed.name)
+		self._sync(missing.name)
+		store.delete(source=missing.name)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as mock:
+			sync_due_sources()
+		mock.assert_called_once_with(missing.name, rebuild=True)
+
 
 class TestRetriever(IntegrationTestCase):
 	def setUp(self):
