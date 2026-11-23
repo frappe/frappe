@@ -36,6 +36,12 @@ body {
 }
 {%- endif %}
 
+{% if primary_color %}
+.btn.btn-primary {
+	color: color-yiq($primary);
+}
+{% endif -%}
+
 // Custom Theme
 {{ custom_scss or '' }}
 
@@ -60,9 +66,3 @@ body {
 	--radius-full: 0px;
 	{% endif -%}
 }
-
-{% if primary_color %}
-.btn.btn-primary {
-	color: color-yiq($primary);
-}
-{% endif -%}
