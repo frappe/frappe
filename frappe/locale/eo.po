@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-08 09:32+0000\n"
-"PO-Revision-Date: 2026-11-16 04:13\n"
+"POT-Creation-Date: 2026-11-15 09:32+0000\n"
+"PO-Revision-Date: 2026-11-23 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -97,12 +97,12 @@ msgstr "crwdns112788:0{0}crwdnd112788:0{1}crwdne112788:0"
 msgid "'Recipients' not specified"
 msgstr "crwdns112790:0crwdne112790:0"
 
-#: frappe/utils/__init__.py:257
+#: frappe/utils/__init__.py:267
 #, python-brace-format
 msgid "'{0}' is not a valid IBAN"
 msgstr "crwdns194136:0{0}crwdne194136:0"
 
-#: frappe/utils/__init__.py:247
+#: frappe/model/document.py:2703 frappe/utils/__init__.py:252
 #, python-brace-format
 msgid "'{0}' is not a valid URL"
 msgstr "crwdns112792:0{0}crwdne112792:0"
@@ -968,7 +968,7 @@ msgstr "crwdns143694:0crwdne143694:0"
 msgid "Action Complete"
 msgstr "crwdns113034:0crwdne113034:0"
 
-#: frappe/model/document.py:3114
+#: frappe/model/document.py:3120
 msgid "Action Failed"
 msgstr "crwdns113036:0crwdne113036:0"
 
@@ -4193,7 +4193,7 @@ msgstr "crwdns114328:0crwdne114328:0"
 #. Label of a Link field in DocType 'Newsletter'
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/email/doctype/newsletter/newsletter.json:245
-#: frappe/public/js/frappe/utils/utils.js:1742
+#: frappe/public/js/frappe/utils/utils.js:1751
 #: frappe/website/doctype/web_page_view/web_page_view.json:78
 #: frappe/website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
@@ -4337,7 +4337,7 @@ msgstr "crwdns114400:0crwdne114400:0"
 msgid "Cannot Remove"
 msgstr "crwdns114402:0crwdne114402:0"
 
-#: frappe/model/document.py:2833
+#: frappe/model/document.py:2839
 msgid "Cannot Update After Submit"
 msgstr "crwdns114404:0crwdne114404:0"
 
@@ -5000,7 +5000,7 @@ msgstr "crwdns114672:0crwdne114672:0"
 msgid "Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access."
 msgstr "crwdns114674:0crwdne114674:0"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:538
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:536
 msgid "Click on a file to select it."
 msgstr "crwdns144362:0crwdne144362:0"
 
@@ -5922,7 +5922,7 @@ msgstr "crwdns144488:0crwdne144488:0"
 msgid "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected."
 msgstr "crwdns144490:0crwdne144490:0"
 
-#: frappe/public/js/frappe/utils/utils.js:1044
+#: frappe/public/js/frappe/utils/utils.js:1053
 msgid "Copied to clipboard."
 msgstr "crwdns115112:0crwdne115112:0"
 
@@ -6040,7 +6040,7 @@ msgstr "crwdns144498:0crwdne144498:0"
 msgid "Country"
 msgstr "crwdns115148:0crwdne115148:0"
 
-#: frappe/utils/__init__.py:118
+#: frappe/utils/__init__.py:123
 msgid "Country Code Required"
 msgstr "crwdns115158:0crwdne115158:0"
 
@@ -6989,7 +6989,7 @@ msgstr "crwdns204915:0crwdne204915:0"
 msgid "Date and Number Format"
 msgstr "crwdns144600:0crwdne144600:0"
 
-#: frappe/public/js/frappe/form/controls/date.js:175
+#: frappe/public/js/frappe/form/controls/date.js:181
 #, python-brace-format
 msgid "Date {0} must be in format: {1}"
 msgstr "crwdns115606:0{0}crwdnd115606:0{1}crwdne115606:0"
@@ -8398,7 +8398,7 @@ msgid "Document Types and Permissions"
 msgstr "crwdns144786:0crwdne144786:0"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:3185
+#: frappe/model/document.py:3191
 msgid "Document Unlocked"
 msgstr "crwdns116230:0crwdne116230:0"
 
@@ -9550,7 +9550,7 @@ msgstr "crwdns144940:0crwdne144940:0"
 msgid "Enable in-app website tracking"
 msgstr "crwdns144942:0crwdne144942:0"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:93
+#: frappe/desk/doctype/notification_type/notification_type.py:94
 msgid "Enable the notification type before emailing it to users."
 msgstr "crwdns267385:0crwdne267385:0"
 
@@ -9612,7 +9612,7 @@ msgstr "crwdns144944:0crwdne144944:0"
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
 msgstr "crwdns116742:0crwdne116742:0"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:104
+#: frappe/desk/doctype/notification_type/notification_type.py:105
 #, python-brace-format
 msgid "Enabling email for {0} across all users in the background."
 msgstr "crwdns267387:0{0}crwdne267387:0"
@@ -10795,7 +10795,7 @@ msgstr "crwdns267389:0{0}crwdnd267389:0{1}crwdnd267389:0{2}crwdnd267389:0{3}crwd
 msgid "File"
 msgstr "crwdns117244:0crwdne117244:0"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:498
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:496
 #, python-brace-format
 msgid "File \"{0}\" was skipped because of invalid file type"
 msgstr "crwdns145096:0{0}crwdne145096:0"
@@ -10883,7 +10883,7 @@ msgstr "crwdns117282:0crwdne117282:0"
 msgid "File type of {0} is not allowed"
 msgstr "crwdns117284:0{0}crwdne117284:0"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:637
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:635
 msgid "File upload failed."
 msgstr "crwdns194280:0crwdne194280:0"
 
@@ -11816,7 +11816,7 @@ msgid "Generate Random Password"
 msgstr "crwdns117708:0crwdne117708:0"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:162
-#: frappe/public/js/frappe/utils/utils.js:1781
+#: frappe/public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
 msgstr "crwdns117710:0crwdne117710:0"
 
@@ -12296,7 +12296,7 @@ msgstr "crwdns117902:0{0}crwdne117902:0"
 msgid "Grouped by {0}"
 msgstr "crwdns286227:0{0}crwdne286227:0"
 
-#: frappe/handler.py:187
+#: frappe/handler.py:188
 #, python-brace-format
 msgid "Guests are not allowed to upload files for {0} Doctype"
 msgstr "crwdns204955:0{0}crwdne204955:0"
@@ -12586,7 +12586,7 @@ msgstr "crwdns145364:0crwdne145364:0"
 msgid "Helvetica Neue"
 msgstr "crwdns145366:0crwdne145366:0"
 
-#: frappe/public/js/frappe/utils/utils.js:1778
+#: frappe/public/js/frappe/utils/utils.js:1787
 msgid "Here's your tracking URL"
 msgstr "crwdns118040:0crwdne118040:0"
 
@@ -14140,7 +14140,7 @@ msgstr "crwdns118702:0crwdne118702:0"
 msgid "Invalid Password"
 msgstr "crwdns118704:0crwdne118704:0"
 
-#: frappe/utils/__init__.py:111
+#: frappe/utils/__init__.py:116
 msgid "Invalid Phone Number"
 msgstr "crwdns118706:0crwdne118706:0"
 
@@ -14162,8 +14162,8 @@ msgstr "crwdns118712:0crwdne118712:0"
 msgid "Invalid Transition"
 msgstr "crwdns118714:0crwdne118714:0"
 
-#: frappe/core/doctype/file/file.py:351
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:550
+#: frappe/core/doctype/file/file.py:351 frappe/model/document.py:2703
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:548
 #: frappe/public/js/frappe/widgets/widget_dialog.js:583
 #: frappe/utils/csvutils.py:233 frappe/utils/csvutils.py:254
 msgid "Invalid URL"
@@ -14725,6 +14725,10 @@ msgstr "crwdns118928:0crwdne118928:0"
 #: frappe/printing/doctype/print_format/print_format.json:106
 msgid "Jinja"
 msgstr "crwdns145686:0crwdne145686:0"
+
+#: frappe/utils/jinja.py:117
+msgid "Jinja Template Error"
+msgstr "crwdns308779:0crwdne308779:0"
 
 #. Label of a Data field in DocType 'Prepared Report'
 #. Label of a Data field in DocType 'RQ Job'
@@ -16562,7 +16566,7 @@ msgstr "crwdns194384:0crwdne194384:0"
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/desk/doctype/todo/todo.json:53
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:218
-#: frappe/public/js/frappe/utils/utils.js:1750
+#: frappe/public/js/frappe/utils/utils.js:1759
 #: frappe/website/doctype/web_page_view/web_page_view.json:84
 #: frappe/website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -18168,8 +18172,8 @@ msgstr "crwdns120402:0crwdne120402:0"
 
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:94
-msgid "No of Rows (Max 500)"
-msgstr "crwdns146136:0crwdne146136:0"
+msgid "No of Rows"
+msgstr "crwdns308805:0crwdne308805:0"
 
 #: frappe/__init__.py:1084 frappe/client.py:143 frappe/client.py:185
 #, python-brace-format
@@ -18448,7 +18452,7 @@ msgstr "crwdns120518:0crwdne120518:0"
 #: frappe/api/v1.py:122 frappe/api/v1.py:127
 #: frappe/core/doctype/system_settings/system_settings.py:248
 #: frappe/handler.py:114
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:624
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:622
 #: frappe/public/js/frappe/request.js:155
 #: frappe/public/js/frappe/request.js:165
 #: frappe/public/js/frappe/request.js:170
@@ -18470,7 +18474,7 @@ msgstr "crwdns267443:0{0}crwdne267443:0"
 msgid "Not permitted to view {0}"
 msgstr "crwdns120522:0{0}crwdne120522:0"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:623
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:621
 #, python-brace-format
 msgid "Not permitted. {0}."
 msgstr "crwdns194418:0{0}crwdne194418:0"
@@ -18503,7 +18507,7 @@ msgstr "crwdns120530:0crwdne120530:0"
 msgid "Note: By default emails for failed backups are sent."
 msgstr "crwdns146148:0crwdne146148:0"
 
-#: frappe/public/js/frappe/utils/utils.js:786
+#: frappe/public/js/frappe/utils/utils.js:795
 msgid "Note: Changing the Page Name will break previous URL to this page."
 msgstr "crwdns120536:0crwdne120536:0"
 
@@ -20228,7 +20232,7 @@ msgstr "crwdns146396:0crwdne146396:0"
 msgid "Phone No."
 msgstr "crwdns146398:0crwdne146398:0"
 
-#: frappe/utils/__init__.py:110
+#: frappe/utils/__init__.py:115
 #, python-brace-format
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "crwdns121262:0{0}crwdnd121262:0{1}crwdne121262:0"
@@ -20398,7 +20402,7 @@ msgstr "crwdns121332:0crwdne121332:0"
 #: frappe/printing/page/print/print.js:643
 #: frappe/printing/page/print/print.js:673
 #: frappe/public/js/frappe/list/bulk_operations.js:161
-#: frappe/public/js/frappe/utils/utils.js:1455
+#: frappe/public/js/frappe/utils/utils.js:1464
 msgid "Please enable pop-ups"
 msgstr "crwdns121334:0crwdne121334:0"
 
@@ -20555,12 +20559,12 @@ msgstr "crwdns121400:0crwdne121400:0"
 msgid "Please select a DocType in options before setting filters"
 msgstr "crwdns194440:0crwdne194440:0"
 
-#: frappe/utils/__init__.py:117
+#: frappe/utils/__init__.py:122
 #, python-brace-format
 msgid "Please select a country code for field {1}."
 msgstr "crwdns121402:0{1}crwdne121402:0"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:526
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:524
 msgid "Please select a file first."
 msgstr "crwdns146412:0crwdne146412:0"
 
@@ -21924,9 +21928,13 @@ msgstr "crwdns122010:0crwdne122010:0"
 msgid "Read the documentation to know more"
 msgstr "crwdns122012:0crwdne122012:0"
 
-#: frappe/utils/safe_exec.py:746 frappe/utils/safe_exec.py:759
+#: frappe/utils/safe_exec.py:748
 msgid "Read-Only queries are allowed"
 msgstr "crwdns205023:0crwdne205023:0"
+
+#: frappe/utils/safe_exec.py:751
+msgid "Reading passwords is not allowed"
+msgstr "crwdns308857:0crwdne308857:0"
 
 #. Label of a Markdown Editor field in DocType 'Package'
 #: frappe/core/doctype/package/package.json:19
@@ -23703,6 +23711,10 @@ msgstr "crwdns122844:0crwdne122844:0"
 msgid "SMS Settings"
 msgstr "crwdns122846:0crwdne122846:0"
 
+#: frappe/core/doctype/sms_settings/sms_settings.py:165
+msgid "SMS gateway request failed"
+msgstr "crwdns308887:0crwdne308887:0"
+
 #: frappe/core/doctype/sms_settings/sms_settings.py:126
 msgid "SMS sent successfully"
 msgstr "crwdns151556:0crwdne151556:0"
@@ -23910,7 +23922,7 @@ msgstr "crwdns122932:0crwdne122932:0"
 msgid "Saving..."
 msgstr "crwdns122934:0crwdne122934:0"
 
-#: frappe/public/js/frappe/form/controls/data.js:149
+#: frappe/public/js/frappe/form/controls/data.js:159
 msgid "Scan"
 msgstr "crwdns205035:0crwdne205035:0"
 
@@ -25056,7 +25068,7 @@ msgstr "crwdns123408:0crwdne123408:0"
 msgid "Server Scripts feature is not available on this site."
 msgstr "crwdns123410:0crwdne123410:0"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:642
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:640
 msgid "Server error during upload. The file might be corrupted."
 msgstr "crwdns205057:0crwdne205057:0"
 
@@ -25210,7 +25222,7 @@ msgid "Set Value"
 msgstr "crwdns147022:0crwdne147022:0"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:94
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:146
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:135
 msgid "Set all private"
 msgstr "crwdns123472:0crwdne123472:0"
 
@@ -25908,7 +25920,7 @@ msgstr "crwdns123756:0crwdne123756:0"
 msgid "Size (MB)"
 msgstr "crwdns147126:0crwdne147126:0"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:630
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:628
 msgid "Size exceeds the maximum allowed file size."
 msgstr "crwdns194504:0crwdne194504:0"
 
@@ -26154,7 +26166,7 @@ msgstr "crwdns123856:0{0}crwdne123856:0"
 
 #. Label of a Data field in DocType 'Web Page View'
 #. Label of a Small Text field in DocType 'Website Route Redirect'
-#: frappe/public/js/frappe/utils/utils.js:1736
+#: frappe/public/js/frappe/utils/utils.js:1745
 #: frappe/website/doctype/web_page_view/web_page_view.json:72
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json:16
 #: frappe/website/report/website_analytics/website_analytics.js:38
@@ -27980,6 +27992,10 @@ msgstr "crwdns124578:0crwdne124578:0"
 msgid "There was an error saving filters"
 msgstr "crwdns124580:0crwdne124580:0"
 
+#: frappe/utils/jinja.py:133
+msgid "There was an error while rendering this template."
+msgstr "crwdns308939:0crwdne308939:0"
+
 #: frappe/public/js/frappe/form/sidebar/attachments.js:236
 msgid "There were errors"
 msgstr "crwdns124582:0crwdne124582:0"
@@ -29045,7 +29061,7 @@ msgstr "crwdns147510:0crwdne147510:0"
 msgid "Track milestones for any document"
 msgstr "crwdns125032:0crwdne125032:0"
 
-#: frappe/public/js/frappe/utils/utils.js:1775
+#: frappe/public/js/frappe/utils/utils.js:1784
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "crwdns125034:0crwdne125034:0"
 
@@ -29398,6 +29414,11 @@ msgstr "crwdns125196:0crwdne125196:0"
 msgid "Unable to read file format for {0}"
 msgstr "crwdns125198:0{0}crwdne125198:0"
 
+#: frappe/email/receive.py:653
+#, python-brace-format
+msgid "Unable to save email attachment {0}"
+msgstr "crwdns308967:0{0}crwdne308967:0"
+
 #: frappe/core/doctype/communication/email.py:188
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr "crwdns125200:0crwdne125200:0"
@@ -29501,7 +29522,7 @@ msgstr "crwdns147568:0crwdne147568:0"
 msgid "Unread Notification Sent"
 msgstr "crwdns147570:0crwdne147570:0"
 
-#: frappe/utils/safe_exec.py:747 frappe/utils/safe_exec.py:760
+#: frappe/utils/safe_exec.py:758
 msgid "Unsafe SQL query"
 msgstr "crwdns125246:0crwdne125246:0"
 
@@ -29722,8 +29743,8 @@ msgstr "crwdns151874:0crwdne151874:0"
 msgid "Upgrade your support experience with Frappe Helpdesk"
 msgstr "crwdns154365:0crwdne154365:0"
 
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:143
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:144
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:132
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:133
 #: frappe/public/js/frappe/form/grid.js:111
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:13
 msgid "Upload"
@@ -30397,7 +30418,7 @@ msgstr "crwdns147696:0crwdne147696:0"
 msgid "Value To Be Set"
 msgstr "crwdns147698:0crwdne147698:0"
 
-#: frappe/model/document.py:843 frappe/model/document.py:2723
+#: frappe/model/document.py:843 frappe/model/document.py:2729
 #, python-brace-format
 msgid "Value cannot be changed for {0}"
 msgstr "crwdns125640:0{0}crwdne125640:0"
@@ -30445,7 +30466,7 @@ msgstr "crwdns125656:0{0}crwdne125656:0"
 msgid "Value to Validate"
 msgstr "crwdns147702:0crwdne147702:0"
 
-#: frappe/model/document.py:2796
+#: frappe/model/document.py:2802
 msgid "Value too big"
 msgstr "crwdns125660:0crwdne125660:0"
 
@@ -30817,7 +30838,7 @@ msgstr "crwdns125798:0crwdne125798:0"
 msgid "Web Page Block"
 msgstr "crwdns125804:0crwdne125804:0"
 
-#: frappe/public/js/frappe/utils/utils.js:1728
+#: frappe/public/js/frappe/utils/utils.js:1737
 msgid "Web Page URL"
 msgstr "crwdns125806:0crwdne125806:0"
 
@@ -31517,7 +31538,7 @@ msgstr "crwdns147812:0crwdne147812:0"
 msgid "XLSX"
 msgstr "crwdns147814:0crwdne147814:0"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:645
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:643
 msgid "XMLHttpRequest Error"
 msgstr "crwdns194582:0crwdne194582:0"
 
@@ -31795,7 +31816,7 @@ msgstr "crwdns126240:0{0}crwdne126240:0"
 msgid "You can only unfollow documents for yourself."
 msgstr "crwdns205089:0crwdne205089:0"
 
-#: frappe/handler.py:244
+#: frappe/handler.py:245
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
 msgstr "crwdns194596:0crwdne194596:0"
 
@@ -32435,7 +32456,7 @@ msgstr "crwdns147852:0crwdne147852:0"
 msgid "amend"
 msgstr "crwdns147854:0crwdne147854:0"
 
-#: frappe/public/js/frappe/utils/utils.js:406 frappe/utils/data.py:1415
+#: frappe/public/js/frappe/utils/utils.js:415 frappe/utils/data.py:1415
 msgid "and"
 msgstr "crwdns126454:0crwdne126454:0"
 
@@ -32643,7 +32664,7 @@ msgstr "crwdns147918:0crwdne147918:0"
 msgid "cyan"
 msgstr "crwdns147920:0crwdne147920:0"
 
-#: frappe/public/js/frappe/utils/utils.js:1127
+#: frappe/public/js/frappe/utils/utils.js:1136
 msgctxt "Days (Field: Duration)"
 msgid "d"
 msgstr "crwdns126536:0crwdne126536:0"
@@ -32924,7 +32945,7 @@ msgstr "crwdns148008:0crwdne148008:0"
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr "crwdns126650:0crwdne126650:0"
 
-#: frappe/public/js/frappe/utils/utils.js:1131
+#: frappe/public/js/frappe/utils/utils.js:1140
 msgctxt "Hours (Field: Duration)"
 msgid "h"
 msgstr "crwdns126652:0crwdne126652:0"
@@ -33075,7 +33096,7 @@ msgstr "crwdns126710:0crwdne126710:0"
 msgid "long"
 msgstr "crwdns148056:0crwdne148056:0"
 
-#: frappe/public/js/frappe/utils/utils.js:1135
+#: frappe/public/js/frappe/utils/utils.js:1144
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
 msgstr "crwdns126718:0crwdne126718:0"
@@ -33229,7 +33250,7 @@ msgstr "crwdns148102:0crwdne148102:0"
 msgid "only."
 msgstr "crwdns126784:0crwdne126784:0"
 
-#: frappe/public/js/frappe/utils/utils.js:403
+#: frappe/public/js/frappe/utils/utils.js:412
 #: frappe/website/doctype/web_form/web_form.js:388 frappe/www/login.html:89
 #: frappe/www/login.py:112
 msgid "or"
@@ -33431,7 +33452,7 @@ msgstr "crwdns148170:0crwdne148170:0"
 msgid "road"
 msgstr "crwdns148172:0crwdne148172:0"
 
-#: frappe/public/js/frappe/utils/utils.js:1139
+#: frappe/public/js/frappe/utils/utils.js:1148
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
 msgstr "crwdns126866:0crwdne126866:0"
@@ -33882,7 +33903,7 @@ msgstr "crwdns127024:0{0}crwdne127024:0"
 #: frappe/core/page/dashboard_view/dashboard_view.js:67
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:347
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:348
-#: frappe/public/js/frappe/utils/utils.js:943
+#: frappe/public/js/frappe/utils/utils.js:952
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:12
 #, python-brace-format
 msgid "{0} Dashboard"
@@ -33912,7 +33933,7 @@ msgstr "crwdns127034:0{0}crwdne127034:0"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:83
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:84
-#: frappe/public/js/frappe/utils/utils.js:937
+#: frappe/public/js/frappe/utils/utils.js:946
 #: frappe/public/js/frappe/widgets/chart_widget.js:318 frappe/www/list.html:4
 #: frappe/www/list.html:8
 #, python-brace-format
@@ -33929,7 +33950,7 @@ msgstr "crwdns127038:0{0}crwdne127038:0"
 msgid "{0} Map"
 msgstr "crwdns127040:0{0}crwdne127040:0"
 
-#: frappe/public/js/frappe/utils/utils.js:940
+#: frappe/public/js/frappe/utils/utils.js:949
 #, python-brace-format
 msgid "{0} Modules"
 msgstr "crwdns127042:0{0}crwdne127042:0"
@@ -33939,14 +33960,14 @@ msgstr "crwdns127042:0{0}crwdne127042:0"
 msgid "{0} Name"
 msgstr "crwdns127044:0{0}crwdne127044:0"
 
-#: frappe/model/document.py:2826
+#: frappe/model/document.py:2832
 #, python-brace-format
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "crwdns127046:0{0}crwdnd127046:0{1}crwdnd127046:0{2}crwdnd127046:0{3}crwdne127046:0"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:95
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:96
-#: frappe/public/js/frappe/utils/utils.js:934
+#: frappe/public/js/frappe/utils/utils.js:943
 #: frappe/public/js/frappe/widgets/chart_widget.js:326
 #, python-brace-format
 msgid "{0} Report"
@@ -33997,7 +34018,7 @@ msgstr "crwdns194626:0{0}crwdnd194626:0{1}crwdne194626:0"
 msgid "{0} added {1} rows to {2}"
 msgstr "crwdns194628:0{0}crwdnd194628:0{1}crwdnd194628:0{2}crwdne194628:0"
 
-#: frappe/public/js/frappe/form/controls/data.js:215
+#: frappe/public/js/frappe/form/controls/data.js:225
 #, python-brace-format
 msgid "{0} already exists. Select another name"
 msgstr "crwdns127064:0{0}crwdne127064:0"
@@ -34211,7 +34232,7 @@ msgstr "crwdns127130:0{0}crwdne127130:0"
 msgid "{0} days ago"
 msgstr "crwdns127132:0{0}crwdne127132:0"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:90
+#: frappe/desk/doctype/notification_type/notification_type.py:91
 #, python-brace-format
 msgid "{0} does not exist"
 msgstr "crwdns267563:0{0}crwdne267563:0"
@@ -34405,17 +34426,17 @@ msgid "{0} is not a valid DocType for Dynamic Link"
 msgstr "crwdns127202:0{0}crwdne127202:0"
 
 #: frappe/email/doctype/email_group/email_group.py:140
-#: frappe/utils/__init__.py:193
+#: frappe/utils/__init__.py:198
 #, python-brace-format
 msgid "{0} is not a valid Email Address"
 msgstr "crwdns127204:0{0}crwdne127204:0"
 
-#: frappe/utils/__init__.py:161
+#: frappe/utils/__init__.py:166
 #, python-brace-format
 msgid "{0} is not a valid Name"
 msgstr "crwdns127206:0{0}crwdne127206:0"
 
-#: frappe/utils/__init__.py:141
+#: frappe/utils/__init__.py:146
 #, python-brace-format
 msgid "{0} is not a valid Phone Number"
 msgstr "crwdns127208:0{0}crwdne127208:0"
@@ -34611,7 +34632,7 @@ msgid "{0} must begin and end with a letter and can only contain letters,\n"
 "\t\t\t\thyphen or underscore."
 msgstr "crwdns127264:0{0}crwdne127264:0"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:96
+#: frappe/desk/doctype/notification_type/notification_type.py:97
 #, python-brace-format
 msgid "{0} never sends email, so it cannot be enabled for users."
 msgstr "crwdns267573:0{0}crwdne267573:0"
@@ -34798,7 +34819,7 @@ msgstr "crwdns127322:0{0}crwdne127322:0"
 
 #: frappe/public/js/frappe/form/controls/date_range.js:48
 #: frappe/public/js/frappe/form/controls/date_range.js:64
-#: frappe/public/js/frappe/form/formatters.js:236
+#: frappe/public/js/frappe/form/formatters.js:239
 #, python-brace-format
 msgid "{0} to {1}"
 msgstr "crwdns127324:0{0}crwdnd127324:0{1}crwdne127324:0"
@@ -34894,7 +34915,7 @@ msgstr "crwdns127356:0{0}crwdnd127356:0{1}crwdne127356:0"
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "crwdns127358:0{0}crwdnd127358:0{1}crwdnd127358:0{2}crwdnd127358:0{3}crwdne127358:0"
 
-#: frappe/model/document.py:2787
+#: frappe/model/document.py:2793
 #, python-brace-format
 msgid "{0}, Row {1}"
 msgstr "crwdns127360:0{0}crwdnd127360:0{1}crwdne127360:0"
@@ -34904,7 +34925,7 @@ msgstr "crwdns127360:0{0}crwdnd127360:0{1}crwdne127360:0"
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "crwdns151572:0{0}crwdnd151572:0{1}crwdne151572:0"
 
-#: frappe/model/document.py:2792
+#: frappe/model/document.py:2798
 #, python-brace-format
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "crwdns127362:0{0}crwdnd127362:0{1}crwdnd127362:0{3}crwdnd127362:0{2}crwdne127362:0"
