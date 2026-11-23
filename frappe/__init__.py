@@ -524,7 +524,8 @@ def log(msg: str) -> None:
 def set_user(username: str):
 	"""Set current user.
 
-	:param username: **User** name to set as current user."""
+	:param username: **User** name to set as current user. An email is resolved to its user, if found."""
+	username = _resolve_user_id(username)
 	local.session.user = username
 	local.session.sid = username
 	local.cache = {}
@@ -535,6 +536,25 @@ def set_user(username: str):
 	local.role_permissions = {}
 	local.new_doc_templates = {}
 	local.user_perms = None
+
+
+def _resolve_user_id(user: str) -> str:
+	if not user or user in STANDARD_USERS or "@" not in user or not getattr(local, "db", None):
+		return user
+
+	try:
+		user_ids = get_all(
+			"User",
+			filters={"name": ("not in", STANDARD_USERS)},
+			or_filters={"name": user, "email": user.strip().lower()},
+			pluck="name",
+		)
+	except Exception:
+		return user
+
+	if user in user_ids or not user_ids:
+		return user
+	return user_ids[0]
 
 
 def get_user():
