@@ -1,16 +1,28 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import contextlib
 import os
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+import socket
+>>>>>>> 6ce1991 (test(print): external pdf resources end at their time limit)
 import tempfile
+import threading
+import time
 from concurrent.futures import Future
 >>>>>>> 9026635 (test(print): pdf resources load through the safe request session)
 from unittest.mock import MagicMock, patch
 
 import frappe
+<<<<<<< HEAD
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils.pdf_generator.page import Page
+=======
+from frappe.tests import UnitTestCase
+from frappe.utils.chromium.page import Page, read_external_resource
+>>>>>>> 6ce1991 (test(print): external pdf resources end at their time limit)
 
 
 def _make_page(session):
@@ -230,6 +242,33 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 			_fire_request(callback, "req-7", f"http://{'a' * 64}.example.com/logo.png")
 
 		self.assertIn("Fetch.failRequest", self._sent_methods())
+
+	def test_external_read_ends_at_its_time_limit(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		server = socket.create_server(("127.0.0.1", 0))
+		self.addCleanup(server.close)
+
+		def respond():
+			connection, _address = server.accept()
+			with connection, contextlib.suppress(OSError):
+				connection.recv(65536)
+				connection.sendall(b"HTTP/1.1 200 OK\r\nX-Item: ")
+				for _byte in range(60):
+					connection.sendall(b"a")
+					time.sleep(0.05)
+
+		threading.Thread(target=respond, daemon=True).start()
+		started = time.monotonic()
+		with (
+			patch("frappe.utils.safe_exec.validate_request_url"),
+			patch("frappe.utils.safe_exec.validate_request_address"),
+			patch("frappe.utils.chromium.page.EXTERNAL_FETCH_SECONDS", 0.3),
+		):
+			resource = read_external_resource(f"http://127.0.0.1:{server.getsockname()[1]}/logo.png", 1024)
+
+		self.assertIsNone(resource)
+		self.assertLess(time.monotonic() - started, 2)
 
 	def test_unknown_origin_url_sends_fail_when_external_requests_are_blocked(self):
 		self.page.block_external_requests = True
