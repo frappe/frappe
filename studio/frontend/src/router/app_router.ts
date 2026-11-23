@@ -77,7 +77,7 @@ export async function createAppRouter(config: RouterConfig | undefined, app: Ren
 	addNotFoundRouteFallback(router)
 	router.beforeEach((to) => sendGuestToLogin(to, app))
 	router.beforeResolve((to, from) => loadPage(router, to, from))
-	router.afterEach((to, _from, failure) => discardPage(to, failure))
+	router.afterEach((to, _from, failure) => discardPage(router, to, failure))
 	router.onError(reportNavigationError)
 	return router
 }

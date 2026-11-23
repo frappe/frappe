@@ -5,6 +5,7 @@
  */
 
 import { computed, reactive, toRaw } from "vue"
+import { useRouter, type Router } from "vue-router"
 
 export interface VariantSet {
 	blockId: string
@@ -27,23 +28,43 @@ export interface VariantRow {
 
 // Sets rendered on the page, keyed by the Variants block's id. A Repeater mounts the same block
 // once per row, so the copies are counted. The set leaves the pill when the last one unmounts.
-const mountedSets = reactive<Map<string, VariantSet>>(new Map())
-const mountCounts = new Map<string, number>()
-const tokens = new Map<string, string>()
+const registries = new WeakMap<
+	Router,
+	{
+		mountedSets: Map<string, VariantSet>
+		mountCounts: Map<string, number>
+		tokens: Map<string, string>
+	}
+>()
+
+function getVariantRegistry() {
+	const router = useRouter()
+	if (!registries.has(router)) {
+		registries.set(router, {
+			mountedSets: reactive(new Map()),
+			mountCounts: new Map(),
+			tokens: new Map(),
+		})
+	}
+	return registries.get(router)!
+}
 
 // Which option each Variants block shows on the editor canvas, keyed by block id. Only the
 // editor writes it (variantsEditor.ts). In the renderer, the URL holds the choice.
 const editorChoices = reactive<Map<string, number>>(new Map())
 
 export function useMountedVariantSets() {
+	const { mountedSets } = getVariantRegistry()
 	return computed(() => [...mountedSets.values()])
 }
 
 export function retainVariantSet(blockId: string) {
+	const { mountCounts } = getVariantRegistry()
 	mountCounts.set(blockId, (mountCounts.get(blockId) || 0) + 1)
 }
 
 export function releaseVariantSet(blockId: string) {
+	const { mountedSets, mountCounts, tokens } = getVariantRegistry()
 	const remaining = (mountCounts.get(blockId) || 1) - 1
 	if (remaining > 0) {
 		mountCounts.set(blockId, remaining)
@@ -57,6 +78,7 @@ export function releaseVariantSet(blockId: string) {
 /** Publish a rendered Variants block to the switcher pill. The block's render function calls
 this, so the pill sees a rename or a new option. */
 export function registerVariantSet(set: Omit<VariantSet, "token">): VariantSet {
+	const { mountedSets } = getVariantRegistry()
 	const registered = { ...set, token: variantToken(set.blockId, set.name) }
 	// writing an unchanged set would re-render every pill. Read raw, so this comparison does not
 	// make the renderer depend on the registry
@@ -89,6 +111,7 @@ export function activeVariantIndex(set: VariantSet, serialized: string): number 
 as the key, and later sets use their block id. A key does not change while the set is on the
 page, so a shared link keeps working. */
 function variantToken(blockId: string, name: string): string {
+	const { tokens } = getVariantRegistry()
 	const token = tokens.get(blockId)
 	if (token) return token
 	const preferred = slug(name) || "variant"
@@ -130,9 +153,7 @@ generic name. Every list of option names comes from here. */
 export function variantOptionNames(block: {
 	children?: ({ variantOptionName?: string } | undefined)[]
 }): string[] {
-	return (block.children || []).map(
-		(child, index) => child?.variantOptionName || `Option ${index + 1}`,
-	)
+	return (block.children || []).map((child, index) => child?.variantOptionName || `Option ${index + 1}`)
 }
 
 /** A name no option in the set is using: the one it came with when that is free, else "Option N".

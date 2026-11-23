@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { markRaw, reactive, shallowReactive, type Component } from "vue"
+import { inject, markRaw, onScopeDispose, reactive, shallowReactive, type App, type Component } from "vue"
 import { call } from "frappe-ui"
 import Block from "@/utils/block"
 import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
@@ -20,6 +20,7 @@ import { getBlockInstance, getBlockObjectCopy } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 
 const useComponentStore = defineStore("componentStore", () => {
+	const vueApp = inject<App>("vueApp")!
 	const componentMap = reactive<Map<string, Block>>(new Map())
 	const componentDocMap = reactive<Map<string, StudioComponent>>(new Map())
 	const fetchingComponent = reactive<Set<string>>(new Set())
@@ -31,10 +32,12 @@ const useComponentStore = defineStore("componentStore", () => {
 	const componentScriptErrors = reactive<Map<string, string>>(new Map())
 	const latestScriptLoads = new Map<string, number>()
 
-	onComponentScriptHotUpdate((componentId, module) => {
-		const componentDoc = componentDocMap.get(componentId)
-		if (componentDoc) loadComponentScript(componentDoc, async () => module)
-	})
+	onScopeDispose(
+		onComponentScriptHotUpdate((componentId, module) => {
+			const componentDoc = componentDocMap.get(componentId)
+			if (componentDoc) loadComponentScript(componentDoc, async () => module)
+		}),
+	)
 
 	// A block names a component by its id. The app decides which component that id means:
 	// its own component, or else the global one.
@@ -124,7 +127,10 @@ const useComponentStore = defineStore("componentStore", () => {
 	function cacheComponent(componentDoc: StudioComponent): Promise<void> {
 		componentDocMap.set(componentDoc.component_id, componentDoc)
 		if (componentDoc.block) {
-			componentMap.set(componentDoc.component_id, markRaw(getBlockInstance(componentDoc.block)))
+			componentMap.set(
+				componentDoc.component_id,
+				markRaw(vueApp.runWithContext(() => getBlockInstance(componentDoc.block))),
+			)
 		}
 		return loadComponentScript(componentDoc)
 	}

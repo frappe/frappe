@@ -9,6 +9,7 @@ export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})
 export async function registerCustomVueComponents(
 	frappeApp: string,
 	studioApp: string,
+	registeredComponents: Record<string, any> = {},
 ): Promise<CustomVueComponentMeta[]> {
 	try {
 		if (!frappeApp || !studioApp) return []
@@ -22,9 +23,7 @@ export async function registerCustomVueComponents(
 			try {
 				const asyncComp = defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path))
 				registry[comp.component_name] = asyncComp
-				if (window.__APP_COMPONENTS__) {
-					window.__APP_COMPONENTS__[comp.component_name] = asyncComp
-				}
+				registeredComponents[comp.component_name] = asyncComp
 			} catch (err) {
 				console.error(`Failed to load custom component ${comp.component_name}:`, err)
 			}
@@ -41,13 +40,14 @@ export async function registerCustomVueComponents(
  * Unregister previously registered custom Vue components from the custom components registry.
  * Called when switching apps to clean up components from the previous app's frappe_app.
  */
-export function unregisterCustomVueComponents(components: CustomVueComponentMeta[]) {
+export function unregisterCustomVueComponents(
+	components: CustomVueComponentMeta[],
+	registeredComponents: Record<string, any> = {},
+) {
 	const registry = { ...customVueComponentsRegistry.value }
 	for (const comp of components) {
 		delete registry[comp.component_name]
-		if (window.__APP_COMPONENTS__) {
-			delete window.__APP_COMPONENTS__[comp.component_name]
-		}
+		delete registeredComponents[comp.component_name]
 	}
 	customVueComponentsRegistry.value = registry
 }
@@ -58,13 +58,14 @@ export function unregisterCustomVueComponents(components: CustomVueComponentMeta
 export async function reloadCustomVueComponents(
 	frappeApp: string,
 	studioApp: string,
+	registeredComponents: Record<string, any> = {},
 ): Promise<CustomVueComponentMeta[]> {
 	const before = Object.keys(customVueComponentsRegistry.value)
-	const components = await registerCustomVueComponents(frappeApp, studioApp)
+	const components = await registerCustomVueComponents(frappeApp, studioApp, registeredComponents)
 
 	const current = new Set(components.map((comp) => comp.component_name))
 	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))
-	if (removed.length) unregisterCustomVueComponents(removed as CustomVueComponentMeta[])
+	if (removed.length) unregisterCustomVueComponents(removed as CustomVueComponentMeta[], registeredComponents)
 
 	return components
 }

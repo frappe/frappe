@@ -786,8 +786,8 @@ class Block implements BlockOptions {
 			slotContent: [],
 			parentBlockId: this.componentId
 		}
+		const canvasStore = useCanvasStore()
 		nextTick(() => {
-			const canvasStore = useCanvasStore()
 			canvasStore.activeCanvas?.selectSlot(this.componentSlots[slotName])
 		})
 	}

@@ -1,5 +1,13 @@
 import { defineStore } from "pinia"
-import { ref, shallowRef, inject, getCurrentInstance, type ComputedRef, type InjectionKey } from "vue"
+import {
+	ref,
+	shallowRef,
+	inject,
+	getCurrentInstance,
+	onScopeDispose,
+	type ComputedRef,
+	type InjectionKey,
+} from "vue"
 import type { Router } from "vue-router"
 import { onPageScriptHotUpdate } from "@/data/studioPageScripts"
 import { createPageScope, type PageScope } from "@/page/pageScope"
@@ -8,9 +16,11 @@ import { createPageScope, type PageScope } from "@/page/pageScope"
 const useCodeStore = defineStore("codeStore", () => {
 	const routeObject = ref<ComputedRef>()
 	const routerObject = ref<Router | Readonly<Router>>()
-	const pageScope = shallowRef(createPageScope(routeObject, routerObject))
+	const pageScope = shallowRef(createPageScope(routeObject, routerObject, inject("appComponents", {})))
 
-	onPageScriptHotUpdate((pageName, setup) => pageScope.value.applyPageScriptHotUpdate(pageName, setup))
+	onScopeDispose(
+		onPageScriptHotUpdate((pageName, setup) => pageScope.value.applyPageScriptHotUpdate(pageName, setup)),
+	)
 
 	return {
 		setRouteObject: (route: ComputedRef) => (routeObject.value = route),

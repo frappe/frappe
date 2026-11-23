@@ -31,6 +31,7 @@ import type { Router, RouteLocationNormalized } from "vue-router"
 export function createPageScope(
 	routeObject: Ref<ComputedRef | RouteLocationNormalized | undefined>,
 	routerObject: Ref<Router | Readonly<Router> | undefined>,
+	registeredComponents: Record<string, any> = {},
 ) {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
@@ -628,7 +629,6 @@ export function createPageScope(
 		 * Convert a function string to an actual function
 		 * Used for component props that have function values
 		 */
-		const registeredComponents = window.__APP_COMPONENTS__ || {}
 
 		try {
 			const fn = new Function(

@@ -266,14 +266,9 @@ ${componentScriptEntries
 	const routerConfig = routerFile ? "routerConfig" : "undefined"
 
 	const rendererContent = `import "@/index.css"
-import { createApp, defineAsyncComponent } from "vue"
-import { createPinia } from "pinia"
-import "@/setupFrappeUIResource"
-import { createAppRouter, getWindowApp } from "@/router/app_router"
-import ErrorPage from "@/pages/ErrorPage.vue"
-import AppRenderer from "@/AppRenderer.vue"
-import { resourcesPlugin } from "frappe-ui"
-import { initSocket } from "@/socket"
+import { defineAsyncComponent } from "vue"
+import { mountApp } from "@/mountApp"
+import { getWindowApp } from "@/router/app_router"
 ${routerImport}
 
 ${frappeUIImports}
@@ -285,25 +280,16 @@ ${customImports}
 ${pageScriptImport}
 ${componentScriptImport}
 
-const app = createApp(AppRenderer)
-const pinia = createPinia()
-
-app.use(pinia)
-app.use(resourcesPlugin)
-app.provide("socket", initSocket())
-
-${componentRegistrations}
-window.__APP_COMPONENTS__ = app._context.components
-
 ${pageScriptSetup}
 ${componentScriptSetup}
 
-createAppRouter(${routerConfig}, getWindowApp())
-	.then((router) => app.use(router).mount("#app"))
-	.catch((error) => {
-		console.error(error)
-		createApp(ErrorPage, { error }).mount("#app")
-	})`
+mountApp("#app", {
+	app: getWindowApp(),
+	setup: (app) => {
+		${componentRegistrations}
+	},
+	prepare: async () => ${routerConfig},
+})`
 	return rendererContent
 }
 
