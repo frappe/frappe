@@ -625,8 +625,15 @@ def replace_filename_with_cid(message, provided_images=None):
 			continue
 
 		content_id = random_string(10)
+		extension = re.search(r"\.[a-zA-Z0-9]+$", filename)
 
-		inline_images.append({"filename": filename, "filecontent": filecontent, "content_id": content_id})
+		inline_images.append(
+			{
+				"filename": f"{content_id}{extension.group() if extension else ''}",
+				"filecontent": filecontent,
+				"content_id": content_id,
+			}
+		)
 
 		message = re.sub(f"""embed=['"]{re.escape(img_path)}['"]""", f'src="cid:{content_id}"', message)
 
