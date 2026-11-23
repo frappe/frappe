@@ -78,6 +78,7 @@ realtime.on("connection", on_connection);
 
 // Consume events sent from python via redis pub-sub channel.
 const subscriber = get_redis_subscriber();
+subscriber.on("error", (err) => console.warn("realtime: redis error", err.message));
 
 (async () => {
 	await subscriber.connect();
