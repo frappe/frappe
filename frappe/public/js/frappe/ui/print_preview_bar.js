@@ -134,9 +134,14 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 				? frame_width - rect.right - scroll - parseFloat(style.marginRight)
 				: rect.left + scroll - parseFloat(style.marginLeft);
 			const side = `${Math.max(-offset, (frame_width - width * this.zoom) / 2 - offset)}px`;
+			const bar = this.$wrapper[0];
+			const bottom =
+				container.offsetHeight * (this.zoom - 1) +
+				bar.offsetHeight +
+				2 * parseFloat(getComputedStyle(bar).bottom);
 			this.zoom_style.textContent = `@media screen { .preview-pages {
 				width: ${width}px;
-				margin: 0 ${rtl ? side : 0} ${container.offsetHeight * (this.zoom - 1) + 80}px ${rtl ? 0 : side};
+				margin: 0 ${rtl ? side : 0} ${bottom}px ${rtl ? 0 : side};
 				transform: scale(${this.zoom});
 				transform-origin: ${rtl ? "100% 0" : "0 0"};
 			} }`;
