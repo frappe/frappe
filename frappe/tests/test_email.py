@@ -279,10 +279,59 @@ class TestEmail(IntegrationTestCase):
 
 		email_account.always_use_account_name_as_sender_name = 0
 		email_account.always_use_account_email_id_as_sender = 1
-		_patched_assertion(email_account, '"sender@example.com" <test@example.com>')
+		_patched_assertion(email_account, "_Test Email Account 1 <test@example.com>")
 
 		email_account.always_use_account_name_as_sender_name = 1
 		_patched_assertion(email_account, "_Test Email Account 1 <test@example.com>")
+
+	def test_sender_display_name_never_contains_email_address(self):
+		from frappe.email.email_body import EMail
+
+		def get_mail(sender, account_name="Support", use_account_email=1, use_account_name=0):
+			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			email_account.name = account_name
+			email_account.email_id = "support@example.com"
+			email_account.always_use_account_email_id_as_sender = use_account_email
+			email_account.always_use_account_name_as_sender_name = use_account_name
+			email_account.add_reply_to_header = 1
+			email_account.add_x_original_from = 1
+			mail = EMail(sender, ["test@example.com"], "Subject", email_account=email_account)
+			mail.validate()
+			return mail
+
+		for sender, expected in (
+			("jane@customer.example", "Support <support@example.com>"),
+			('"jane@customer.example" <jane@customer.example>', "Support <support@example.com>"),
+			("=?utf-8?q?jane=40customer.example?= <jane@customer.example>", "Support <support@example.com>"),
+			("support@example.com", "Support <support@example.com>"),
+			("Jane Doe <jane@customer.example>", "Jane Doe <support@example.com>"),
+			("Support <support@example.com>", "Support <support@example.com>"),
+			('"Doe, Jane" <jane@customer.example>', '"Doe, Jane" <support@example.com>'),
+			('"Петров, Иван" <ivan@customer.example>', '"Петров, Иван" <support@example.com>'),
+			("山田太郎 <taro@customer.example>", "山田太郎 <support@example.com>"),
+			("=?utf-8?b?5bGx55Sw5aSq6YOO?= <taro@customer.example>", "山田太郎 <support@example.com>"),
+			(
+				"=?utf-8?q?Jane=0D=0AX-Injected=3A_yes?= <jane@customer.example>",
+				'"Jane X-Injected: yes" <support@example.com>',
+			),
+		):
+			with self.subTest(sender=sender):
+				self.assertEqual(get_mail(sender).sender, expected)
+
+		address_named_account = "support@example.com"
+		self.assertEqual(
+			get_mail("jane@customer.example", address_named_account).sender, "support@example.com"
+		)
+		self.assertEqual(
+			get_mail("Jane Doe <jane@customer.example>", address_named_account, 0, 1).sender,
+			"jane@customer.example",
+		)
+
+		sender = "jane@customer.example"
+		mail = get_mail(sender)
+		self.assertEqual(mail.reply_to, sender)
+		self.assertEqual(mail.msg_root["X-Original-From"], sender)
+		self.assertEqual(get_mail(sender, use_account_email=0).sender, sender)
 
 	def test_sendmail_sends_to_the_email_of_a_user_id(self):
 		from frappe.core.doctype.user.test_user import test_user
