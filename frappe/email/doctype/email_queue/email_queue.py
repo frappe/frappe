@@ -566,6 +566,7 @@ class QueueBuilder:
 		x_priority: Literal[1, 3, 5] = 3,
 		email_headers=None,
 		redact_message_after_send=False,
+		auto_submitted=None,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -581,7 +582,7 @@ class QueueBuilder:
 		:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 		:param attachments: Attachments to be sent.
 		:param reply_to: Reply to be captured here (default inbox)
-		:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
+		:param in_reply_to: Name of the Communication this email replies to. Its Message-Id is sent as In-Reply-To.
 		:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 		:param communication: Communication link to be set in Email Queue record
 		:param queue_separately: Queue each email separately (one per recipient). When True, each TO recipient
@@ -598,6 +599,7 @@ class QueueBuilder:
 		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 		:param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
+		:param auto_submitted: Value of the `Auto-Submitted` header (RFC 3834), e.g. "auto-replied".
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -636,6 +638,7 @@ class QueueBuilder:
 		self.email_read_tracker_url = email_read_tracker_url
 		self.email_headers = email_headers
 		self.redact_message_after_send = redact_message_after_send
+		self.auto_submitted = auto_submitted
 
 	@property
 	def unsubscribe_method(self):
@@ -796,6 +799,8 @@ class QueueBuilder:
 		if self.email_headers:
 			mail.add_headers(self.email_headers)
 
+		if self.auto_submitted:
+			mail.set_header("Auto-Submitted", self.auto_submitted)
 		if self.read_receipt:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
 		if self.in_reply_to:
