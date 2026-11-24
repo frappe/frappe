@@ -1,0 +1,70 @@
+{
+ "block": {
+  "baseStyles": {
+   "background": "var(--surface-base)",
+   "borderColor": "var(--outline-gray-1)",
+   "borderRadius": "12px",
+   "borderStyle": "solid",
+   "borderWidth": "1px",
+   "cursor": "pointer",
+   "display": "flex",
+   "flexDirection": "column",
+   "gap": "8px",
+   "padding": "14px 16px",
+   "width": "100%"
+  },
+  "children": [
+   {
+    "baseStyles": {
+     "color": "var(--ink-gray-6)",
+     "display": "block",
+     "overflow": "hidden",
+     "textOverflow": "ellipsis",
+     "whiteSpace": "nowrap"
+    },
+    "componentId": "desk_number_card-label",
+    "componentName": "TextBlock",
+    "componentProps": {
+     "fontSize": "text-base",
+     "text": "{{ props.label }}"
+    }
+   },
+   {
+    "baseStyles": {
+     "color": "var(--ink-gray-9)",
+     "fontWeight": "600",
+     "minHeight": "28px"
+    },
+    "componentId": "desk_number_card-value",
+    "componentName": "TextBlock",
+    "componentProps": {
+     "fontSize": "text-2xl",
+     "text": "{{ loading ? '' : value }}"
+    }
+   }
+  ],
+  "componentEvents": {
+   "click": {
+    "action": "Run Script",
+    "event": "click",
+    "script": "open()"
+   }
+  },
+  "componentId": "desk_number_card-root",
+  "componentName": "container",
+  "originalElement": "div"
+ },
+ "component_id": "desk_number_card",
+ "component_name": "Number Card",
+ "creation": "2026-11-19 15:45:38.650087",
+ "docstatus": 0,
+ "doctype": "Studio Component",
+ "frappe_app": "frappe",
+ "idx": 0,
+ "is_disabled": 0,
+ "is_standard": 1,
+ "modified": "2026-11-19 15:47:01.724973",
+ "modified_by": "Administrator",
+ "name": "desk_number_card",
+ "owner": "Administrator"
+}

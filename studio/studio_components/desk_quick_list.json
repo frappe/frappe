@@ -1,0 +1,166 @@
+{
+ "block": {
+  "baseStyles": {
+   "background": "var(--surface-base)",
+   "borderColor": "var(--outline-gray-1)",
+   "borderRadius": "12px",
+   "borderStyle": "solid",
+   "borderWidth": "1px",
+   "display": "flex",
+   "flexDirection": "column",
+   "padding": "10px 8px 8px 8px",
+   "width": "100%"
+  },
+  "children": [
+   {
+    "baseStyles": {
+     "alignItems": "center",
+     "display": "flex",
+     "flexDirection": "row",
+     "gap": "4px",
+     "padding": "0px 0px 4px 8px"
+    },
+    "children": [
+     {
+      "baseStyles": {
+       "color": "var(--ink-gray-8)",
+       "flex": "1",
+       "fontWeight": "600"
+      },
+      "componentId": "desk_quick_list-label",
+      "componentName": "TextBlock",
+      "componentProps": {
+       "fontSize": "text-base",
+       "text": "{{ props.label }}"
+      }
+     },
+     {
+      "componentEvents": {
+       "click": {
+        "action": "Run Script",
+        "event": "click",
+        "script": "add()"
+       }
+      },
+      "componentId": "desk_quick_list-add",
+      "componentName": "Button",
+      "componentProps": {
+       "icon": "lucide-plus",
+       "size": "sm",
+       "tooltip": "New",
+       "variant": "ghost"
+      }
+     },
+     {
+      "componentEvents": {
+       "click": {
+        "action": "Run Script",
+        "event": "click",
+        "script": "openList()"
+       }
+      },
+      "componentId": "desk_quick_list-all",
+      "componentName": "Button",
+      "componentProps": {
+       "label": "View all",
+       "size": "sm",
+       "variant": "ghost"
+      }
+     }
+    ],
+    "componentId": "desk_quick_list-header",
+    "componentName": "container",
+    "originalElement": "div"
+   },
+   {
+    "baseStyles": {
+     "display": "flex",
+     "flexDirection": "column",
+     "gap": "0px",
+     "width": "100%"
+    },
+    "children": [
+     {
+      "baseStyles": {
+       "alignItems": "center",
+       "borderRadius": "8px",
+       "cursor": "pointer",
+       "display": "flex",
+       "flexDirection": "row",
+       "gap": "8px",
+       "minHeight": "32px",
+       "padding": "0px 8px"
+      },
+      "children": [
+       {
+        "baseStyles": {
+         "color": "var(--ink-gray-7)",
+         "display": "block",
+         "flex": "1",
+         "minWidth": "0px",
+         "overflow": "hidden",
+         "textOverflow": "ellipsis",
+         "whiteSpace": "nowrap"
+        },
+        "componentId": "desk_quick_list-title",
+        "componentName": "TextBlock",
+        "componentProps": {
+         "fontSize": "text-base",
+         "text": "{{ getTitle(dataItem) }}"
+        }
+       },
+       {
+        "baseStyles": {
+         "color": "var(--ink-gray-5)",
+         "flexShrink": 0
+        },
+        "componentId": "desk_quick_list-age",
+        "componentName": "TextBlock",
+        "componentProps": {
+         "fontSize": "text-sm",
+         "text": "{{ getAge(dataItem) }}"
+        }
+       }
+      ],
+      "classes": [
+       "hover:bg-surface-gray-2"
+      ],
+      "componentEvents": {
+       "click": {
+        "action": "Run Script",
+        "event": "click",
+        "script": "open(dataItem)"
+       }
+      },
+      "componentId": "desk_quick_list-row",
+      "componentName": "container",
+      "originalElement": "div"
+     }
+    ],
+    "componentId": "desk_quick_list-rows",
+    "componentName": "Repeater",
+    "componentProps": {
+     "data": "{{ documents.data }}",
+     "dataKey": "name",
+     "emptyStateMessage": "No documents"
+    }
+   }
+  ],
+  "componentId": "desk_quick_list-root",
+  "componentName": "container",
+  "originalElement": "div"
+ },
+ "component_id": "desk_quick_list",
+ "component_name": "Quick List",
+ "creation": "2026-11-19 15:45:38.656453",
+ "docstatus": 0,
+ "doctype": "Studio Component",
+ "frappe_app": "frappe",
+ "idx": 0,
+ "is_disabled": 0,
+ "is_standard": 1,
+ "modified": "2026-11-19 15:47:01.728924",
+ "modified_by": "Administrator",
+ "name": "desk_quick_list",
+ "owner": "Administrator"
+}

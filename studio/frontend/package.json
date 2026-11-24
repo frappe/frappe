@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "node scripts/unlink-frappe-ui.mjs && vite",
 		"dev:frappe-ui": "node scripts/link-frappe-ui.mjs && vite",
-		"build": "node scripts/unlink-frappe-ui.mjs && vite build",
+		"build": "node scripts/unlink-frappe-ui.mjs && vite build && node build-islands.mjs --production",
 		"build-studio-app": "node scripts/unlink-frappe-ui.mjs && NODE_ENV=production node src/scripts/build.js",
 		"serve": "vite preview",
 		"generate:css-metadata": "node ./scripts/generate-css-property-metadata.mjs",

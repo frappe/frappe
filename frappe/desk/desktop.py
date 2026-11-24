@@ -475,6 +475,7 @@ def get_workspaces():
 		"for_user",
 		"parent_page",
 		"content",
+		"studio_component",
 		"public",
 		"module",
 		"icon",

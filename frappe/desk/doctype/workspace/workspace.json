@@ -28,6 +28,7 @@
   "public",
   "is_hidden",
   "content",
+  "studio_component",
   "module_onboarding",
   "number_cards_tab",
   "number_cards",
@@ -80,14 +81,14 @@
    "search_index": 1
   },
   {
+   "description": "The module this workspace belongs to. Decides which module's dock entry and sidebar it appears under.",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Module",
    "options": "Module Def",
-   "reqd": 1,
-   "description": "The module this workspace belongs to. Decides which module's dock entry and sidebar it appears under."
+   "reqd": 1
   },
   {
    "fieldname": "column_break_3",
@@ -269,11 +270,20 @@
    "fieldtype": "Link",
    "label": "Module Onboarding",
    "options": "Module Onboarding"
+  },
+  {
+   "description": "The Studio component that draws this workspace. It replaces the content and the widget tables.",
+   "fieldname": "studio_component",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Component",
+   "options": "Studio Component"
   }
  ],
  "in_create": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-08-12 06:00:00.000000",
+ "modified": "2026-11-19 15:42:42.335881",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

@@ -1,0 +1,102 @@
+{
+ "block": {
+  "baseStyles": {
+   "background": "var(--surface-base)",
+   "borderColor": "var(--outline-gray-1)",
+   "borderRadius": "12px",
+   "borderStyle": "solid",
+   "borderWidth": "1px",
+   "display": "flex",
+   "flexDirection": "column",
+   "gap": "8px",
+   "padding": "14px 16px",
+   "width": "100%"
+  },
+  "children": [
+   {
+    "baseStyles": {
+     "color": "var(--ink-gray-8)",
+     "fontWeight": "600"
+    },
+    "componentId": "desk_chart-label",
+    "componentName": "TextBlock",
+    "componentProps": {
+     "fontSize": "text-base",
+     "text": "{{ props.label }}"
+    }
+   },
+   {
+    "baseStyles": {
+     "height": "260px",
+     "width": "100%"
+    },
+    "componentId": "desk_chart-bar",
+    "componentName": "BarChart",
+    "componentProps": {
+     "data": "{{ rows }}",
+     "x": "label",
+     "y": "{{ series }}"
+    },
+    "visibilityCondition": "kind === 'bar'"
+   },
+   {
+    "baseStyles": {
+     "height": "260px",
+     "width": "100%"
+    },
+    "componentId": "desk_chart-line",
+    "componentName": "LineChart",
+    "componentProps": {
+     "data": "{{ rows }}",
+     "x": "label",
+     "y": "{{ series }}"
+    },
+    "visibilityCondition": "kind === 'line'"
+   },
+   {
+    "baseStyles": {
+     "height": "260px",
+     "width": "100%"
+    },
+    "componentId": "desk_chart-donut",
+    "componentName": "DonutChart",
+    "componentProps": {
+     "category": "label",
+     "data": "{{ rows }}",
+     "value": "{{ series[0] }}"
+    },
+    "visibilityCondition": "kind === 'donut'"
+   },
+   {
+    "baseStyles": {
+     "color": "var(--ink-gray-5)",
+     "padding": "48px 0px",
+     "textAlign": "center"
+    },
+    "componentId": "desk_chart-message",
+    "componentName": "TextBlock",
+    "componentProps": {
+     "fontSize": "text-sm",
+     "text": "{{ message }}"
+    },
+    "visibilityCondition": "message"
+   }
+  ],
+  "componentId": "desk_chart-root",
+  "componentName": "container",
+  "originalElement": "div"
+ },
+ "component_id": "desk_chart",
+ "component_name": "Chart",
+ "creation": "2026-11-19 15:45:38.653077",
+ "docstatus": 0,
+ "doctype": "Studio Component",
+ "frappe_app": "frappe",
+ "idx": 0,
+ "is_disabled": 0,
+ "is_standard": 1,
+ "modified": "2026-11-19 15:47:01.726957",
+ "modified_by": "Administrator",
+ "name": "desk_chart",
+ "owner": "Administrator"
+}
