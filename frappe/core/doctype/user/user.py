@@ -1693,14 +1693,12 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
-		contact = frappe.get_doc(
-			{
-				"doctype": "Contact",
-				"first_name": user.first_name,
-				"last_name": user.last_name,
-				"user": user.name,
-				"gender": user.gender,
-			}
+		contact = frappe.new_doc(
+			"Contact",
+			first_name=user.first_name,
+			last_name=user.last_name,
+			user=user.name,
+			gender=user.gender,
 		)
 
 		if user.email:
