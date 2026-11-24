@@ -24,9 +24,11 @@ frappe.template.compile = function (str, name) {
 
 		// {% for item in list %}
 		//       --> {% for (var i=0, len=list.length; i<len; i++) {  var item = list[i]; %}
+		var loop_count = 0;
 		function replacer(match, p1, p2, offset, string) {
-			var i = frappe.utils.get_random(3);
-			var len = frappe.utils.get_random(3);
+			loop_count++;
+			var i = "__i" + loop_count;
+			var len = "__len" + loop_count;
 			return (
 				"{% for (var " +
 				i +
