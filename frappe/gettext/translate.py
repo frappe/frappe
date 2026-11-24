@@ -300,7 +300,7 @@ def _has_valid_placeholders(message) -> bool:
 	ids = message.id if isinstance(message.id, tuple | list) else (message.id,)
 	strings = message.string if isinstance(message.string, tuple | list) else (message.string,)
 	try:
-		allowed = set().union(*map(_positional_fields, ids))
+		allowed = {field for msgid in ids for field in _positional_fields(msgid)}
 	except ValueError:
 		return True
 	try:
