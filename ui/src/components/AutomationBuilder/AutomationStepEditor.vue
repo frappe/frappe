@@ -1,7 +1,8 @@
 <template>
 	<div class="space-y-5">
 		<Combobox
-			v-model="step.step_type"
+			:model-value="step.step_type"
+			@update:model-value="changeStepType"
 			variant="outline"
 			side="bottom"
 			:label="__('Step Type')"
@@ -16,9 +17,10 @@
 			<ConditionEditor
 				v-model="step.step_condition"
 				:doctype="targetDoctype"
+				:scope="conditionScope"
 				variant="outline"
 				:label="__('Condition')"
-				:placeholder="__('doc.status == \'Qualified\'')"
+				:placeholder="`${conditionScope}.status == 'Qualified'`"
 			/>
 		</template>
 
@@ -123,9 +125,10 @@
 			v-if="step.step_type !== 'If'"
 			v-model="step.step_condition"
 			:doctype="targetDoctype"
+			:scope="conditionScope"
 			variant="outline"
 			:label="__('Only run when')"
-			:placeholder="__('doc.status == \'Open\'')"
+			:placeholder="`${conditionScope}.status == 'Open'`"
 		/>
 
 		<div class="border-t border-outline-gray-2 pt-4">
@@ -190,9 +193,9 @@ import AutomationCanvasIcon from "../AutomationCanvas/AutomationCanvasIcon.vue";
 import { actionIcon, stepTypeIcon } from "./icons";
 import { groupActionsByApp } from "./blocks";
 import { actionSchema, capabilitiesFor, stepParams } from "./capabilities";
-import { defaultStepKey } from "./steps";
+import { defaultStepKey, hasArms, isBranching, setStepType } from "./steps";
 import ChevronIcon from "~icons/lucide/chevron-right";
-import { Combobox, FormControl } from "frappe-ui";
+import { Combobox, FormControl, dialog } from "frappe-ui";
 import { computed, ref } from "vue";
 
 const props = defineProps({
@@ -213,6 +216,28 @@ const correlationPlaceholder = "{{ doc.message_id or doc.name }}";
 
 const step = computed(() => props.step);
 const showAdvanced = ref(false);
+
+const conditionScope = computed(() =>
+	step.value.target && step.value.target !== "trigger" ? "target" : "doc"
+);
+
+function changeStepType(value) {
+	const node = step.value;
+	if (isBranching({ step_type: value }) || !hasArms(node)) {
+		setStepType(node, value);
+		return;
+	}
+	dialog.danger({
+		title: __("Remove branch steps?"),
+		message: __("Changing this step type will delete all steps in both branches."),
+		confirmLabel: __("Change type and delete branches"),
+		cancelLabel: __("Cancel"),
+		onConfirm: ({ close }) => {
+			setStepType(node, value);
+			close();
+		},
+	});
+}
 
 const params = computed(() => stepParams(step.value));
 const suggestedKey = computed(() => defaultStepKey(step.value));

@@ -50,14 +50,28 @@ export function rowsToParams(rows) {
  */
 export function useFieldRows(getParams, write) {
   const rows = ref(paramsToRows(getParams()));
+  let mirrored = JSON.stringify(getParams());
 
   function reload() {
     rows.value = paramsToRows(getParams());
+    mirrored = JSON.stringify(getParams());
+  }
+
+  function sync() {
+    const incoming = JSON.stringify(getParams());
+    if (incoming === mirrored) return;
+    const unfinished = rows.value.filter((row) => !row.field);
+    const saved = paramsToRows(getParams()).filter((row) => row.field);
+    rows.value = [...saved, ...unfinished];
+    if (!rows.value.length) rows.value = [{ field: "", value: "" }];
+    mirrored = incoming;
   }
 
   function commit(next) {
     rows.value = next;
-    write({ ...getParams(), ...rowsToParams(next) });
+    const params = { ...getParams(), ...rowsToParams(next) };
+    mirrored = JSON.stringify(params);
+    write(params);
   }
 
   function setRow(index, key, value) {
@@ -67,7 +81,7 @@ export function useFieldRows(getParams, write) {
         return key === "field"
           ? { field: value, value: "" }
           : { ...row, [key]: value };
-      }),
+      })
     );
   }
 
@@ -79,5 +93,5 @@ export function useFieldRows(getParams, write) {
     commit(rows.value.filter((row, position) => position !== index));
   }
 
-  return { rows, reload, setRow, addRow, removeRow };
+  return { rows, reload, sync, setRow, addRow, removeRow };
 }

@@ -31,7 +31,7 @@ export function armLabels(node) {
     : { If: __("True"), Else: __("False") };
 }
 
-function hasArms(node) {
+export function hasArms(node) {
   return Boolean(node.children?.If.length || node.children?.Else.length);
 }
 
@@ -54,10 +54,10 @@ export function newStep(values = {}) {
 
 export function toTree(rows = []) {
   const nodes = rows.map((row) =>
-    newStep({ ...row, children: { If: [], Else: [] } }),
+    newStep({ ...row, children: { If: [], Else: [] } })
   );
   const byIdx = new Map(
-    nodes.map((node, index) => [rowIdx(rows[index], index), node]),
+    nodes.map((node, index) => [rowIdx(rows[index], index), node])
   );
   const roots = [];
   nodes.forEach((node, index) => {
@@ -90,13 +90,21 @@ function isOutcomeOf(node, next) {
   return (
     node?.step_type === "WaitForEvent" &&
     next?.step_type === "If" &&
-    next.step_condition === EVENT_MATCHED
+    next.step_condition === EVENT_MATCHED &&
+    !next.related_condition &&
+    (!next.target || next.target === "trigger") &&
+    !next.output_alias
   );
 }
 
 export function toRows(tree) {
   const rows = [];
-  appendRows(tree, rows, 0, "");
+  const taken = new Set(
+    layoutSteps(tree).flatMap(({ node }) =>
+      [node.step_key, node._outcomeKey].filter(Boolean)
+    )
+  );
+  appendRows(tree, rows, 0, "", taken);
   return rows;
 }
 
@@ -107,8 +115,12 @@ export function toRows(tree) {
  */
 export function defaultStepKey(node, taken = new Set()) {
   const base = scrub(
-    node.action_type || KEY_BASES[node.step_type] || node.step_type,
+    node.action_type || KEY_BASES[node.step_type] || node.step_type
   );
+  return uniqueKey(base, taken);
+}
+
+function uniqueKey(base, taken) {
   let key = base;
   let suffix = 2;
   while (taken.has(key)) key = `${base}_${suffix++}`;
@@ -173,6 +185,7 @@ function appendRows(nodes, rows, parentIdx, branch, taken = new Set()) {
         parentIdx,
         branch,
         taken,
+        row.step_key
       );
       taken.add(outcome.step_key);
       rows.push(outcome);
@@ -184,12 +197,12 @@ function appendRows(nodes, rows, parentIdx, branch, taken = new Set()) {
 }
 
 /** The `If` that turns a wait's recorded outcome into two arms. */
-function outcomeRow(node, idx, parentIdx, branch, taken) {
-  const key = node._outcomeKey || `${node.step_key || "wait"}_outcome`;
+function outcomeRow(node, idx, parentIdx, branch, taken, stepKey) {
+  const key = node._outcomeKey || uniqueKey(`${stepKey}_outcome`, taken);
   return {
     doctype: "Automation Action",
     step_type: "If",
-    step_key: taken.has(key) ? `${key}_2` : key,
+    step_key: key,
     action_type: "",
     target: "trigger",
     output_alias: "",
@@ -242,7 +255,7 @@ function place(nodes, x, y, placed, spread = BRANCH_OFFSET) {
       x,
       y + spread,
       placed,
-      spread / 2,
+      spread / 2
     );
     x = Math.max(ifEnd, elseEnd);
   });
@@ -279,21 +292,35 @@ export function insertAfter(tree, node, step) {
 
 /** Steps that run before `node`, i.e. the ones whose outputs it may reference. */
 export function stepsBefore(tree, node) {
-  const earlier = [];
-  // A node that isn't in this tree has no earlier steps - never fall back to "all of them",
-  // or the target picker would offer outputs that don't exist yet at that point in the run.
-  return collectBefore(tree, node, earlier) ? earlier : [];
+  return collectBefore(tree, node, []) || [];
 }
 
 function collectBefore(nodes, target, earlier) {
   for (const node of nodes) {
-    if (node === target) return true;
+    if (node === target) return earlier;
     earlier.push(node);
     if (!isBranching(node)) continue;
-    if (collectBefore(node.children.If, target, earlier)) return true;
-    if (collectBefore(node.children.Else, target, earlier)) return true;
+    const found =
+      collectBefore(node.children.If, target, [...earlier]) ||
+      collectBefore(node.children.Else, target, [...earlier]);
+    if (found) return found;
   }
-  return false;
+  return null;
+}
+
+export function setStepType(node, stepType) {
+  node.step_type = stepType;
+  if (!isBranching(node)) node.children = { If: [], Else: [] };
+  if (stepType !== "Wait" && stepType !== "WaitForEvent") return;
+  let params;
+  try {
+    params = JSON.parse(node.params || "{}");
+  } catch {
+    params = {};
+  }
+  if (stepType === "Wait") params.unit ||= "Minutes";
+  if (stepType === "WaitForEvent") params.timeout_unit ||= "Days";
+  node.params = JSON.stringify(params, null, 2);
 }
 
 function armOf(row) {

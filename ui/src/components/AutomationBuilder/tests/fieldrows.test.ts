@@ -7,7 +7,7 @@ function harness(initial = {}) {
     () => params,
     (next) => {
       params = next;
-    },
+    }
   );
   return { state, read: () => params };
 }
@@ -59,12 +59,53 @@ describe("field/value row editing", () => {
       () => params,
       (next) => {
         params = next;
-      },
+      }
     );
 
     params = { values: { priority: "High" } };
     state.reload();
 
     expect(state.rows.value).toEqual([{ field: "priority", value: "High" }]);
+  });
+});
+
+describe("external field value edits", () => {
+  it("preserves Advanced values when a Basic row changes", () => {
+    let params = { values: { status: "Open", priority: "Low" } };
+    const state = useFieldRows(
+      () => params,
+      (next) => {
+        params = next;
+      }
+    );
+    params = {
+      values: { status: "Closed", priority: "Low", description: "Advanced" },
+    };
+    state.sync();
+    state.setRow(1, "value", "High");
+    expect(params.values).toEqual({
+      status: "Closed",
+      priority: "High",
+      description: "Advanced",
+    });
+  });
+
+  it("keeps unfinished rows when another editor updates params", () => {
+    let params = { values: { status: "Open" } };
+    const state = useFieldRows(
+      () => params,
+      (next) => {
+        params = next;
+      }
+    );
+    state.addRow();
+    params = { values: { status: "Closed" } };
+    state.sync();
+    expect(state.rows.value).toEqual([
+      { field: "status", value: "Closed" },
+      { field: "", value: "" },
+    ]);
+    state.sync();
+    expect(state.rows.value).toHaveLength(2);
   });
 });

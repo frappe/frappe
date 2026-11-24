@@ -15,6 +15,7 @@
 			:model-value="filters"
 			:doctype="doctype"
 			:label="''"
+			:operators-for-field="expressionOperators"
 			@update:model-value="setFilters"
 		/>
 		<CodeEditor
@@ -43,7 +44,7 @@
 import { translate as __ } from "../../utils/translate";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import WorkflowFilters from "./AutomationFilters.vue";
-import { isFilterExpression, toExpression, toFilters } from "./conditions";
+import { expressionOperators, isFilterExpression, toExpression, toFilters } from "./conditions";
 import InfoIcon from "~icons/lucide/info";
 import { TabButtons, Tooltip } from "frappe-ui";
 import { CodeEditor } from "frappe-ui/code-editor";
@@ -52,6 +53,11 @@ import { computed, ref, watch } from "vue";
 const props = defineProps({
 	modelValue: { type: String, default: "" },
 	doctype: { type: String, default: "" },
+	scope: {
+		type: String,
+		default: "doc",
+		validator: (value) => ["doc", "target"].includes(value),
+	},
 	variant: { type: String, default: "subtle" },
 	label: { type: String, default: () => __("Condition") },
 	placeholder: { type: String, default: "" },
@@ -67,22 +73,21 @@ const modes = computed(() => [
 ]);
 
 /** Start on whichever mode can actually show what is stored. */
-const mode = ref(isFilterExpression(props.modelValue) ? "filters" : "expression");
+const mode = ref(isFilterExpression(props.modelValue, props.scope) ? "filters" : "expression");
 
-const canUseFilters = computed(() => isFilterExpression(props.modelValue));
-const filters = computed(() => toFilters(props.modelValue) || []);
+const canUseFilters = computed(() =>
+	isFilterExpression(props.modelValue, props.scope, meta.value?.fields || [])
+);
+const filters = computed(() => toFilters(props.modelValue, props.scope) || []);
 
 // Selecting another step, or hand-editing past what filters can express, re-picks the mode.
-watch(
-	() => props.modelValue,
-	() => {
-		if (!canUseFilters.value) mode.value = "expression";
-	}
-);
+watch(canUseFilters, (supported) => {
+	if (!supported) mode.value = "expression";
+});
 
 function setFilters(value) {
 	const rows = typeof value === "string" ? JSON.parse(value || "[]") : value;
 	// The DocType's fieldtypes decide which values stay unquoted.
-	emit("update:modelValue", toExpression(rows, meta.value?.fields || []));
+	emit("update:modelValue", toExpression(rows, meta.value?.fields || [], props.scope));
 }
 </script>

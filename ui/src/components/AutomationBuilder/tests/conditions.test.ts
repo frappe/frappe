@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  expressionOperators,
   isFilterExpression,
+  normalizeCheckValues,
   summarizeCondition,
   toExpression,
   toFilters,
@@ -17,22 +19,22 @@ const fields = [
 describe("building a condition from filters", () => {
   it("quotes text and leaves numbers bare", () => {
     expect(toExpression([["status", "=", "Qualified"]], fields)).toBe(
-      'doc.status == "Qualified"',
+      'doc.status == "Qualified"'
     );
     expect(toExpression([["annual_revenue", ">=", "50000"]], fields)).toBe(
-      "doc.annual_revenue >= 50000",
+      "doc.annual_revenue >= 50000"
     );
   });
 
   it("writes membership, presence and contains without builtins", () => {
     expect(toExpression([["status", "in", ["New", "Open"]]], fields)).toBe(
-      'doc.status in ["New", "Open"]',
+      'doc.status in ["New", "Open"]'
     );
     expect(toExpression([["organization", "is", "set"]], fields)).toBe(
-      '(doc.organization or "") != ""',
+      '(doc.organization or "") != ""'
     );
     expect(toExpression([["job_title", "like", "%Head%"]], fields)).toBe(
-      '"head" in (doc.job_title or "").lower()',
+      '"head" in (doc.job_title or "").lower()'
     );
   });
 
@@ -43,20 +45,20 @@ describe("building a condition from filters", () => {
           ["status", "=", "Qualified"],
           ["converted", "=", 0],
         ],
-        fields,
-      ),
+        fields
+      )
     ).toBe('doc.status == "Qualified" and doc.converted == 0');
   });
 
   it("escapes quotes in values", () => {
     expect(toExpression([["organization", "=", 'A "big" co']], fields)).toBe(
-      'doc.organization == "A \\"big\\" co"',
+      'doc.organization == "A \\"big\\" co"'
     );
   });
 });
 
 describe("reading a condition back into filters", () => {
-  it("round-trips what it generated, conjunctions included", () => {
+  it("keeps mixed conjunctions in the expression editor", () => {
     const conditions = [
       ["status", "in", ["New", "Open"]],
       "and",
@@ -66,7 +68,7 @@ describe("reading a condition back into filters", () => {
     ];
     const expression = toExpression(conditions, fields);
 
-    expect(toFilters(expression)).toEqual(conditions);
+    expect(toFilters(expression)).toBeNull();
   });
 
   it("keeps a group together", () => {
@@ -78,7 +80,7 @@ describe("reading a condition back into filters", () => {
     const expression = toExpression(conditions, fields);
 
     expect(expression).toBe(
-      'doc.status == "Open" and (doc.source == "Website" or doc.source == "Referral")',
+      'doc.status == "Open" and (doc.source == "Website" or doc.source == "Referral")'
     );
     expect(toFilters(expression)).toEqual(conditions);
   });
@@ -94,10 +96,10 @@ describe("reading a condition back into filters", () => {
 
   it("refuses anything filters cannot express", () => {
     expect(
-      isFilterExpression('doc.email.split("@")[-1] not in ["a.com"]'),
+      isFilterExpression('doc.email.split("@")[-1] not in ["a.com"]')
     ).toBe(false);
     expect(
-      isFilterExpression('context.get("event", {}).get("x") == "Matched"'),
+      isFilterExpression('context.get("event", {}).get("x") == "Matched"')
     ).toBe(false);
     expect(toFilters('doc.status == "Qualified"')).not.toBeNull();
   });
@@ -146,16 +148,108 @@ describe("refusing expressions it cannot represent", () => {
 describe("summaries", () => {
   it("reads a condition as a sentence", () => {
     expect(summarizeCondition('doc.source == "Website"')).toBe(
-      "Source is Website",
+      "Source is Website"
     );
     expect(summarizeCondition('(doc.organization or "") != ""')).toBe(
-      "Organization is set",
+      "Organization is set"
     );
     expect(summarizeCondition('doc.status in ["New", "Open"]')).toBe(
-      "Status is one of New, Open",
+      "Status is one of New, Open"
     );
     expect(summarizeCondition('"head" in (doc.job_title or "").lower()')).toBe(
-      "Job title contains head",
+      "Job title contains head"
     );
+  });
+});
+
+describe("safe condition editing", () => {
+  it("compiles Check selections to document values without converting text fields", () => {
+    expect(toExpression([["converted", "=", "Yes"]], fields)).toBe(
+      "doc.converted == 1"
+    );
+    expect(toExpression([["converted", "=", "No"]], fields)).toBe(
+      "doc.converted == 0"
+    );
+    expect(toExpression([["organization", "=", "Yes"]], fields)).toBe(
+      'doc.organization == "Yes"'
+    );
+  });
+
+  it("normalizes Check controls and stored filters with metadata", () => {
+    const values = [["converted", "=", 1], "and", [["converted", "=", 0]]];
+    const display = [
+      ["converted", "=", "Yes"],
+      "and",
+      [["converted", "=", "No"]],
+    ];
+    expect(normalizeCheckValues(values, fields, true)).toEqual(display);
+    expect(normalizeCheckValues(display, fields)).toEqual(values);
+    expect(
+      normalizeCheckValues([["organization", "=", "Yes"]], fields)
+    ).toEqual([["organization", "=", "Yes"]]);
+  });
+
+  it("retains commas and empty members inside quoted membership values", () => {
+    const rows = [["status", "in", ["North, America", "Europe", ""]]];
+    expect(toFilters(toExpression(rows, fields))).toEqual(rows);
+    expect(toFilters("doc.status in ['North, America', 'Europe']")).toEqual([
+      ["status", "in", ["North, America", "Europe"]],
+    ]);
+  });
+
+  it("keeps escaped Python literals in Expression mode", () => {
+    for (const expression of [
+      String.raw`doc.organization == "line\nnext"`,
+      String.raw`doc.organization == "\u0041"`,
+      String.raw`doc.organization == "a\\b"`,
+    ]) {
+      expect(toFilters(expression)).toBeNull();
+      expect(isFilterExpression(expression)).toBe(false);
+    }
+    expect(toExpression([["organization", "=", "line\nnext"]], fields)).toBe(
+      String.raw`doc.organization == "line\nnext"`
+    );
+  });
+
+  it("withholds operators the step expression compiler cannot evaluate", () => {
+    expect(expressionOperators("Date").map(({ value }) => value)).not.toContain(
+      "between"
+    );
+    expect(
+      expressionOperators("Datetime").map(({ value }) => value)
+    ).not.toContain("between");
+    for (const type of ["Int", "Float", "Currency", "Percent", "Duration"]) {
+      const operators = expressionOperators(type).map(({ value }) => value);
+      expect(operators).not.toContain("like");
+      expect(operators).not.toContain("not like");
+    }
+    expect(expressionOperators("Data").map(({ value }) => value)).toContain(
+      "like"
+    );
+    expect(
+      isFilterExpression(
+        '"10" in (doc.annual_revenue or "").lower()',
+        "doc",
+        fields
+      )
+    ).toBe(false);
+  });
+
+  it("uses the explicit document scope in every nested clause", () => {
+    const rows = [
+      ["status", "=", "Open"],
+      "and",
+      [["organization", "is", "set"], "or", ["status", "in", ["Qualified"]]],
+    ];
+    const expression = toExpression(rows, fields, "target");
+    expect(expression).toBe(
+      'target.status == "Open" and ((target.organization or "") != "" or target.status in ["Qualified"])'
+    );
+    expect(toFilters(expression, "target")).toEqual(rows);
+    expect(isFilterExpression('doc.status == "Open"', "target")).toBe(false);
+    expect(isFilterExpression('target.status == "Open"', "doc")).toBe(false);
+    expect(toFilters('target.organization == "doc.status"', "target")).toEqual([
+      ["organization", "=", "doc.status"],
+    ]);
   });
 });

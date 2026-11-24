@@ -5,6 +5,8 @@ import {
   newStep,
   nodeAtRow,
   removeStep,
+  stepsBefore,
+  setStepType,
   toRows,
   toTree,
 } from "../steps";
@@ -12,7 +14,7 @@ import {
 describe("workflow layout", () => {
   it("places sequential steps left to right on one row", () => {
     const positions = layoutSteps([newStep(), newStep()]).map(
-      ({ position }) => position,
+      ({ position }) => position
     );
 
     expect(positions.map(({ y }) => y)).toEqual([0, 0]);
@@ -25,7 +27,7 @@ describe("workflow layout", () => {
     condition.children.Else.push(newStep());
 
     const [branch, ifArm, elseArm] = layoutSteps([condition]).map(
-      ({ position }) => position,
+      ({ position }) => position
     );
 
     expect(branch.y).toBe(0);
@@ -41,7 +43,7 @@ describe("workflow layout", () => {
     wait.children.Else.push(newStep());
 
     const [, ifArm, elseArm] = layoutSteps([wait]).map(
-      ({ position }) => position,
+      ({ position }) => position
     );
 
     expect(ifArm.y).toBeLessThan(elseArm.y);
@@ -84,7 +86,7 @@ describe("wait-for-event arms", () => {
     const rows = toRows([node]);
 
     expect(
-      rows.map((row) => [row.idx, row.step_type, row.parent_step, row.branch]),
+      rows.map((row) => [row.idx, row.step_type, row.parent_step, row.branch])
     ).toEqual([
       [1, "WaitForEvent", 0, ""],
       [2, "If", 0, ""],
@@ -186,7 +188,7 @@ describe("step keys", () => {
 
   it("never overwrites a key someone chose", () => {
     expect(
-      toRows([newStep({ step_key: "mine", action_type: "X" })])[0].step_key,
+      toRows([newStep({ step_key: "mine", action_type: "X" })])[0].step_key
     ).toBe("mine");
   });
 });
@@ -232,5 +234,104 @@ describe("row to node lookup", () => {
     // If, nested wait, its outcome, inner, after
     expect(nodeAtRow(tree, 4)).toBe(inner);
     expect(nodeAtRow(tree, 5)).toBe(after);
+  });
+});
+
+describe("available step outputs", () => {
+  it("excludes the opposite arm and conditional outputs after a join", () => {
+    const before = newStep();
+    const condition = newStep({ step_type: "If" });
+    const yes = newStep();
+    const no = newStep();
+    const after = newStep();
+    condition.children.If.push(yes);
+    condition.children.Else.push(no);
+    const tree = [before, condition, after];
+    expect(stepsBefore(tree, no)).toEqual([before, condition]);
+    expect(stepsBefore(tree, after)).toEqual([before, condition]);
+    expect(stepsBefore(tree, newStep())).toEqual([]);
+  });
+
+  it("retains earlier steps in the same nested arm", () => {
+    const outer = newStep({ step_type: "If" });
+    const before = newStep();
+    const inner = newStep({ step_type: "If" });
+    const target = newStep();
+    outer.children.If.push(before, inner);
+    inner.children.Else.push(target);
+    expect(stepsBefore([outer], target)).toEqual([outer, before, inner]);
+  });
+});
+
+describe("step type changes", () => {
+  it("stores the displayed wait units when changing step types", () => {
+    const node = newStep();
+    setStepType(node, "Wait");
+    expect(JSON.parse(node.params).unit).toBe("Minutes");
+    setStepType(node, "WaitForEvent");
+    expect(JSON.parse(node.params).timeout_unit).toBe("Days");
+  });
+
+  it("retains configured units and clears branches only when applying a nonbranching type", () => {
+    const node = newStep({ step_type: "If", params: '{"unit":"Hours"}' });
+    const child = newStep();
+    node.children.If.push(child);
+    setStepType(node, "WaitForEvent");
+    expect(node.children.If).toEqual([child]);
+    setStepType(node, "Wait");
+    expect(JSON.parse(node.params).unit).toBe("Hours");
+    expect(node.children).toEqual({ If: [], Else: [] });
+  });
+});
+
+describe("step identities and outcome preservation", () => {
+  it("reserves existing keys even when unnamed steps precede them", () => {
+    const unnamed = newStep({ action_type: "SetFieldValue" });
+    const named = newStep({ step_key: "set_field_value" });
+    expect(toRows([unnamed, named]).map((row) => row.step_key)).toEqual([
+      "set_field_value_2",
+      "set_field_value",
+    ]);
+  });
+
+  it("reserves outcome keys and retries generated outcome suffixes", () => {
+    const node = newStep({ step_type: "WaitForEvent", step_key: "wait" });
+    node.children.If.push(newStep({ step_key: "wait_outcome_2" }));
+    const rows = toRows([newStep({ step_key: "wait_outcome" }), node]);
+    expect(rows.map((row) => row.step_key)).toEqual([
+      "wait_outcome",
+      "wait",
+      "wait_outcome_3",
+      "wait_outcome_2",
+    ]);
+    const existing = newStep({
+      step_type: "WaitForEvent",
+      _outcomeKey: "action",
+    });
+    existing.children.If.push(newStep({ step_key: "child" }));
+    expect(toRows([newStep(), existing])[0].step_key).toBe("action_2");
+  });
+
+  it("does not fold an outcome If that has additional conditions", () => {
+    const rows = [
+      { idx: 1, step_type: "WaitForEvent", step_key: "wait" },
+      {
+        idx: 2,
+        step_type: "If",
+        step_key: "outcome",
+        step_condition: EVENT_MATCHED,
+        related_condition: '{"relationship":"todos","operator":"exists"}',
+      },
+      {
+        idx: 3,
+        step_type: "Action",
+        step_key: "child",
+        parent_step: 2,
+        branch: "If",
+      },
+    ];
+    const tree = toTree(rows);
+    expect(tree).toHaveLength(2);
+    expect(toRows(tree)[1].related_condition).toBe(rows[1].related_condition);
   });
 });

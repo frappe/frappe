@@ -254,7 +254,7 @@ const docFieldOptions = computed(() => {
  * Select fields carry theirs in the schema, so offer that instead of a box the user can only
  * get wrong - the run-time validation would reject it anyway.
  */
-const { rows, reload, setRow, addRow, removeRow } = useFieldRows(
+const { rows, reload, sync, setRow, addRow, removeRow } = useFieldRows(
 	() => params.value,
 	(next) => {
 		action.value.params = JSON.stringify(next, null, 2);
@@ -262,7 +262,8 @@ const { rows, reload, setRow, addRow, removeRow } = useFieldRows(
 );
 
 // The inspector reuses this editor across steps, so a new step reloads the rows.
-watch(() => props.action, reload);
+watch(() => props.action, reload, { flush: "sync" });
+watch(() => action.value.params, sync, { flush: "sync" });
 
 const CHOICE_FIELDTYPES = ["Select", "Check"];
 
