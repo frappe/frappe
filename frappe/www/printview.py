@@ -69,7 +69,10 @@ def get_context(context) -> PrintContext:
 	if frappe.form_dict.doc:
 		doc = frappe.form_dict.doc
 	else:
-		doc = frappe.get_lazy_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+		doctype = frappe.form_dict.doctype
+		if frappe.db.exists("DocType", doctype, True) != doctype:
+			raise frappe.DoesNotExistError(doctype="DocType")
+		doc = frappe.get_lazy_doc(doctype, frappe.form_dict.name)
 
 	settings = frappe.parse_json(frappe.form_dict.settings)
 
