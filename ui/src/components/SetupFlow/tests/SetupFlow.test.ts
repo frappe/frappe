@@ -6,9 +6,9 @@ import type { SetupFlowResult, SetupStepSlotProps } from "../types";
 const capture = vi.hoisted(() => vi.fn());
 const telemetry = vi.hoisted(() => ({ on: null as unknown as Ref<boolean> }));
 vi.mock("../../../telemetry", async () => {
-  const { ref } = await import("vue");
+  const { reactive, ref } = await import("vue");
   telemetry.on = ref(true);
-  return { useTelemetry: () => ({ capture, isEnabled: telemetry.on }) };
+  return { useTelemetry: () => reactive({ capture, isEnabled: telemetry.on }) };
 });
 
 // jsdom has no matchMedia; the header's theme switch reads the OS scheme through it.
@@ -325,6 +325,12 @@ describe("SetupFlow", () => {
     step.value = "email";
     await nextTick();
     expect(el.textContent).toContain("Step 2 of 3");
+  });
+
+  it("sends its first events at once when telemetry is already on", async () => {
+    await mountFlow();
+    expect(capture).toHaveBeenCalledWith("setup_started");
+    expect(capture).toHaveBeenCalledWith("setup_step_viewed", { step: "goal" });
   });
 
   it("holds its first events until telemetry is on", async () => {

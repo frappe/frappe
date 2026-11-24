@@ -133,6 +133,20 @@ describe("InviteStep", () => {
 		expect(send).not.toHaveBeenCalled();
 	});
 
+	it("will not send an email that was already invited from another row", async () => {
+		const send = vi.fn().mockResolvedValue({ failed: ["a@example.com"] });
+		const { el } = await mountStep({ send });
+		await type(el, 0, "a@example.com");
+		await type(el, 1, "b@example.com");
+		button(el, "Send invites")!.click();
+		await settle();
+
+		await type(el, 0, "b@example.com");
+		expect(el.textContent).toContain("This email is already in the list");
+		expect(button(el, "Send invites")!.disabled).toBe(true);
+		expect(send).toHaveBeenCalledTimes(1);
+	});
+
 	it("keeps one empty row when the last one is removed", async () => {
 		const { el } = await mountStep();
 		await type(el, 0, "a@example.com");
