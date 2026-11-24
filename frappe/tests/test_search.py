@@ -329,6 +329,8 @@ class TestSearch(IntegrationTestCase):
 			self.assertIn(
 				"Country", results, "Search results for 'pay' in French should include 'Country' ('Pays')"
 			)
+			output = search_widget(doctype="DocType", txt="countr", page_length=20)
+			self.assertEqual("Country", output[0][0])
 
 	def test_doctype_search_in_foreign_language(self):
 		def do_search(txt: str):
