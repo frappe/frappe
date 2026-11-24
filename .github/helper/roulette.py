@@ -352,7 +352,7 @@ def select(build_type, files_list):
 
 def write_selection(build_type, selected, run_postgres=False):
 	"""Hand the picked tests and the machines they need to the workflow. Empty means the full suite."""
-	with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+	with Path(os.environ["GITHUB_OUTPUT"]).open("a") as f:
 		if build_type == "server":
 			matrix = shards(None if run_postgres else selected, full=2, per_shard=40)
 			f.write(f"tests={' '.join(selected or [])}\n")
@@ -455,8 +455,7 @@ def _selftest():
 	with tempfile.TemporaryDirectory() as tree:
 		os.chdir(tree)
 		try:
-			with open(IMPACT_MAP_FILE, "w") as f:
-				json.dump(impact, f)
+			Path(IMPACT_MAP_FILE).write_text(json.dumps(impact))
 			assert select_tests(["frappe/locale/main.pot", "frappe/a.py"]) == ["frappe/tests/test_a.py"], (
 				"main.pot must not force the full suite"
 			)

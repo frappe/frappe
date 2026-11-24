@@ -117,8 +117,7 @@ class CodeCoverage:
 		app_path = os.path.join(get_bench_path(), "apps", self.app)
 		built = impact_map.build(self.coverage.get_data(), app_path)
 
-		with open(self.impact_map_outfile, "w") as f:
-			json.dump(built, f)
+		Path(self.impact_map_outfile).write_text(json.dumps(built))
 
 		print(f"Saved impact map for {len(built['map'])} source files to {self.impact_map_outfile}")
 

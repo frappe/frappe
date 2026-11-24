@@ -107,7 +107,7 @@ def importers(test_files: set[str], root: str = ".", pattern: str = TEST_GLOB) -
 		return set()
 
 	sources = {
-		os.path.relpath(path, root): open(path, encoding="utf-8").read()
+		os.path.relpath(path, root): Path(path).read_text(encoding="utf-8")
 		for path in glob.iglob(os.path.join(root, pattern), recursive=True)
 	}
 
@@ -233,10 +233,9 @@ if __name__ == "__main__":
 		_selftest()
 	elif command == "merge":
 		outfile, *infiles = args
-		parts = [json.loads(open(f).read()) for f in infiles]
+		parts = [json.loads(Path(f).read_text()) for f in infiles]
 		merged = merge(parts)
-		with open(outfile, "w") as f:
-			json.dump(merged, f)
+		Path(outfile).write_text(json.dumps(merged))
 		print(f"Merged {len(infiles)} maps -> {outfile}: {len(merged['map'])} source files")
 	else:
 		sys.exit(f"unknown command: {command}")
