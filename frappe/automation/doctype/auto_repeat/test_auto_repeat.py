@@ -11,11 +11,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	week_map,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-<<<<<<< HEAD
-=======
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.tests import IntegrationTestCase
->>>>>>> 7d937c0 (fix(Auto Repeat): count invoice period from the reference document's date)
 from frappe.tests.test_model_utils import set_user
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, getdate, today
@@ -230,8 +226,6 @@ class TestAutoRepeat(FrappeTestCase):
 		self.assertEqual(getdate(new_todo.from_date), getdate(today()))
 		self.assertEqual(getdate(new_todo.to_date), getdate(today()))
 
-<<<<<<< HEAD
-=======
 	def test_period_after_update_reference(self):
 		self.add_period_fields()
 		self.make_todo_date_mandatory()
@@ -302,8 +296,6 @@ class TestAutoRepeat(FrappeTestCase):
 		self.assertEqual(getdate(new_todo.from_date), getdate("2025-02-01"))
 		self.assertEqual(getdate(new_todo.to_date), getdate("2025-02-28"))
 
-	@requires_test_service(TestService.WEB_SERVER)
->>>>>>> 7d937c0 (fix(Auto Repeat): count invoice period from the reference document's date)
 	def test_email_notification(self):
 		todo = frappe.get_doc(
 			dict(
