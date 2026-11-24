@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+from string import Formatter
 
 from babel.messages.catalog import Catalog
 from babel.messages.extract import DEFAULT_KEYWORDS, extract_from_dir
@@ -281,9 +282,31 @@ def _compile_translation(app, locale, force=False, verbose=True):
 	with open(po_path, "rb") as f:
 		catalog = read_po(f)
 
+	for message in catalog:
+		if message.id and message.string and not _has_valid_placeholders(message):
+			message.flags.add("fuzzy")
+
 	mo_path = write_binary(app, catalog, locale)
 	if verbose:
 		print(f"MO file created at {mo_path}")
+
+
+def _positional_fields(text: str) -> set[str]:
+	fields = [field for _, field, _, _ in Formatter().parse(text) if field is not None]
+	return {field or str(i) for i, field in enumerate(fields) if not field or field.isdigit()}
+
+
+def _has_valid_placeholders(message) -> bool:
+	ids = message.id if isinstance(message.id, tuple | list) else (message.id,)
+	strings = message.string if isinstance(message.string, tuple | list) else (message.string,)
+	try:
+		allowed = set().union(*map(_positional_fields, ids))
+	except ValueError:
+		return True
+	try:
+		return all(_positional_fields(string) <= allowed for string in strings if string)
+	except ValueError:
+		return not allowed
 
 
 def update_po(target_app: str | None = None, locale: str | None = None):
