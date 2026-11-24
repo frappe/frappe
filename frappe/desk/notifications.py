@@ -406,6 +406,8 @@ def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes,
 				pluck="name",
 			)
 			names = unique(names + child_names)[:100]
+			if len(names) == 100:
+				break
 	except Exception as e:
 		if frappe.db.is_statement_timeout(e):
 			return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
