@@ -69,6 +69,16 @@ class TestPersonalDataDeletionRequest(IntegrationTestCase):
 
 		self.assertEqual(self.delete_request.status, "Deleted")
 
+	def test_request_email_in_another_case(self):
+		delete_request = frappe.get_doc(
+			{"doctype": "Personal Data Deletion Request", "email": " Test_Delete@Example.com "}
+		).insert(ignore_permissions=True)
+		self.assertEqual(delete_request.email, "test_delete@example.com")
+
+		delete_request._anonymize_data()
+
+		self.assertFalse(frappe.db.exists("Contact", {"email_id": "test_delete@example.com"}))
+
 	def test_anonymized_data_of_user_with_generated_id(self):
 		with test_user(roles=[], generated_id=True) as user:
 			todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a deleted user"}).insert()
