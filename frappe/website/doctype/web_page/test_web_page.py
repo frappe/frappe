@@ -1,7 +1,22 @@
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.website.path_resolver import PathResolver
 from frappe.website.serve import get_response_content
+
+
+def make_web_page(**values):
+	title = frappe.generate_hash(length=10)
+	return frappe.get_doc(
+		{
+			"doctype": "Web Page",
+			"title": title,
+			"route": title,
+			"published": 1,
+			"content_type": "HTML",
+			**values,
+		}
+	).insert()
 
 
 class TestWebPage(IntegrationTestCase):
@@ -57,3 +72,19 @@ class TestWebPage(IntegrationTestCase):
 			self.assertIn("<div>DocField</div>", content)
 		finally:
 			web_page.delete()
+
+	def test_jinja_content_needs_code_author(self):
+		jinja_page = make_web_page(main_section_html="<p>{{ 6 * 7 }}</p>")
+		markdown_page = make_web_page(content_type="Markdown", main_section_md="plain")
+
+		with test_user(roles=["Website Manager"]) as user, self.set_user(user.name):
+			static_page = make_web_page(main_section_html="<p>About</p>")
+			static_page.main_section_html = "<p>About us</p>"
+			static_page.save()
+
+			# the Markdown page keeps HTML in an inactive field that content_type could switch on
+			for page in (jinja_page, markdown_page):
+				with self.subTest(page=page.content_type):
+					page = frappe.get_doc("Web Page", page.name)
+					page.main_section_html = "<p>{{ frappe.session.user }}</p>"
+					self.assertRaises(frappe.PermissionError, page.save)

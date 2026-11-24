@@ -6,6 +6,7 @@ import unittest
 from typing import TYPE_CHECKING, ClassVar
 
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
 from frappe.utils.logging import get_log_db
@@ -1387,3 +1388,42 @@ class TestPrintFormatDraft(IntegrationTestCase):
 				call()
 
 		self.assertEqual(frappe.parse_json(self.live("draft_data").draft_data)["margin_top"], 20)
+
+
+class TestBuilderJinja(IntegrationTestCase):
+	def test_builder_jinja_needs_code_author(self):
+		from frappe.utils.print_format_generator import render_jinja_template
+
+		jinja_block = {"fieldtype": "HTML", "renderer": "HTML", "html": "<p>{{ doc.name }}</p>"}
+		layout = {
+			"sections": [
+				{"columns": [{"fields": [jinja_block, {"fieldtype": "HTML", "html": "<p>Plain</p>"}]}]}
+			]
+		}
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": frappe.generate_hash(length=10),
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(layout),
+			}
+		).insert()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "builder"}).insert()
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			fields = layout["sections"][0]["columns"][0]["fields"]
+			fields.reverse()
+			fields[0]["html"] = "<p>Plain v2</p>"
+			print_format.reload()
+			print_format.format_data = frappe.as_json(layout)
+			print_format.save()
+
+			fields.append({"fieldtype": "HTML", "renderer": "HTML", "html": "{{ frappe.session.user }}"})
+			print_format.format_data = frappe.as_json(layout)
+			self.assertRaises(frappe.PermissionError, print_format.save)
+
+			self.assertIn(todo.name, render_jinja_template(jinja_block["html"], "ToDo", todo.name))
+			self.assertRaises(
+				frappe.PermissionError, render_jinja_template, "{{ frappe.session.user }}", "ToDo", todo.name
+			)

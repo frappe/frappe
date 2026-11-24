@@ -598,6 +598,36 @@ class TestAutoRepeat(IntegrationTestCase):
 		# the leaked shares were committed, so the cleanup must be committed too
 		frappe.db.commit()  # nosemgrep
 
+	def test_template_fills_code_fields_without_code_author(self):
+		template = frappe.get_doc(
+			{
+				"doctype": "Email Template",
+				"name": frappe.generate_hash(length=10),
+				"subject": "T {{ doc.name }}",
+				"response": "R",
+			}
+		).insert()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "template"}).insert()
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			auto_repeat = frappe.get_doc(
+				{
+					"doctype": "Auto Repeat",
+					"reference_doctype": "ToDo",
+					"reference_document": todo.name,
+					"frequency": "Daily",
+					"start_date": add_days(today(), 1),
+					"notify_by_email": 1,
+					"recipients": "test@example.com",
+					"template": template.name,
+				}
+			).insert()
+			self.assertEqual(auto_repeat.subject, template.subject)
+			self.assertEqual(auto_repeat.message, template.response_)
+
+			auto_repeat.subject = "{{ frappe.session.user }}"
+			self.assertRaises(frappe.PermissionError, auto_repeat.save)
+
 
 def make_auto_repeat(**args):
 	args = frappe._dict(args)

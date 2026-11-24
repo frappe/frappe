@@ -9,6 +9,18 @@ from frappe.utils.print_format import render_letterhead_for_print
 
 
 class TestLetterHead(IntegrationTestCase):
+	def test_image_letter_head_keeps_jinja_out(self):
+		# the generated HTML is rendered as Jinja
+		letter_head = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": "Letter Head {{ 6 * 7 }}",
+				"source": "Image",
+				"image": "/files/logo{{ 7 * 7 }}.png",
+			}
+		).insert()
+		self.assertNotIn("{", letter_head.content)
+
 	def test_rendered_letter_head_closes_tags_left_open_by_jinja(self):
 		doc = frappe.new_doc("Letter Head")
 		doc.letter_head_for = "Report"
