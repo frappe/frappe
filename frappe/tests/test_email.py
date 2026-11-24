@@ -303,19 +303,12 @@ class TestEmail(FrappeTestCase):
 			("Jane Doe <jane@customer.example>", "Jane Doe via Support <support@example.com>"),
 			("John Doe <john@example.com>", "John Doe via Support <support@example.com>"),
 			("Support <support@example.com>", "Support <support@example.com>"),
-<<<<<<< HEAD
-			("山田太郎 <taro@customer.example>", "山田太郎 <support@example.com>"),
-			("=?utf-8?b?5bGx55Sw5aSq6YOO?= <taro@customer.example>", "山田太郎 <support@example.com>"),
-=======
 			("Jane Doe <SUPPORT@example.com>", "Jane Doe <support@example.com>"),
-			('"Doe, Jane" <jane@customer.example>', '"Doe, Jane via Support" <support@example.com>'),
-			('"Петров, Иван" <ivan@customer.example>', '"Петров, Иван via Support" <support@example.com>'),
 			("山田太郎 <taro@customer.example>", "山田太郎 via Support <support@example.com>"),
 			(
 				"=?utf-8?b?5bGx55Sw5aSq6YOO?= <taro@customer.example>",
 				"山田太郎 via Support <support@example.com>",
 			),
->>>>>>> 3bfc45f (fix(email): show "via <account>" when sending as someone else)
 			(
 				"=?utf-8?q?Jane=0D=0AX-Injected=3A_yes?= <jane@customer.example>",
 				'"Jane X-Injected: yes via Support" <support@example.com>',
