@@ -199,6 +199,8 @@ class TestEmailQueue(FrappeTestCase):
 			)
 
 	def test_message_with_inline_image_has_alternative_root(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		queue = frappe.sendmail(
 			recipients=["customer@example.com"],
 			subject="Inline Image",
@@ -213,10 +215,10 @@ class TestEmailQueue(FrappeTestCase):
 		)
 
 	def test_message_with_attachment_keeps_mixed_root(self):
-		file = frappe.get_doc(doctype="File", file_name="queued.txt", content="queued", is_private=1).insert(
-			ignore_permissions=True
-		)
-		self.addCleanup(file.delete, ignore_permissions=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(doctype="File", file_name="queued.txt", content="queued", is_private=1).insert()
+		self.addCleanup(file.delete)
 		for attachment in ({"fname": "embedded.txt", "fcontent": "embedded"}, {"fid": file.name}):
 			with self.subTest(attachment=attachment):
 				queue = frappe.sendmail(
