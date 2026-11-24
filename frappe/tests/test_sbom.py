@@ -9,6 +9,7 @@ from spdx_tools.spdx.validation.document_validator import validate_full_spdx_doc
 
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.utils import get_user_by_email
 from frappe.utils.sbom import build_and_attach_sbom, generate_sbom
 from frappe.utils.sbom.collector import License, _npm_alias_target, _yarn_source, collect, parse_yarn_lock
 from frappe.utils.sbom.licenses import NOASSERTION, to_spdx_license
@@ -137,7 +138,7 @@ class TestGenerateSBOM(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		for email, roles in (("sbom-manager@example.com", ["System Manager"]), ("sbom-user@example.com", [])):
-			if not frappe.db.exists("User", email):
+			if not get_user_by_email(email):
 				frappe.get_doc(
 					{"doctype": "User", "email": email, "first_name": "SBOM", "send_welcome_email": 0}
 				).insert().add_roles(*roles)
@@ -165,7 +166,7 @@ class TestGenerateSBOM(IntegrationTestCase):
 			frappe.db.exists(
 				"Notification Log",
 				{
-					"for_user": "sbom-manager@example.com",
+					"for_user": get_user_by_email("sbom-manager@example.com"),
 					"type": "Alert",
 					"document_type": "Installed Applications",
 					"document_name": "Installed Applications",

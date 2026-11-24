@@ -16,6 +16,7 @@ from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+from frappe.utils import get_user_by_email
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Email Account"]
 
@@ -535,10 +536,14 @@ class TestEmail(IntegrationTestCase):
 
 		target_user = "testimpersonate@example.com"
 		frappe.db.delete("Email Queue Recipient", {"recipient": target_user})  # sanity
-		if not frappe.db.exists("User", target_user):
-			frappe.get_doc(
-				{"doctype": "User", "email": target_user, "first_name": "Target", "enabled": 1}
-			).insert(ignore_permissions=True)
+		if not (user := get_user_by_email(target_user)):
+			user = (
+				frappe.get_doc(
+					{"doctype": "User", "email": target_user, "first_name": "Target", "enabled": 1}
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
 
 		with (
 			patch("frappe.sendmail") as mocked_sendmail,
@@ -546,13 +551,13 @@ class TestEmail(IntegrationTestCase):
 		):
 			with patch("frappe.db.exists", return_value=True):
 				reason = "Testing Security Alert"
-				impersonate(user=target_user, reason=reason)
+				impersonate(user=user, reason=reason)
 
 				self.assertTrue(mocked_sendmail.called)
 				_, kwargs = mocked_sendmail.call_args
 				self.assertIn(target_user, kwargs.get("recipients"))
 				self.assertIn(reason, kwargs.get("content"))
-				mocked_lm.impersonate.assert_called_with(target_user)
+				mocked_lm.impersonate.assert_called_with(user)
 
 		# Cleanup
 		frappe.db.delete("User", {"email": target_user})
