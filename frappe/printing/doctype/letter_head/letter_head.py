@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json
-from frappe.utils import flt, is_image
+from frappe.utils import escape_html, flt, is_image
 
 
 class LetterHead(Document):
@@ -121,7 +121,7 @@ class LetterHead(Document):
 		self.set(
 			html_field,
 			f"""<div style="text-align: {self.get(align, "").lower()};">
-<img src="{self.get(field)}" alt="{self.get("name")}"
+<img src="{escape_attribute(self.get(field))}" alt="{escape_attribute(self.get("name"))}"
 {dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
 </div>""",
 		)
@@ -176,3 +176,8 @@ class LetterHead(Document):
 
 			if not self.module:
 				frappe.throw(_("Module is required when Standard is set to 'Yes'"))
+
+
+def escape_attribute(value: str) -> str:
+	# the HTML is rendered as Jinja; percent-encode braces since the sanitizer decodes entities
+	return escape_html(value).replace("{", "%7B").replace("}", "%7D")
