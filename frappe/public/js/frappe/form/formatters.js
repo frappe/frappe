@@ -72,7 +72,7 @@ frappe.form.formatters = {
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			null;
-		if (docfield.options && docfield.options.trim()) {
+		if (docfield.options && docfield.options.trim() && !docfield.is_virtual) {
 			// options points to a currency field, but expects precision of float!
 			docfield.precision = precision;
 			return frappe.form.formatters.Currency(value, docfield, options, doc);
