@@ -335,7 +335,8 @@ def select_specs(files_list):
 	elif unmapped := impact_map.unmapped(loaded_map, code_files):
 		print(f"Running all specs, no specs attributed to: {unmapped}")
 	else:
-		selected = sorted(set(changed_specs).union(*(loaded_map["map"][f] for f in code_files)))
+		selected = set(changed_specs).union(*(loaded_map["map"][f] for f in code_files))
+		selected = sorted(spec for spec in selected if Path(spec).exists())
 		total = len(impact_map.all_tests(loaded_map))
 		print(f"Running {len(selected)}/{total} specs for {changed_specs + code_files}:")
 		for spec in selected:
@@ -522,6 +523,10 @@ def _selftest():
 					},
 				)
 			)
+			os.makedirs("playwright/tests")
+			for spec in ("workspace", "print_format_builder", "grid"):
+				Path(f"playwright/tests/{spec}.spec.js").touch()
+			assert select_specs(["playwright/tests/removed.spec.js"]) == [], "a deleted spec must not run"
 			assert select_specs(["frappe/public/js/pfb/Field.vue", "README.md"]) == [
 				"playwright/tests/print_format_builder.spec.js"
 			], "a mapped frontend change must run only its specs"
