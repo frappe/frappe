@@ -13,14 +13,17 @@ def execute():
 	users = frappe.get_all("User", fields=["name", "email"])
 	user_ids = {user.name.lower() for user in users if user.name not in STANDARD_USERS}
 
-	changes, standard_users_moved, owners = {}, {}, {}
+	changes, standard_user_emails, owners = {}, {}, {}
 	for user in users:
 		if user.name in STANDARD_USERS:
-			# Administrator and Guest keep their own email, unless it is the default one and a user
-			# signed up with it (people sign up as admin@example.com)
-			email = user.email
-			if (email or "").lower() == DEFAULT_EMAILS[user.name] and email.lower() in user_ids:
-				email = standard_users_moved[user.name] = RESERVED_EMAILS[user.name]
+			# Administrator and Guest keep their own email, lowercased, unless it is the default
+			# one and a user signed up with it (people sign up as admin@example.com)
+			email = (user.email or "").lower()
+			if email == DEFAULT_EMAILS[user.name] and email in user_ids:
+				email = RESERVED_EMAILS[user.name]
+
+			if email and email != user.email:
+				standard_user_emails[user.name] = email
 		else:
 			email = user.name.lower()
 			if email != user.email:
@@ -40,8 +43,12 @@ def execute():
 		)
 
 	User = frappe.qb.DocType("User")
-	for name, email in standard_users_moved.items():
-		click.echo(f"User {name}: email changed to {email!r}, another user's ID is its default email")
+	for name, email in standard_user_emails.items():
+		if email == RESERVED_EMAILS[name]:
+			click.echo(f"User {name}: email changed to {email!r}, another user's ID is its default email")
+		else:
+			click.echo(f"User {name}: email changed to {email!r}")
+
 		frappe.qb.update(User).set(User.email, email).where(User.name == name).run()
 
 	if not changes:
