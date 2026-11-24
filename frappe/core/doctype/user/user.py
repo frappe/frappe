@@ -72,6 +72,9 @@ desk_properties = (
 )
 
 
+CONTACT_FIELDS = ("first_name", "last_name", "gender", "phone", "mobile_no", "email")
+
+
 class User(Document):
 	_DOCTYPE_NAME = "User"
 
@@ -368,15 +371,16 @@ class User(Document):
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
 		self.__new_password = None
-		old_email = self._previous_email()
-		frappe.enqueue(
-			"frappe.core.doctype.user.user.create_contact",
-			user=self,
-			ignore_mandatory=True,
-			old_email=old_email,
-			now=frappe.in_test or frappe.flags.in_install or bool(old_email),
-			enqueue_after_commit=True,
-		)
+		if any(self.has_value_changed(field) for field in CONTACT_FIELDS):
+			old_email = self._previous_email()
+			frappe.enqueue(
+				"frappe.core.doctype.user.user.create_contact",
+				user=self,
+				ignore_mandatory=True,
+				old_email=old_email,
+				now=frappe.in_test or frappe.flags.in_install or bool(old_email),
+				enqueue_after_commit=True,
+			)
 
 		# Set user selected timezone
 		if self.time_zone:
