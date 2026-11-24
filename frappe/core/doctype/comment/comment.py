@@ -70,7 +70,10 @@ class Comment(Document):
 
 	def validate(self):
 		if not self.comment_email:
-			self.comment_email = frappe.utils.get_email_address()
+			user = frappe.session.user
+			self.comment_email = (
+				user if user in frappe.STANDARD_USERS else frappe.utils.get_email_address(user)
+			)
 		self.content = frappe.utils.sanitize_html(
 			self.content, always_sanitize=True, disallowed_tags=["form", "input", "button"]
 		)
