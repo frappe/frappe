@@ -7,7 +7,8 @@ from pathlib import Path
 
 import frappe
 from frappe.model.document import Document
-from frappe.modules.export_file import export_doc
+from frappe.modules import scrub
+from frappe.modules.export_file import export_doc, get_custom_module_path
 from frappe.query_builder.functions import Max
 
 
@@ -79,19 +80,31 @@ class PackageRelease(Document):
 	def export_files(self, package):
 		"""Export all the documents in this package to site/packages folder"""
 
-		self.export_modules()
+		stale_folders = self.export_modules()
 		self.export_package_files(package)
-		self.make_tarfile(package)
+		self.make_tarfile(package, stale_folders)
 
 	def export_modules(self):
+		stale_folders = []
 		for m in frappe.get_all("Module Def", dict(package=self.package)):
 			module = frappe.get_doc("Module Def", m.name)
+			module_path = Path(get_custom_module_path(m.name))
 			for l in module.meta.links:
 				if l.link_doctype == "Module Def":
 					continue
 				# all documents of the type in the module
-				for d in frappe.get_all(l.link_doctype, dict(module=m.name)):
-					export_doc(frappe.get_doc(l.link_doctype, d.name))
+				names = frappe.get_all(l.link_doctype, dict(module=m.name), pluck="name")
+				for name in names:
+					export_doc(frappe.get_doc(l.link_doctype, name))
+
+				doctype_path = module_path / scrub(l.link_doctype)
+				if doctype_path.is_dir():
+					exported = {scrub(name) for name in names}
+					stale_folders += [
+						p for p in doctype_path.iterdir() if p.is_dir() and p.name not in exported
+					]
+
+		return stale_folders
 
 	def export_package_files(self, package):
 		# write readme
@@ -110,11 +123,14 @@ class PackageRelease(Document):
 		) as packagefile:
 			packagefile.write(frappe.as_json(package.as_dict(no_nulls=True)))
 
-	def make_tarfile(self, package):
+	def make_tarfile(self, package, stale_folders):
 		# make tarfile
 		filename = f"{self.name}.tar.gz"
+		packages_path = Path(frappe.get_site_path("packages")).resolve()
+		excludes = [f"--exclude={p.resolve().relative_to(packages_path)}" for p in stale_folders]
 		subprocess.check_output(
-			["tar", "czf", filename, package.package_name], cwd=frappe.get_site_path("packages")
+			["tar", "czf", filename, "--no-wildcards", *excludes, package.package_name],
+			cwd=frappe.get_site_path("packages"),
 		)
 
 		# move file
