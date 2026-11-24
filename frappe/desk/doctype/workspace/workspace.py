@@ -13,7 +13,7 @@ from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 from frappe.modules.export_file import delete_folder, export_to_files
-from frappe.utils import strip_html
+from frappe.utils import get_user_display_id, strip_html
 from frappe.utils.html_utils import sanitize_html
 
 
@@ -795,7 +795,7 @@ def new_page(new_page: dict):
 
 	elif not frappe.has_permission(doctype="Workspace", ptype="create"):
 		frappe.flags.error_message = _("User {0} does not have the permission to create a Workspace.").format(
-			frappe.bold(frappe.session.user)
+			frappe.bold(get_user_display_id(frappe.session.user))
 		)
 		raise frappe.PermissionError
 
@@ -1105,13 +1105,18 @@ def get_manageable_workspaces():
 		filters = {}
 	else:
 		filters = {"public": 0, "for_user": frappe.session.user}
-	return frappe.get_all(
+	workspaces = frappe.get_all(
 		"Workspace",
 		fields=fields,
 		filters=filters,
 		order_by="public desc, sequence_id asc",
 		ignore_permissions=True,
 	)
+	if owners := {w.for_user for w in workspaces if w.for_user}:
+		names = dict(frappe.get_all("User", {"name": ("in", owners)}, ["name", "full_name"], as_list=True))
+		for workspace in workspaces:
+			workspace.owner_name = names.get(workspace.for_user) or workspace.for_user
+	return workspaces
 
 
 @frappe.whitelist()

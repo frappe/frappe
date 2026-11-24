@@ -2176,10 +2176,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const head = document.createElement("div");
 		head.className = "flex items-center gap-2";
 		const email_line =
-			fullname === user
+			!info.email || fullname === info.email
 				? ""
 				: `<div class="text-xs text-ink-gray-5" style="word-break:break-all">${frappe.utils.escape_html(
-						user
+						info.email
 				  )}</div>`;
 		head.innerHTML = `${frappe.ui.avatar.html({
 			image: info.image || undefined,
