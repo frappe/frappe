@@ -17,6 +17,7 @@ from frappe.core.doctype.user.user import (
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
+	create_contact,
 	get_all_roles,
 	get_perm_info,
 	handle_password_test_fail,
@@ -1210,6 +1211,141 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		with test_user(roles=["System Manager"], generated_id=True) as user:
 			self.assertIn(user.email, get_system_manager_emails())
 			self.assertTrue(any(user.email in manager for manager in get_system_managers()))
+
+	def test_contact_follows_a_changed_email(self):
+		from frappe.contacts.doctype.address.address import get_user_contacts
+
+		with test_user(roles=[], generated_id=True) as user:
+			old_email = user.email
+			contact = frappe.get_doc("Contact", {"user": user.name})
+			frappe.db.set_value("User", user.name, "email", f"changed_{old_email}")
+			user.reload()
+			create_contact(user, old_email=old_email)
+
+			self.assertEqual(
+				frappe.get_all("Contact", filters={"user": user.name}, pluck="name"), [contact.name]
+			)
+			emails = frappe.get_doc("Contact", contact.name).email_ids
+			self.assertEqual({row.email_id: row.is_primary for row in emails}, {old_email: 0, user.email: 1})
+			self.assertEqual(get_user_contacts(user.name), [contact.name])
+
+	def test_contact_keeps_a_primary_other_than_the_users_email(self):
+		with test_user(roles=[], generated_id=True) as user:
+			old_email = user.email
+			contact = frappe.get_doc("Contact", {"user": user.name})
+			contact.add_email("_test_billing@example.com")
+			for row in contact.email_ids:
+				row.is_primary = row.email_id == "_test_billing@example.com"
+			contact.save()
+
+			create_contact(user)
+			self.assertEqual(
+				frappe.db.get_value("Contact", contact.name, "email_id"), "_test_billing@example.com"
+			)
+
+			frappe.db.set_value("User", user.name, "email", f"changed_{old_email}")
+			user.reload()
+			create_contact(user, old_email=old_email)
+
+			emails = frappe.get_doc("Contact", contact.name).email_ids
+			self.assertEqual(
+				{row.email_id: row.is_primary for row in emails},
+				{"_test_billing@example.com": 1, old_email: 0, user.email: 0},
+			)
+
+	def test_contact_of_another_user_is_left_alone(self):
+		with test_user(roles=[]) as owner, test_user(roles=[]) as user:
+			contact = frappe.get_doc("Contact", {"user": owner.name})
+			contact.add_email(user.email, autosave=True)
+			frappe.db.delete("Contact", {"user": user.name})
+
+			create_contact(user)
+
+			contact.reload()
+			self.assertEqual(contact.first_name, owner.first_name)
+			self.assertEqual(contact.user, owner.name)
+			self.assertEqual(
+				frappe.db.get_value("Contact", {"user": user.name}, "first_name"), user.first_name
+			)
+
+	def test_contact_planted_with_a_users_email_is_not_taken_over(self):
+		with test_user(roles=[]) as planter, test_user(roles=[], generated_id=True) as user:
+			with self.set_user(planter.name):
+				planted = frappe.get_doc(
+					doctype="Contact",
+					first_name="_Test Planted",
+					email_ids=[{"email_id": user.email, "is_primary": 1}],
+				).insert()
+			self.assertFalse(planted.user)
+
+			frappe.db.delete("Contact", {"user": user.name})
+			create_contact(user)
+
+			planted.reload()
+			self.assertEqual((planted.first_name, planted.user), ("_Test Planted", None))
+			self.assertTrue(frappe.db.exists("Contact", {"user": user.name}))
+
+	def test_contact_with_the_users_email_as_secondary_is_reused(self):
+		with test_user(roles=[], generated_id=True) as user:
+			frappe.db.delete("Contact", {"user": user.name})
+			contact = frappe.get_doc(
+				doctype="Contact",
+				first_name="_Test Secondary",
+				email_ids=[
+					{"email_id": "_test_work@example.com", "is_primary": 1},
+					{"email_id": user.email},
+				],
+			).insert()
+			self.addCleanup(frappe.delete_doc, "Contact", contact.name, force=True)
+
+			create_contact(user)
+
+			contact.reload()
+			self.assertEqual((contact.user, contact.email_id), (user.name, "_test_work@example.com"))
+
+	def test_only_user_managers_link_a_contact_to_a_user(self):
+		with test_user(roles=[]) as planter, test_user(roles=[], generated_id=True) as user:
+			with self.set_user(planter.name):
+				address = frappe.get_doc(
+					doctype="Address",
+					address_title="_Test Planter",
+					address_line1="1",
+					city="Mumbai",
+					country="India",
+				).insert()
+				contact = frappe.get_doc(doctype="Contact", first_name="_Test Linked", address=address.name)
+				contact.user = user.name
+				self.assertRaises(frappe.PermissionError, contact.insert)
+
+	def test_contact_created_for_a_user_is_owned_by_administrator(self):
+		with test_user(roles=[]) as creator:
+			with self.set_user(creator.name):
+				user = frappe.new_doc("User", email="_test_contact_owned@example.com", first_name="Owned")
+				user.insert(ignore_permissions=True)
+			self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+			contact = frappe.db.get_value("Contact", {"user": user.name}, ["name", "owner"], as_dict=True)
+			self.addCleanup(frappe.delete_doc, "Contact", contact.name, force=True)
+
+			create_contact(user)
+
+			self.assertEqual(contact.owner, "Administrator")
+			self.assertEqual(
+				frappe.get_all("Contact", filters={"user": user.name}, pluck="name"), [contact.name]
+			)
+
+	def test_contact_follows_a_renamed_user(self):
+		old_name = "_test_contact_rename@example.com"
+		new_name = "_test_contact_renamed@example.com"
+		user = frappe.new_doc("User", email=old_name, first_name="Renamed")
+		user.insert()
+		self.addCleanup(frappe.delete_doc, "User", new_name, force=True)
+		contact = frappe.db.get_value("Contact", {"user": old_name})
+		frappe.db.set_value("Contact", contact, "owner", old_name)
+
+		frappe.rename_doc("User", old_name, new_name, force=True)
+
+		self.assertEqual(frappe.get_all("Contact", filters={"user": new_name}, pluck="name"), [contact])
+		self.assertEqual(frappe.db.get_value("Contact", contact, "email_id"), new_name)
 
 
 @contextmanager
