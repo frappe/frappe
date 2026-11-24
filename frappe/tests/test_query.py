@@ -2245,8 +2245,8 @@ class TestQuery(IntegrationTestCase):
 		add_permission(parent_dt.name, role.name, 0, ptype="read")
 		user.add_roles(role.name)
 		self.addCleanup(frappe.delete_doc, "Role", role.name, force=True)
-		self.addCleanup(child_dt.delete)
-		self.addCleanup(parent_dt.delete)
+		self.delete_doctype_on_cleanup(child_dt)
+		self.delete_doctype_on_cleanup(parent_dt)
 		self.addCleanup(user.remove_roles, role.name)
 
 		def build_child_query(query):
