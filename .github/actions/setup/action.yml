@@ -269,7 +269,7 @@ runs:
 
       build_pid=""
       if [ "$ASSETS_RESTORED" == "true" ]; then
-        (cd sites && ../env/bin/python -c "import frappe; frappe.init(''); from frappe.bundler import make_asset_dirs; make_asset_dirs()")
+        (cd sites && ../env/bin/python -c "import frappe; frappe.init(''); from frappe.bundler import make_asset_dirs, setup; setup(); make_asset_dirs()")
       elif [ "$BUILD_ASSETS" == "true" ]; then
         CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
         build_pid=$!
