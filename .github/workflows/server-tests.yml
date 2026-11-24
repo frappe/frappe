@@ -109,15 +109,58 @@ jobs:
         env:
           PYTHONWARNINGS: "ignore:Unimplemented abstract methods {'locate_file'}:DeprecationWarning"
 
+      - name: Site Setup
+        run: |
+          # one more site per extra worker, so the workers do not share data
+          for worker in $(seq 2 "$WORKERS"); do
+            site="test_site_$worker"
+            echo "127.0.0.1 $site" | sudo tee -a /etc/hosts
+            bench new-site "$site" \
+              --db-type ${{ matrix.db }} \
+              --db-host 127.0.0.1 \
+              --db-name "test_frappe_$worker" \
+              --db-password test_frappe
+            jq -s --arg host "http://$site:8000" '.[1] + .[0] + {host_name: $host}' \
+              "sites/$site/site_config.json" sites/test_site/site_config.json > site_config.json
+            mv site_config.json "sites/$site/site_config.json"
+          done
+        env:
+          WORKERS: ${{ matrix.db == 'mariadb' && 2 || 1 }}
+
       - name: Run Tests
         run: |
-          cd sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
+          cd sites
+          pids=()
+          for worker in $(seq 1 "$WORKERS"); do
+            site="test_site"
+            if [ "$worker" -gt 1 ]; then
+              site="test_site_$worker"
+            fi
+            SITE="$site" \
+            BUILD_NUMBER=$(( (SHARD - 1) * WORKERS + worker )) \
+            TOTAL_BUILDS=$(( SHARDS * WORKERS )) \
+            COVERAGE_FILE=".coverage.$worker" \
+            COVERAGE_OUTFILE="coverage-$worker.xml" \
+            IMPACT_MAP_OUTFILE="${IMPACT_MAP_OUTFILE:+${IMPACT_MAP_OUTFILE%.json}-$worker.json}" \
+              ../env/bin/python3 ../apps/frappe/.github/helper/ci.py &> "worker-$worker.log" &
+            pids+=($!)
+          done
+
+          status=0
+          for worker in $(seq 1 "$WORKERS"); do
+            wait "${pids[$((worker - 1))]}" || status=1
+            echo "::group::Worker $worker"
+            cat "worker-$worker.log"
+            echo "::endgroup::"
+          done
+          exit $status
         env:
           DB: ${{ matrix.db }}
           # consumed by bench run-parallel-tests
           CAPTURE_COVERAGE: true
-          BUILD_NUMBER: ${{ matrix.index }}
-          TOTAL_BUILDS: ${{ needs.checkrun.outputs.shard_total || 2 }}
+          WORKERS: ${{ matrix.db == 'mariadb' && 2 || 1 }}
+          SHARD: ${{ matrix.index }}
+          SHARDS: ${{ needs.checkrun.outputs.shard_total || 2 }}
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
           IMPACT_MAP_OUTFILE: ${{ github.event_name == 'schedule' && format('impact-map-{0}-{1}.json', matrix.db, matrix.index) || '' }}
           # The impact map is built on mariadb only, so postgres always runs the full suite.
