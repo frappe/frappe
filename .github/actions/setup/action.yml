@@ -68,11 +68,19 @@ runs:
   - uses: actions/setup-node@v6
     with:
       node-version: ${{ inputs.node-version }}
-      cache: yarn
-      cache-dependency-path: |
-        frappe-src/yarn.lock
-        frappe-src/studio/frontend/yarn.lock
-        frappe-src/flow/yarn.lock
+
+  - id: yarn-cache
+    shell: bash -e {0}
+    run: echo "dir=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
+
+  - name: Restore yarn cache
+    id: yarn-cache-restore
+    uses: actions/cache/restore@v4
+    with:
+      path: ${{ steps.yarn-cache.outputs.dir }}
+      key: yarn-${{ runner.os }}-${{ hashFiles('frappe-src/yarn.lock', 'frappe-src/studio/frontend/yarn.lock', 'frappe-src/flow/yarn.lock') }}
+      restore-keys: |
+        yarn-${{ runner.os }}-
 
   - id: os-release
     shell: bash -e {0}
@@ -81,6 +89,7 @@ runs:
   - uses: astral-sh/setup-uv@v6
     with:
       enable-cache: true
+      save-cache: ${{ github.ref == 'refs/heads/develop' }}
       cache-suffix: ubuntu-${{ steps.os-release.outputs.version }}
       cache-dependency-glob: |
         **/pyproject.toml
@@ -159,8 +168,9 @@ runs:
       end_time=$(date +%s)
       echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
 
-  - name: Cache island toolchain
-    uses: actions/cache@v4
+  - name: Restore island toolchain
+    id: island-toolchain-restore
+    uses: actions/cache/restore@v4
     with:
       path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
       key: island-toolchain-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('frappe-src/island-toolchain/yarn.lock') }}
@@ -195,6 +205,20 @@ runs:
 
       end_time=$(date +%s)
       echo -e "\033[33mInstall dev/test deps: $((end_time - start_time)) seconds\033[0m"
+
+  - name: Save yarn cache
+    if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.yarn-cache-restore.outputs.cache-hit != 'true' }}
+    uses: actions/cache/save@v4
+    with:
+      path: ${{ steps.yarn-cache.outputs.dir }}
+      key: ${{ steps.yarn-cache-restore.outputs.cache-primary-key }}
+
+  - name: Save island toolchain
+    if: ${{ github.ref == 'refs/heads/develop' && steps.island-toolchain-restore.outputs.cache-hit != 'true' }}
+    uses: actions/cache/save@v4
+    with:
+      path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
+      key: ${{ steps.island-toolchain-restore.outputs.cache-primary-key }}
 
   - shell: bash -e {0}
     env:
