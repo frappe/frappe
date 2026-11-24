@@ -137,7 +137,7 @@ class RedisWrapper(redis.Redis):
 					val = generator()
 					size = self.set_value(original_key, val, user=user, shared=shared)
 
-				else:
+				elif use_local_cache:
 					local_cache[key] = val
 
 		return val, size
