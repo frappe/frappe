@@ -1209,6 +1209,21 @@ class Engine:
 		permitted_fields = permission_source(doctype, parent_doctype, permission_type)
 
 		if fieldname not in permitted_fields:
+			df = meta.get_field(fieldname)
+			if (
+				df
+				and df.fieldtype in frappe.model.table_fields
+				and df.permlevel
+				in meta.get_permlevel_access(permission_type, parenttype=parent_doctype, user=self.user)
+			):
+				frappe.throw(
+					_("{0} is a table field. Use one of its fields instead, for example {1}.").format(
+						frappe.bold(f"{doctype}.{fieldname}"), frappe.bold(f"{fieldname}.name")
+					),
+					frappe.ValidationError,
+					title=_("Invalid Field"),
+				)
+
 			frappe.throw(
 				_("You do not have permission to access field: {0}").format(
 					frappe.bold(f"{doctype}.{fieldname}")
