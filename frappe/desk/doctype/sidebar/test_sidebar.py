@@ -216,16 +216,19 @@ def user_with_roles(email: str, roles: list[str]) -> str:
 	if user := get_user_by_email(email):
 		frappe.delete_doc("User", user, force=True, ignore_permissions=True)
 
-	frappe.get_doc(
-		{
-			"doctype": "User",
-			"email": email,
-			"first_name": email.split("@")[0],
-			"send_welcome_email": 0,
-			"roles": [{"role": role} for role in roles],
-		}
-	).insert(ignore_permissions=True)
-	return get_user_by_email(email)
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"send_welcome_email": 0,
+				"roles": [{"role": role} for role in roles],
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 class TestItemIdentity(IntegrationTestCase):

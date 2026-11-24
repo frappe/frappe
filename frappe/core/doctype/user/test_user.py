@@ -622,30 +622,36 @@ class TestUser(IntegrationTestCase):
 			if user := get_user_by_email(email):
 				frappe.delete_doc("User", user, ignore_permissions=True, force=True)
 
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": old_email,
-				"enabled": 1,
-				"first_name": "_Test",
-				"new_password": "Eastern_43A1W",
-				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
-			}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		old_name = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": old_email,
+					"enabled": 1,
+					"first_name": "_Test",
+					"new_password": "Eastern_43A1W",
+					"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
 
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": actor_email,
-				"enabled": 1,
-				"first_name": "_Test Actor",
-				"new_password": "Eastern_43A1W",
-				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
-			}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		actor_name = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": actor_email,
+					"enabled": 1,
+					"first_name": "_Test Actor",
+					"new_password": "Eastern_43A1W",
+					"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
 
-		old_name = get_user_by_email(old_email)
-		actor_name = get_user_by_email(actor_email)
 		old_workspace = f"Test Rename Workspace-{old_name}"
 		if frappe.db.exists("Workspace", old_workspace):
 			frappe.delete_doc("Workspace", old_workspace, ignore_permissions=True, force=True)
