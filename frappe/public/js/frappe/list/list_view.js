@@ -290,7 +290,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			"scroll",
 			() => {
 				// the route changes before the pages swap, so the swap's jump is not saved
-				if (frappe.get_route_str() === this.page_name) {
+				if (this.is_current_route()) {
 					this.scroll_top = main_section.scrollTop;
 					this.scroll_search = location.search;
 				}
@@ -479,7 +479,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const interval = 5 * 60 * 1000;
 		setInterval(() => {
 			// don't call if route is different
-			if (frappe.get_route_str() === this.page_name) {
+			if (this.is_current_route()) {
 				this.refresh();
 			}
 		}, interval);
@@ -2472,7 +2472,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.phone_card = query.matches;
 		query.addEventListener("change", () => {
 			this.phone_card = query.matches;
-			if (frappe.get_route_str() === this.page_name) this.render_list();
+			if (this.is_current_route()) this.render_list();
 		});
 	}
 
@@ -2850,6 +2850,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.on_row_checked();
 	}
 
+	is_current_route() {
+		return frappe.get_route_str() === this.page_name;
+	}
+
 	save_view_user_settings(obj) {
 		return frappe.model.user_settings.save(this.doctype, this.view_name, obj);
 	}
@@ -2857,7 +2861,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	on_update() {}
 
 	update_url_with_filters() {
-		if (frappe.get_route_str() == this.page_name && !this.report_name) {
+		if (this.is_current_route() && !this.report_name) {
 			// only update URL if the route still matches current page.
 			// do not update if current list is a "saved report".
 			window.history.replaceState(null, null, this.get_url_with_filters());

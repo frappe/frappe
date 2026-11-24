@@ -112,6 +112,7 @@ class DocType(Document):
 		allow_guest_to_view: DF.Check
 		allow_import: DF.Check
 		allow_rename: DF.Check
+		allow_split_view: DF.Check
 		autoname: DF.Data | None
 		beta: DF.Check
 		color: DF.Data | None
@@ -242,6 +243,7 @@ class DocType(Document):
 		self.validate_nestedset()
 		self.validate_child_table()
 		self.validate_website()
+		validate_default_view(self)
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
 		self.patch_old_naming_expressions()
@@ -1189,6 +1191,14 @@ class DocType(Document):
 
 		if len(unique_links) < len(self.links or []):
 			self.links = unique_links
+
+
+def validate_default_view(dt):
+	if dt.default_view == "Split" and not dt.allow_split_view:
+		frappe.throw(
+			_("Split can be the default view only when Allow Split View is checked."),
+			title=_("Invalid Default View"),
+		)
 
 
 def validate_series(dt, autoname=None, name=None):

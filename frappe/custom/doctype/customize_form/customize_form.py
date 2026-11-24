@@ -18,6 +18,7 @@ from frappe.core.doctype.doctype.doctype import (
 	check_email_append_to,
 	get_fields_not_allowed_in_list_view,
 	validate_autoincrement_autoname,
+	validate_default_view,
 	validate_fields_for_doctype,
 	validate_series,
 )
@@ -50,6 +51,7 @@ class CustomizeForm(Document):
 		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_import: DF.Check
+		allow_split_view: DF.Check
 		autoname: DF.Data | None
 		default_email_template: DF.Link | None
 		default_print_format: DF.Link | None
@@ -241,6 +243,7 @@ class CustomizeForm(Document):
 
 		validate_series(self, self.autoname, self.doc_type)
 		validate_autoincrement_autoname(self)
+		validate_default_view(self)
 		fieldnames = [df.fieldname for df in self.fields]
 		meta_fieldnames = [df.fieldname for df in frappe.get_meta(self.doc_type).fields]
 		self.flags.field_order_unchanged = [f for f in fieldnames if f in meta_fieldnames] == [
@@ -776,6 +779,7 @@ doctype_properties = {
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
 	"is_calendar_and_gantt": "Check",
+	"allow_split_view": "Check",
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",

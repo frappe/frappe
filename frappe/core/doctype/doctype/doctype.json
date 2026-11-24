@@ -32,6 +32,7 @@
   "issingle",
   "is_tree",
   "is_calendar_and_gantt",
+  "allow_split_view",
   "editable_grid",
   "quick_entry",
   "grid_page_length",
@@ -667,6 +668,14 @@
    "label": "Is Calendar and Gantt"
   },
   {
+   "default": "0",
+   "depends_on": "eval:!doc.istable",
+   "description": "Show this DocType's records as a list with a detail panel beside it.",
+   "fieldname": "allow_split_view",
+   "fieldtype": "Check",
+   "label": "Allow Split View"
+  },
+  {
    "fieldname": "settings_tab",
    "fieldtype": "Tab Break",
    "label": "Settings"
@@ -835,7 +844,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-11-02 09:54:18.575551",
+ "modified": "2026-11-16 00:54:57.323423",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

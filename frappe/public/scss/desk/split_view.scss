@@ -1,0 +1,336 @@
+// The split shell (frappe.ui.SplitPane): from 1024px a list column of 384px, whose end border is
+// the divider, beside the detail; each scrolls on its own and SplitPane fits the height to what is
+// left under it. Below 1024px the columns stack and the page scrolls.
+// The DocType Split view (split_view.js) is one framed region under the filters, edge to edge, and
+// takes turns on a narrow screen: its own rules are scoped to .frappe-list.has-split-view.
+
+$split-view-wide: 1024px;
+
+.frappe-list.has-split-view {
+	margin-inline: 0;
+}
+
+.frappe-list.has-split-view .split-view {
+	border-top: 1px solid var(--outline-gray-2);
+}
+
+// header and list header stack what they hold at full width
+.split-view-header,
+.split-view-list-header {
+	display: flex;
+	flex-direction: column;
+}
+
+.split-view-header {
+	grid-column: 1 / -1;
+}
+
+.split-view-list {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.split-view-list-header {
+	flex: none;
+}
+
+// the rows keep their rounded hover and selection inside a gutter
+.split-view-rows {
+	flex: 1;
+	min-height: 0;
+	padding: calc(var(--spacing) * 1.5);
+
+	.es-list__row {
+		scroll-margin-block: calc(var(--spacing) * 2);
+	}
+}
+
+// the list header's own bottom padding spaces the first row
+.split-view-list-header + .split-view-rows {
+	padding-block-start: 0;
+}
+
+// List drops the meta on lists narrower than 480px; a short date fits beside the title here
+.frappe-list.has-split-view .es-list__meta {
+	display: block;
+}
+
+.split-view-list-end {
+	height: 1px;
+}
+
+.split-view-detail {
+	min-width: 0;
+	min-height: 0;
+}
+
+.split-view-empty {
+	height: 100%;
+	padding: calc(var(--spacing) * 6);
+}
+
+.split-view-back {
+	padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+	border-bottom: 1px solid var(--outline-gray-2);
+}
+
+// The default detail: a column of at most 768px that scrolls, over a bar that stays put.
+.split-view-preview {
+	display: flex;
+	flex-direction: column;
+	min-height: 100%;
+}
+
+.split-view-preview-scroll {
+	flex: 1;
+	min-height: 0;
+	container-type: inline-size;
+}
+
+.split-view-preview-content {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 6);
+	max-width: 768px;
+	margin-inline: auto;
+	padding: calc(var(--spacing) * 8);
+}
+
+.split-view-preview-head {
+	display: flex;
+	align-items: flex-start;
+	gap: calc(var(--spacing) * 3);
+}
+
+.split-view-preview-heading {
+	flex: 1;
+	min-width: 0;
+	// the buttons are 28px tall; this keeps a one-line title on their centre line
+	padding-top: calc(var(--spacing) * 0.5);
+}
+
+.split-view-preview-title-line {
+	display: flex;
+	align-items: flex-start;
+	gap: calc(var(--spacing) * 2);
+}
+
+.split-view-preview-subtitle {
+	margin: calc(var(--spacing) * 0.5) 0 0;
+	color: var(--ink-gray-6);
+	overflow-wrap: anywhere;
+}
+
+.split-view-preview-subtitle:empty {
+	display: none;
+}
+
+.split-view-preview-title {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	margin: 0;
+	line-height: 1.4;
+	color: var(--ink-gray-9);
+	overflow-wrap: anywhere;
+}
+
+.split-view-preview-badge {
+	flex: none;
+	// centres the badge on the title's first line
+	margin-top: calc(var(--spacing) * 0.25);
+}
+
+.split-view-preview-badge:empty {
+	display: none;
+}
+
+.split-view-preview-actions {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+}
+
+.split-view-preview-body {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 6);
+}
+
+// label and value pairs, two to a row; one to a row in a narrow detail
+.split-view-fields {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+	align-items: center;
+	column-gap: calc(var(--spacing) * 6);
+	margin: 0;
+
+	dt,
+	dd {
+		display: flex;
+		align-items: center;
+		min-width: 0;
+		min-height: calc(var(--spacing) * 9);
+		margin: 0;
+	}
+
+	dt {
+		color: var(--ink-gray-5);
+	}
+
+	dd {
+		display: block;
+		overflow: hidden;
+		line-height: calc(var(--spacing) * 9);
+		color: var(--ink-gray-8);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	dd a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	dd a:hover {
+		text-decoration: underline;
+	}
+}
+
+@container (max-width: 640px) {
+	.split-view-fields {
+		grid-template-columns: max-content minmax(0, 1fr);
+	}
+}
+
+.split-view-section-heading {
+	margin: 0 0 calc(var(--spacing) * 3);
+	color: var(--ink-gray-8);
+}
+
+// six lines; a height rather than a line clamp, since a rich text holds paragraphs of its own
+.split-view-section-text {
+	max-height: calc(1.6em * 6);
+	overflow: hidden;
+	line-height: 1.6;
+	color: var(--ink-gray-8);
+	overflow-wrap: anywhere;
+
+	&[data-expanded] {
+		max-height: none;
+	}
+
+	p {
+		margin-bottom: 0.6em;
+	}
+
+	> :last-child {
+		margin-bottom: 0;
+	}
+}
+
+.split-view-section-toggle {
+	margin-top: calc(var(--spacing) * 1);
+}
+
+.split-view-field-text {
+	white-space: pre-line;
+}
+
+.split-view-preview-bar {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+	height: 52px;
+	padding-inline: calc(var(--spacing) * 4);
+	border-top: 1px solid var(--outline-gray-2);
+	background-color: var(--surface-base);
+}
+
+.split-view-position {
+	margin-inline-start: calc(var(--spacing) * 1);
+	color: var(--ink-gray-5);
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: $split-view-wide) {
+	.split-view {
+		display: grid;
+		grid-template-columns: 384px minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr);
+	}
+
+	.split-view:has(> .split-view-header) {
+		grid-template-rows: auto minmax(0, 1fr);
+	}
+
+	.split-view-list {
+		border-inline-end: 1px solid var(--outline-gray-2);
+	}
+
+	.split-view-rows {
+		overflow-y: auto;
+	}
+
+	// the detail fills its column and scrolls inside itself
+	.split-view-detail {
+		display: flex;
+		flex-direction: column;
+
+		> * {
+			flex: 1;
+			min-height: 0;
+		}
+	}
+
+	.split-view-custom-detail {
+		overflow-y: auto;
+	}
+
+	// the detail column scrolls the record, and the bar stays at its foot
+	.split-view-preview {
+		height: 100%;
+	}
+
+	.split-view-preview-scroll {
+		overflow-y: auto;
+	}
+
+	.split-view-back,
+	.split-view-back-button {
+		display: none;
+	}
+}
+
+@media (max-width: $split-view-wide - 0.02px) {
+	.frappe-list.has-split-view {
+		.split-view-detail,
+		.split-view.has-selection .split-view-list {
+			display: none;
+		}
+
+		.split-view.has-selection .split-view-detail {
+			display: block;
+		}
+	}
+
+	.split-view-empty {
+		display: none;
+	}
+
+	.split-view-preview-content {
+		padding: calc(var(--spacing) * 4) calc(var(--spacing) * 3);
+	}
+
+	// the page scrolls, so the bar sticks to the bottom of the screen
+	.split-view-preview-bar {
+		position: sticky;
+		bottom: 0;
+		z-index: 1;
+	}
+}
