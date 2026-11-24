@@ -17,13 +17,8 @@ dependencies = [
     "GitPython~=3.2.1",
     "Jinja2~=3.1.6",
     "Pillow~=13.0.0",
-<<<<<<< HEAD
-    "plutoprint~=0.22.0; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or sys_platform == 'win32'",
-    "PyJWT~=2.15.0",
-=======
     "plutoprint~=0.23.0; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or sys_platform == 'win32'",
-    "PyJWT~=2.15.1",
->>>>>>> 0f1c678 (fix(print): list bullets print below their text in plutoprint pdfs)
+    "PyJWT~=2.15.0",
     "duckdb~=1.4.3",
     "pyarrow~=25.0.0",
     # We depend on internal attributes,
