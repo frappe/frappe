@@ -90,8 +90,9 @@ class Workspace(Document, DeskViews):
 		# that is guarded by the right to create a module, which is a higher bar than this one and
 		# held by a different role. Checking again here would let someone create a module and then
 		# be refused a page for it, leaving a module nobody can reach.
+		before = self.get_doc_before_save()
 		if (
-			self.public
+			(self.public or (before and before.public))
 			and not self.flags.with_module
 			and not is_workspace_manager()
 			and not disable_saving_as_public()
@@ -144,13 +145,19 @@ class Workspace(Document, DeskViews):
 		wrote a row into that person's own sidebar (`add_private_to_sidebar`), which is one user
 		changing another user's navigation.
 
+		The page as stored counts as well as the page being saved. `has_permission` can only read
+		`for_user` off the document in front of it, so naming yourself would otherwise be enough to
+		pass it and take someone else's page.
+
 		System writes are left alone. An install, a migration, a patch or a fixture import is the
 		site building itself rather than a user acting, and they run as Administrator in any case.
 		"""
-		if self.public or not self.for_user:
-			return
-
-		if self.for_user == frappe.session.user or is_workspace_manager():
+		owners = {
+			page.for_user
+			for page in (self, self.get_doc_before_save())
+			if page and not page.public and page.for_user
+		}
+		if owners <= {frappe.session.user} or is_workspace_manager():
 			return
 
 		if any(
@@ -1363,3 +1370,24 @@ def check_workspace_manager(message: str) -> None:
 	"""Refuse anyone who is not one, with a message saying what they were trying to do."""
 	if not is_workspace_manager():
 		frappe.throw(message, frappe.PermissionError)
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""Keep a private page to its owner and Workspace Managers.
+
+	A page with no owner stays open to everyone, because `get_workspaces` shows it to everyone.
+	"""
+	user = user or frappe.session.user
+	return bool(doc.public or not doc.for_user or doc.for_user == user or is_workspace_manager(user))
+
+
+def get_permission_query_conditions(user=None):
+	"""Keep other users' private pages out of list queries, which `has_permission` does not reach."""
+	user = user or frappe.session.user
+	if is_workspace_manager(user):
+		return ""
+
+	return (
+		"(`tabWorkspace`.`public` = 1 or ifnull(`tabWorkspace`.`for_user`, '') = '' "
+		f"or `tabWorkspace`.`for_user` = {frappe.db.escape(user)})"
+	)

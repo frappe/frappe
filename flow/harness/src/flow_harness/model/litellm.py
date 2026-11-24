@@ -33,7 +33,7 @@ from flow_harness.events import (
 )
 from flow_harness.model.base import Model, ModelRequest
 from flow_harness.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
-from flow_harness.model.catalog import model_supports_images
+from flow_harness.model.catalog import load_litellm, model_supports_images
 from flow_harness.model.content import (
 	ResolvedImage,
 	resolve_tool_images,
@@ -149,7 +149,7 @@ class LiteLLMModel(Model):
 		cancellation: asyncio.Event | None,
 		tool_display_templates: Mapping[str, str],
 	) -> AsyncIterator[AnyEvent]:
-		import litellm
+		litellm = load_litellm()
 
 		try:
 			response = await await_with_cancellation(
@@ -183,7 +183,7 @@ class LiteLLMModel(Model):
 		cancellation: asyncio.Event | None,
 		tool_display_templates: Mapping[str, str],
 	) -> AsyncIterator[AnyEvent]:
-		import litellm
+		litellm = load_litellm()
 
 		kwargs["stream"] = True
 		kwargs["stream_options"] = {"include_usage": True}
@@ -244,7 +244,7 @@ def _completion_timeout(kwargs: Mapping[str, Any]) -> float | None:
 def litellm_limits(name: str) -> tuple[int | None, int | None]:
 	"""(context window, max output) from LiteLLM's catalog, else from the id behind the
 	prefix when the full name has no window (a gateway's custom_openai/openai/gpt-x)."""
-	import litellm
+	litellm = load_litellm()
 
 	for candidate in filter(None, (name, name.partition("/")[2])):
 		try:
@@ -568,7 +568,7 @@ def _uses_explicit_prompt_caching(model: str) -> bool:
 	if prefix == "anthropic":
 		return True
 	try:
-		import litellm
+		litellm = load_litellm()
 
 		resolved_model, provider, _, _ = litellm.get_llm_provider(model=model)
 	except Exception:

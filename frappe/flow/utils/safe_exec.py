@@ -26,6 +26,7 @@ from frappe.core.utils import html2text
 from frappe.email import sendmail
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.inplacevar import protected_inplacevar
+from frappe.utils.print_utils import _print_format_doc_or_none
 from frappe.utils.safe_exec import (
 	SAFE_DATA_UTILS,
 	SAFE_EXCEPTIONS,
@@ -179,6 +180,8 @@ def _readable_attachment(attachment: dict) -> dict:
 			and frappe.has_permission(doctype, "read", name)
 		):
 			raise frappe.PermissionError(_("No permission to read {0} {1}").format(doctype, name))
+		print_format = _print_format_doc_or_none(attachment.get("print_format"), doctype)
+		attachment["print_format"] = print_format.name if print_format else "Standard"
 		attachment.pop("doc", None)  # print the checked record itself
 	return attachment
 

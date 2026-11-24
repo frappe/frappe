@@ -28,6 +28,9 @@ ASSISTANT_INSTRUCTIONS = (
 	"- search_docs: search the Frappe docs for any question about Frappe or its apps: how something "
 	"works, how to do or set up something, a functional or a technical query. If the results are not "
 	"good enough, use web_search when you have it.\n\n"
+	"THIS SITE FIRST: for a question or a problem, the docs alone are not an answer. Also check the "
+	"site with the read tools for what is already there and what is missing, answer for this site, "
+	"and offer to do the next steps. Change nothing until the user agrees.\n\n"
 	"ACTING: write tools pause for the user's approval on each call.\n"
 	"- create / update / delete: standard record writes.\n"
 	"- run_action: submit, cancel, amend, rename, workflow transitions, whitelisted methods; check "
@@ -70,9 +73,9 @@ ASSISTANT_INSTRUCTIONS = (
 	"call main() yourself. Same sandbox rules as execute.\n\n"
 	"EARLIER CHATS: to recall a past conversation, read the user's own Flow Session records (filter "
 	"by owner), then that session's Flow Session Message rows.\n\n"
-	"STYLE: one short sentence before each tool call on what you're doing and why; never call a tool "
-	"silently. If a result changes your plan, say so. When you need a decision you cannot discover, ask "
-	"a short plain-text question and stop. When done, reply in plain text. Never use emojis.\n\n"
+	"STYLE: If a result changes your plan, say so. When you need a decision you cannot discover, ask "
+	"a short plain-text question and stop. When done, reply in plain text. Link every record you "
+	"mention, e.g. [SINV-0001](/desk/sales-invoice/SINV-0001). Never use emojis.\n\n"
 	"You are helping {{ full_name }} ({{ user }}). Session started on {{ frappe.utils.get_weekday() }}, {{ today }}."
 )
 

@@ -18,6 +18,11 @@
 	overflow: hidden;
 }
 
+.preview-beta-wrapper iframe {
+	// a frame whose color scheme differs from the desk's gets an opaque canvas
+	color-scheme: light;
+}
+
 .print-toolbar {
 	margin: 0px;
 	padding: var(--padding-md) 0;
@@ -37,7 +42,8 @@
 }
 
 [data-theme="dark"] {
-	.print-preview-wrapper {
+	.print-preview-wrapper,
+	.preview-beta-wrapper {
 		background-color: var(--gray-700);
 	}
 }
@@ -366,6 +372,7 @@
 
 .preview-beta-wrapper {
 	position: relative;
+	background-color: var(--gray-200);
 }
 
 .print-preview-bar {
@@ -412,4 +419,12 @@
 	width: 0;
 	height: 0;
 	border: 0;
+}
+
+.letter-head-preview {
+	width: 100%;
+	height: 60vh;
+	border: 1px solid var(--outline-gray-1);
+	border-radius: var(--radius);
+	background-color: var(--surface-gray-2);
 }

@@ -7,7 +7,6 @@ import frappe
 from frappe.utils.data import cint, cstr, flt
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import (
-	_print_format_doc_or_none,
 	convert_uom,
 	parse_float_and_unit,
 	resolve_pdf_generator,
@@ -274,6 +273,10 @@ class Browser:
 				style.name not in ("page-width", "page-height")
 				or re.fullmatch(PAGE_LENGTH, style.value.strip())
 			)
+			and (
+				style.name != "header-spacing"
+				or re.fullmatch(rf"{PAGE_LENGTH}|[+-]?(\d*\.)?\d+", style.value.strip())
+			)
 		}
 		self.options.update(options)
 		self._set_page_size_from_print_format()
@@ -304,10 +307,11 @@ class Browser:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 		from frappe.www.printview import get_page_rule_margins
 
-		print_format = _print_format_doc_or_none(self.print_format)
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format, cache=True):
+			return {}
+		print_format = frappe.get_cached_doc("Print Format", self.print_format)
 		if (
-			not print_format
-			or not print_format.css
+			not print_format.css
 			or uses_beta_renderer(print_format)
 			or (print_format.pdf_generator or resolve_pdf_generator()) not in ("chrome", "PlutoPrint")
 		):
@@ -436,7 +440,12 @@ class Browser:
 
 		if self.header_page:
 			header_with_top_margin = self.header_height + (0 if header_owns_top_margin else margin_top)
-			header_spacing = options.get("header-spacing", 0)
+			header_spacing = options.get("header-spacing") or 0
+			if header_spacing:
+				parsed = parse_float_and_unit(header_spacing, default_unit="mm")
+				header_spacing = (
+					convert_uom(parsed["value"], parsed["unit"], "px", only_number=True) if parsed else 0
+				)
 			header_with_spacing_top_margin = header_with_top_margin + header_spacing
 			self.header_page.options["paperHeight"] = (
 				convert_uom(header_with_spacing_top_margin, "px", "in", only_number=True)

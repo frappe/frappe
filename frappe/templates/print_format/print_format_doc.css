@@ -61,6 +61,11 @@
 	color: inherit;
 }
 
+.print-format-doc pre,
+.print-format-doc pre code {
+	word-break: break-word;
+}
+
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
 .print-format-doc .field.left-right,
 .print-format-doc .field.field-inline {

@@ -8,11 +8,11 @@ from __future__ import annotations
 import json
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import frappe
 from frappe import _
-from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.daemon.client import DaemonClient, DaemonDown, DaemonError
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_agent.flow_agent import FlowAgent
@@ -45,6 +45,12 @@ USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write
 PENDING_KEYS = ("id", "name", "args", "prompt")
 
 
+class FlowServerDown(frappe.ValidationError):
+	"""The flow server is restarting and saw nothing of the call, so the caller can send it again."""
+
+	http_status_code = 503
+
+
 def new_session(
 	agent: FlowAgent | str | None = None,
 	*,
@@ -52,13 +58,17 @@ def new_session(
 	title: str | None = None,
 	source: str = "Manual",
 	approval_mode: str | None = None,
+	guest_token: str | None = None,
+	personal_trigger: bool = False,
 ) -> FlowSession:
-	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant."""
+	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant.
+	`guest_token` is the hash of the token that opens a guest chat."""
 	if agent is None:
 		agent_doc = frappe.get_doc("Flow Agent", _default_agent_name())
 	else:
 		agent_doc = frappe.get_doc("Flow Agent", agent) if isinstance(agent, str) else agent
-	frappe.has_permission("Flow Agent", "read", agent_doc.name, throw=True)
+	if not is_guest_chat(agent_doc):
+		frappe.has_permission("Flow Agent", "read", agent_doc.name, throw=True)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Flow Session",
@@ -66,7 +76,9 @@ def new_session(
 			"model": model,
 			"title": title,
 			"source": source,
+			"personal_trigger": personal_trigger,
 			"approval_mode": "Auto-approve" if source == "Trigger" else approval_mode or "Auto",
+			"guest_token": guest_token,
 		}
 	).insert(ignore_permissions=True)
 	with flow_server() as client:
@@ -75,6 +87,11 @@ def new_session(
 	if not frappe.flags.in_test:
 		frappe.db.commit()  # nosemgrep: frappe-manual-commit
 	return doc
+
+
+def is_guest_chat(agent: FlowAgent) -> bool:
+	"""Whether Guest is chatting with a public agent, whose switch opens it and its model to them."""
+	return frappe.session.user == "Guest" and bool(agent.public)
 
 
 def load_session(name: str, *, agent: str | None = None, model: str | None = None) -> FlowSession:
@@ -118,7 +135,12 @@ def flow_server() -> Generator[DaemonClient]:
 		with DaemonClient.for_site() as client:
 			yield client
 	except DaemonError as exc:
-		frappe.throw(str(exc), title=_("Flow Server"))
+		throw_server_error(exc)
+
+
+def throw_server_error(exc: DaemonError) -> NoReturn:
+	kind = FlowServerDown if isinstance(exc, DaemonDown) else frappe.ValidationError
+	frappe.throw(str(exc), exc=kind, title=_("Flow Server"))
 
 
 class LogRecorder:

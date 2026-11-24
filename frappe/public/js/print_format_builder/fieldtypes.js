@@ -48,6 +48,7 @@ export const is_image = (df) => IMAGE_FIELDTYPES.has(df?.fieldtype);
 export const is_text = (df) => !NON_TEXT_FIELDTYPES.has(df?.fieldtype);
 export const is_block = (df) => BLOCK_FIELDTYPES.has(df?.fieldtype);
 export const is_breakable = (df) => BREAKABLE_FIELDTYPES.has(df?.fieldtype);
+export const page_break_default = (df) => (df?.fieldtype === "Text Editor" ? 1 : 0);
 export const is_merge_image = (df) => MERGE_IMAGE_FIELDTYPES.has(df?.fieldtype);
 export const is_merge_html = (df) => MERGE_HTML_FIELDTYPES.has(df?.fieldtype);
 export const has_align = (df) => !UNALIGNED_FIELDTYPES.has(df?.fieldtype);

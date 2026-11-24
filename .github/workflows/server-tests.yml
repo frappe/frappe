@@ -4,13 +4,14 @@ on:
   repository_dispatch:
     types: [frappe-framework-change]
   pull_request:
+  merge_group:
   workflow_dispatch:
   schedule:
     # Run everday at midnight UTC / 5:30 IST
     - cron: "0 0 * * *"
 
 concurrency:
-  group: server-${{ github.event_name }}-${{ github.event.number }}
+  group: server-${{ github.event_name }}-${{ github.event.number || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
@@ -38,6 +39,8 @@ jobs:
         env:
           TYPE: "server"
           PR_NUMBER: ${{ github.event.number }}
+          BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.merge_group.head_sha }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   test:
@@ -47,7 +50,7 @@ jobs:
       enable-postgres: ${{ contains(github.event.pull_request.labels.*.name, 'postgres') }} # This enables PostgreSQL to run tests
       enable-sqlite: false  # This will test against both MariaDB and SQLite if enabled
       parallel-runs: 2
-      enable-coverage: ${{ github.event_name != 'pull_request' }}
+      enable-coverage: ${{ !contains(fromJSON('["pull_request", "merge_group"]'), github.event_name) }}
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
     needs: checkrun
     secrets: inherit
@@ -65,7 +68,7 @@ jobs:
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.event_name != 'pull_request' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' && !contains(fromJSON('["pull_request", "merge_group"]'), github.event_name) }}
     runs-on: ubuntu-latest
     steps:
       - name: Clone

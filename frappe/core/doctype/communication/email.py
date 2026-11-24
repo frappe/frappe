@@ -103,6 +103,12 @@ def make(
 	if letterhead:
 		frappe.has_permission("Letter Head", doc=letterhead, ptype="read", throw=True)
 
+	if print_format:
+		from frappe.utils.print_utils import _print_format_doc_or_none
+
+		print_format_doc = _print_format_doc_or_none(print_format, doctype)
+		print_format = print_format_doc.name if print_format_doc else "Standard"
+
 	if (
 		raw_html
 		and email_template

@@ -2,7 +2,7 @@
 
 {%- block value -%}
 <div class="value{% if _val_style %} value--colored{% endif %}"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>
-	{{ frappe.utils.md_to_html(doc.get(df.fieldname)) }}
+	{{ frappe.sanitize_html(frappe.utils.md_to_html(doc.get(df.fieldname))) }}
 </div>
 {%- endblock -%}
 

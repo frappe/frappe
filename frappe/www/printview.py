@@ -75,7 +75,9 @@ def get_context(context) -> PrintContext:
 
 	meta = frappe.get_meta(doc.doctype)
 
-	print_format, standalone = resolve_print_format(None, meta)
+	print_format, standalone = resolve_print_format(
+		None, meta, frappe._dict(doctype=frappe.form_dict.doctype, name=frappe.form_dict.name)
+	)
 	legacy_weasyprint = uses_legacy_weasyprint(print_format)
 	if legacy_weasyprint:
 		standalone = False
@@ -128,6 +130,7 @@ def get_context(context) -> PrintContext:
 			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
 			settings=settings,
+			print_filename=context["print_filename"],
 		)
 	else:
 		body = get_rendered_template(
@@ -182,25 +185,35 @@ def cast_client_values(document: "Document"):
 				del frappe.local.message_log[messages:]
 
 
-def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
+def get_print_format_doc(
+	print_format_name: str, meta: "Meta", doc: "Document | None" = None
+) -> "PrintFormat" | None:
 	"""Return print format document."""
-	if not print_format_name:
-		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
+	from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
+
+	requested = print_format_name or frappe.form_dict.format
+	print_format_name = requested or meta.default_print_format or "Standard"
 
 	if print_format_name == "Standard":
 		return None
-	else:
-		try:
-			return frappe.get_doc("Print Format", print_format_name)
-		except frappe.DoesNotExistError:
-			# if old name, return standard!
-			return None
+	try:
+		print_format = frappe.get_doc("Print Format", print_format_name)
+	except frappe.DoesNotExistError:
+		# if old name, return standard!
+		return None
+	if can_print_with(print_format):
+		return print_format
+	if print_format_name == requested and requested != meta.default_print_format and not has_share_key(doc):
+		check_print_format_roles(print_format)
+	return None
 
 
-def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat | None", bool]:
+def resolve_print_format(
+	print_format_name: "str | None", meta: "Meta", doc: "Document | None" = None
+) -> tuple["PrintFormat | None", bool]:
 	"""Resolve a print format name to its document and whether it renders through
 	the builder renderer."""
-	print_format = get_print_format_doc(print_format_name, meta=meta)
+	print_format = get_print_format_doc(print_format_name, meta=meta, doc=doc)
 	return print_format, uses_beta_renderer(print_format)
 
 
@@ -406,7 +419,7 @@ def convert_markdown(doc: "Document") -> None:
 		if field.fieldtype == "Text Editor":
 			value = doc.get(field.fieldname)
 			if value and "<!-- markdown -->" in value:
-				doc.set(field.fieldname, frappe.utils.md_to_html(value))
+				doc.set(field.fieldname, frappe.utils.sanitize_html(frappe.utils.md_to_html(value)))
 
 
 @frappe.whitelist()
@@ -474,7 +487,49 @@ def get_html_and_style(
 
 
 def get_preview_page_css(print_format: "PrintFormat" | None = None, overrides: dict | None = None) -> str:
-	page_width, page_height = get_page_size_mm(overrides)
+	from bs4 import BeautifulSoup
+
+	from frappe.utils.pdf import get_print_format_styles
+	from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
+	from frappe.utils.print_format_generator import page_size_mm
+	from frappe.utils.print_utils import convert_uom, parse_float_and_unit, resolve_pdf_generator
+
+	overrides = overrides or {}
+	css = (print_format and print_format.css) or ""
+	page_options = {
+		style.name: style.value
+		for style in get_print_format_styles(BeautifulSoup(f"<style>{css}</style>", "html.parser"))
+		if style.name in ("page-size", "orientation")
+		or (style.name in ("page-width", "page-height") and re.fullmatch(PAGE_LENGTH, style.value.strip()))
+	}
+	html_pdf = print_format and (print_format.pdf_generator or resolve_pdf_generator()) in (
+		"chrome",
+		"PlutoPrint",
+	)
+	paper_size = html_pdf and print_format.paper_size
+	if any(page_options.get(key) for key in ("page-size", "page-width", "page-height")):
+		paper_size = None
+	elif html_pdf and not paper_size:
+		page_options = get_page_rule_size(css) | page_options
+	if overrides.get("pdf_page_size") or overrides.get("page_orientation") == "Landscape":
+		page_width, page_height = get_page_size_mm(overrides)
+	elif receipt_width := RECEIPT_WIDTHS.get(paper_size):
+		page_width, page_height = parse_float_and_unit(receipt_width)["value"], 0
+	elif paper_size:
+		page_width, page_height = page_size_mm({"pdf_page_size": paper_size})
+	elif page_options.get("page-width") and page_options.get("page-height"):
+		page_width, page_height = (
+			convert_uom(length["value"], length["unit"], "mm", only_number=True)
+			for length in (parse_float_and_unit(page_options[key]) for key in ("page-width", "page-height"))
+		)
+	elif page_options.get("page-size"):
+		page_width, page_height = page_size_mm(
+			frappe.get_cached_doc("Print Settings").as_dict() | {"pdf_page_size": page_options["page-size"]}
+		)
+	else:
+		page_width, page_height = get_page_size_mm(overrides)
+	if cstr(page_options.get("orientation")).lower() == "landscape" and page_width < page_height:
+		page_width, page_height = page_height, page_width
 	return frappe.get_template("templates/print_formats/preview_page.css").render(
 		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)}
 	)
@@ -570,6 +625,16 @@ def run_before_print(doc: "Document", print_settings: dict) -> None:
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
+
+
+def has_share_key(doc: "Document | dict | None") -> bool:
+	key = frappe.form_dict.key
+	if not doc or not doc.get("name") or not isinstance(key, str):
+		return False
+	try:
+		return validate_key(key, doc) is not False
+	except frappe.exceptions.LinkExpired:
+		return False
 
 
 def validate_key(key: str, doc: "Document") -> None:

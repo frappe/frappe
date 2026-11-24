@@ -83,6 +83,14 @@ def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_n
 		)
 	else:
 		import frappe.database.mariadb.database
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2026-11-19",
+			"v17",
+			"The PyMySQL connector (`use_mysqlclient: 0` in site config) is deprecated. "
+			"Remove `use_mysqlclient` from site config to use mysqlclient.",
+		)
 
 		return frappe.database.mariadb.database.MariaDBDatabase(
 			socket, host, user, password, port, cur_db_name

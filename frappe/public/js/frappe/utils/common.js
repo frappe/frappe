@@ -107,7 +107,9 @@ frappe.avatar_group = function (users, limit = 4, options = {}) {
 			${html}
 			<span class="avatar avatar-small ${css_class}">
 				<div class="avatar-frame standard-image avatar-extra-count"
-					title="${extra_users.map((u) => frappe.user_info(u).fullname).join(", ")}">
+					title="${frappe.utils.escape_html(
+						extra_users.map((u) => frappe.user_info(u).fullname).join(", ")
+					)}">
 					+${extra_users.length}
 				</div>
 			</span>

@@ -6,7 +6,19 @@
 			:class="expandable ? 'group cursor-pointer' : ''"
 			@click="expandable && (open = !open)"
 		>
-			<ThoughtIcon class="h-3.5 w-3.5 flex-none self-center text-ink-gray-5" />
+			<!-- as ToolStep: the icon's place doubles as the chevron's -->
+			<span class="relative size-3.5 flex-none self-center text-ink-gray-5">
+				<ThoughtIcon
+					class="h-3.5 w-3.5 transition-opacity"
+					:class="open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : ''"
+				/>
+				<span
+					v-if="expandable"
+					class="lucide-chevron-right absolute inset-0 size-3.5 transition-[opacity,transform]"
+					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
+					aria-hidden="true"
+				/>
+			</span>
 			<span class="min-w-0 truncate text-base text-ink-gray-6 group-hover:text-ink-gray-8">
 				<span :class="live ? 'flow-shimmer' : ''">{{ live ? __("Thinking") : __("Thought") }}</span>
 				<!-- no preview of the thought itself: only why one can't be opened -->
@@ -15,12 +27,6 @@
 					<span>{{ __("Thinking is encrypted for this model.") }}</span>
 				</template>
 			</span>
-			<span
-				v-if="expandable"
-				class="lucide-chevron-down size-3.5 flex-none self-center text-ink-gray-5 transition-[opacity,transform]"
-				:class="open ? 'rotate-180' : 'opacity-0 group-hover:opacity-100'"
-				aria-hidden="true"
-			/>
 		</component>
 
 		<!-- as the turn's first thought (ThinkingBlock): a rule at its side, not a box -->

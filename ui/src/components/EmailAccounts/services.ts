@@ -330,7 +330,7 @@ export function oauthMessage(result: string, provider?: string | null): string {
         "SMTP AUTH is turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it.",
       ),
       smtp_disabled_personal: __(
-        "Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox.",
+        "Microsoft doesn't let this mailbox send email from other apps. To send, connect a work Microsoft 365 account.",
       ),
       imap_disabled: __(
         "IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin.",
@@ -419,6 +419,19 @@ export function reconnectable(
   return (
     account.authKind === "oauth-custom" ||
     (account.authKind === "oauth" && Boolean(oneClick[account.service]))
+  );
+}
+
+/** Text for an error saving `account`; when Microsoft refused its SMTP login, says why in plain words. */
+export function saveErrorText(
+  account: Pick<EmailAccount, "service" | "smtp_server">,
+  e: unknown,
+): string {
+  const text = errorText(e);
+  if (account.service !== "Outlook.com" || !text.includes("SmtpClientAuthentication")) return text;
+  return oauthMessage(
+    account.smtp_server === "smtp-mail.outlook.com" ? "smtp_disabled_personal" : "smtp_disabled",
+    "microsoft",
   );
 }
 

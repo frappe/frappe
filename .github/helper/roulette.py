@@ -83,6 +83,37 @@ def get_files_list(pr_number, repo="frappe/frappe"):
 	return [change["filename"] for change in fetch_pr_data(pr_number, repo, "files")]
 
 
+def get_queue_files(repo, base, head):
+	"""Files a merge queue group changes, or None when GitHub cuts the list short."""
+	files = json.loads(req(f"https://api.github.com/repos/{repo}/compare/{base}...{head}").read())["files"]
+	if len(files) >= 300:
+		return None
+	return [
+		name for change in files for name in (change["filename"], change.get("previous_filename")) if name
+	]
+
+
+def queue_jobs(build_type, files):
+	if files is None or any(is_ci(f) for f in files):
+		return {"build", "studio", "flow"}
+	files = [f for f in files if f.endswith(".csv") or not is_docs(f)]
+	if build_type == "server":
+		return {"build"} if any(not is_frontend_code(f) for f in files) else set()
+	jobs = set()
+	if any(not is_server_side_code(f) and not f.startswith(("flow/", "studio/")) for f in files):
+		jobs.add("build")
+	if any(f.startswith(("studio/", "frappe/studio/", "ui/")) for f in files):
+		jobs.add("studio")
+	if any(f.startswith(("flow/", "ui/")) for f in files):
+		jobs.add("flow")
+	return jobs
+
+
+def run_jobs(jobs=("build", "studio", "flow")):
+	for job in jobs:
+		os.system(f'echo "{job}=strawberry" >> $GITHUB_OUTPUT')
+
+
 def get_output(command, shell=True):
 	"""
 	Execute a shell command and return its output.
@@ -148,6 +179,8 @@ def is_frontend_code(file):
 	"""Check if the file is frontend code."""
 	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
 		return True
+	if file.endswith(".html") and file.startswith("frappe/") and not file.startswith("frappe/public/"):
+		return False
 	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html", ".svg"))
 
 
@@ -163,6 +196,21 @@ def _selftest():
 
 	assert is_docs("frappe/locale/main.pot"), "translation template alone must skip tests"
 	assert not is_docs("frappe/locale/de.po"), "translations change output, must run tests"
+	assert queue_jobs("ui", ["frappe/model/document.py"]) == set(), "python alone skips the UI workflow"
+	assert queue_jobs("server", ["frappe/public/js/frappe/form/form.js"]) == set(), (
+		"frontend alone skips the server suite"
+	)
+	assert queue_jobs("ui", ["flow/frontend/src/App.vue"]) == {"flow"}, "flow alone runs only its page tests"
+	assert queue_jobs("ui", ["frappe/studio/api.py"]) == {"studio"}, "studio's server code runs its tests"
+	assert queue_jobs("ui", ["frappe/core/doctype/user/user.json"]) == {"build"}, "doctype JSON runs UI tests"
+	assert queue_jobs("ui", ["ui/src/index.ts"]) == {"build", "studio", "flow"}, "studio and flow link ui/"
+	assert queue_jobs("server", ["README.md"]) == set(), "docs alone run nothing"
+	assert queue_jobs("server", ["frappe/core/doctype/data_import/fixtures/sample_import_file.csv"]) == {
+		"build"
+	}, "tests read CSV files"
+	assert queue_jobs("server", ["frappe/templates/base.html"]) == {"build"}, "Jinja runs server tests"
+	assert queue_jobs("ui", None) == {"build", "studio", "flow"}, "a cut short file list runs everything"
+	assert queue_jobs("ui", [".github/workflows/ui-tests.yml"]) == {"build", "studio", "flow"}
 
 	impact = {
 		"generated_at": datetime.now(UTC).isoformat(),
@@ -196,9 +244,16 @@ if __name__ == "__main__":
 	pr_number = os.environ.get("PR_NUMBER")
 	repo = os.environ.get("REPO_NAME")
 
+	base_sha, head_sha = os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")
+	if not pr_number and base_sha and head_sha:
+		jobs = queue_jobs(build_type, files_list or get_queue_files(repo, base_sha, head_sha))
+		print(f"Merge queue group runs: {', '.join(sorted(jobs)) or 'nothing'}")
+		run_jobs(jobs)
+		sys.exit(0)
+
 	# If it's a push build, run all builds
 	if not pr_number:
-		os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+		run_jobs()
 		sys.exit(0)
 
 	# Get list of changed files if not provided
@@ -250,4 +305,4 @@ if __name__ == "__main__":
 		sys.exit(0)
 
 	# If we reach here, run the build
-	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+	run_jobs()

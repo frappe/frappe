@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import asyncio
+import hashlib
 import json
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -46,6 +47,16 @@ class FakeSocket:
 	async def has_permission(self, doctype, name):
 		return self.allowed
 
+	@property
+	def _session(self):
+		"""The site, which knows one guest chat and is asked with the hash of its token."""
+
+		async def get(path, params):
+			token_hash = hashlib.sha256(b"its-token").hexdigest()
+			return {"message": params == {"session": "guest-1", "token_hash": token_hash}}
+
+		return SimpleNamespace(get=get)
+
 	async def join(self, room):
 		self.rooms.add(room)
 
@@ -82,6 +93,22 @@ class TestRealtimeRelay(UnitTestCase):
 			await asyncio.sleep(0.1)
 			relay.listener.cancel()
 			self.assertIn(("flow:event", {"seq": 1}, channel), socket.emits)
+
+		asyncio.run(run())
+
+	def test_a_guest_chat_is_relayed_to_whoever_holds_its_token(self):
+		async def run():
+			relay = flow_handlers.Relay()
+			# Guest, whom the site lets read no chat
+			socket = FakeSocket(allowed=False)
+			for token in (None, "another-token"):
+				self.assertFalse(await relay.subscribe(socket, "guest-1", token))
+
+			pubsub = FakePubSub()
+			with patch.object(flow_handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
+				self.assertTrue(await relay.subscribe(socket, "guest-1", "its-token"))
+			relay.listener.cancel()
+			self.assertIn("harness:s1:guest-1", socket.rooms)
 
 		asyncio.run(run())
 

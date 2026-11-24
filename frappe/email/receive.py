@@ -12,7 +12,7 @@ import re
 import ssl
 from contextlib import suppress
 from email.errors import HeaderParseError
-from email.header import decode_header
+from email.header import Header, decode_header
 from urllib.parse import unquote
 
 import chardet
@@ -449,8 +449,15 @@ class Email:
 			self.subject = "No Subject"
 			return
 
+		subject = self.decode_header_value(raw_subject).strip()
+
+		# Truncate to 140 chars (can be used as a document name)
+		self.subject = subject[:140] if subject else "No Subject"
+
+	@staticmethod
+	def decode_header_value(value: str | Header) -> str:
 		decoded_fragments = []
-		for fragment, charset in decode_header(raw_subject):
+		for fragment, charset in decode_header(value):
 			if isinstance(fragment, bytes):
 				charset = charset or "utf-8"
 				try:
@@ -460,10 +467,7 @@ class Email:
 					fragment = fragment.decode("utf-8", errors="replace")
 			decoded_fragments.append(fragment)
 
-		subject = "".join(decoded_fragments).strip()
-
-		# Truncate to 140 chars (can be used as a document name)
-		self.subject = subject[:140] if subject else "No Subject"
+		return "".join(decoded_fragments)
 
 	def set_from(self):
 		# gmail mailing-list compatibility
@@ -611,7 +615,7 @@ class Email:
 		if fname:
 			try:
 				fname = fname.replace("\n", " ").replace("\r", "")
-				fname = cstr(decode_header(fname)[0][0])
+				fname = self.decode_header_value(fname) or get_random_filename(content_type=content_type)
 			except Exception:
 				fname = get_random_filename(content_type=content_type)
 		else:
@@ -769,6 +773,17 @@ class InboundMail(Email):
 	def is_notification(self):
 		isnotification = self.mail.get("isnotification")
 		return isnotification and ("notification" in isnotification)
+
+	def is_auto_submitted(self):
+		"""Return True for automatic mails, such as out-of-office replies and bounces (RFC 3834)."""
+		auto_submitted = str(self.mail.get("Auto-Submitted") or "no").strip().lower()
+		precedence = str(self.mail.get("Precedence") or "").strip().lower()
+		return (
+			auto_submitted != "no"
+			or "X-Autoreply" in self.mail
+			or "X-Autorespond" in self.mail
+			or precedence in ("bulk", "junk")
+		)
 
 	def is_exist_in_system(self):
 		"""Check if this email already exists in the system(as communication document)."""

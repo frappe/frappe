@@ -29,7 +29,6 @@ const PREVIEW_STYLE = `<style>
 	@media screen {
 		:root {
 			margin: 0;
-			background-color: var(--gray-200);
 		}
 		:root body {
 			margin: 0;
@@ -259,10 +258,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			letter_head_name: letter_head || null,
 			letter_head: letter_head ? frappe.boot.letter_heads?.[letter_head] : null,
 			include_filters: this.include_filters_field.get_value(),
-			columns:
-				pick_columns && columns.length < this.report.get_visible_columns().length
-					? columns
-					: null,
+			columns: pick_columns ? columns : null,
 		};
 	}
 

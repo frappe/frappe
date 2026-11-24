@@ -20,6 +20,7 @@ import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
+from frappe.deprecation_dumpster import deprecation_warning
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
@@ -73,6 +74,12 @@ SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
 class DatabaseQuery:
 	def __init__(self, doctype, user=None):
+		deprecation_warning(
+			"2026-11-20",
+			"v17",
+			"frappe.model.db_query.DatabaseQuery is deprecated. "
+			"Use frappe.get_list / frappe.get_all, or frappe.model.qb_query.DatabaseQuery.",
+		)
 		self.doctype = doctype
 		self.tables = []
 		self.link_tables = []

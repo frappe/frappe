@@ -1202,7 +1202,7 @@ def get_web_form_list(
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep: guest-whitelisted-method
 @frappe.read_only()
 def get_form_data(
 	doctype: str,
@@ -1212,6 +1212,9 @@ def get_form_data(
 ):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
+
+	if doctype != web_form.doc_type:
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
@@ -1230,11 +1233,12 @@ def get_form_data(
 		docname = frappe.db.get_value(doctype, {"owner": frappe.session.user}, "name")
 
 	if docname:
-		doc = frappe.get_doc(doctype, docname)
-		if web_form.has_web_form_permission(doctype, docname, ptype="read"):
-			out.doc = doc
-		else:
+		if not frappe.db.exists(doctype, docname) or not web_form.has_web_form_permission(
+			doctype, docname, ptype="read"
+		):
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+		out.doc = frappe.get_doc(doctype, docname)
 
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:

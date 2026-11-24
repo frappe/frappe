@@ -1030,6 +1030,7 @@ def convert_to_symlink(directory):
 
 class TestAttachment(IntegrationTestCase):
 	test_doctype = "Test For Attachment"
+	test_protected_doctype = "Test For Attachment Protected"
 
 	@classmethod
 	def setUpClass(cls):
@@ -1044,11 +1045,22 @@ class TestAttachment(IntegrationTestCase):
 				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
 			],
 		).insert(ignore_if_duplicate=True)
+		frappe.get_doc(
+			doctype="DocType",
+			name=cls.test_protected_doctype,
+			module="Custom",
+			custom=1,
+			is_submittable=1,
+			protect_attached_files=1,
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			permissions=[{"role": "System Manager", "submit": 1, "cancel": 1, "delete": 0}],
+		).insert(ignore_if_duplicate=True)
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		frappe.delete_doc("DocType", cls.test_doctype)
+		frappe.delete_doc("DocType", cls.test_protected_doctype)
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test for attachment on update").insert()
@@ -1152,6 +1164,48 @@ class TestAttachment(IntegrationTestCase):
 		file.save()
 
 		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
+
+	def test_protected_file_keeps_its_document(self):
+		doc = frappe.get_doc(doctype=self.test_protected_doctype, title="test protected reference").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_protected_reference.txt",
+				"content": "Protected Reference",
+				"attached_to_doctype": self.test_protected_doctype,
+				"attached_to_name": doc.name,
+			}
+		).insert()
+		doc.submit()
+
+		file = frappe.get_doc("File", file.name)
+		file.update({"attached_to_doctype": None, "attached_to_name": None})
+		with self.assertRaises(frappe.ValidationError):
+			file.save()
+
+	def test_attachment_change_checks_stored_record(self):
+		todo = frappe.get_doc(doctype="ToDo", description="test attachment move").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_attachment_move.txt",
+				"content": "Attachment Move",
+				"is_private": 1,
+				"attached_to_doctype": "ToDo",
+				"attached_to_name": todo.name,
+			}
+		).insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test2@example.com")
+		own_todo = frappe.get_doc(doctype="ToDo", description="test attachment target").insert()
+		file = frappe.get_doc("File", file.name)
+		file.attached_to_name = own_todo.name
+		with self.assertRaises(frappe.PermissionError):
+			file.save()
 
 
 class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
