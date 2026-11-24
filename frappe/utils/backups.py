@@ -5,6 +5,7 @@ import contextlib
 # imports - standard imports
 import gzip
 import os
+import shlex
 import sqlite3
 import stat
 import sys
@@ -297,8 +298,8 @@ class BackupGenerator:
 				cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
 				try:
 					command = cmd_string.format(
-						passphrase=get_or_generate_backup_encryption_key(),
-						filelocation=path,
+						passphrase=shlex.quote(get_or_generate_backup_encryption_key()),
+						filelocation=shlex.quote(path),
 					)
 
 					frappe.utils.execute_in_shell(command)
@@ -423,7 +424,7 @@ class BackupGenerator:
 			try:
 				try:
 					frappe.utils.execute_in_shell(
-						cmd_string.format(archive_path, files_path),
+						cmd_string.format(shlex.quote(archive_path), shlex.quote(files_path)),
 						verbose=self.verbose,
 						low_priority=True,
 						check_exit_code=True,
@@ -487,7 +488,7 @@ class BackupGenerator:
 	def compress_archive(self, archive_path: str, backup_path: str) -> None:
 		"""Gzip a plain tar into the backup path."""
 		frappe.utils.execute_in_shell(
-			f"gzip -c {archive_path} > {backup_path}",
+			f"gzip -c {shlex.quote(archive_path)} > {shlex.quote(backup_path)}",
 			verbose=self.verbose,
 			low_priority=True,
 			check_exit_code=True,
@@ -556,8 +557,6 @@ class BackupGenerator:
 		if self.for_mariadb:
 			click.echo("Site already uses MariaDB; ignoring --for-mariadb.")
 
-		import shlex
-
 		gzip_exc: str = which("gzip")
 		if not gzip_exc:
 			frappe.throw(
@@ -601,7 +600,7 @@ class BackupGenerator:
 		cmd.append(bin)
 		cmd.append(shlex.join(args))
 
-		command = " ".join(["set -o pipefail;", *cmd, "|", gzip_exc, ">>", self.backup_path_db])
+		command = " ".join(["set -o pipefail;", *cmd, "|", gzip_exc, ">>", shlex.quote(self.backup_path_db)])
 		if self.verbose:
 			print(command.replace(shlex.quote(self.password), "*" * 10) + "\n")
 
@@ -918,9 +917,9 @@ def decrypt_backup(file_path: str, passphrase: str):
 
 		cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
 		command = cmd_string.format(
-			passphrase=passphrase,
-			file_location=file_path_with_ext,
-			decrypted_file=file_path,
+			passphrase=shlex.quote(passphrase),
+			file_location=shlex.quote(file_path_with_ext),
+			decrypted_file=shlex.quote(file_path),
 		)
 	frappe.utils.execute_in_shell(command)
 	try:
