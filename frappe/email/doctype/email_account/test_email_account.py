@@ -403,14 +403,14 @@ class TestEmailAccount(IntegrationTestCase):
 		sent, received, copy_queue = self.receive_reply_to_assigned_todo()
 		copy = email.message_from_string(copy_queue.message)
 
-		self.assertNotEqual(copy_queue.message_id, received.message_id)
-		self.assertTrue(copy_queue.message_id.endswith(f"@{frappe.local.site}"))
+		self.assertEqual(copy_queue.message_id, f"{received.name}@{frappe.local.site}")
 		self.assertEqual(copy["Message-Id"], f"<{copy_queue.message_id}>")
 		self.assertEqual(copy["In-Reply-To"], f"<{sent.message_id}>")
 		self.assertEqual(copy["References"], f"<{sent.message_id}> <{received.message_id}>")
 
 	def test_inbound_copy_returning_to_inbox_is_not_duplicated(self):
 		_, received, copy_queue = self.receive_reply_to_assigned_todo()
+		frappe.db.delete("Email Queue")
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		messages = {'"INBOX"': {"latest_messages": [copy_queue.message], "uid_list": [3]}}
@@ -425,11 +425,7 @@ class TestEmailAccount(IntegrationTestCase):
 		copy = email.message_from_string(copy_queue.message)
 		frappe.db.delete("Email Queue")
 
-		reply = (
-			self.get_test_mail("reply-4.raw")
-			.replace("References: {{ message_id }}", f"References: {copy['References']} {copy['Message-Id']}")
-			.replace("{{ message_id }}", copy["Message-Id"])
-		)
+		reply = self.get_test_mail("reply-4.raw").replace("{{ message_id }}", copy["Message-Id"])
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, {'"INBOX"': {"latest_messages": [reply]}})
 

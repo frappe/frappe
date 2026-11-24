@@ -456,10 +456,6 @@ class Email:
 		in_reply_to = self.mail.get("In-Reply-To") or ""
 		return get_string_between("<", in_reply_to, ">")
 
-	@property
-	def references(self):
-		return re.findall(r"<([^<>]+)>", self.mail.get("References") or "")
-
 	def parse(self):
 		"""Walk and process multi-part email."""
 		for part in self.mail.walk():
@@ -828,11 +824,8 @@ class InboundMail(Email):
 
 		if frappe.local.site in self.message_id:
 			# a copy this site sent of a received mail, e.g. to an assignee who is also this inbox
-			queued_communication = frappe.db.get_value(
-				"Email Queue", {"message_id": self.message_id}, "communication"
-			)
-			if queued_communication:
-				return Communication.find_one_by_filters(name=queued_communication, **filters)
+			name, _ = self.message_id.split("@", 1)
+			return Communication.find_one_by_filters(name=name, **filters)
 
 	def is_sender_same_as_receiver(self):
 		return self.from_email == self.email_account.email_id
@@ -889,11 +882,6 @@ class InboundMail(Email):
 				if "@" in self.in_reply_to:
 					reference, _ = self.in_reply_to.split("@", 1)
 				communication = Communication.find(reference, ignore_error=True)
-
-		if not communication and self.references:
-			communication = Communication.find_one_by_filters(
-				message_id=("in", self.references), order_by="creation DESC"
-			)
 
 		self._parent_communication = communication or ""
 		return self._parent_communication

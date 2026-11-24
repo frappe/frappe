@@ -353,7 +353,9 @@ class CommunicationEmailMixin:
 			"reference_doctype": self.reference_doctype,
 			"reference_name": self.reference_name,
 			"attachments": final_attachments,
-			"message_id": None if is_inbound_mail_communcation else self.message_id,
+			"message_id": f"{self.name}@{frappe.local.site}"
+			if is_inbound_mail_communcation
+			else self.message_id,
 			"unsubscribe_message": self.get_unsubscribe_message(),
 			"delayed": True,
 			"communication": self.name,
