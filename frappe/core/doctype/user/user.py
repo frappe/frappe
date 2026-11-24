@@ -822,7 +822,7 @@ class User(Document):
 					"Token Cache",
 					token_cache,
 					new_token_cache,
-					merge=bool(frappe.db.exists("Token Cache", new_token_cache)),
+					merge=frappe.db.exists("Token Cache", new_token_cache) == new_token_cache,
 					force=True,
 					ignore_permissions=True,
 					show_alert=False,
