@@ -24,6 +24,7 @@
 								label: 'View App in Desk',
 								icon: 'lucide-arrow-up-right',
 								onClick: () => openAppInDesk(store.activeApp!),
+								condition: () => Boolean(store.activeApp),
 							},
 							{
 								label: 'View Page in Desk',
@@ -41,6 +42,7 @@
 								label: 'Settings',
 								icon: 'lucide-settings',
 								onClick: () => store.openSettings('app'),
+								condition: () => Boolean(store.activeApp),
 							},
 							{
 								label: 'Keyboard Shortcuts',
@@ -63,6 +65,7 @@
 								icon: 'lucide-trash-2',
 								theme: 'red',
 								onClick: () => store.deleteApp(store.activeApp?.app_name!, store.activeApp?.app_title!),
+								condition: () => Boolean(store.activeApp),
 							},
 						],
 					},
@@ -105,7 +108,11 @@
 			</div>
 		</div>
 
-		<div>
+		<div v-if="isGlobalComponent" class="flex items-center gap-2 p-2 text-base text-ink-gray-7">
+			<span class="lucide-globe h-[14px] w-[14px] text-ink-gray-5" />
+			{{ canvasStore.fragmentData.fragmentName || "Global component" }}
+		</div>
+		<div v-else>
 			<Popover
 				v-model:open="store.showPageOptions"
 				:arrow="true"
@@ -157,7 +164,7 @@
 			</Popover>
 		</div>
 
-		<div class="absolute right-3 flex items-center gap-2">
+		<div v-if="!isGlobalComponent" class="absolute right-3 flex items-center gap-2">
 			<Tooltip
 				:text="store.activeApp?.is_standard ? 'App Export is enabled' : 'App Export Settings'"
 				:hoverDelay="600"
@@ -186,6 +193,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { useRoute } from "vue-router"
 import { Tooltip, Popover, Dropdown, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -201,9 +209,12 @@ import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
 import { isObjectEmpty, openAppInDesk, openPageInDesk } from "@/utils/helpers"
 
+const route = useRoute()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
+// a global component that is open with no app: there is no page to preview or publish
+const isGlobalComponent = computed(() => route.name === "StudioComponent")
 const routeString = computed(() => store.activePage?.route || "/")
 const showExportAppDialog = ref(false)
 const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))

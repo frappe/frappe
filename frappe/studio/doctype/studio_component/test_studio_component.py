@@ -10,6 +10,7 @@ from frappe.studio.doctype.studio_app.test_studio_app import (
 	make_studio_app,
 	make_studio_page,
 )
+from frappe.studio.doctype.studio_component.studio_component import get_frappe_app_component_folder
 from frappe.studio.doctype.studio_page.studio_page import get_blocks
 from frappe.studio.tests.test_permissions import make_studio_user
 from frappe.tests import IntegrationTestCase
@@ -56,6 +57,37 @@ class TestStudioComponent(IntegrationTestCase):
 			component.component_name = "Edited"
 			self.assertRaises(frappe.PermissionError, component.save)
 			self.assertRaises(frappe.PermissionError, frappe.delete_doc, "Studio Component", component.name)
+
+	def test_a_frappe_app_holds_a_global_component_in_its_files(self):
+		with exports_in_tempdir():
+			component = frappe.get_doc(
+				doctype="Studio Component",
+				component_name="Shipped " + frappe.generate_hash(length=10),
+				script=COMPONENT_SCRIPT,
+				frappe_app="frappe",
+			).insert()
+			folder = get_frappe_app_component_folder("frappe")
+			script_path = os.path.join(folder, f"{component.name}.js")
+
+			self.assertEqual(component.is_standard, 1)
+			exported = frappe.get_file_json(os.path.join(folder, f"{component.name}.json"))
+			self.assertEqual(exported["frappe_app"], "frappe")
+			self.assertNotIn("script", exported)
+			self.assertEqual(frappe.read_file(script_path), COMPONENT_SCRIPT)
+
+			component.delete()
+			self.assertFalse(os.path.exists(script_path))
+
+	def test_only_a_global_component_belongs_to_a_frappe_app(self):
+		app = make_studio_app(app_name="owned-" + frappe.generate_hash(length=10))
+		component = frappe.get_doc(
+			doctype="Studio Component", component_name="Owned", studio_app=app.name, frappe_app="frappe"
+		)
+		self.assertRaises(frappe.ValidationError, component.insert)
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			component = frappe.get_doc(doctype="Studio Component", component_name="Live", frappe_app="frappe")
+			self.assertRaises(frappe.PermissionError, component.insert)
 
 	def test_deleting_a_component_removes_its_files(self):
 		with exports_in_tempdir():

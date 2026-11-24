@@ -53,15 +53,18 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		block?: Block | null
 		onCreated: (component: StudioComponent) => void
 	}) {
+		// with no app open, a component can only be global
+		const hasApp = Boolean(useStudioStore().activeApp)
 		dialog.prompt({
 			title: "Create Component",
 			confirmLabel: "Create",
 			fields: [
 				{ name: "componentName", label: "Component Name", required: true },
-				{ name: "isGlobalComponent", label: "Global Component", type: "checkbox" },
+				...(hasApp ? [{ name: "isGlobalComponent", label: "Global Component", type: "checkbox" }] : []),
 			],
 			onConfirm: async ({ values }: { values: Record<string, any> }) => {
-				const component = await createComponent(values.componentName, options.block, values.isGlobalComponent)
+				const isGlobal = !hasApp || values.isGlobalComponent
+				const component = await createComponent(values.componentName, options.block, isGlobal)
 				if (component) options.onCreated(component)
 			},
 		})
@@ -108,6 +111,18 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			studioComponents.reload()
 		} catch (error: any) {
 			toast.error("Failed to change the component", { description: error?.messages?.join(", ") })
+		}
+	}
+
+	/** Put a global component in the files of a Frappe app, so the app ships it. */
+	async function setFrappeApp(componentId: string, frappeApp: string) {
+		const { name } = componentStore.getComponentDoc(componentId)
+		try {
+			const data = await studioComponents.setValue.submit({ name, frappe_app: frappeApp })
+			await componentStore.cacheComponent(data)
+			toast.success(`Component exported to ${frappeApp}`)
+		} catch (error: any) {
+			toast.error("Failed to export the component", { description: error?.messages?.join(", ") })
 		}
 	}
 
@@ -212,6 +227,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		editComponent,
 		deleteComponent,
 		setGlobal,
+		setFrappeApp,
 		renameComponent,
 		componentUsages,
 		saveComponentProp,

@@ -90,7 +90,8 @@ async function compileScript(path: string, script?: string | null): Promise<Reco
 	return registry.loadModule(path)
 }
 
+// A global component renders where no app is loaded, such as desk. Its script imports
+// only libraries, so a registry without files compiles it.
 function getRegistry(): AppModuleRegistry {
-	if (!registry) throw new Error("No Studio app runtime is loaded.")
-	return registry
+	return (registry ??= new AppModuleRegistry({}))
 }

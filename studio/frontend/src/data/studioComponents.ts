@@ -22,8 +22,8 @@ const studioComponents = createListResource({
 	},
 })
 
-/** List the components that an app can use: its own, and the global ones. */
-function loadStudioComponents(studioApp: string) {
+/** List the components that an app can use: its own, and the global ones. With no app, the global ones. */
+function loadStudioComponents(studioApp = "") {
 	studioComponents.filters = { is_disabled: 0, studio_app: ["in", [studioApp, ""]] }
 	return studioComponents.reload()
 }

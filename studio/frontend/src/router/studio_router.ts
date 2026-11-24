@@ -23,6 +23,12 @@ const routes = [
 		component: () => import("@/pages/StudioPage.vue"),
 	},
 	{
+		// a global component, which needs no app
+		path: "/component/:componentID",
+		name: "StudioComponent",
+		component: () => import("@/pages/StudioPage.vue"),
+	},
+	{
 		path: "/app/:appID/not-editable",
 		name: "NotEditable",
 		component: () => import("@/pages/NotEditable.vue"),

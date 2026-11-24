@@ -4,7 +4,7 @@
 		<div
 			class="flex h-full w-12 flex-col items-center space-y-2 border-r border-outline-elevation-2 bg-surface-base p-3"
 		>
-			<Tooltip v-for="tab in sidebarMenu" :key="tab.label" side="right" :text="tab.label">
+			<Tooltip v-for="tab in shownTabs" :key="tab.label" side="right" :text="tab.label">
 				<Button
 					:icon="tab.icon"
 					size="md"
@@ -63,6 +63,7 @@
 
 				<div v-show="activeTab === 'Code'">
 					<CodePanel class="p-3" v-if="store.activePage" />
+					<ComponentScriptEditor class="p-3" v-else-if="!store.activeApp" />
 				</div>
 
 				<AgentPanel v-show="activeTab === 'AI Assistant'" />
@@ -73,6 +74,7 @@
 
 <script setup lang="ts">
 import { watch, computed, nextTick, toRef } from "vue"
+import { useRoute } from "vue-router"
 import { Tooltip, Button } from "frappe-ui"
 
 import PagesPanel from "@/components/PagesPanel.vue"
@@ -82,6 +84,7 @@ import ComponentPanel from "@/components/ComponentPanel.vue"
 import ComponentLayers from "@/components/ComponentLayers.vue"
 import DataPanel from "@/components/DataPanel.vue"
 import CodePanel from "@/components/CodePanel.vue"
+import ComponentScriptEditor from "@/components/ComponentScriptEditor.vue"
 import IconButton from "@/components/IconButton.vue"
 import LucideChevronsLeft from "~icons/lucide/chevrons-left"
 import AgentPanel from "@/components/AgentPanel.vue"
@@ -117,10 +120,16 @@ const sidebarMenu = [
 		icon: "lucide-sparkle",
 	},
 ]
+const route = useRoute()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const pageLayers = toRef(store, "activeLayers")
 
+// a global component that is open with no app has no pages, data sources or files
+const APP_TABS = ["Pages", "Data", "AI Assistant"]
+const shownTabs = computed(() =>
+	route.name === "StudioComponent" ? sidebarMenu.filter((tab) => !APP_TABS.includes(tab.label)) : sidebarMenu,
+)
 const activeTab = computed(() => store.studioLayout.leftPanelActiveTab)
 
 const setActiveTab = (tab: LeftPanelOptions) => {
@@ -129,6 +138,14 @@ const setActiveTab = (tab: LeftPanelOptions) => {
 	}
 	store.studioLayout.leftPanelActiveTab = tab
 }
+
+watch(
+	shownTabs,
+	(tabs) => {
+		if (!tabs.some((tab) => tab.label === activeTab.value)) setActiveTab("Add Component")
+	},
+	{ immediate: true },
+)
 
 // moved out of ComponentLayers for performance
 // TODO: Find a better way to do this

@@ -15,6 +15,8 @@ SYNC_FLAGS = ("in_import", "in_migrate", "in_install", "in_uninstall", "in_patch
 
 def write_document_file(doc, folder=None, exclude_fields=None, filename=None):
 	doc_export = doc.as_dict(no_nulls=True)
+	# set on a document that exports in the request that inserts it
+	doc_export.pop("__unsaved", None)
 	doc.run_method("before_export", doc_export)
 	doc_export = strip_default_fields(doc, doc_export)
 	# Fields written to a companion file (e.g. a Code field exported as .js) are dropped from JSON.
