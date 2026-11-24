@@ -566,11 +566,7 @@ class QueueBuilder:
 		x_priority: Literal[1, 3, 5] = 3,
 		email_headers=None,
 		redact_message_after_send=False,
-<<<<<<< HEAD
-=======
-		wrapper=None,
 		auto_submitted=None,
->>>>>>> 7a1cc7a (fix(email): do not auto-reply to automatic emails)
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -642,11 +638,7 @@ class QueueBuilder:
 		self.email_read_tracker_url = email_read_tracker_url
 		self.email_headers = email_headers
 		self.redact_message_after_send = redact_message_after_send
-<<<<<<< HEAD
-=======
-		self.email_wrapper = wrapper or "templates/emails/standard.html"
 		self.auto_submitted = auto_submitted
->>>>>>> 7a1cc7a (fix(email): do not auto-reply to automatic emails)
 
 	@property
 	def unsubscribe_method(self):

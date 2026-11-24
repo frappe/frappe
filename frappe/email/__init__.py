@@ -128,13 +128,8 @@ def sendmail(
 	x_priority: Literal[1, 3, 5] = 3,
 	email_headers=None,
 	redact_message_after_send=False,
-<<<<<<< HEAD
-):
-=======
-	wrapper=None,
 	auto_submitted=None,
-) -> EmailQueue | None:
->>>>>>> 7a1cc7a (fix(email): do not auto-reply to automatic emails)
+):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -230,11 +225,7 @@ def sendmail(
 		x_priority=x_priority,
 		email_headers=email_headers,
 		redact_message_after_send=redact_message_after_send,
-<<<<<<< HEAD
-=======
-		wrapper=wrapper,
 		auto_submitted=auto_submitted,
->>>>>>> 7a1cc7a (fix(email): do not auto-reply to automatic emails)
 	)
 
 	# build email queue and send the email if send_now is True.
