@@ -333,12 +333,21 @@ class AutoRepeat(Document):
 		if not (anchor and new_doc.meta.get_field("to_date")):
 			return
 
-		# the reference document is period 0, the document scheduled n steps after `start_date` is period n
-		schedule_date = getdate(self.next_schedule_date)
+		# the reference document is period 0, the document scheduled n steps after it is period n.
+		# `update_doc` sets the required Date fields (e.g. posting date) to the schedule date.
+		reference_date = next(
+			(
+				reference_doc.get(df.fieldname)
+				for df in reference_doc.meta.fields
+				if df.fieldtype == "Date" and df.reqd
+			),
+			self.start_date,
+		)
 		if mcount := month_map.get(self.frequency):
-			n = (month_diff(schedule_date, self.start_date) - 1) // mcount
+			step_days = mcount * 365.25 / 12
 		else:
-			n = date_diff(schedule_date, self.start_date) // day_map[self.frequency]
+			step_days = day_map[self.frequency]
+		n = round(date_diff(self.next_schedule_date, reference_date) / step_days)
 
 		from_date, to_date = get_auto_repeat_period(anchor, self.frequency, n)
 		new_doc.set("from_date", from_date)
