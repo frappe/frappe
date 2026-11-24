@@ -231,6 +231,14 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(json.loads(run.usage)["input_tokens"], 33)
 		self.assertEqual(self.session.last_synced_seq, 18)
 
+	def test_a_sub_agents_pending_approval_shows_on_the_running_run(self):
+		run = self.placeholder(message="look it up")
+		self.sync(FakeDaemon(child_pause(1, "r1"), running=True))
+		run.reload()
+		self.assertEqual((run.status, run.approval_seq), ("Running", 8))
+		self.assertEqual([q["id"] for q in json.loads(run.questions)], ["c9"])
+		self.assertEqual(json.loads(run.usage)["input_tokens"], 10)
+
 	def test_how_a_run_ends_decides_its_status(self):
 		cases = [
 			("done", None, "Completed", None),
