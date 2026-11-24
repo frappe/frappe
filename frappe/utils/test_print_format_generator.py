@@ -1339,7 +1339,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		)
 		html = get_html("Contact", contact.name, pf.name)
 		self.assertIn("pfb-repeater", html)
-		self.assertIn("Email: pfg@example.com", html)
+		self.assertIn('Email: <span dir="ltr">pfg@example.com</span>', html)
 
 	def test_repeater_with_missing_columns_key_does_not_crash(self):
 		"""A repeater whose source is set but with no repeater_columns key must not raise."""
