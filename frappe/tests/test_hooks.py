@@ -285,7 +285,7 @@ class TestAPIHooks(FrappeAPITestCase):
 				headers={"Authorization": "Bearer set_test_example_user"},
 			)
 			# Test!
-			self.assertTrue(response.json.get("message") == "test@example.com")
+			self.assertTrue(response.json.get("message") == get_user_by_email("test@example.com"))
 
 
 def custom_has_permission(doc, ptype, user):
