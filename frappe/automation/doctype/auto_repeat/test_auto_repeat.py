@@ -15,6 +15,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 )
 from frappe.core.doctype.user.test_user import test_user
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_model_utils import set_user
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
@@ -213,12 +214,20 @@ class TestAutoRepeat(IntegrationTestCase):
 					get_auto_repeat_period(anchor, frequency, n), tuple(getdate(d) for d in expected)
 				)
 
-	def test_first_generated_document_has_period(self):
+	def add_period_fields(self):
 		for fieldname in ("from_date", "to_date"):
 			field = create_custom_field(
 				"ToDo", dict(fieldname=fieldname, label=fieldname, fieldtype="Date", insert_after="date")
-			)
+			) or frappe.get_doc("Custom Field", {"dt": "ToDo", "fieldname": fieldname})
 			self.addCleanup(field.delete)
+
+	def make_todo_date_mandatory(self):
+		property_setter = make_property_setter("ToDo", "date", "reqd", 1, "Check")
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+
+	def test_first_generated_document_has_period(self):
+		self.add_period_fields()
 
 		with set_user(create_user_without_reference_access()):
 			todo = frappe.get_doc(
@@ -240,6 +249,76 @@ class TestAutoRepeat(IntegrationTestCase):
 		new_todo = frappe.get_doc("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)})
 		self.assertEqual(getdate(new_todo.from_date), getdate(today()))
 		self.assertEqual(getdate(new_todo.to_date), getdate(today()))
+
+	def test_period_after_update_reference(self):
+		self.add_period_fields()
+		self.make_todo_date_mandatory()
+
+		with set_user(create_user_without_reference_access()):
+			first_todo = make_period_todo("2024-11-22", "2024-11-22", "2025-05-21")
+			doc = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=first_todo.name,
+				frequency="Half-yearly",
+				start_date="2024-11-22",
+			).insert()
+			latest_todo = make_period_todo("2026-05-22", "2026-05-22", "2026-11-21")
+			update_reference(doc.name, latest_todo.name)
+
+		doc.reload()
+		doc.next_schedule_date = getdate("2026-11-22")
+		new_todo = frappe.copy_doc(latest_todo)
+		doc.set_auto_repeat_period(new_todo)
+
+		self.assertEqual(getdate(new_todo.from_date), getdate("2026-11-22"))
+		self.assertEqual(getdate(new_todo.to_date), getdate("2027-05-21"))
+
+	def test_period_billed_in_arrears(self):
+		self.add_period_fields()
+		self.make_todo_date_mandatory()
+
+		with set_user(create_user_without_reference_access()):
+			todo = make_period_todo("2025-02-05", "2025-01-01", "2025-01-31")
+			doc = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=todo.name,
+				frequency="Monthly",
+				start_date="2025-02-05",
+			).insert()
+
+		doc.next_schedule_date = getdate("2025-03-05")
+		new_todo = frappe.copy_doc(todo)
+		doc.set_auto_repeat_period(new_todo)
+
+		self.assertEqual(getdate(new_todo.from_date), getdate("2025-02-01"))
+		self.assertEqual(getdate(new_todo.to_date), getdate("2025-02-28"))
+
+	def test_period_repeat_on_last_day(self):
+		self.add_period_fields()
+		self.make_todo_date_mandatory()
+
+		with set_user(create_user_without_reference_access()):
+			todo = make_period_todo("2025-01-01", "2025-01-01", "2025-01-31")
+			doc = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=todo.name,
+				frequency="Monthly",
+				start_date="2025-01-01",
+				repeat_on_last_day=1,
+			).insert()
+
+		self.assertEqual(
+			doc.get_next_schedule_date("2025-01-01", for_full_schedule=True), getdate("2025-02-28")
+		)
+		doc.next_schedule_date = getdate("2025-02-28")
+		new_todo = frappe.copy_doc(todo)
+		doc.set_auto_repeat_period(new_todo)
+
+		self.assertEqual(getdate(new_todo.from_date), getdate("2025-02-01"))
+		self.assertEqual(getdate(new_todo.to_date), getdate("2025-02-28"))
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_email_notification(self):
@@ -617,6 +696,16 @@ def make_auto_repeat(**args):
 			"repeat_on_days": args.days or [],
 		}
 	).insert(ignore_permissions=True)
+
+
+def make_period_todo(date, from_date, to_date):
+	return frappe.get_doc(
+		doctype="ToDo",
+		description="test recurring todo with period",
+		date=date,
+		from_date=from_date,
+		to_date=to_date,
+	).insert()
 
 
 def create_user_without_reference_access():
