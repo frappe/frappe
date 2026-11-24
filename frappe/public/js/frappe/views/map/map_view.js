@@ -51,7 +51,12 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 			this.coords.features.forEach((coords) => {
 				const marker = L.geoJSON(coords).bindPopup(
-					frappe.utils.get_form_link(this.doctype, coords.properties.name, true)
+					frappe.utils.get_form_link(
+						this.doctype,
+						coords.properties.name,
+						true,
+						frappe.utils.escape_html(coords.properties.title)
+					)
 				);
 				this.markerLayer.addLayer(marker);
 			});
