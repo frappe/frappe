@@ -172,16 +172,19 @@ $.extend(frappe.meta, {
 			// found in parent
 			out = doctype;
 		} else {
-			frappe.meta.get_table_fields(doctype, true).every(function (d) {
-				if (
-					frappe.meta.has_field(d.options, key) ||
-					frappe.model.child_table_field_list.includes(key)
-				) {
-					out = d.options;
-					return false;
-				}
-				return true;
-			});
+			frappe.meta
+				.get_table_fields(doctype, true)
+				.sort((a, b) => cint(a.is_custom_field) - cint(b.is_custom_field))
+				.every(function (d) {
+					if (
+						frappe.meta.has_field(d.options, key) ||
+						frappe.model.child_table_field_list.includes(key)
+					) {
+						out = d.options;
+						return false;
+					}
+					return true;
+				});
 
 			if (!out) {
 				console.log(
