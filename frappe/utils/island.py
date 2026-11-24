@@ -12,6 +12,10 @@ installed on the site. An island's app is the one its URL is served from,
 `/assets/<app>/dist/...`, except for a page island, which framework builds into
 its own dist and which carries its app in its name, `<app>.page.<page name>`.
 
+An app that builds islands at runtime, outside the bench build, adds them with an
+`island_assets` hook: a method that returns entries in assets.json's own shape.
+They belong to the site that built them, so no app filter applies to them.
+
 Two hosts resolve a name against the registry. The desk loader,
 `frappe.ui.mount_island`, reads it from boot on the client. A page without desk
 boot calls `get_island_assets`, which does the same lookup on the server.
@@ -44,12 +48,25 @@ def page_island_name(app: str, page: str) -> str:
 def get_ui_islands() -> list[str]:
 	"""Every island on this site, by name."""
 	installed = set(frappe.get_installed_apps())
-
-	return sorted(
+	built = {
 		name
 		for key, url in get_assets_json().items()
 		if (name := island_name(key)) and island_app(name, url) in installed
-	)
+	}
+	added = {name for key in get_hooked_island_assets() if (name := island_name(key))}
+	return sorted(built | added)
+
+
+def get_island_assets_json() -> dict:
+	"""assets.json, with the islands this site's `island_assets` hooks add."""
+	return get_assets_json() | get_hooked_island_assets()
+
+
+def get_hooked_island_assets() -> dict:
+	assets = {}
+	for method in frappe.get_hooks("island_assets"):
+		assets.update(frappe.get_attr(method)())
+	return assets
 
 
 def island_name(asset_key: str) -> str | None:
@@ -78,7 +95,7 @@ def get_island_assets(name: str) -> dict:
 
 	For a host page that has no desk boot to resolve the name against.
 	"""
-	assets_json = get_assets_json()
+	assets_json = get_island_assets_json()
 	js = assets_json.get(name + ISLAND_JS_SUFFIX) if name in get_ui_islands() else None
 	if not js:
 		frappe.throw(_('Island "{0}" is not on this site. Build the app that ships it.').format(name))
