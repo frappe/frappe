@@ -377,8 +377,8 @@ def create_todo_workflow():
 	if not frappe.db.exists("Role", TEST_ROLE):
 		frappe.get_doc(doctype="Role", role_name=TEST_ROLE).insert(ignore_if_duplicate=True)
 
-	if frappe.db.exists("User", UI_TEST_USER):
-		frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
+	if user := get_user_by_email(UI_TEST_USER):
+		frappe.get_doc("User", user).add_roles(TEST_ROLE)
 
 	workflow = frappe.new_doc("Workflow")
 	workflow.workflow_name = "Test ToDo"
@@ -431,8 +431,8 @@ def create_domain_workflow():
 
 	if not frappe.db.exists("Role", TEST_ROLE):
 		frappe.get_doc(doctype="Role", role_name=TEST_ROLE).insert(ignore_if_duplicate=True)
-		if frappe.db.exists("User", UI_TEST_USER):
-			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
+		if user := get_user_by_email(UI_TEST_USER):
+			frappe.get_doc("User", user).add_roles(TEST_ROLE)
 
 	server_script = create_new_server_script()
 	webhook = create_new_webhook()

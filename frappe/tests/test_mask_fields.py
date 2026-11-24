@@ -90,7 +90,7 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 			frappe.get_doc({"doctype": "Role", "role_name": cls.TEST_ROLE, "desk_access": 1}).insert()
 
 		# Create a test user and assign the role
-		if not frappe.db.exists("User", cls.TEST_USER):
+		if not (user := get_user_by_email(cls.TEST_USER)):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -102,8 +102,7 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		else:
-			user = frappe.get_doc("User", cls.TEST_USER)
-			user.add_roles(cls.TEST_ROLE)
+			frappe.get_doc("User", user).add_roles(cls.TEST_ROLE)
 
 		# Create doctype with a masked Data field and a masked Link field (Company)
 		cls.doctype = new_doctype(
@@ -137,8 +136,8 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 		frappe.db.delete(cls.dt)
 		frappe.delete_doc("DocType", cls.dt, force=True)
 		# Disable the user instead of deleting to avoid contact-table deadlocks
-		if frappe.db.exists("User", cls.TEST_USER):
-			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		if user := get_user_by_email(cls.TEST_USER):
+			frappe.db.set_value("User", user, "enabled", 0)
 		frappe.db.commit()
 		super().tearDownClass()
 
@@ -355,7 +354,7 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 		if not frappe.db.exists("Role", cls.TEST_ROLE):
 			frappe.get_doc({"doctype": "Role", "role_name": cls.TEST_ROLE, "desk_access": 1}).insert()
 
-		if not frappe.db.exists("User", cls.TEST_USER):
+		if not (user := get_user_by_email(cls.TEST_USER)):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -366,7 +365,7 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		else:
-			frappe.get_doc("User", cls.TEST_USER).add_roles(cls.TEST_ROLE)
+			frappe.get_doc("User", user).add_roles(cls.TEST_ROLE)
 
 		# Child doctype with a masked Data field, a masked Currency field and an unmasked Float
 		cls.child_dt = (
@@ -407,8 +406,8 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 		frappe.db.delete(cls.child_dt)
 		frappe.delete_doc("DocType", cls.dt, force=True)
 		frappe.delete_doc("DocType", cls.child_dt, force=True)
-		if frappe.db.exists("User", cls.TEST_USER):
-			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		if user := get_user_by_email(cls.TEST_USER):
+			frappe.db.set_value("User", user, "enabled", 0)
 		super().tearDownClass()
 
 	def tearDown(self):
@@ -623,7 +622,7 @@ class TestMaskFieldsInLinkedDocType(IntegrationTestCase):
 		if not frappe.db.exists("Role", cls.TEST_ROLE):
 			frappe.get_doc({"doctype": "Role", "role_name": cls.TEST_ROLE, "desk_access": 1}).insert()
 
-		if not frappe.db.exists("User", cls.TEST_USER):
+		if not (user := get_user_by_email(cls.TEST_USER)):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -634,7 +633,7 @@ class TestMaskFieldsInLinkedDocType(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		else:
-			frappe.get_doc("User", cls.TEST_USER).add_roles(cls.TEST_ROLE)
+			frappe.get_doc("User", user).add_roles(cls.TEST_ROLE)
 
 		cls.target_dt = (
 			new_doctype(
@@ -664,8 +663,8 @@ class TestMaskFieldsInLinkedDocType(IntegrationTestCase):
 		frappe.db.delete(cls.target_dt)
 		frappe.delete_doc("DocType", cls.dt, force=True)
 		frappe.delete_doc("DocType", cls.target_dt, force=True)
-		if frappe.db.exists("User", cls.TEST_USER):
-			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		if user := get_user_by_email(cls.TEST_USER):
+			frappe.db.set_value("User", user, "enabled", 0)
 		super().tearDownClass()
 
 	def tearDown(self):

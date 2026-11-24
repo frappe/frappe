@@ -6,7 +6,7 @@ from frappe import _
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.tests.test_helpers import create_test_blog_category
 from frappe.tests.utils import whitelist_for_tests
-from frappe.utils import add_to_date, now
+from frappe.utils import add_to_date, get_user_by_email, now
 
 UI_TEST_USER = "frappe@example.com"
 
@@ -497,7 +497,7 @@ def insert_translations():
 def create_test_user(username: str | None = None):
 	name = username or UI_TEST_USER
 
-	if frappe.db.exists("User", name):
+	if get_user_by_email(name):
 		return
 
 	user = frappe.new_doc("User")
@@ -507,7 +507,7 @@ def create_test_user(username: str | None = None):
 	user.send_welcome_email = 0
 	user.time_zone = "Asia/Kolkata"
 	user.flags.ignore_password_policy = True
-	user.insert(ignore_if_duplicate=True)
+	user.insert()
 
 	user.reload()
 

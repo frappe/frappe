@@ -20,7 +20,7 @@ from frappe.model.base_document import BaseDocument
 from frappe.model.document import Document, LazyChildTable, LazyDocument, _get_extended_class
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
-from frappe.utils import cint, get_datetime, now_datetime, set_request
+from frappe.utils import cint, get_datetime, get_user_by_email, now_datetime, set_request
 from frappe.website.serve import get_response
 
 
@@ -235,7 +235,8 @@ class TestDocument(IntegrationTestCase):
 
 	def test_mandatory(self):
 		# TODO: recheck if it is OK to force delete
-		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)
+		if user := get_user_by_email("test_mandatory@example.com"):
+			frappe.delete_doc("User", user, force=True)
 
 		d = frappe.get_doc(
 			{
@@ -305,7 +306,8 @@ class TestDocument(IntegrationTestCase):
 		frappe.set_user("Administrator")
 
 	def test_link_validation(self):
-		frappe.delete_doc_if_exists("User", "test_link_validation@example.com", 1)
+		if user := get_user_by_email("test_link_validation@example.com"):
+			frappe.delete_doc("User", user, force=True)
 
 		d = frappe.get_doc(
 			{

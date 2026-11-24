@@ -28,7 +28,8 @@ class TestUser(IntegrationTestCase):
 
 	def test_change_desk_access(self):
 		"""if we change desk acecss from role, remove from user"""
-		frappe.delete_doc_if_exists("User", "test-user-for-desk-access@example.com")
+		if user := get_user_by_email("test-user-for-desk-access@example.com"):
+			frappe.delete_doc("User", user)
 		frappe.delete_doc_if_exists("Role", "desk-access-test")
 		user = frappe.get_doc(
 			doctype="User", email="test-user-for-desk-access@example.com", first_name="test"

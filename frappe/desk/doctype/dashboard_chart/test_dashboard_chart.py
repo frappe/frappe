@@ -13,7 +13,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import create_dashboard_chart, get
 from frappe.tests import IntegrationTestCase
-from frappe.utils import formatdate, get_first_day, get_last_day, getdate, now_datetime
+from frappe.utils import formatdate, get_first_day, get_last_day, get_user_by_email, getdate, now_datetime
 from frappe.utils.dateutils import get_period, get_period_ending
 from frappe.utils.logging import connection_for
 
@@ -210,9 +210,13 @@ class TestDashboardChart(IntegrationTestCase):
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
 
 	def test_group_by_chart_labels_empty_values(self):
-		user = "chart-empty-label@example.com"
-		if not frappe.db.exists("User", user):
-			frappe.get_doc(doctype="User", email=user, first_name="Chart", send_welcome_email=0).insert()
+		email = "chart-empty-label@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(doctype="User", email=email, first_name="Chart", send_welcome_email=0)
+				.insert()
+				.name
+			)
 
 		chart = {
 			"name": "Test Group By Empty Label",

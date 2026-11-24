@@ -18,7 +18,7 @@ from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
 from frappe.tests.test_query_builder import db_type_is, run_only_if, unimplemented_for
-from frappe.utils import add_days, now, random_string, set_request
+from frappe.utils import add_days, get_user_by_email, now, random_string, set_request
 from frappe.utils.data import now_datetime
 from frappe.utils.testutils import clear_custom_fields
 
@@ -761,8 +761,8 @@ class TestDB(IntegrationTestCase):
 		# the error message quotes the duplicate value, which must not decide the violated key
 		frappe.db.savepoint("unique_pkey_value")
 		self.addCleanup(frappe.db.rollback, save_point="unique_pkey_value")
-		frappe.db.set_value("User", "test1@example.com", "username", "ops_pkey")
-		user = frappe.get_doc("User", "test@example.com")
+		frappe.db.set_value("User", get_user_by_email("test1@example.com"), "username", "ops_pkey")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		user.username = "ops_pkey"
 
 		with self.set_user("test@example.com"):
