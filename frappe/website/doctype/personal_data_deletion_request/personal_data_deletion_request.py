@@ -80,6 +80,9 @@ class PersonalDataDeletionRequest(Document):
 		set_name_from_naming_options(autoname, self)
 		frappe.utils.validate_email_address(self.email, throw=True)
 
+	def before_validate(self):
+		self.email = self.email.strip().lower()
+
 	def after_insert(self):
 		self.send_verification_mail()
 
@@ -311,7 +314,6 @@ class PersonalDataDeletionRequest(Document):
 			frappe.rename_doc(ref["doctype"], doc["name"], self.anon, force=True, show_alert=False)
 
 	def _anonymize_data(self, email=None, anon=None, set_data=True, commit=False):
-		self.email = self.email.strip().lower()
 		email = email or self.email
 		anon = anon or self.name
 
