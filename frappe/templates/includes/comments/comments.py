@@ -51,7 +51,8 @@ def add_comment(
 	else:
 		# override with the logged-in user's identity to prevent spoofing;
 		# guests must supply their own name/email in the request
-		comment_email, comment_by = frappe.get_value("User", frappe.session.user, ["email", "full_name"])
+		comment_email = None
+		comment_by = frappe.db.get_value("User", frappe.session.user, "full_name")
 
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))
