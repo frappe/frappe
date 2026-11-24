@@ -62,6 +62,35 @@ describe("useGroupByData", () => {
     ]);
   });
 
+  it("fetches every list of assignees once and pages the split groups here", async () => {
+    const data = useGroupByData(
+      "Sales Order",
+      { fields: ["_assign"], aggregates: [{ function: "count" }] },
+      {}
+    );
+    const [groups, keys] = h.resources;
+    expect(groups.calls.at(-1).limit_page_length).toBe(1000);
+    expect(keys.calls).toEqual([]);
+    expect(data.hasCounts.value).toBe(false);
+
+    groups.data = Array.from({ length: 25 }, (_, i) => ({
+      _assign: JSON.stringify([`user${i}@x.com`]),
+      _aggregate_0: i + 1,
+    }));
+    expect(data.rows.value).toHaveLength(20);
+    expect(data.rows.value[0]).toEqual({
+      _assign: "user24@x.com",
+      _aggregate_0: 25,
+    });
+    expect(data.totalCount.value).toBe(25);
+    expect(data.hasNextPage.value).toBe(true);
+
+    data.loadMore();
+    expect(groups.calls).toHaveLength(1);
+    expect(data.rows.value).toHaveLength(25);
+    expect(data.hasNextPage.value).toBe(false);
+  });
+
   it("fetches nothing for an ungrouped list", () => {
     const data = useGroupByData("Sales Order", null, {});
     data.loadMore();

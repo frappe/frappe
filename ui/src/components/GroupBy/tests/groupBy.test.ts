@@ -6,11 +6,13 @@ import {
   formatRating,
   getAggregateFields,
   getGroupByFields,
+  groupsByAssignee,
   isAggregateTaken,
   isCompleteAggregate,
   parseGroupBy,
   serializeGroupBy,
   serializeGroupByTotals,
+  splitAssignees,
 } from "../groupBy";
 import type { RawMetaField } from "../../FormLayout/types";
 import type { AggregateDraft } from "../types";
@@ -41,6 +43,7 @@ describe("getGroupByFields", () => {
       "sales_person",
       "close_date",
       "secret",
+      "_assign",
       "owner",
       "modified_by",
       "_user_tags",
@@ -61,7 +64,14 @@ describe("getGroupByFields", () => {
           },
         ])
       )
-    ).toEqual(["region", "owner", "modified_by", "_user_tags", "docstatus"]);
+    ).toEqual([
+      "region",
+      "_assign",
+      "owner",
+      "modified_by",
+      "_user_tags",
+      "docstatus",
+    ]);
   });
 
   it("leaves out excluded fields, standard ones included", () => {
@@ -69,6 +79,7 @@ describe("getGroupByFields", () => {
       "status",
       "close_date",
       "secret",
+      "_assign",
       "modified_by",
       "_user_tags",
       "docstatus",
@@ -141,6 +152,10 @@ describe("findGroupByField", () => {
   it("finds a Meta field, or a standard field", () => {
     expect(findGroupByField(FIELDS, "status")?.label).toBe("Status");
     expect(findGroupByField(FIELDS, "owner")?.label).toBe("Created By");
+    expect(findGroupByField(FIELDS, "_assign")).toMatchObject({
+      label: "Assigned To",
+      options: "User",
+    });
     expect(findGroupByField(FIELDS, "docstatus")?.label).toBe(
       "Document Status"
     );
@@ -230,6 +245,113 @@ describe("serializeGroupBy", () => {
       serializeGroupBy({ fields: ["status", "sales_person"], aggregates: [] })
         .order_by
     ).toBe("status asc, sales_person asc");
+  });
+});
+
+describe("grouping by assignee", () => {
+  const BY_ASSIGNEE = {
+    fields: ["_assign"],
+    aggregates: [
+      { function: "count" as const },
+      { function: "avg" as const, fieldname: "grand_total" },
+      { function: "max" as const, fieldname: "close_date" },
+    ],
+  };
+
+  it("is on only while _assign is a group field", () => {
+    expect(groupsByAssignee(BY_ASSIGNEE)).toBe(true);
+    expect(groupsByAssignee({ fields: ["status"], aggregates: [] })).toBe(
+      false
+    );
+  });
+
+  it("fetches averages as a sum and a count, so split groups can add up", () => {
+    expect(serializeGroupBy(BY_ASSIGNEE)).toEqual({
+      fields: [
+        "_assign",
+        { COUNT: "name", as: "_aggregate_0" },
+        { SUM: "grand_total", as: "_aggregate_1_sum" },
+        { COUNT: "grand_total", as: "_aggregate_1_count" },
+        { MAX: "close_date", as: "_aggregate_2" },
+      ],
+      group_by: "_assign",
+      order_by: "_assign asc",
+    });
+  });
+
+  it("counts a record under each of its assignees, and unassigned ones once", () => {
+    const rows = [
+      {
+        _assign: '["ann@x.com"]',
+        _aggregate_0: 2,
+        _aggregate_1_sum: 300,
+        _aggregate_1_count: 2,
+        _aggregate_2: "2026-01-05",
+      },
+      {
+        _assign: '["ann@x.com", "bob@x.com"]',
+        _aggregate_0: 1,
+        _aggregate_1_sum: null,
+        _aggregate_1_count: 0,
+        _aggregate_2: "2026-03-01",
+      },
+      {
+        _assign: null,
+        _aggregate_0: 4,
+        _aggregate_1_sum: 40,
+        _aggregate_1_count: 4,
+        _aggregate_2: null,
+      },
+      {
+        _assign: "[]",
+        _aggregate_0: 1,
+        _aggregate_1_sum: 60,
+        _aggregate_1_count: 1,
+        _aggregate_2: "2026-02-01",
+      },
+    ];
+    expect(splitAssignees(rows, BY_ASSIGNEE)).toEqual([
+      {
+        _assign: null,
+        _aggregate_0: 5,
+        _aggregate_1: 20,
+        _aggregate_2: "2026-02-01",
+      },
+      {
+        _assign: "ann@x.com",
+        _aggregate_0: 3,
+        _aggregate_1: 150,
+        _aggregate_2: "2026-03-01",
+      },
+      {
+        _assign: "bob@x.com",
+        _aggregate_0: 1,
+        _aggregate_1: null,
+        _aggregate_2: "2026-03-01",
+      },
+    ]);
+  });
+
+  it("splits within the other group fields and sorts by the chosen column", () => {
+    const rows = [
+      {
+        status: "Open",
+        _assign: '["bob@x.com", "ann@x.com"]',
+        _aggregate_0: 1,
+      },
+      { status: "Open", _assign: '["ann@x.com"]', _aggregate_0: 1 },
+      { status: "Closed", _assign: '["ann@x.com"]', _aggregate_0: 5 },
+    ];
+    const split = splitAssignees(rows, {
+      fields: ["status", "_assign"],
+      aggregates: [{ function: "count" }],
+      sort: [{ fieldname: "_assign", direction: "asc" }],
+    });
+    expect(split).toEqual([
+      { status: "Closed", _assign: "ann@x.com", _aggregate_0: 5 },
+      { status: "Open", _assign: "ann@x.com", _aggregate_0: 2 },
+      { status: "Open", _assign: "bob@x.com", _aggregate_0: 1 },
+    ]);
   });
 });
 
@@ -410,6 +532,7 @@ describe("getGroupByFields fieldtypes", () => {
     ).toEqual([
       "ref",
       "city",
+      "_assign",
       "owner",
       "modified_by",
       "_user_tags",

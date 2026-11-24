@@ -60,9 +60,19 @@ const STANDARD_TIME_FIELDS: ReadonlyArray<GroupByField> = [
   },
 ];
 
+/** The standard column holding a record's assignees, as a JSON list of users. */
+const ASSIGNED_TO = "_assign";
+
 /** Standard fields every doctype can be grouped by, after the Meta fields: desk's
  *  standard fields of a groupable fieldtype, less `name` and `idx`. */
 const STANDARD_GROUP_FIELDS: ReadonlyArray<GroupByField> = [
+  {
+    label: "Assigned To",
+    value: ASSIGNED_TO,
+    fieldname: ASSIGNED_TO,
+    fieldtype: "Link",
+    options: "User",
+  },
   {
     label: "Created By",
     value: "owner",
@@ -214,18 +224,45 @@ export function effectiveSort(groupBy: GroupBySettings): Sort[] {
     : [];
 }
 
-// The effective sort on the wire, then the group fields so ties keep their place as loadMore pages.
-function orderBy(groupBy: GroupBySettings): string {
+type RowSort = { key: string; direction: Sort["direction"] };
+
+// The effective sort by row key, then the group fields so ties keep their place as loadMore pages.
+function rowSort(groupBy: GroupBySettings): RowSort[] {
   const [sort] = effectiveSort(groupBy);
-  const tieBreakers = groupBy.fields
+  const tieBreakers: RowSort[] = groupBy.fields
     .filter((f) => f !== sort?.fieldname)
-    .map((f) => `${f} asc`);
-  if (!sort) return tieBreakers.join(", ");
+    .map((f) => ({ key: f, direction: "asc" }));
+  if (!sort) return tieBreakers;
   const index = groupBy.aggregates.findIndex(
     (a) => columnId(a) === sort.fieldname
   );
-  const column = index >= 0 ? aggregateKey(index) : sort.fieldname;
-  return [`${column} ${sort.direction}`, ...tieBreakers].join(", ");
+  const key = index >= 0 ? aggregateKey(index) : sort.fieldname;
+  return [{ key, direction: sort.direction }, ...tieBreakers];
+}
+
+function orderBy(groupBy: GroupBySettings): string {
+  return rowSort(groupBy)
+    .map((s) => `${s.key} ${s.direction}`)
+    .join(", ");
+}
+
+/** Whether the list is grouped by assignee, whose rows need `splitAssignees`. */
+export function groupsByAssignee(groupBy: GroupBySettings): boolean {
+  return groupBy.fields.includes(ASSIGNED_TO);
+}
+
+// Split groups are added up, so each average comes as a sum and a count of values.
+function splittableAggregateFields(
+  aggregates: Aggregate[]
+): Record<string, string>[] {
+  return aggregates.flatMap((a, i) =>
+    a.function === "avg"
+      ? [
+          { SUM: a.fieldname, as: `${aggregateKey(i)}_sum` },
+          { COUNT: a.fieldname, as: `${aggregateKey(i)}_count` },
+        ]
+      : aggregateFields([a]).map((f) => ({ ...f, as: aggregateKey(i) }))
+  );
 }
 
 /** The arguments for `frappe.client.get_list` that fetch one row per group: the
@@ -238,11 +275,119 @@ export function serializeGroupBy(groupBy: GroupBySettings): {
   group_by: string;
   order_by: string;
 } {
+  if (groupsByAssignee(groupBy)) {
+    return {
+      fields: [
+        ...groupBy.fields,
+        ...splittableAggregateFields(groupBy.aggregates),
+      ],
+      group_by: groupBy.fields.join(", "),
+      order_by: groupBy.fields.map((f) => `${f} asc`).join(", "),
+    };
+  }
   return {
     fields: [...groupBy.fields, ...aggregateFields(groupBy.aggregates)],
     group_by: groupBy.fields.join(", "),
     order_by: orderBy(groupBy),
   };
+}
+
+// The users in an `_assign` value, or one `null` for a record assigned to no one.
+function assignees(value: unknown): (string | null)[] {
+  let users: unknown = value;
+  if (typeof value === "string") {
+    try {
+      users = JSON.parse(value);
+    } catch {
+      users = [];
+    }
+  }
+  const list = Array.isArray(users)
+    ? users.filter((u): u is string => typeof u === "string" && u !== "")
+    : [];
+  return list.length ? [...new Set(list)] : [null];
+}
+
+function addValues(a: unknown, b: unknown): unknown {
+  if (a === null || a === undefined) return b;
+  if (b === null || b === undefined) return a;
+  return Number(a) + Number(b);
+}
+
+function pickValue(a: unknown, b: unknown, fn: "min" | "max"): unknown {
+  if (a === null || a === undefined) return b;
+  if (b === null || b === undefined) return a;
+  const [x, y] = [a as number | string, b as number | string];
+  if (fn === "min") return y < x ? b : a;
+  return y > x ? b : a;
+}
+
+// Fold `row` into `group`, both the same group's values from different records.
+function mergeInto(
+  group: Record<string, unknown>,
+  row: Record<string, unknown>,
+  aggregates: Aggregate[]
+) {
+  aggregates.forEach((a, i) => {
+    const key = aggregateKey(i);
+    if (a.function === "avg") {
+      for (const part of [`${key}_sum`, `${key}_count`]) {
+        group[part] = addValues(group[part], row[part]);
+      }
+    } else if (a.function === "min" || a.function === "max") {
+      group[key] = pickValue(group[key], row[key], a.function);
+    } else {
+      group[key] = addValues(group[key], row[key]);
+    }
+  });
+}
+
+// Nulls sort first going up, as the database sorts them.
+function compareValues(a: unknown, b: unknown): number {
+  const aEmpty = a === null || a === undefined || a === "";
+  const bEmpty = b === null || b === undefined || b === "";
+  if (aEmpty || bEmpty) return Number(bEmpty) - Number(aEmpty);
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  return String(a).localeCompare(String(b));
+}
+
+/** Turn rows per list of assignees into sorted rows per user, a record counting under each assignee. */
+export function splitAssignees(
+  rows: Record<string, unknown>[],
+  groupBy: GroupBySettings
+): Record<string, unknown>[] {
+  const { aggregates } = groupBy;
+  const groups = new Map<string, Record<string, unknown>>();
+  for (const row of rows) {
+    for (const user of assignees(row[ASSIGNED_TO])) {
+      const split = { ...row, [ASSIGNED_TO]: user };
+      const key = JSON.stringify(groupBy.fields.map((f) => split[f] ?? null));
+      const group = groups.get(key);
+      if (group) mergeInto(group, split, aggregates);
+      else groups.set(key, split);
+    }
+  }
+
+  const result = [...groups.values()].map((group) => {
+    aggregates.forEach((a, i) => {
+      if (a.function !== "avg") return;
+      const key = aggregateKey(i);
+      const count = Number(group[`${key}_count`]) || 0;
+      group[key] = count ? Number(group[`${key}_sum`]) / count : null;
+      delete group[`${key}_sum`];
+      delete group[`${key}_count`];
+    });
+    return group;
+  });
+
+  const order = rowSort(groupBy);
+  return result.sort((a, b) => {
+    for (const { key, direction } of order) {
+      const diff = compareValues(a[key], b[key]);
+      if (diff) return direction === "desc" ? -diff : diff;
+    }
+    return 0;
+  });
 }
 
 /** The `frappe.client.get_list` fields for the totals row: the same aggregates over
