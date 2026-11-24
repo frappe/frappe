@@ -1460,15 +1460,12 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 
 def needs_password_setup(user: str | None = None) -> bool:
 	"""Whether the user was given a session without ever having a password, like a Frappe Cloud
-	site owner, and so cannot get back in once it ends. False for users who sign in without one."""
-	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
-
+	site owner. Asked on every site, Frappe Cloud v2 and email login links included: apps such as
+	the mobile ones sign in with a password. False where a password cannot be used to sign in."""
 	user = user or frappe.session.user
 	if user in STANDARD_USERS or has_password(user):
 		return False
-	if is_v2_site() or frappe.get_system_settings("disable_user_pass_login"):
-		return False
-	if frappe.get_system_settings("login_with_email_link"):
+	if frappe.get_system_settings("disable_user_pass_login"):
 		return False
 	if frappe.db.get_single_value("LDAP Settings", "enabled"):
 		return False
