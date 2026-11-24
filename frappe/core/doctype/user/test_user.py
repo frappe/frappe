@@ -17,10 +17,12 @@ from frappe.core.doctype.user.user import (
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
+	confirm_email_change,
 	get_all_roles,
 	get_perm_info,
 	handle_password_test_fail,
 	needs_password_setup,
+	request_email_change,
 	reset_password,
 	rewrite_owner_fields,
 	set_first_password,
@@ -505,7 +507,7 @@ class TestUser(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-		frappe.rename_doc("User", user.name, new_name)
+		frappe.rename_doc("User", user.name, new_name, force=True)
 		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
 		frappe.delete_doc("User", new_name)
@@ -523,7 +525,7 @@ class TestUser(IntegrationTestCase):
 		)
 
 		with patch("frappe.enqueue") as enqueue:
-			frappe.rename_doc("User", user.name, new_name)
+			frappe.rename_doc("User", user.name, new_name, force=True)
 
 		enqueue.assert_any_call(
 			"frappe.core.doctype.user.user.rewrite_owner_fields",
@@ -603,18 +605,20 @@ class TestUser(IntegrationTestCase):
 			patch("frappe.core.doctype.user.user.get_running_jobs_in_queue", return_value=[]),
 		):
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com")
+				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com", force=True)
 
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", other, renamed, merge=True)
+				frappe.rename_doc("User", other, renamed, merge=True, force=True)
 
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", freed, "test_user_rename_pending_freed_new@example.com")
+				frappe.rename_doc("User", freed, "test_user_rename_pending_freed_new@example.com", force=True)
 
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
 				frappe.delete_doc("User", freed)
 
-			frappe.rename_doc("User", unrelated, "test_user_rename_pending_unrelated_new@example.com")
+			frappe.rename_doc(
+				"User", unrelated, "test_user_rename_pending_unrelated_new@example.com", force=True
+			)
 
 	def test_user_rename_updates_private_workspace(self):
 		old_name = "test_user_rename_ws@example.com"
@@ -664,7 +668,7 @@ class TestUser(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 
 		with self.set_user(actor_name):
-			frappe.rename_doc("User", old_name, new_name)
+			frappe.rename_doc("User", old_name, new_name, force=True)
 
 		new_workspace = f"Test Rename Workspace-{new_name}"
 		self.assertTrue(frappe.db.exists("Workspace", new_workspace))
@@ -1113,7 +1117,6 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		with test_user(roles=[], generated_id=True) as user:
 			frappe.db.set_value("User", user.name, "email", f"{user.name}@frappe.invalid")
 			user = frappe.get_doc("User", user.name)
-			user.flags.skip_email_from_name = True
 			user.first_name = "Renamed"
 			user.save()
 
@@ -1122,7 +1125,7 @@ class TestUserEmailHelpers(IntegrationTestCase):
 				user.save()
 
 		with test_user(roles=[]) as user, self.assertRaises(frappe.ValidationError):
-			frappe.rename_doc("User", user.name, f"{user.name}.invalid")
+			frappe.rename_doc("User", user.name, f"{user.name}.invalid", force=True)
 
 	def test_email_patch_moves_administrators_email_off_a_users_id(self):
 		from frappe.patches.v16_0.set_user_email_from_name import execute
@@ -1133,7 +1136,6 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		def add_user_named(name):
 			user = frappe.new_doc("User", email=f"_test_{frappe.generate_hash(length=6)}@example.com")
 			user.first_name = "Clash"
-			user.flags.skip_email_from_name = True
 			user.insert(set_name=name)
 
 		# a changed email is left alone: migrate stops
@@ -1147,6 +1149,210 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		execute()
 		self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
 		self.assertEqual(frappe.db.get_value("User", "admin@example.com", "email"), "admin@example.com")
+
+	def test_new_users_get_a_random_id(self):
+		with test_user(roles=[], generated_id=True, email="_test_random_id@example.com") as user:
+			self.assertNotIn("@", user.name)
+			self.assertEqual(user.email, "_test_random_id@example.com")
+
+			user.reload()
+			user.first_name = "Renamed"
+			user.save()
+			self.assertEqual(user.email, "_test_random_id@example.com")
+
+	def request_email_change_key(self, user, new_email, password="Eastern_43A1W"):
+		with self.set_user(user.name), patch("frappe.sendmail") as sendmail:
+			request_email_change(new_email, password)
+
+		self.assertEqual(sendmail.call_args.kwargs["recipients"], new_email.strip().lower())
+		return parse_qs(urlparse(sendmail.call_args.kwargs["args"]["link"]).query)["key"][0]
+
+	def confirm_email_change_as_guest(self, key):
+		with self.set_user("Guest"), patch("frappe.sendmail") as sendmail, patch.object(frappe.db, "commit"):
+			confirm_email_change(key)
+		return sendmail
+
+	def test_users_change_their_email_through_a_link(self):
+		from frappe.utils.password import update_password as set_password
+
+		with test_user(roles=[], generated_id=True) as user:
+			set_password(user.name, "Eastern_43A1W")
+			old_email = user.email
+			key = self.request_email_change_key(user, " _Test_Email_Change_Link@Example.com ")
+			self.assertEqual(frappe.db.get_value("User", user.name, "email"), old_email)
+
+			sendmail = self.confirm_email_change_as_guest(key)
+			self.assertEqual(frappe.local.message_title, "Email changed")
+			self.assertEqual(
+				frappe.db.get_value("User", user.name, "email"), "_test_email_change_link@example.com"
+			)
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], old_email)
+
+			self.confirm_email_change_as_guest(key)
+			self.assertEqual(frappe.local.message_title, "Email not changed")
+
+	def test_email_change_needs_the_current_password(self):
+		from frappe.utils.password import update_password as set_password
+
+		with test_user(roles=[], generated_id=True) as user:
+			set_password(user.name, "Eastern_43A1W")
+			with self.set_user(user.name), patch("frappe.sendmail") as sendmail:
+				self.assertRaises(
+					frappe.AuthenticationError, request_email_change, "_test_new_email@example.com", "wrong"
+				)
+				self.assertRaises(
+					frappe.AuthenticationError, request_email_change, "_test_new_email@example.com"
+				)
+			sendmail.assert_not_called()
+
+	def test_a_new_email_change_request_replaces_the_old_one(self):
+		from frappe.utils.password import update_password as set_password
+
+		with test_user(roles=[], generated_id=True) as user:
+			set_password(user.name, "Eastern_43A1W")
+			first_key = self.request_email_change_key(user, "_test_first_new_email@example.com")
+			second_key = self.request_email_change_key(user, "_test_second_new_email@example.com")
+
+			self.confirm_email_change_as_guest(first_key)
+			self.assertEqual(frappe.local.message_title, "Email not changed")
+
+			self.confirm_email_change_as_guest(second_key)
+			self.assertEqual(
+				frappe.db.get_value("User", user.name, "email"), "_test_second_new_email@example.com"
+			)
+
+	def test_email_change_is_refused_for_a_taken_email(self):
+		from frappe.utils.password import update_password as set_password
+
+		with (
+			test_user(roles=[], generated_id=True) as user,
+			test_user(roles=[], generated_id=True) as other,
+		):
+			set_password(user.name, "Eastern_43A1W")
+			with self.set_user(user.name), patch("frappe.sendmail"):
+				self.assertRaises(frappe.ValidationError, request_email_change, other.email, "Eastern_43A1W")
+
+			key = self.request_email_change_key(user, "_test_taken_later@example.com")
+			other.reload()
+			other.email = "_test_taken_later@example.com"
+			other.save()
+
+			self.confirm_email_change_as_guest(key)
+			self.assertEqual(frappe.local.message_title, "Email not changed")
+			self.assertNotEqual(
+				frappe.db.get_value("User", user.name, "email"), "_test_taken_later@example.com"
+			)
+
+	def test_email_change_can_be_disallowed(self):
+		from frappe.utils.password import update_password as set_password
+
+		with test_user(roles=[], generated_id=True) as user:
+			set_password(user.name, "Eastern_43A1W")
+			key = self.request_email_change_key(user, "_test_disallowed_email@example.com")
+
+			with change_settings("System Settings", disallow_email_change=1):
+				with self.set_user(user.name), patch("frappe.sendmail"):
+					self.assertRaises(
+						frappe.PermissionError,
+						request_email_change,
+						"_test_disallowed_email@example.com",
+						"Eastern_43A1W",
+					)
+
+				self.confirm_email_change_as_guest(key)
+				self.assertEqual(frappe.local.message_title, "Email not changed")
+
+	def test_only_system_managers_change_emails(self):
+		with test_user(roles=["Desk User"], generated_id=True) as user, self.set_user(user.name):
+			user = frappe.get_doc("User", user.name)
+			user.email = "_test_changed_myself@example.com"
+			self.assertRaises(frappe.PermissionError, user.save)
+
+			admin = frappe.get_doc("User", "Administrator")
+			admin.email = "_test_changed_admin@example.com"
+			self.assertRaises(frappe.PermissionError, admin.run_method, "validate")
+
+	def test_random_user_ids_in_tests_needs_every_installed_app(self):
+		from frappe.core.doctype.user.user import random_user_ids_in_tests
+
+		apps = ["frappe", "_test_app"]
+		with patch("frappe.get_installed_apps", return_value=apps):
+			with patch("frappe.get_hooks", side_effect=lambda hook, app_name: [True]):
+				self.assertTrue(random_user_ids_in_tests())
+			with patch(
+				"frappe.get_hooks", side_effect=lambda hook, app_name: [True] if app_name == "frappe" else []
+			):
+				self.assertFalse(random_user_ids_in_tests())
+
+	def test_test_user_id_follows_random_user_ids_in_tests(self):
+		with patch("frappe.core.doctype.user.user.random_user_ids_in_tests", return_value=True):
+			with test_user(roles=[]) as user:
+				self.assertNotEqual(user.name, user.email)
+			with test_user(roles=[], email_as_id=True) as user:
+				self.assertEqual(user.name, user.email)
+
+		with patch("frappe.core.doctype.user.user.random_user_ids_in_tests", return_value=False):
+			with test_user(roles=[]) as user:
+				self.assertEqual(user.name, user.email)
+			with test_user(roles=[], generated_id=True) as user:
+				self.assertNotEqual(user.name, user.email)
+
+	def test_changing_the_email_invalidates_a_sent_reset_link(self):
+		with test_user(roles=[], generated_id=True) as user:
+			user.db_set("reset_password_key", "_test_reset_key")
+			user.reload()
+			user.email = "_test_changed_email@example.com"
+			user.save()
+
+			self.assertFalse(frappe.db.get_value("User", user.name, "reset_password_key"))
+
+	def test_email_cant_be_another_users_id(self):
+		with (
+			test_user(roles=[], email="_test_old_id@example.com") as old,
+			test_user(roles=[], generated_id=True) as new,
+		):
+			old.email = "_test_new_address@example.com"
+			old.save()
+
+			new.reload()
+			new.email = old.name
+			self.assertRaises(frappe.ValidationError, new.save)
+
+			admin = frappe.get_doc("User", "Administrator")
+			admin.email = old.name
+			self.assertRaises(frappe.ValidationError, admin.run_method, "validate")
+
+	def test_email_can_be_the_users_own_id_in_another_case(self):
+		user = frappe.new_doc("User", email="_test_mixed_case_other@example.com", first_name="Mixed")
+		user.insert(set_name="_Test_Mixed_Case@Example.com")
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_permissions=True)
+
+		user.email = "_test_mixed_case@example.com"
+		user.save()
+		self.assertEqual(user.email, "_test_mixed_case@example.com")
+
+	def test_import_keeps_the_given_id(self):
+		user = frappe.new_doc("User", email="_test_imported@example.com", first_name="Imported")
+		user.name = "_Test_Imported@Example.com"
+		frappe.flags.in_import = True
+		try:
+			user.insert()
+		finally:
+			frappe.flags.in_import = False
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_permissions=True)
+
+		self.assertEqual(user.name, "_Test_Imported@Example.com")
+
+	def test_standard_users_need_a_valid_email(self):
+		admin = frappe.get_doc("User", "Administrator")
+		admin.email = "not-an-email"
+		self.assertRaises(frappe.InvalidEmailAddressError, admin.run_method, "validate")
+
+	def test_guests_email_cant_be_changed(self):
+		guest = frappe.get_doc("User", "Guest")
+		guest.email = "_test_guest_inbox@example.com"
+		guest.flags.ignore_permissions = True
+		self.assertRaises(frappe.ValidationError, guest.run_method, "validate")
 
 	def test_users_are_found_by_email(self):
 		from frappe.core.doctype.user.user import user_query
@@ -1220,13 +1426,15 @@ def test_user(
 	roles: list[str],
 	commit=False,
 	generated_id=False,
+	email_as_id=False,
 	**kwargs,
 ):
 	"""Create a user for the duration of the test.
 
-	`generated_id` gives the user a random ID instead of their email. Saving a freshly loaded copy
-	of such a user fails: validation copies the ID into the email.
+	The user's ID follows `random_user_ids_in_tests`. `generated_id` gives them a random ID, like new
+	users get; `email_as_id` makes their email the ID, for tests about users created before v17.
 	"""
+	assert not (generated_id and email_as_id), "pass only one of `generated_id` and `email_as_id`"
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
@@ -1238,8 +1446,9 @@ def test_user(
 			**kwargs,
 		)
 		user.append_roles(*roles)
-		user.flags.skip_email_from_name = generated_id
-		user.insert(set_name=frappe.generate_hash(length=10) if generated_id else None)
+		user.flags.random_id = generated_id
+		user.flags.email_as_id = email_as_id
+		user.insert()
 		yield user
 		commit and frappe.db.commit()
 	finally:

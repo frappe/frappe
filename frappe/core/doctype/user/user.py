@@ -21,6 +21,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
+from frappe.model.naming import make_autoname
 from frappe.query_builder import Criterion, DocType, Table
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions, hash_sid
@@ -33,6 +34,7 @@ from frappe.utils import (
 	get_formatted_email,
 	get_fullname,
 	get_system_timezone,
+	get_url,
 	get_user_by_email,
 	get_user_display_id,
 	now_datetime,
@@ -211,18 +213,21 @@ class User(Document):
 		# because it is handled separately
 		self.flags.ignore_save_passwords = ["new_password"]
 
-	def before_naming(self):
-		# data import keeps the given name and skips autoname
-		if self.name and self.name not in STANDARD_USERS:
-			self.name = self.name.strip().lower()
-
 	def autoname(self):
-		"""set name as Email Address"""
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
-		else:
+		elif frappe.in_test and self._email_as_id_in_test():
 			self.email = self.email.strip().lower()
 			self.name = self.email
+		elif self.meta.autoname != "hash":
+			self.name = make_autoname("hash", self.doctype)
+
+	def _email_as_id_in_test(self) -> bool:
+		if self.flags.email_as_id:
+			return True
+		if self.flags.random_id:
+			return False
+		return not random_user_ids_in_tests()
 
 	def onload(self):
 		from frappe.utils.modules import get_blockable_module_names
@@ -251,14 +256,7 @@ class User(Document):
 		if not frappe.in_test:
 			self.password_strength_test()
 
-		if self.name not in STANDARD_USERS and not self.flags.skip_email_from_name:
-			self.email = self.name
-			self.validate_email_type(self.name)
-
-		if self.email:
-			self.email = self.email.strip().lower()
-			if self.has_value_changed("email"):
-				self.validate_email_domain(self.email)
+		self.validate_email()
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
@@ -780,10 +778,42 @@ class User(Document):
 					).format(frappe.bold(name))
 				)
 
+	def validate_email(self):
+		if not self.email:
+			return
+
+		self.email = self.email.strip().lower()
+		if not self.has_value_changed("email"):
+			return
+
+		self.validate_email_change_allowed()
+		self.reset_password_key = ""
+		self.validate_email_type(self.email)
+		self.validate_email_domain(self.email)
+		self.validate_email_is_not_another_users_id()
+
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
 
 		validate_email_address(email, True)
+
+	def validate_email_change_allowed(self):
+		if self.is_new():
+			return
+
+		if self.name == "Guest":
+			throw(_("Guest's email can't be changed."))
+
+		if self.flags.ignore_permissions or "System Manager" in frappe.get_roles():
+			return
+
+		throw(_("Only a System Manager can change a user's email."), frappe.PermissionError)
+
+	def validate_email_is_not_another_users_id(self):
+		"""An email and a user ID mean one user: users created before v17 have their email as ID."""
+		user_id = frappe.db.get_value("User", self.email)
+		if user_id and user_id != self.name:
+			throw(_("{0} is already used by another user.").format(frappe.bold(self.email)))
 
 	def validate_email_domain(self, email):
 		"""Users other than Administrator and Guest can't get an email on the reserved `.invalid` domain."""
@@ -1089,6 +1119,15 @@ class User(Document):
 
 	def validate_ip_addr(self):
 		self.restrict_ip = ",".join(self.get_restricted_ip_list())
+
+
+def random_user_ids_in_tests() -> bool:
+	"""Whether tests give new users random IDs, like a site does: only when every installed app
+	sets `random_user_ids_in_tests` in hooks. Otherwise their ID is their email, like users created
+	before v17."""
+	return all(
+		any(frappe.get_hooks("random_user_ids_in_tests", app_name=app)) for app in frappe.get_installed_apps()
+	)
 
 
 @frappe.whitelist()
@@ -1500,6 +1539,149 @@ def reset_password(user: str) -> None:
 			"If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
 		),
 		title=_("Password Reset"),
+	)
+
+
+EMAIL_CHANGE_LINK_EXPIRY_HOURS = 24
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=5, seconds=60 * 60, user_based=True)
+def request_email_change(new_email: str, password: str | None = None) -> None:
+	"""Mail a link to `new_email` that changes the current user's email to it.
+
+	Needs the current password, unless the user has none or password login is disabled.
+	A new request replaces the previous one."""
+	user: User = frappe.get_doc("User", frappe.session.user)
+	new_email = new_email.strip().lower()
+	_validate_email_change(user, new_email)
+
+	if has_password(user.name) and not frappe.get_system_settings("disable_user_pass_login"):
+		try:
+			check_password(user.name, password or "", delete_tracker_cache=False)
+		except frappe.AuthenticationError:
+			throw(_("Incorrect password."), frappe.AuthenticationError)
+
+	key = frappe.generate_hash()
+	expiry = EMAIL_CHANGE_LINK_EXPIRY_HOURS * 60 * 60
+	user_key = f"email_change_request:{user.name}"
+	if previous := frappe.cache.get_value(user_key):
+		frappe.cache.delete_value(previous)
+
+	cache_key = _email_change_cache_key(key)
+	frappe.cache.set_value(
+		cache_key,
+		{"user": user.name, "old_email": user.email, "new_email": new_email},
+		expires_in_sec=expiry,
+	)
+	frappe.cache.set_value(user_key, cache_key, expires_in_sec=expiry)
+
+	app_name = _get_app_name()
+	frappe.sendmail(
+		recipients=new_email,
+		subject=_("Confirm your new email for {0}").format(app_name),
+		template="email_change_confirmation",
+		args={
+			"link": get_url(
+				f"/api/method/frappe.core.doctype.user.user.confirm_email_change?key={key}",
+				allow_header_override=False,
+			),
+			"hours": EMAIL_CHANGE_LINK_EXPIRY_HOURS,
+			"app_name": app_name,
+		},
+		with_container=True,
+		wrapper="templates/emails/auth_email.html",
+		now=True,
+	)
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=10, seconds=60 * 60)
+def confirm_email_change(key: str) -> None:
+	"""Apply the email change requested with `request_email_change`, and tell the old address."""
+	cache_key = _email_change_cache_key(key)
+	request = frappe.cache.get_value(cache_key)
+	if not request:
+		return _respond_to_email_change(_("This link is invalid or has expired."), success=False)
+
+	frappe.cache.delete_value(cache_key)
+	frappe.cache.delete_value(f"email_change_request:{request['user']}")
+
+	try:
+		user: User = frappe.get_doc("User", request["user"])
+		if not user.enabled or user.email != request["old_email"]:
+			throw(_("This link is no longer valid."))
+
+		_validate_email_change(user, request["new_email"])
+		user.email = request["new_email"]
+		user.flags.ignore_permissions = True
+		user.save()
+	except (frappe.ValidationError, frappe.DuplicateEntryError) as e:
+		frappe.db.rollback()
+		frappe.clear_messages()
+		return _respond_to_email_change(str(e), success=False)
+
+	# GET requests do not cause an implicit commit
+	frappe.db.commit()  # nosemgrep
+
+	app_name = _get_app_name()
+	frappe.sendmail(
+		recipients=request["old_email"],
+		subject=_("Your email for {0} was changed").format(app_name),
+		template="email_changed",
+		args={"new_email": request["new_email"], "app_name": app_name},
+		with_container=True,
+		wrapper="templates/emails/auth_email.html",
+	)
+
+	_respond_to_email_change(
+		_("Your email is now {0}.").format(frappe.bold(request["new_email"])),
+		success=True,
+		logged_in=frappe.session.user == user.name,
+		user=user.name,
+	)
+
+
+def _validate_email_change(user: "User", new_email: str) -> None:
+	if frappe.get_system_settings("disallow_email_change") and "System Manager" not in frappe.get_roles(
+		user.name
+	):
+		throw(_("Only a System Manager can change your email."), frappe.PermissionError)
+
+	if new_email == user.email:
+		throw(_("{0} is already your email.").format(frappe.bold(new_email)))
+
+	user.validate_email_type(new_email)
+	user.validate_email_domain(new_email)
+
+	other_user = get_user_by_email(new_email, include_standard_users=True) or frappe.db.get_value(
+		"User", new_email
+	)
+	if other_user and other_user != user.name:
+		throw(_("{0} is already used by another user.").format(frappe.bold(new_email)))
+
+
+def _email_change_cache_key(key: str) -> str:
+	return f"email_change_key:{sha256_hash(key)}"
+
+
+def _get_app_name() -> str:
+	return frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
+
+
+def _respond_to_email_change(message: str, success: bool, logged_in: bool = False, user: str | None = None):
+	if logged_in:
+		primary_action, primary_label = f"/app/user/{user}", _("Open your profile")
+	else:
+		primary_action, primary_label = "/login", _("Log in")
+
+	frappe.respond_as_web_page(
+		_("Email changed") if success else _("Email not changed"),
+		message,
+		success=success,
+		indicator_color="green" if success else "red",
+		primary_action=primary_action,
+		primary_label=primary_label,
 	)
 
 

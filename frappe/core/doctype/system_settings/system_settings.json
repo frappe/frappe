@@ -39,6 +39,7 @@
   "deny_multiple_sessions",
   "disable_user_pass_login",
   "max_signups_allowed_per_hour",
+  "disallow_email_change",
   "login_methods_section",
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
@@ -913,12 +914,19 @@
   {
    "fieldname": "frappectl_help",
    "fieldtype": "HTML"
+  },
+  {
+   "default": "0",
+   "description": "System Managers can still change any user's email.",
+   "fieldname": "disallow_email_change",
+   "fieldtype": "Check",
+   "label": "Disallow users from changing their email"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-11-13 13:00:00.000000",
+ "modified": "2026-11-23 06:25:59.951549",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

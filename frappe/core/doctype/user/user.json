@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "allow_rename": 1,
+ "autoname": "hash",
  "creation": "2022-01-10 17:29:51.672911",
  "description": "Someone who can log in to your site.",
  "doctype": "DocType",
@@ -955,10 +955,11 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-11-20 12:25:54.661851",
+ "modified": "2026-11-20 15:11:47.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

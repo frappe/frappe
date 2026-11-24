@@ -53,6 +53,7 @@ class SystemSettings(Document):
 		disable_standard_email_footer: DF.Check
 		disable_system_update_notification: DF.Check
 		disable_user_pass_login: DF.Check
+		disallow_email_change: DF.Check
 		document_share_key_expiry: DF.Int
 		dormant_days: DF.Int
 		email_footer_address: DF.SmallText | None
