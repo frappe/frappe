@@ -363,6 +363,42 @@ class TestEmailAccount(IntegrationTestCase):
 			)
 		)
 
+		(auto_reply,) = self.get_auto_replies(comm)
+		self.assertEqual(auto_reply["Auto-Submitted"], "auto-replied")
+		self.assertEqual(auto_reply["In-Reply-To"], f"<{comm.message_id}>")
+
+	def test_no_auto_reply_to_auto_submitted_mail(self):
+		cleanup("test_sender@example.com")
+
+		messages = {
+			'"INBOX"': {
+				"latest_messages": ["Auto-Submitted: auto-replied\n" + self.get_test_mail("incoming-1.raw")],
+				"seen_status": {2: "UNSEEN"},
+				"uid_list": [2],
+			}
+		}
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		TestEmailAccount.mocked_email_receive(email_account, messages)
+
+		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		self.assertEqual(self.get_auto_replies(comm), [])
+
+	def get_auto_replies(self, communication):
+		queues = frappe.get_all(
+			"Email Queue",
+			filters={
+				"reference_doctype": communication.reference_doctype,
+				"reference_name": communication.reference_name,
+			},
+			pluck="name",
+		)
+		return [
+			email.message_from_string(queue.message)
+			for queue in (frappe.get_doc("Email Queue", name) for name in queues)
+			if communication.sender in [r.recipient for r in queue.recipients]
+		]
+
 	def test_handle_bad_emails(self):
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).mail.get("Message-ID")
@@ -742,6 +778,27 @@ class TestInboundMail(IntegrationTestCase):
 		defaults = {"description": "Description"}
 		d = {**defaults, **kwargs}
 		return self.new_doc("ToDo", **d)
+
+	def test_is_auto_submitted(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		mail_content = self.get_test_mail(fname="incoming-1.raw")
+		cases = {
+			"": False,
+			"Auto-Submitted: no\n": False,
+			"Auto-Submitted: auto-replied\n": True,
+			"Auto-Submitted: Auto-Generated\n": True,
+			"X-Autoreply: yes\n": True,
+			"X-Autorespond: yes\n": True,
+			"Precedence: bulk\n": True,
+			"Precedence: junk\n": True,
+			"Precedence: list\n": True,
+			"Precedence: first-class\n": False,
+		}
+		for header, expected in cases.items():
+			with self.subTest(header=header):
+				self.assertEqual(
+					InboundMail(header + mail_content, email_account).is_auto_submitted(), expected
+				)
 
 	def test_self_sent_mail(self):
 		"""Check that we raise SentEmailInInboxError if the inbound mail is self sent mail."""
