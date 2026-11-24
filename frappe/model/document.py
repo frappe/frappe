@@ -2579,7 +2579,7 @@ class Document(_DocumentBase):
 			{
 				"doctype": "Comment",
 				"comment_type": comment_type,
-				"comment_email": comment_email or frappe.utils.get_email_address(),
+				"comment_email": comment_email,
 				"comment_by": comment_by,
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
