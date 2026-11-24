@@ -104,6 +104,7 @@ jobs:
           python-version: '3.14'
           node-version: 24
           disable-socketio: true
+          build-assets: false
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
           db: ${{ matrix.db }}
         env:
@@ -175,6 +176,7 @@ jobs:
           python-version: '3.14'
           node-version: 24
           disable-socketio: true
+          build-assets: false
           disable-web: true
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
 
