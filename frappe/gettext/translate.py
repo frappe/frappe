@@ -213,7 +213,11 @@ def get_is_gitignored_function_for_app(app: str | None):
 	if not app:
 		return lambda d: "public/dist" in d
 
-	repo = git.Repo(frappe.get_app_source_path(app), search_parent_directories=True)
+	try:
+		repo = git.Repo(frappe.get_app_source_path(app), search_parent_directories=True)
+	except git.InvalidGitRepositoryError:
+		return lambda d: "public/dist" in d
+
 	submodules = [Path(repo.working_tree_dir, sm.path) for sm in repo.submodules]
 
 	def _check_gitignore(d: str):
