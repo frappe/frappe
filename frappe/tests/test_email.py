@@ -386,6 +386,52 @@ class TestEmail(IntegrationTestCase):
 		frappe.get_doc("Email Queue", email_queue).send()
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
 
+	def test_unsubscribe_link_hides_recipient(self):
+		from urllib.parse import parse_qs
+
+		from frappe.email.queue import get_unsubcribed_url, unsubscribe
+		from frappe.utils import set_request
+		from frappe.utils.verified_command import verify_request
+
+		self.addCleanup(setattr, frappe.local, "request", None)
+		QueueBuilder(
+			recipients=["test@example.com"],
+			sender="admin@example.com",
+			reference_doctype="User",
+			reference_name="Administrator",
+			subject="Testing Email Queue",
+			message="This is mail is queued!",
+			unsubscribe_message="Unsubscribe",
+		).process()
+		frappe.get_last_doc("Email Queue").send()
+
+		email_obj = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
+		html = next(part for part in email_obj.walk() if part.get_content_type() == "text/html")
+		query_string = re.search(
+			r'/api/method/frappe.email.queue.unsubscribe\?([^"]+)"', html.get_payload(decode=True).decode()
+		).group(1)
+		self.assertNotIn("example.com", query_string)
+
+		set_request(method="GET", query_string=query_string)
+		self.assertTrue(verify_request())
+		params = parse_qs(query_string)
+		unsubscribe(doctype=params["doctype"][0], name=params["name"][0], token=params["token"][0])
+		self.assertTrue(
+			frappe.db.exists(
+				"Email Unsubscribe",
+				{"reference_doctype": "User", "reference_name": "Administrator", "email": "test@example.com"},
+			)
+		)
+
+		set_request(method="GET", query_string=query_string.replace("token=", "token=A"))
+		self.assertFalse(verify_request())
+		self.assertRaises(
+			frappe.ValidationError, unsubscribe, doctype="User", name="Administrator", token="x"
+		)
+
+		custom_url = get_unsubcribed_url("User", "Administrator", "test@example.com", "/unsubscribe", None)
+		self.assertIn("email=test%40example.com", custom_url)
+
 	def test_read_tracker_in_queued_email(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")

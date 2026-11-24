@@ -19,7 +19,7 @@ from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
 from frappe.email.frappemail import FrappeMail
-from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
+from frappe.email.queue import UNSUBSCRIBE_METHOD, get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.smtp import SMTPServer
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval
@@ -723,7 +723,7 @@ class QueueBuilder:
 
 	@property
 	def unsubscribe_method(self):
-		return self._unsubscribe_method or "/api/method/frappe.email.queue.unsubscribe"
+		return self._unsubscribe_method or UNSUBSCRIBE_METHOD
 
 	def _get_emails_list(self, emails=None):
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
