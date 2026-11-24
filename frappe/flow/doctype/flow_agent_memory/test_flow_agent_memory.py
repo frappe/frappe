@@ -122,6 +122,7 @@ class TestSaveMemory(MemoryCase):
 		frappe.get_doc(_memory(self.agent.name, scope="User", user="Guest", content=FISCAL)).insert()
 
 		frappe.set_user("Guest")
+		self.assertNotIn("update_memory", [tool.name for tool in self.agent.client_tools()])
 		for kwargs in (
 			{"scope": "user"},
 			{"scope": "agent"},
