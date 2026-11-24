@@ -11,6 +11,7 @@ from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefaultError
 from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
+from frappe.model import table_fields
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission, get_allowed_docs_for_doctype, get_user_permissions
 from frappe.rate_limiter import rate_limit
@@ -999,6 +1000,9 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		fieldname = field.fieldname
 		df = meta.get_field(fieldname)
 		value = data.get(fieldname, "")
+
+		if isinstance(value, dict | list) and not (df and df.fieldtype in (*table_fields, "JSON")):
+			frappe.throw(_("Invalid Request"))
 
 		if df and df.fieldtype in ("Attach", "Attach Image"):
 			if value and "data:" and "base64" in value:
