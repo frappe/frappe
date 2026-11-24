@@ -1486,7 +1486,8 @@ class TypstEmitter:
 			if not name:
 				return ""
 			return f'#box(width: 100%, height: 75pt)[#image("{name}", width: 100%, height: 100%, fit: "contain")]'
-		value = _ltr_email(_text_value(format_field_value(row, col)), col)
+		email_df = col if col.get("options") else getattr(row, "meta", None) and row.meta.get_field(fieldname)
+		value = _ltr_email(_text_value(format_field_value(row, col)), email_df)
 		return f"#text({q(value)})"
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:
