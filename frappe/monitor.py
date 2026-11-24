@@ -103,6 +103,7 @@ class Monitor:
 
 	def dump(self, response=None):
 		try:
+			self.data.user = frappe.session.user
 			timediff = datetime.datetime.now(datetime.UTC) - self.data.timestamp
 			# Obtain duration in microseconds
 			self.data.duration = int(timediff.total_seconds() * 1000000)
