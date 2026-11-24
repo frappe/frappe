@@ -488,7 +488,7 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 """,
 		)
 		self.enterContext(self.set_user("test@example.com"))
-		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		ctx = ToolContext(session_id="test", agent="Test Agent", user=frappe.session.user)
 		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=ctx)
 		self.assertEqual(result["row_count"], 25)
 
@@ -597,7 +597,7 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 			json=json.dumps({"filters": {"description": "query report probe"}}),
 		)
 		self.enterContext(self.set_user("test@example.com"))
-		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		ctx = ToolContext(session_id="test", agent="Test Agent", user=frappe.session.user)
 
 		# saved filters replace the defaults, as in Desk
 		with (
@@ -640,7 +640,7 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 class TestSearchDocs(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(self.set_user("test@example.com"))
-		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user=frappe.session.user)
 
 	def search(self, status: int, hits: list[dict] | None = None) -> dict:
 		"""What search_docs returns when docs.frappe.io answers `status` with `hits`."""

@@ -18,7 +18,7 @@ from frappe.integrations.frappe_providers import email_oauth
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import wait_for_job
-from frappe.utils import set_request
+from frappe.utils import get_user_by_email, set_request
 
 V2 = {"pilot_endpoint": "http://pilot.test", "pilot_auth_token": "pt"}
 AUTHORIZE = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
@@ -90,16 +90,22 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.assertEqual(note["email"], "one@email-oauth.example.com")
 
 	def test_user_without_email_account_permission_is_refused(self) -> None:
-		user = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": "email-oauth-nobody@example.com",
-				"first_name": "Nobody",
-				"user_type": "Website User",
-				"send_welcome_email": 0,
-			}
-		).insert(ignore_if_duplicate=True)
-		with self.set_user(user.name):
+		email = "email-oauth-nobody@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": "Nobody",
+						"user_type": "Website User",
+						"send_welcome_email": 0,
+					}
+				)
+				.insert()
+				.name
+			)
+		with self.set_user(user):
 			self.assertRaises(frappe.PermissionError, email_oauth.initiate_mailbox_connect, "Outlook.com")
 		self.pilot.assert_not_called()
 

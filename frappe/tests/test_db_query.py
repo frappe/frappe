@@ -1401,7 +1401,7 @@ class TestDBQuery(IntegrationTestCase):
 				}
 			}
 		):
-			names = DatabaseQuery("ToDo").execute(pluck="name", user="test@example.com")
+			names = DatabaseQuery("ToDo").execute(pluck="name", user=get_user_by_email("test@example.com"))
 
 		self.assertIn(open_todo.name, names)
 		self.assertNotIn(closed_todo.name, names)
@@ -1413,7 +1413,7 @@ class TestDBQuery(IntegrationTestCase):
 		with self.patch_hooks(
 			{"permission_query_conditions": {"ToDo": ["frappe.tests.test_db_query.todo_placeholder_hook"]}}
 		):
-			names = DatabaseQuery("ToDo").execute(pluck="name", user="test@example.com")
+			names = DatabaseQuery("ToDo").execute(pluck="name", user=get_user_by_email("test@example.com"))
 
 		self.assertEqual(names, [todo.name])
 
