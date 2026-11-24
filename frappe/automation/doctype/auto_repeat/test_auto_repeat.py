@@ -295,6 +295,31 @@ class TestAutoRepeat(IntegrationTestCase):
 		self.assertEqual(getdate(new_todo.from_date), getdate("2025-02-01"))
 		self.assertEqual(getdate(new_todo.to_date), getdate("2025-02-28"))
 
+	def test_period_repeat_on_last_day(self):
+		self.add_period_fields()
+		self.make_todo_date_mandatory()
+
+		with set_user(create_user_without_reference_access()):
+			todo = make_period_todo("2025-01-01", "2025-01-01", "2025-01-31")
+			doc = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=todo.name,
+				frequency="Monthly",
+				start_date="2025-01-01",
+				repeat_on_last_day=1,
+			).insert()
+
+		self.assertEqual(
+			doc.get_next_schedule_date("2025-01-01", for_full_schedule=True), getdate("2025-02-28")
+		)
+		doc.next_schedule_date = getdate("2025-02-28")
+		new_todo = frappe.copy_doc(todo)
+		doc.set_auto_repeat_period(new_todo)
+
+		self.assertEqual(getdate(new_todo.from_date), getdate("2025-02-01"))
+		self.assertEqual(getdate(new_todo.to_date), getdate("2025-02-28"))
+
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_email_notification(self):
 		todo = frappe.get_doc(

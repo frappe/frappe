@@ -374,10 +374,9 @@ class AutoRepeat(Document):
 			self.start_date,
 		)
 		if mcount := month_map.get(self.frequency):
-			step_days = mcount * 365.25 / 12
+			n = (month_diff(self.next_schedule_date, reference_date) - 1) // mcount
 		else:
-			step_days = day_map[self.frequency]
-		n = round(date_diff(self.next_schedule_date, reference_date) / step_days)
+			n = round(date_diff(self.next_schedule_date, reference_date) / day_map[self.frequency])
 
 		from_date, to_date = get_auto_repeat_period(anchor, self.frequency, n)
 		new_doc.set("from_date", from_date)
