@@ -125,9 +125,9 @@ class TestPermissions(IntegrationTestCase):
 			frappe.delete_doc("DocType", name, ignore_missing=True, force=True)
 		frappe.delete_doc("Role", role_name, ignore_missing=True, force=True)
 
-		def boot_perms():
-			frappe.clear_cache(user=user.name)
-			frappe.set_user(user.name)
+		def boot_perms(user):
+			frappe.clear_cache(user=user)
+			frappe.set_user(user)
 			perms = UserPermissions()
 			perms.build_permissions()
 			frappe.set_user("Administrator")
@@ -148,7 +148,7 @@ class TestPermissions(IntegrationTestCase):
 			).insert()
 			user.add_roles(role_name)
 
-			perms = boot_perms()
+			perms = boot_perms(user.name)
 			self.assertIn(owner_only_dt, perms.can_export)
 			self.assertIn(shared_dt, perms.can_export)
 		finally:
