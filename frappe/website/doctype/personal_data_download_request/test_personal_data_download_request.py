@@ -109,6 +109,16 @@ class TestRequestPersonalData(IntegrationTestCase):
 		self.assertNotIn("user_name", invalid.as_dict())
 		self.assertEqual(get_response_shape(valid), get_response_shape(invalid))
 
+	def test_no_request_for_standard_users(self):
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		for requested in filter(None, ("Administrator", "Guest", admin_email)):
+			download_request = frappe.new_doc("Personal Data Download Request")
+			download_request.user = requested
+			download_request.insert(ignore_permissions=True)
+
+			self.assertEqual(download_request.user, requested)
+			self.assertFalse(frappe.db.exists("Personal Data Download Request", download_request.name))
+
 	def test_large_file_request(self):
 		from unittest.mock import patch
 
