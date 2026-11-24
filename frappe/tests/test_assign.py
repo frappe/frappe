@@ -152,6 +152,10 @@ class TestAssign(IntegrationTestCase):
 			matched("not in", ["Ann@example.com", "a_b@example.com"]),
 			everyone - {"ann@example.com", "a_b@example.com"},
 		)
+		self.assertEqual(matched("in", ["Ann@example.com", None]), {"ann@example.com", None})
+		self.assertEqual(matched("not in", ["Ann@example.com", None]), everyone - {"ann@example.com", None})
+		self.assertEqual(matched("in", [None]), {None})
+		self.assertEqual(matched("not in", [None]), set(users))
 
 
 def assign(doc, user):

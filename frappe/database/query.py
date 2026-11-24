@@ -773,11 +773,17 @@ class Engine:
 			and _value
 		):
 			values = _value.split(",") if isinstance(_value, str) else _value
-			member_operator = "=" if _operator.casefold() == "in" else "!="
-			criteria = [
-				self._build_criterion_for_simple_filter(field, v, member_operator, doctype) for v in values
-			]
-			return Criterion.any(criteria) if member_operator == "=" else Criterion.all(criteria)
+			if members := [v for v in values if v]:
+				member_operator = "=" if _operator.casefold() == "in" else "!="
+				criteria = [
+					self._build_criterion_for_simple_filter(field, v, member_operator, doctype)
+					for v in members
+				]
+				if empty_members := [v for v in values if not v]:
+					criteria.append(
+						self._build_criterion_for_simple_filter(field, empty_members, _operator, doctype)
+					)
+				return Criterion.any(criteria) if member_operator == "=" else Criterion.all(criteria)
 
 		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
 		# single member; treat them as `like`/`not like` against the serialized value.
