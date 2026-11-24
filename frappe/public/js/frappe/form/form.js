@@ -1620,7 +1620,11 @@ frappe.ui.form.Form = class FrappeForm {
 		// trigger link fields which have default values set
 		if (this.is_new() && this.doc.__run_link_triggers) {
 			$.each(this.fields_dict, function (fieldname, field) {
-				if (["Link", "Dynamic Link"].includes(field.df.fieldtype) && this.doc[fieldname]) {
+				if (
+					["Link", "Dynamic Link"].includes(field.df.fieldtype) &&
+					this.doc[fieldname] &&
+					field.get_options()
+				) {
 					// triggers add fetch, sets value in model and runs triggers
 					field.set_value(this.doc[fieldname], true);
 				}
