@@ -128,7 +128,13 @@ def sendmail(
 	x_priority: Literal[1, 3, 5] = 3,
 	email_headers=None,
 	redact_message_after_send=False,
+<<<<<<< HEAD
 ):
+=======
+	wrapper=None,
+	auto_submitted=None,
+) -> EmailQueue | None:
+>>>>>>> 7a1cc7a (fix(email): do not auto-reply to automatic emails)
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -146,7 +152,7 @@ def sendmail(
 	    :param attachments: List of attachments.
 	    :param reply_to: Reply-To Email Address.
 	    :param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
-	    :param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
+	    :param in_reply_to: Name of the Communication this email replies to. Its Message-Id is sent as In-Reply-To.
 	    :param send_after: Send after the given datetime.
 	    :param expose_recipients: Controls recipient visibility. "header" shows all TO recipients in the To header.
 	"footer" adds "This email was sent to..." text in footer. None (default) hides TO recipients from each other.
@@ -160,6 +166,7 @@ def sendmail(
 	    :param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 	    :param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 	    :param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
+	    :param auto_submitted: Value of the `Auto-Submitted` header (RFC 3834), e.g. "auto-replied".
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -223,6 +230,11 @@ def sendmail(
 		x_priority=x_priority,
 		email_headers=email_headers,
 		redact_message_after_send=redact_message_after_send,
+<<<<<<< HEAD
+=======
+		wrapper=wrapper,
+		auto_submitted=auto_submitted,
+>>>>>>> 7a1cc7a (fix(email): do not auto-reply to automatic emails)
 	)
 
 	# build email queue and send the email if send_now is True.
