@@ -455,7 +455,10 @@ def get_context(context):
 				if allow_update and not doc.flags.in_notification_update:
 					fieldname = self.set_property_after_alert
 					value = self.property_value
-					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
+					fieldtype = doc.meta.get_field(fieldname).fieldtype
+					if fieldtype in frappe.model.float_like_fields:
+						value = frappe.utils.flt(value)
+					elif fieldtype in frappe.model.numeric_fieldtypes:
 						value = frappe.utils.cint(value)
 
 					doc.reload()
