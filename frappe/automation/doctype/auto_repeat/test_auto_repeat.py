@@ -246,8 +246,6 @@ class TestAutoRepeat(IntegrationTestCase):
 		self.assertEqual(getdate(new_todo.from_date), getdate(today()))
 		self.assertEqual(getdate(new_todo.to_date), getdate(today()))
 
-<<<<<<< HEAD
-=======
 	def test_period_after_update_reference(self):
 		self.add_period_fields()
 		self.make_todo_date_mandatory()
@@ -318,8 +316,6 @@ class TestAutoRepeat(IntegrationTestCase):
 		self.assertEqual(getdate(new_todo.from_date), getdate("2025-02-01"))
 		self.assertEqual(getdate(new_todo.to_date), getdate("2025-02-28"))
 
-	@requires_test_service(TestService.WEB_SERVER)
->>>>>>> 7d937c0 (fix(Auto Repeat): count invoice period from the reference document's date)
 	def test_email_notification(self):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="Test recurring notification attachment", assigned_by="Administrator"
