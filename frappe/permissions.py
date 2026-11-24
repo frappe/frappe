@@ -9,7 +9,7 @@ from frappe import _, msgprint
 from frappe.app_state import is_module_disabled
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.query_builder import DocType
-from frappe.utils import cint, cstr
+from frappe.utils import cint, cstr, get_user_display_id
 
 std_rights = (
 	"select",
@@ -153,7 +153,9 @@ def has_permission(
 				"Permission check failed from role permission system. Check if user's role grant them permission to the document."
 			)
 			if not frappe.flags.get("has_permission_check_logs"):
-				msg = _("User {0} does not have access to this document").format(frappe.bold(user))
+				msg = _("User {0} does not have access to this document").format(
+					frappe.bold(get_user_display_id(user))
+				)
 				if meta.issingle:
 					msg += f": {_(doc.doctype)}"
 				elif has_permission(doc.doctype, print_logs=False):
@@ -179,7 +181,7 @@ def has_permission(
 		if not perm:
 			push_perm_check_log(
 				_("User {0} does not have doctype access via role permission for document {1}").format(
-					frappe.bold(user), frappe.bold(_(doctype))
+					frappe.bold(get_user_display_id(user)), frappe.bold(_(doctype))
 				),
 				debug=debug,
 			)
