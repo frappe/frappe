@@ -366,15 +366,15 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
-		now = frappe.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
 		self.__new_password = None
+		old_email = self._previous_email()
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact",
 			user=self,
 			ignore_mandatory=True,
-			old_email=self._previous_email(),
-			now=now,
+			old_email=old_email,
+			now=frappe.in_test or frappe.flags.in_install or bool(old_email),
 			enqueue_after_commit=True,
 		)
 
@@ -839,14 +839,7 @@ class User(Document):
 		frappe.db.set_value("User", new_name, "email", new_name)
 		if old_email != new_name and not frappe.flags.in_personal_data_deletion:
 			self.email = new_name
-			frappe.enqueue(
-				"frappe.core.doctype.user.user.create_contact",
-				user=self,
-				ignore_mandatory=True,
-				old_email=old_email,
-				now=frappe.in_test,
-				enqueue_after_commit=True,
-			)
+			create_contact(self, ignore_mandatory=True, old_email=old_email)
 
 		if not merge:
 			frappe.db.set_value("DefaultValue", {"parent": old_name}, "parent", new_name)
