@@ -119,15 +119,6 @@ def generate_pot(target_app: str | None = None):
 	:param target_app: If specified, limit to `app`
 	"""
 
-	is_gitignored = get_is_gitignored_function_for_app(target_app)
-
-	def directory_filter(dirpath: str | os.PathLike[str]) -> bool:
-		if is_gitignored(str(dirpath)):
-			return False
-
-		subdir = os.path.basename(dirpath)
-		return not (subdir.startswith(".") or subdir.startswith("_"))
-
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	default_method_map = get_method_map("frappe")
 
@@ -140,6 +131,14 @@ def generate_pot(target_app: str | None = None):
 		# so more specific methods should come first.
 		method_map = [] if app == "frappe" else get_method_map(app)
 		method_map.extend(default_method_map)
+		is_gitignored = get_is_gitignored_function_for_app(app)
+
+		def directory_filter(dirpath: str | os.PathLike[str]) -> bool:
+			if is_gitignored(str(dirpath)):
+				return False
+
+			subdir = os.path.basename(dirpath)
+			return not (subdir.startswith(".") or subdir.startswith("_"))
 
 		for filename, lineno, message, comments, context in extract_from_dir(
 			app_path, method_map, directory_filter=directory_filter, keywords=PYTHON_KEYWORDS
