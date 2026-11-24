@@ -165,12 +165,6 @@ runs:
       path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
       key: island-toolchain-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('frappe-src/island-toolchain/yarn.lock') }}
 
-  - name: Cache Chromium
-    uses: actions/cache@v4
-    with:
-      path: ${{ github.workspace }}/chromium
-      key: chromium-${{ runner.os }}-${{ hashFiles('frappe-src/frappe/utils/chromium/download.py') }}
-
   - shell: bash -e {0}
     run: |
       # Set up the Chromium build that renders PDFs
