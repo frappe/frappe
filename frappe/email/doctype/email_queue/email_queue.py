@@ -238,6 +238,7 @@ class EmailQueue(Document):
 				return mail_options, rcpt_options
 
 			last_message = None
+			refused = None
 
 			for recipient in self.recipients:
 				if recipient.is_mail_sent():
@@ -269,13 +270,19 @@ class EmailQueue(Document):
 								mail_options=mail_options,
 								rcpt_options=rcpt_options,
 							)
-						except smtplib.SMTPException:
+						except smtplib.SMTPException as e:
 							# Session can be poisoned server-side even though NOOP
 							# still reports it alive; discard so the next recipient reconnects.
 							ctx.smtp_server.discard_session()
-							raise
+							if not isinstance(e, smtplib.SMTPRecipientsRefused):
+								raise
+							refused = e
+							continue
 
 				ctx.update_recipient_status_to_sent(recipient)
+
+			if refused:
+				raise refused
 
 			if frappe.in_test and not frappe.flags.testing_email:
 				frappe.flags.sent_mail = last_message
