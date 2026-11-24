@@ -215,6 +215,10 @@ const in_minutes = ([condition, value]) => {
 	return fits(from) && fits(to, true);
 };
 
+// the duration picker shows hours and minutes; a filter with other seconds goes to Advanced filters
+const in_whole_minutes = ([condition, value]) =>
+	condition === "is" || list_of(value).every((v) => Number(v) % 60 === 0);
+
 // a time range is its two ends, as a number's is: the server's Between reads dates
 function time_rules([condition, value]) {
 	if (condition === "is") return [[condition, value]];
@@ -865,6 +869,7 @@ frappe.ui.FilterChips = class FilterChips {
 		const rules = this.rules_for(df);
 		if (df.fieldtype === "Datetime" && !rules.every(whole_days)) return false;
 		if (df.fieldtype === "Time" && !rules.every(in_minutes)) return false;
+		if (df.fieldtype === "Duration" && !rules.every(in_whole_minutes)) return false;
 		// the pickers write "contains" as "%text%"; "Echo%" would be rewritten on the first edit
 		const pattern = ([c, v]) => !c.includes("like") || df.match === "like" || is_contains(v);
 		return (
