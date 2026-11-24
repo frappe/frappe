@@ -9,14 +9,12 @@ from frappe.utils.data import flt
 def get_coords(doctype, filters, type):
 	"""Get a geojson dict representing a doctype."""
 	filters_sql = get_coords_conditions(doctype, filters)[4:]
-	meta = frappe.get_meta(doctype)
-	title_field = meta.title_field if meta.show_title_field_in_link else None
 
 	coords = None
 	if type == "location_field":
-		coords = return_location(doctype, filters_sql, title_field)
+		coords = return_location(doctype, filters_sql)
 	elif type == "coordinates":
-		coords = return_coordinates(doctype, filters_sql, title_field)
+		coords = return_coordinates(doctype, filters_sql)
 
 	return convert_to_geojson(type, coords)
 
@@ -66,14 +64,12 @@ def create_gps_markers(coords):
 	]
 
 
-def return_location(doctype, filters_sql, title_field=None):
+def return_location(doctype, filters_sql):
 	"""Get name and location fields for Doctype."""
-	fields = ["name", "location"]
-	if title_field:
-		fields.append(f"{title_field} as title")
-
+	fields = ["name", "location", *get_title_field(doctype)]
 	if filters_sql:
 		try:
+			# nosemgrep: frappe-sql-format-injection
 			coords = frappe.db.sql(
 				f"""SELECT {", ".join(fields)} FROM `tab{doctype}`  WHERE {filters_sql}""", as_dict=True
 			)
@@ -85,14 +81,12 @@ def return_location(doctype, filters_sql, title_field=None):
 	return coords
 
 
-def return_coordinates(doctype, filters_sql, title_field=None):
+def return_coordinates(doctype, filters_sql):
 	"""Get name, latitude and longitude fields for Doctype."""
-	fields = ["name", "latitude", "longitude"]
-	if title_field:
-		fields.append(f"{title_field} as title")
-
+	fields = ["name", "latitude", "longitude", *get_title_field(doctype)]
 	if filters_sql:
 		try:
+			# nosemgrep: frappe-sql-format-injection
 			coords = frappe.db.sql(
 				f"""SELECT {", ".join(fields)} FROM `tab{doctype}`  WHERE {filters_sql}""",
 				as_dict=True,
@@ -105,6 +99,14 @@ def return_coordinates(doctype, filters_sql, title_field=None):
 	else:
 		coords = frappe.get_all(doctype, fields=fields)
 	return coords
+
+
+def get_title_field(doctype):
+	"""Return the title field as `title` when the DocType shows titles in links."""
+	meta = frappe.get_meta(doctype)
+	if meta.show_title_field_in_link and meta.title_field:
+		return [f"{meta.title_field} as title"]
+	return []
 
 
 def get_coords_conditions(doctype, filters=None):
