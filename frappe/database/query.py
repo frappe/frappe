@@ -769,7 +769,8 @@ class Engine:
 		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
 			_operator = "like" if _operator == "=" else "not like"
 			if isinstance(_value, str) and _value:
-				_value = f"%{_value}%"
+				escaped = _value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+				_value = f'%"{escaped}"%'
 
 		if _operator.lower() in ("timespan", "previous", "next"):
 			_value = get_date_range(_operator.lower(), _value)
