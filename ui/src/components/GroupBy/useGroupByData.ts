@@ -6,7 +6,6 @@ import {
   groupsByAssignee,
   serializeGroupBy,
   serializeGroupByTotals,
-  splitAssignees,
 } from "./groupBy";
 import type { GroupBySettings } from "./types";
 
@@ -50,13 +49,11 @@ export interface UseGroupByData {
   reload: () => void;
 }
 
+/** Groups by assignee, as `frappe.client.get_list` would if `_assign` held one user. */
+const ASSIGNEE_GROUPS = "frappe.desk.listview.get_assignee_groups";
+
 /** Most group keys fetched to count the groups; past it the total is a floor. */
 const COUNT_CAP = 1000;
-
-// Grouped by assignee, the groups are split and paged here rather than in the query.
-function splitsLocally(settings: GroupBySettings | null): boolean {
-  return Boolean(settings && groupsByAssignee(settings));
-}
 
 // The totals row is on and there are aggregates to total.
 function wantsTotals(settings: GroupBySettings | null): boolean {
@@ -66,7 +63,7 @@ function wantsTotals(settings: GroupBySettings | null): boolean {
 export function useGroupByData(
   doctype: MaybeRefOrGetter<string>,
   groupBy: MaybeRefOrGetter<GroupBySettings | null>,
-  filters: MaybeRefOrGetter<WireFilters | Record<string, unknown>>
+  filters: MaybeRefOrGetter<WireFilters | Record<string, unknown>>,
 ): UseGroupByData {
   // Groups per page, the same as the List module's footer starts at.
   const pageLength = ref(20);
@@ -80,33 +77,35 @@ export function useGroupByData(
     return settings;
   }
 
-  const groups = createResource({
-    url: "frappe.client.get_list",
-    makeParams: () => ({
-      doctype: toValue(doctype),
-      filters: toValue(filters),
-      ...serializeGroupBy(grouping()),
-      // Grouped by assignee, every group is needed to add up each user's values; 0 is no limit.
-      limit_page_length: splitsLocally(grouping()) ? 0 : limit.value,
-    }),
+  const groupParams = () => ({
+    doctype: toValue(doctype),
+    filters: toValue(filters),
+    ...serializeGroupBy(grouping()),
+    limit_page_length: limit.value,
   });
 
   // The group fields alone, one row per group, to count them.
-  const groupKeys = createResource({
+  const groupKeyParams = () => {
+    const { fields, group_by } = serializeGroupBy({
+      ...grouping(),
+      aggregates: [],
+    });
+    return {
+      doctype: toValue(doctype),
+      filters: toValue(filters),
+      fields,
+      group_by,
+      limit_page_length: COUNT_CAP,
+    };
+  };
+
+  const fieldGroups = createResource({
     url: "frappe.client.get_list",
-    makeParams: () => {
-      const { fields, group_by } = serializeGroupBy({
-        ...grouping(),
-        aggregates: [],
-      });
-      return {
-        doctype: toValue(doctype),
-        filters: toValue(filters),
-        fields,
-        group_by,
-        limit_page_length: COUNT_CAP,
-      };
-    },
+    makeParams: groupParams,
+  });
+  const fieldGroupKeys = createResource({
+    url: "frappe.client.get_list",
+    makeParams: groupKeyParams,
   });
 
   const totals = createResource({
@@ -119,21 +118,37 @@ export function useGroupByData(
     }),
   });
 
+  // Grouped by assignee, the same queries go to the endpoint that splits each record's users.
+  const assigneeGroups = createResource({
+    url: ASSIGNEE_GROUPS,
+    makeParams: groupParams,
+  });
+  const assigneeGroupKeys = createResource({
+    url: ASSIGNEE_GROUPS,
+    makeParams: groupKeyParams,
+  });
+
+  function byAssignee(): boolean {
+    const settings = toValue(groupBy);
+    return Boolean(settings && groupsByAssignee(settings));
+  }
+  const groups = () => (byAssignee() ? assigneeGroups : fieldGroups);
+  const groupKeys = () => (byAssignee() ? assigneeGroupKeys : fieldGroupKeys);
+
   // An ungrouped list fetches nothing; the host shows its records instead.
   function reload() {
     const settings = toValue(groupBy);
     if (!settings) return;
     limit.value = pageLength.value;
-    groups.fetch();
-    if (!splitsLocally(settings)) groupKeys.fetch();
+    groups().fetch();
+    groupKeys().fetch();
     if (wantsTotals(settings)) totals.fetch();
   }
 
   function loadMore() {
-    const settings = toValue(groupBy);
-    if (!settings) return;
+    if (!toValue(groupBy)) return;
     limit.value += pageLength.value;
-    if (!splitsLocally(settings)) groups.fetch();
+    groups().fetch();
   }
 
   // Only what reaches the query refetches: column widths live on the grouping too,
@@ -147,31 +162,15 @@ export function useGroupByData(
   watch(
     [() => toValue(doctype), query, () => toValue(filters), pageLength],
     reload,
-    { immediate: true, deep: true }
+    { immediate: true, deep: true },
   );
 
-  // Grouped by assignee, every group split from the fetched ones; empty otherwise.
-  const splitGroups = computed<Record<string, unknown>[]>(() => {
-    const settings = toValue(groupBy);
-    if (!settings || !splitsLocally(settings)) return [];
-    return splitAssignees(groups.data ?? [], settings);
-  });
-
-  const rows = computed<Record<string, unknown>[]>(() => {
-    const settings = toValue(groupBy);
-    if (!settings) return [];
-    if (splitsLocally(settings)) return splitGroups.value.slice(0, limit.value);
-    return groups.data ?? [];
-  });
-
-  const totalCount = computed<number>(() =>
-    splitsLocally(toValue(groupBy))
-      ? splitGroups.value.length
-      : groupKeys.data?.length ?? 0
+  const rows = computed<Record<string, unknown>[]>(() =>
+    toValue(groupBy) ? (groups().data ?? []) : [],
   );
-  const totalCapped = computed(
-    () => !splitsLocally(toValue(groupBy)) && totalCount.value >= COUNT_CAP
-  );
+
+  const totalCount = computed<number>(() => groupKeys().data?.length ?? 0);
+  const totalCapped = computed(() => totalCount.value >= COUNT_CAP);
 
   return {
     rows,
@@ -180,18 +179,16 @@ export function useGroupByData(
       if (!wantsTotals(toValue(groupBy))) return null;
       return (totals.data as Record<string, unknown>[] | null)?.[0] ?? null;
     }),
-    loading: computed(() => Boolean(groups.loading)),
+    loading: computed(() => Boolean(groups().loading)),
     rowCount: computed(() => rows.value.length),
     totalCount,
     totalCapped,
-    hasCounts: computed(() =>
-      Boolean(splitsLocally(toValue(groupBy)) ? groups.data : groupKeys.data)
-    ),
+    hasCounts: computed(() => Boolean(groupKeys().data)),
     // Past a capped total, a full page is the only sign more groups exist.
     hasNextPage: computed(() =>
       totalCapped.value
         ? rows.value.length >= limit.value
-        : rows.value.length < totalCount.value
+        : rows.value.length < totalCount.value,
     ),
     pageLength,
     loadMore,

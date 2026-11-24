@@ -120,7 +120,7 @@ function isQueryable(f: RawMetaField): boolean {
  *  then the standard fields, less any fieldnames in `exclude`. */
 export function getGroupByFields(
   fields: RawMetaField[],
-  exclude: string[] = []
+  exclude: string[] = [],
 ): GroupByField[] {
   return [
     ...fields
@@ -137,7 +137,7 @@ export function getGroupByFields(
 export function getAggregateFields(
   fields: RawMetaField[],
   fn: AggregateFunction,
-  exclude: string[] = []
+  exclude: string[] = [],
 ): GroupByField[] {
   if (fn === "count") return [];
   const allowsTimes = fn === "min" || fn === "max";
@@ -148,7 +148,7 @@ export function getAggregateFields(
         isQueryable(f) &&
         (NUMERIC_FIELDTYPES.has(f.fieldtype) ||
           (allowsRating && f.fieldtype === "Rating") ||
-          (allowsTimes && TIME_FIELDTYPES.has(f.fieldtype)))
+          (allowsTimes && TIME_FIELDTYPES.has(f.fieldtype))),
     )
     .map(toField);
   return (
@@ -159,18 +159,18 @@ export function getAggregateFields(
 /** Field lookup for labels and formatting, covering the standard fields. */
 export function findGroupByField(
   fields: RawMetaField[],
-  fieldname: string
+  fieldname: string,
 ): GroupByField | undefined {
   const meta = fields.find((f) => f.fieldname === fieldname);
   if (meta) return toField(meta);
   return [...STANDARD_GROUP_FIELDS, ...STANDARD_TIME_FIELDS].find(
-    (f) => f.fieldname === fieldname
+    (f) => f.fieldname === fieldname,
   );
 }
 
 /** Whether an aggregate has everything its function needs. */
 export function isCompleteAggregate(
-  aggregate: AggregateDraft
+  aggregate: AggregateDraft,
 ): aggregate is Aggregate {
   return aggregate.function === "count" || Boolean(aggregate.fieldname);
 }
@@ -190,12 +190,12 @@ export function columnId(column: string | Aggregate): string {
 export function isAggregateTaken(
   aggregates: AggregateDraft[],
   index: number,
-  candidate: AggregateDraft
+  candidate: AggregateDraft,
 ): boolean {
   if (!isCompleteAggregate(candidate)) return false;
   const id = columnId(candidate);
   return aggregates.some(
-    (a, i) => i !== index && isCompleteAggregate(a) && columnId(a) === id
+    (a, i) => i !== index && isCompleteAggregate(a) && columnId(a) === id,
   );
 }
 
@@ -224,45 +224,23 @@ export function effectiveSort(groupBy: GroupBySettings): Sort[] {
     : [];
 }
 
-type RowSort = { key: string; direction: Sort["direction"] };
-
-// The effective sort by row key, then the group fields so ties keep their place as loadMore pages.
-function rowSort(groupBy: GroupBySettings): RowSort[] {
-  const [sort] = effectiveSort(groupBy);
-  const tieBreakers: RowSort[] = groupBy.fields
-    .filter((f) => f !== sort?.fieldname)
-    .map((f) => ({ key: f, direction: "asc" }));
-  if (!sort) return tieBreakers;
-  const index = groupBy.aggregates.findIndex(
-    (a) => columnId(a) === sort.fieldname
-  );
-  const key = index >= 0 ? aggregateKey(index) : sort.fieldname;
-  return [{ key, direction: sort.direction }, ...tieBreakers];
-}
-
+// The effective sort on the wire, then the group fields so ties keep their place as loadMore pages.
 function orderBy(groupBy: GroupBySettings): string {
-  return rowSort(groupBy)
-    .map((s) => `${s.key} ${s.direction}`)
-    .join(", ");
+  const [sort] = effectiveSort(groupBy);
+  const tieBreakers = groupBy.fields
+    .filter((f) => f !== sort?.fieldname)
+    .map((f) => `${f} asc`);
+  if (!sort) return tieBreakers.join(", ");
+  const index = groupBy.aggregates.findIndex(
+    (a) => columnId(a) === sort.fieldname,
+  );
+  const column = index >= 0 ? aggregateKey(index) : sort.fieldname;
+  return [`${column} ${sort.direction}`, ...tieBreakers].join(", ");
 }
 
-/** Whether the list is grouped by assignee, whose rows need `splitAssignees`. */
+/** Grouped by assignee, `serializeGroupBy`'s arguments go to `frappe.desk.listview.get_assignee_groups`. */
 export function groupsByAssignee(groupBy: GroupBySettings): boolean {
   return groupBy.fields.includes(ASSIGNED_TO);
-}
-
-// Split groups are added up, so each average comes as a sum and a count of values.
-function splittableAggregateFields(
-  aggregates: Aggregate[]
-): Record<string, string>[] {
-  return aggregates.flatMap((a, i) =>
-    a.function === "avg"
-      ? [
-          { SUM: a.fieldname, as: `${aggregateKey(i)}_sum` },
-          { COUNT: a.fieldname, as: `${aggregateKey(i)}_count` },
-        ]
-      : aggregateFields([a]).map((f) => ({ ...f, as: aggregateKey(i) }))
-  );
 }
 
 /** The arguments for `frappe.client.get_list` that fetch one row per group: the
@@ -275,16 +253,6 @@ export function serializeGroupBy(groupBy: GroupBySettings): {
   group_by: string;
   order_by: string;
 } {
-  if (groupsByAssignee(groupBy)) {
-    return {
-      fields: [
-        ...groupBy.fields,
-        ...splittableAggregateFields(groupBy.aggregates),
-      ],
-      group_by: groupBy.fields.join(", "),
-      order_by: groupBy.fields.map((f) => `${f} asc`).join(", "),
-    };
-  }
   return {
     fields: [...groupBy.fields, ...aggregateFields(groupBy.aggregates)],
     group_by: groupBy.fields.join(", "),
@@ -292,120 +260,11 @@ export function serializeGroupBy(groupBy: GroupBySettings): {
   };
 }
 
-// The users in an `_assign` value, or one `null` for a record assigned to no one.
-function assignees(value: unknown): (string | null)[] {
-  let users: unknown = value;
-  if (typeof value === "string") {
-    try {
-      users = JSON.parse(value);
-    } catch {
-      users = [];
-    }
-  }
-  const list = Array.isArray(users)
-    ? users.filter((u): u is string => typeof u === "string" && u !== "")
-    : [];
-  return list.length ? [...new Set(list)] : [null];
-}
-
-function addValues(a: unknown, b: unknown): unknown {
-  if (a === null || a === undefined) return b;
-  if (b === null || b === undefined) return a;
-  return Number(a) + Number(b);
-}
-
-const TIME = /^(\d+):(\d{2})(?::(\d{2}(?:\.\d+)?))?$/;
-
-// Times come back unpadded ("9:00:00"), so compare them as seconds; dates sort as text.
-function orderable(value: unknown): number | string {
-  if (typeof value === "number") return value;
-  const time = TIME.exec(String(value));
-  if (!time) return String(value);
-  return Number(time[1]) * 3600 + Number(time[2]) * 60 + Number(time[3] ?? 0);
-}
-
-function pickValue(a: unknown, b: unknown, fn: "min" | "max"): unknown {
-  if (a === null || a === undefined) return b;
-  if (b === null || b === undefined) return a;
-  const [x, y] = [orderable(a), orderable(b)];
-  if (fn === "min") return y < x ? b : a;
-  return y > x ? b : a;
-}
-
-// Fold `row` into `group`, both the same group's values from different records.
-function mergeInto(
-  group: Record<string, unknown>,
-  row: Record<string, unknown>,
-  aggregates: Aggregate[]
-) {
-  aggregates.forEach((a, i) => {
-    const key = aggregateKey(i);
-    if (a.function === "avg") {
-      for (const part of [`${key}_sum`, `${key}_count`]) {
-        group[part] = addValues(group[part], row[part]);
-      }
-    } else if (a.function === "min" || a.function === "max") {
-      group[key] = pickValue(group[key], row[key], a.function);
-    } else {
-      group[key] = addValues(group[key], row[key]);
-    }
-  });
-}
-
-// Nulls sort first going up, as the database sorts them; only aggregates can hold times.
-function compareValues(a: unknown, b: unknown, aggregate: boolean): number {
-  const aEmpty = a === null || a === undefined || a === "";
-  const bEmpty = b === null || b === undefined || b === "";
-  if (aEmpty || bEmpty) return Number(bEmpty) - Number(aEmpty);
-  const [x, y] = aggregate ? [orderable(a), orderable(b)] : [a, b];
-  if (typeof x === "number" && typeof y === "number") return x - y;
-  return String(x).localeCompare(String(y));
-}
-
-/** Turn rows per list of assignees into sorted rows per user, a record counting under each assignee. */
-export function splitAssignees(
-  rows: Record<string, unknown>[],
-  groupBy: GroupBySettings
-): Record<string, unknown>[] {
-  const { aggregates } = groupBy;
-  const groups = new Map<string, Record<string, unknown>>();
-  for (const row of rows) {
-    for (const user of assignees(row[ASSIGNED_TO])) {
-      const split = { ...row, [ASSIGNED_TO]: user };
-      const key = JSON.stringify(groupBy.fields.map((f) => split[f] ?? null));
-      const group = groups.get(key);
-      if (group) mergeInto(group, split, aggregates);
-      else groups.set(key, split);
-    }
-  }
-
-  const result = [...groups.values()].map((group) => {
-    aggregates.forEach((a, i) => {
-      if (a.function !== "avg") return;
-      const key = aggregateKey(i);
-      const count = Number(group[`${key}_count`]) || 0;
-      group[key] = count ? Number(group[`${key}_sum`]) / count : null;
-      delete group[`${key}_sum`];
-      delete group[`${key}_count`];
-    });
-    return group;
-  });
-
-  const order = rowSort(groupBy);
-  return result.sort((a, b) => {
-    for (const { key, direction } of order) {
-      const diff = compareValues(a[key], b[key], !groupBy.fields.includes(key));
-      if (diff) return direction === "desc" ? -diff : diff;
-    }
-    return 0;
-  });
-}
-
 /** The `frappe.client.get_list` fields for the totals row: the same aggregates over
  *  every matching record, ungrouped, so an average or a max is the true one rather
  *  than a sum of the groups'. `null` when there's nothing to total. */
 export function serializeGroupByTotals(
-  groupBy: GroupBySettings
+  groupBy: GroupBySettings,
 ): { fields: Record<string, string>[] } | null {
   const { aggregates } = groupBy;
   return aggregates.length ? { fields: aggregateFields(aggregates) } : null;
@@ -430,7 +289,7 @@ function parseSort(raw: unknown): Sort[] | undefined {
     (s): s is Sort =>
       Boolean(s) &&
       typeof s.fieldname === "string" &&
-      (s.direction === "asc" || s.direction === "desc")
+      (s.direction === "asc" || s.direction === "desc"),
   );
   return sort.length ? [{ ...sort[0] }] : undefined;
 }
@@ -438,7 +297,7 @@ function parseSort(raw: unknown): Sort[] | undefined {
 function parseWidths(raw: unknown): Record<string, string> | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
   const widths = Object.fromEntries(
-    Object.entries(raw).filter(([, width]) => typeof width === "string")
+    Object.entries(raw).filter(([, width]) => typeof width === "string"),
   ) as Record<string, string>;
   return Object.keys(widths).length ? widths : undefined;
 }

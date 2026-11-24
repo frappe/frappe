@@ -12,7 +12,6 @@ import {
   parseGroupBy,
   serializeGroupBy,
   serializeGroupByTotals,
-  splitAssignees,
 } from "../groupBy";
 import type { RawMetaField } from "../../FormLayout/types";
 import type { AggregateDraft } from "../types";
@@ -62,8 +61,8 @@ describe("getGroupByFields", () => {
             label: "Age",
             is_virtual: 1,
           },
-        ])
-      )
+        ]),
+      ),
     ).toEqual([
       "region",
       "_assign",
@@ -122,9 +121,9 @@ describe("getAggregateFields", () => {
             },
             { fieldname: "stars", fieldtype: "Rating", label: "Stars" },
           ],
-          "sum"
-        )
-      )
+          "sum",
+        ),
+      ),
     ).toEqual(["cost"]);
   });
 
@@ -133,7 +132,7 @@ describe("getAggregateFields", () => {
       "grand_total",
     ]);
     expect(
-      names(getAggregateFields(FIELDS, "max", ["close_date", "modified"]))
+      names(getAggregateFields(FIELDS, "max", ["close_date", "modified"])),
     ).toEqual(["grand_total", "probability", "creation"]);
   });
 
@@ -157,7 +156,7 @@ describe("findGroupByField", () => {
       options: "User",
     });
     expect(findGroupByField(FIELDS, "docstatus")?.label).toBe(
-      "Document Status"
+      "Document Status",
     );
     expect(findGroupByField(FIELDS, "missing")).toBeUndefined();
   });
@@ -168,7 +167,7 @@ describe("isCompleteAggregate", () => {
     expect(isCompleteAggregate({ function: "count" })).toBe(true);
     expect(isCompleteAggregate({ function: "sum" })).toBe(false);
     expect(
-      isCompleteAggregate({ function: "sum", fieldname: "grand_total" })
+      isCompleteAggregate({ function: "sum", fieldname: "grand_total" }),
     ).toBe(true);
   });
 });
@@ -189,7 +188,7 @@ describe("isAggregateTaken", () => {
       isAggregateTaken(aggregates, 2, {
         function: "sum",
         fieldname: "grand_total",
-      })
+      }),
     ).toBe(true);
   });
 
@@ -198,7 +197,7 @@ describe("isAggregateTaken", () => {
       isAggregateTaken(aggregates, 2, {
         function: "avg",
         fieldname: "grand_total",
-      })
+      }),
     ).toBe(false);
   });
 
@@ -213,7 +212,7 @@ describe("isAggregateTaken", () => {
       isAggregateTaken(aggregates, 1, {
         function: "sum",
         fieldname: "grand_total",
-      })
+      }),
     ).toBe(false);
   });
 });
@@ -227,7 +226,7 @@ describe("serializeGroupBy", () => {
           { function: "count" },
           { function: "sum", fieldname: "grand_total" },
         ],
-      })
+      }),
     ).toEqual({
       fields: [
         "status",
@@ -243,147 +242,19 @@ describe("serializeGroupBy", () => {
   it("orders by the group fields when there is nothing to aggregate", () => {
     expect(
       serializeGroupBy({ fields: ["status", "sales_person"], aggregates: [] })
-        .order_by
+        .order_by,
     ).toBe("status asc, sales_person asc");
   });
 });
 
-describe("grouping by assignee", () => {
-  const BY_ASSIGNEE = {
-    fields: ["_assign"],
-    aggregates: [
-      { function: "count" as const },
-      { function: "avg" as const, fieldname: "grand_total" },
-      { function: "max" as const, fieldname: "close_date" },
-    ],
-  };
-
+describe("groupsByAssignee", () => {
   it("is on only while _assign is a group field", () => {
-    expect(groupsByAssignee(BY_ASSIGNEE)).toBe(true);
+    expect(
+      groupsByAssignee({ fields: ["status", "_assign"], aggregates: [] }),
+    ).toBe(true);
     expect(groupsByAssignee({ fields: ["status"], aggregates: [] })).toBe(
-      false
+      false,
     );
-  });
-
-  it("fetches averages as a sum and a count, so split groups can add up", () => {
-    expect(serializeGroupBy(BY_ASSIGNEE)).toEqual({
-      fields: [
-        "_assign",
-        { COUNT: "name", as: "_aggregate_0" },
-        { SUM: "grand_total", as: "_aggregate_1_sum" },
-        { COUNT: "grand_total", as: "_aggregate_1_count" },
-        { MAX: "close_date", as: "_aggregate_2" },
-      ],
-      group_by: "_assign",
-      order_by: "_assign asc",
-    });
-  });
-
-  it("counts a record under each of its assignees, and unassigned ones once", () => {
-    const rows = [
-      {
-        _assign: '["ann@x.com"]',
-        _aggregate_0: 2,
-        _aggregate_1_sum: 300,
-        _aggregate_1_count: 2,
-        _aggregate_2: "2026-01-05",
-      },
-      {
-        _assign: '["ann@x.com", "bob@x.com"]',
-        _aggregate_0: 1,
-        _aggregate_1_sum: null,
-        _aggregate_1_count: 0,
-        _aggregate_2: "2026-03-01",
-      },
-      {
-        _assign: null,
-        _aggregate_0: 4,
-        _aggregate_1_sum: 40,
-        _aggregate_1_count: 4,
-        _aggregate_2: null,
-      },
-      {
-        _assign: "[]",
-        _aggregate_0: 1,
-        _aggregate_1_sum: 60,
-        _aggregate_1_count: 1,
-        _aggregate_2: "2026-02-01",
-      },
-    ];
-    expect(splitAssignees(rows, BY_ASSIGNEE)).toEqual([
-      {
-        _assign: null,
-        _aggregate_0: 5,
-        _aggregate_1: 20,
-        _aggregate_2: "2026-02-01",
-      },
-      {
-        _assign: "ann@x.com",
-        _aggregate_0: 3,
-        _aggregate_1: 150,
-        _aggregate_2: "2026-03-01",
-      },
-      {
-        _assign: "bob@x.com",
-        _aggregate_0: 1,
-        _aggregate_1: null,
-        _aggregate_2: "2026-03-01",
-      },
-    ]);
-  });
-
-  it("compares unpadded times as times", () => {
-    const rows = [
-      { _assign: '["ann@x.com"]', _aggregate_0: "10:00:00" },
-      { _assign: '["ann@x.com", "bob@x.com"]', _aggregate_0: "9:00:00" },
-    ];
-    const byMin = splitAssignees(rows, {
-      fields: ["_assign"],
-      aggregates: [{ function: "min", fieldname: "start_time" }],
-    });
-    expect(byMin.map((r) => r._aggregate_0)).toEqual(["9:00:00", "9:00:00"]);
-    const byMax = splitAssignees(rows, {
-      fields: ["_assign"],
-      aggregates: [{ function: "max", fieldname: "start_time" }],
-    });
-    expect(byMax).toEqual([
-      { _assign: "ann@x.com", _aggregate_0: "10:00:00" },
-      { _assign: "bob@x.com", _aggregate_0: "9:00:00" },
-    ]);
-  });
-
-  it("sorts time-shaped text in a group field as text", () => {
-    const rows = [
-      { slot: "10:00", _assign: '["ann@x.com"]' },
-      { slot: "9:00", _assign: '["ann@x.com"]' },
-    ];
-    const split = splitAssignees(rows, {
-      fields: ["slot", "_assign"],
-      aggregates: [],
-    });
-    expect(split.map((r) => r.slot)).toEqual(["10:00", "9:00"]);
-  });
-
-  it("splits within the other group fields and sorts by the chosen column", () => {
-    const rows = [
-      {
-        status: "Open",
-        _assign: '["bob@x.com", "ann@x.com"]',
-        _aggregate_0: 1,
-      },
-      { status: "Open", _assign: '["ann@x.com"]', _aggregate_0: 1 },
-      { status: "Closed", _assign: '["ann@x.com"]', _aggregate_0: 5 },
-    ];
-    const split = splitAssignees(rows, {
-      fields: ["status", "_assign"],
-      aggregates: [{ function: "count" }],
-      sort: [{ fieldname: "_assign", direction: "asc" }],
-    });
-    expect(split).toEqual([
-      { status: "Closed", _assign: "ann@x.com", _aggregate_0: 5 },
-      { status: "Open", _assign: "ann@x.com", _aggregate_0: 2 },
-      { status: "Open", _assign: "bob@x.com", _aggregate_0: 1 },
-    ]);
   });
 });
 
@@ -415,7 +286,7 @@ describe("parseGroupBy", () => {
           { function: "sum" },
           "count",
         ],
-      })
+      }),
     ).toEqual({ fields: ["status"], aggregates: [{ function: "count" }] });
   });
 
@@ -430,7 +301,7 @@ describe("parseGroupBy", () => {
           { function: "avg", fieldname: "grand_total" },
           { function: "sum", fieldname: "grand_total" },
         ],
-      })
+      }),
     ).toEqual({
       fields: ["status"],
       aggregates: [
@@ -447,7 +318,7 @@ describe("columnId", () => {
     expect(columnId("status")).toBe("status");
     expect(columnId({ function: "count" })).toBe("count:");
     expect(columnId({ function: "sum", fieldname: "grand_total" })).toBe(
-      "sum:grand_total"
+      "sum:grand_total",
     );
   });
 });
@@ -459,7 +330,7 @@ describe("parseGroupBy widths", () => {
         fields: ["status"],
         aggregates: [],
         widths: { status: "240px", "count:": 5, bad: null },
-      })
+      }),
     ).toEqual({
       fields: ["status"],
       aggregates: [],
@@ -469,7 +340,7 @@ describe("parseGroupBy widths", () => {
 
   it("leaves widths out when none survive", () => {
     expect(
-      parseGroupBy({ fields: ["status"], aggregates: [], widths: ["240px"] })
+      parseGroupBy({ fields: ["status"], aggregates: [], widths: ["240px"] }),
     ).toEqual({ fields: ["status"], aggregates: [] });
   });
 });
@@ -489,7 +360,7 @@ describe("serializeGroupBy sort", () => {
         ...groupBy,
         fields: ["status", "sales_person"],
         sort: [{ fieldname: "sales_person", direction: "desc" }],
-      }).order_by
+      }).order_by,
     ).toBe("sales_person desc, status asc");
   });
 
@@ -498,7 +369,7 @@ describe("serializeGroupBy sort", () => {
       serializeGroupBy({
         ...groupBy,
         sort: [{ fieldname: "sum:grand_total", direction: "asc" }],
-      }).order_by
+      }).order_by,
     ).toBe("_aggregate_1 asc, status asc");
   });
 
@@ -507,7 +378,7 @@ describe("serializeGroupBy sort", () => {
       serializeGroupBy({
         ...groupBy,
         sort: [{ fieldname: "avg:probability", direction: "asc" }],
-      }).order_by
+      }).order_by,
     ).toBe("_aggregate_0 desc, status asc");
   });
 });
@@ -541,13 +412,13 @@ describe("serializeGroupByTotals", () => {
       serializeGroupByTotals({
         fields: ["status"],
         aggregates: [{ function: "avg", fieldname: "grand_total" }],
-      })
+      }),
     ).toEqual({ fields: [{ AVG: "grand_total", as: "_aggregate_0" }] });
   });
 
   it("has nothing to total without aggregates", () => {
     expect(
-      serializeGroupByTotals({ fields: ["status"], aggregates: [] })
+      serializeGroupByTotals({ fields: ["status"], aggregates: [] }),
     ).toBeNull();
   });
 });
@@ -559,8 +430,8 @@ describe("getGroupByFields fieldtypes", () => {
         getGroupByFields([
           { fieldname: "ref", fieldtype: "Dynamic Link", label: "Reference" },
           { fieldname: "city", fieldtype: "Autocomplete", label: "City" },
-        ])
-      )
+        ]),
+      ),
     ).toEqual([
       "ref",
       "city",
@@ -581,7 +452,7 @@ describe("parseGroupBy sort and totals", () => {
         aggregates: [],
         sort: [{ fieldname: "status", direction: "asc" }],
         showTotals: true,
-      })
+      }),
     ).toEqual({
       fields: ["status"],
       aggregates: [],
@@ -597,7 +468,7 @@ describe("parseGroupBy sort and totals", () => {
         aggregates: [],
         sort: [{ fieldname: "status", direction: "sideways" }],
         showTotals: "yes",
-      })
+      }),
     ).toEqual({ fields: ["status"], aggregates: [] });
   });
 });

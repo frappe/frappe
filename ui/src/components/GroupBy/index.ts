@@ -17,7 +17,6 @@ export {
   parseGroupBy,
   serializeGroupBy,
   serializeGroupByTotals,
-  splitAssignees,
 } from "./groupBy";
 export { useGroupByData } from "./useGroupByData";
 export type { UseGroupByData } from "./useGroupByData";

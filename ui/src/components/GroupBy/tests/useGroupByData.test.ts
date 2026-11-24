@@ -8,9 +8,11 @@ vi.mock("frappe-ui", async () => {
   const { reactive } = await import("vue");
   return {
     createResource: (options: {
+      url: string;
       makeParams: () => Record<string, unknown>;
     }) => {
       const resource = reactive({
+        url: options.url,
         data: null as unknown,
         loading: false,
         calls: [] as Record<string, unknown>[],
@@ -62,33 +64,36 @@ describe("useGroupByData", () => {
     ]);
   });
 
-  it("fetches every list of assignees once and pages the split groups here", async () => {
+  it("sends a grouping by assignee to the endpoint that splits assignees", () => {
     const data = useGroupByData(
       "Sales Order",
       { fields: ["_assign"], aggregates: [{ function: "count" }] },
-      {}
+      {},
     );
-    const [groups, keys] = h.resources;
-    expect(groups.calls.at(-1).limit_page_length).toBe(0);
-    expect(keys.calls).toEqual([]);
-    expect(data.hasCounts.value).toBe(false);
+    const [fieldGroups, fieldKeys, , groups, keys] = h.resources;
+    expect(groups.url).toBe("frappe.desk.listview.get_assignee_groups");
+    expect(keys.url).toBe("frappe.desk.listview.get_assignee_groups");
+    expect(fieldGroups.calls).toEqual([]);
+    expect(fieldKeys.calls).toEqual([]);
+    expect(groups.calls).toEqual([
+      {
+        doctype: "Sales Order",
+        filters: {},
+        fields: ["_assign", { COUNT: "name", as: "_aggregate_0" }],
+        group_by: "_assign",
+        order_by: "_aggregate_0 desc, _assign asc",
+        limit_page_length: 20,
+      },
+    ]);
+    expect(keys.calls.at(-1).limit_page_length).toBe(1000);
 
-    groups.data = Array.from({ length: 25 }, (_, i) => ({
-      _assign: JSON.stringify([`user${i}@x.com`]),
-      _aggregate_0: i + 1,
-    }));
-    expect(data.rows.value).toHaveLength(20);
-    expect(data.rows.value[0]).toEqual({
-      _assign: "user24@x.com",
-      _aggregate_0: 25,
-    });
-    expect(data.totalCount.value).toBe(25);
-    expect(data.hasNextPage.value).toBe(true);
+    groups.data = [{ _assign: "ann@example.com", _aggregate_0: 3 }];
+    keys.data = [{ _assign: "ann@example.com" }, { _assign: null }];
+    expect(data.rows.value).toEqual(groups.data);
+    expect(data.totalCount.value).toBe(2);
 
     data.loadMore();
-    expect(groups.calls).toHaveLength(1);
-    expect(data.rows.value).toHaveLength(25);
-    expect(data.hasNextPage.value).toBe(false);
+    expect(groups.calls.at(-1).limit_page_length).toBe(40);
   });
 
   it("fetches nothing for an ungrouped list", () => {
@@ -145,7 +150,7 @@ describe("useGroupByData", () => {
     const data = useGroupByData(
       "Sales Order",
       { ...BY_STATUS, showTotals: true },
-      { docstatus: 1 }
+      { docstatus: 1 },
     );
     const totals = h.resources[2];
     expect(totals.calls).toEqual([
