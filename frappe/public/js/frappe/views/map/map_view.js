@@ -40,80 +40,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		this.$paging_area.find(".level-left").append("<div></div>");
 	}
 
-<<<<<<< HEAD
 	render_map_data() {
-=======
-	convert_to_geojson(data) {
-		return this.type === "location_field"
-			? this.get_location_data(data)
-			: this.get_coordinates_data(data);
-	}
-
-	get_coordinates_data(data) {
-		return data.map((row) => this.create_gps_marker(row)).filter(Boolean);
-	}
-
-	get_location_data(data) {
-		return data.reduce((acc, row) => {
-			const location = this.parse_location_field(row);
-			if (location) {
-				acc.push(...location);
-			}
-			return acc;
-		}, []);
-	}
-
-	get_feature_properties(row) {
-		return {
-			name: row.name,
-			title: this.meta.show_title_field_in_link ? row[this.meta.title_field] : null,
-		};
-	}
-
-	parse_location_field(row) {
-		const location = JSON.parse(row["location"]);
-		if (!location) {
-			return;
-		}
-
-		for (const feature of location["features"]) {
-			feature["properties"] = {
-				...(feature["properties"] || {}),
-				...this.get_feature_properties(row),
-			};
-		}
-
-		return location["features"];
-	}
-
-	create_gps_marker(row) {
-		// Build marker based on latitude and longitude
-		if (!row.latitude || !row.longitude) {
-			return;
-		}
-
-		return {
-			type: "Feature",
-			properties: this.get_feature_properties(row),
-			geometry: {
-				type: "Point",
-				coordinates: [parseFloat(row.longitude), parseFloat(row.latitude)], // geojson needs it reverse!
-			},
-		};
-	}
-
-	get_popup_content(feature) {
-		const { name, title } = feature.properties;
-		return frappe.utils.get_form_link(
-			this.doctype,
-			name,
-			true,
-			frappe.utils.escape_html(title)
-		);
-	}
-
-	render_map_data(features) {
->>>>>>> 2546c0c (fix(map view): show title in marker popup when show_title_field_in_link is set)
 		// Clear existing markers
 		if (this.markerLayer) {
 			this.map.removeLayer(this.markerLayer);
@@ -124,7 +51,12 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 			this.coords.features.forEach((coords) => {
 				const marker = L.geoJSON(coords).bindPopup(
-					frappe.utils.get_form_link(this.doctype, coords.properties.name, true)
+					frappe.utils.get_form_link(
+						this.doctype,
+						coords.properties.name,
+						true,
+						frappe.utils.escape_html(coords.properties.title)
+					)
 				);
 				this.markerLayer.addLayer(marker);
 			});
