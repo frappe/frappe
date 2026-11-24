@@ -372,6 +372,23 @@ class TestPdf(IntegrationTestCase):
 			)
 		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
 
+	def test_pdf_browser_has_no_network_of_its_own(self):
+		import socket
+		from unittest.mock import patch
+
+		server = socket.create_server(("127.0.0.1", 0))
+		server.settimeout(1)
+		self.addCleanup(server.close)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with patch("frappe.utils.chromium.page.allows_internal_print_urls", return_value=False):
+			pdfgen.get_pdf(
+				f'<script>new WebSocket("ws://127.0.0.1:{server.getsockname()[1]}")</script><p>row</p>'
+			)
+		with self.assertRaises(TimeoutError):
+			server.accept()
+
 	def test_bulk_pdf_with_password_keeps_every_document(self):
 		import json
 
