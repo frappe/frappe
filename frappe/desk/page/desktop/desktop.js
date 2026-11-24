@@ -110,6 +110,12 @@ class DesktopPage {
 				// which renders no subtitle.
 				desk_route: app.desk_route,
 				module_icons: app.module_icons,
+				folder: app.module_icons?.length
+					? [
+							{ title: app.app_title, logo: app.app_logo_url, route: app.route },
+							...app.module_icons,
+					  ]
+					: null,
 			};
 			this.add_icon($grid, icon_data, app.route);
 		});
@@ -118,21 +124,20 @@ class DesktopPage {
 		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
 		// The tile is a <div> so the "Open in Desk" subtitle can be its own link; the logo and
 		// the title are the two anchors that lead to the app itself.
-		const $app_links = $icon.find(".icon-link, .icon-title");
+		const $app_links = $icon.find("a.icon-link, a.icon-title");
 		if (route.startsWith("http")) {
 			$app_links.attr("target", "_blank");
 		}
 		$app_links.attr("href", route);
-		const $module_icons = $icon.find(".module-icon");
-		$module_icons
+		$icon
+			.find(".module-folder-app")
 			.filter((_, link) => link.getAttribute("href").startsWith("http"))
 			.attr("target", "_blank");
-
-		// The caption names the module icon under the pointer while the stack is fanned out.
-		const $title = $icon.find(".icon-title");
-		$module_icons
-			.on("mouseenter focus", (e) => $title.text(e.currentTarget.dataset.title))
-			.on("mouseleave blur", () => $title.text(__(icon_data.label)));
+		if (icon_data.folder) {
+			frappe
+				.require("module_folder.bundle.js")
+				.then(() => new frappe.ui.ModuleFolder($icon[0]));
+		}
 		$grid.append($icon);
 	}
 	setup() {

@@ -374,6 +374,74 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		self.assertTrue(PdfReader(io.BytesIO(pdf)).decrypt("qwe"))
 
+	def test_typst_pdf_standard_writes_pdfa(self):
+		import io
+
+		from pypdf import PdfReader
+
+		print_format = self._make_print_format(pdf_generator="Typst", pdf_standard="PDF/A-3b")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		pdf = frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True)
+
+		self.assertIn("/OutputIntents", PdfReader(io.BytesIO(pdf)).trailer["/Root"])
+
+	def test_typst_pdf_standard_refuses_a_password(self):
+		print_format = self._make_print_format(pdf_generator="Typst", pdf_standard="PDF/A-3b")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True, password="qwe")
+
+	def test_bulk_print_keeps_a_document_pdfa_cannot_draw(self):
+		import io
+		from unittest.mock import patch
+
+		import typst
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		print_format = self._make_print_format(pdf_generator="Typst", pdf_standard="PDF/A-3b")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "株式会社"}).insert()
+
+		with patch(
+			"frappe.utils.typst_emitter.typst_fonts",
+			return_value=typst.Fonts(include_system_fonts=False),
+		):
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name]), format=print_format.name)
+
+		self.assertEqual(len(PdfReader(io.BytesIO(frappe.local.response.filecontent)).pages), 1)
+
+	def test_pdf_standard_throws_for_text_its_font_cannot_draw(self):
+		from unittest.mock import patch
+
+		import typst
+
+		print_format = self._make_print_format(pdf_generator="Typst", pdf_standard="PDF/A-3b")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "株式会社"}).insert()
+
+		with (
+			patch(
+				"frappe.utils.typst_emitter.typst_fonts",
+				return_value=typst.Fonts(include_system_fonts=False),
+			),
+			self.assertRaises(frappe.ValidationError),
+		):
+			frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True)
+
 	def test_permlevel_restricted_fields_are_dropped(self):
 		"""A layout may reference permlevel-restricted fields; readers without access
 		to that permlevel must not get them in the print output."""
@@ -1575,6 +1643,118 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("LETTERHEAD_BOTTOM", gen.context.footer)
 		self.assertEqual(gen.context.chrome_layout_header, "")
 		self.assertEqual(gen.context.chrome_layout_footer, "")
+
+	def test_first_page_header_prints_once_in_the_body(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format(
+			format_data=json.dumps({"header": {"columns": [], "show_on": "first_page"}, "sections": []})
+		)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		self.assertIn("LETTERHEAD_TOP", gen.context.chrome_layout_header)
+		self.assertNotIn("LETTERHEAD_TOP", gen.context.header)
+
+	def test_first_page_header_keeps_its_page_number(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		page_no = {"fieldtype": "Static Text", "text": "Page {page}"}
+		header = {"columns": [{"label": "", "fields": [page_no]}], "show_on": "first_page"}
+		pf = self._make_print_format(format_data=json.dumps({"header": header, "sections": []}))
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		gen = PrintFormatGenerator(pf.name, todo)
+		gen._build_html_for_chrome()
+
+		self.assertIn('<span class="page">', gen.context.header)
+		self.assertEqual(gen.context.chrome_layout_header, "")
+
+	def test_full_page_print_opens_the_pdf_for_a_last_page_footer(self):
+		from unittest.mock import patch
+
+		from frappe.www.printview import get_context
+
+		footer = {"columns": [], "show_on": "last_page"}
+		pf = self._make_print_format(format_data=json.dumps({"footer": footer, "sections": []}))
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Send the Q3 price list"}).insert()
+
+		params = frappe._dict(doctype="ToDo", name=todo.name, format=pf.name, trigger_print=1)
+		with patch.object(frappe.local, "form_dict", params):
+			body = get_context({})["body"]
+
+		self.assertNotIn("window.print()", body)
+		self.assertIn("location.replace", body)
+
+	def test_every_page_footer_repeats_with_the_setting_off(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format(
+			format_data=json.dumps({"footer": {"columns": [], "show_on": "every_page"}, "sections": []})
+		)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=0):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		self.assertIn("LETTERHEAD_BOTTOM", gen.context.footer)
+		self.assertEqual(gen.context.chrome_layout_footer, "")
+
+	def test_last_page_footer_stays_out_of_the_preview_frame(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		pf = self._make_print_format(
+			format_data=json.dumps({"footer": {"columns": [], "show_on": "last_page"}, "sections": []})
+		)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen.get_html_preview()
+
+		self.assertEqual(gen.context.frame_footer, "")
+		self.assertIn("LETTERHEAD_BOTTOM", gen.context.once_footer)
+
+	def test_unclosed_letterhead_tag_keeps_the_page_number_on_every_page(self):
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		lh.footer = '<div class="pfg-lf">LETTERHEAD_BOTTOM'
+		lh.save(ignore_permissions=True)
+		pf = self._make_print_format(
+			page_number="Bottom Center",
+			format_data=json.dumps({"footer": {"columns": [], "show_on": "last_page"}, "sections": []}),
+		)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			gen = PrintFormatGenerator(pf.name, todo, lh.name)
+			gen._build_html_for_chrome()
+
+		footer = BeautifulSoup(gen.context.footer, "html.parser")
+		self.assertTrue(footer.select(".page"))
+		self.assertFalse(footer.select(".visible-last-page .page"))
 
 	def test_letterhead_left_open_by_jinja_keeps_the_body(self):
 		from bs4 import BeautifulSoup

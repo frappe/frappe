@@ -43,7 +43,9 @@ class PropertySetter(Document):
 		self.validate_fieldtype_change()
 
 		if self.is_new():
-			delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)
+			delete_property_setter(
+				self.doc_type, self.property, self.field_name, self.row_name, self.doctype_or_field
+			)
 
 		frappe.clear_cache(doctype=self.doc_type)
 
@@ -103,7 +105,7 @@ def make_property_setter(
 	return property_setter
 
 
-def delete_property_setter(doc_type, property=None, field_name=None, row_name=None):
+def delete_property_setter(doc_type, property=None, field_name=None, row_name=None, doctype_or_field=None):
 	"""delete other property setters on this, if this is new"""
 	filters = {"doc_type": doc_type}
 	if property:
@@ -113,6 +115,8 @@ def delete_property_setter(doc_type, property=None, field_name=None, row_name=No
 		filters["field_name"] = field_name
 	if row_name:
 		filters["row_name"] = row_name
+	if doctype_or_field:
+		filters["doctype_or_field"] = doctype_or_field
 
 	_delete_property_setters(filters)
 

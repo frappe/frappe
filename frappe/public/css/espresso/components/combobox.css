@@ -241,13 +241,12 @@ input.es-combobox__value:disabled {
     color: transparent;
 }
 
-/* white fill on the gray box; outranks the outline badge's fill */
-.es-combobox__pills > .es-badge.es-combobox__pill {
+.es-badge.es-combobox__pill {
     min-width: 0;
     max-width: 100%;
     gap: calc(var(--spacing) * 0.5);
     padding-inline-end: calc(var(--spacing) * 0.5);
-    background: var(--surface-elevation-2);
+    background: var(--surface-base);
     cursor: default;
 }
 

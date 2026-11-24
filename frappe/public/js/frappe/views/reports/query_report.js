@@ -1333,7 +1333,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							fieldtype: options.fieldtype,
 							options: options.options,
 						},
-						options.options,
+						{ inline: true },
 						options
 					),
 			};
@@ -1765,7 +1765,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (print_settings.include_filters) {
 			applied_filters = {};
 			for (const [fieldname, value] of Object.entries(filters)) {
-				const docfield = frappe.query_report.get_filter(fieldname).df;
+				const docfield = this.get_filter(fieldname).df;
 				if (frappe.utils.is_empty(value) || docfield.hidden_due_to_dependency) continue;
 
 				applied_filters[__(docfield.label, null, docfield.parent)] =
@@ -1957,7 +1957,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		return Object.keys(applied_filters)
 			.map((fieldname) => {
-				const docfield = frappe.query_report.get_filter(fieldname).df;
+				const docfield = this.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
 
 				if (frappe.utils.is_empty(value) || docfield.hidden_due_to_dependency) {
@@ -2099,7 +2099,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const applied_filters = {};
 
 		for (const [key, value] of Object.entries(filters)) {
-			const df = frappe.query_report.get_filter(key).df;
+			const df = this.get_filter(key).df;
 			if (!df.hidden_due_to_dependency) {
 				applied_filters[df.label] =
 					df.fieldtype === "Check" ? this.boolean_labels[cint(value)] : value;
@@ -2332,8 +2332,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				label: __("User Permissions"),
 				action: () =>
 					frappe.set_route("List", "User Permission", {
-						doctype: "Report",
-						name: this.report_name,
+						allow: "Report",
+						for_value: this.report_name,
 					}),
 				condition: () => frappe.user.has_role("System Manager"),
 				standard: true,

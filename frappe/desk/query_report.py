@@ -895,8 +895,9 @@ def add_total_row(
 		if isinstance(total_row[col_idx], Decimal):
 			total_row[col_idx] = float(total_row[col_idx])
 
+	row_count = len([row for row in result if not (is_tree and row.get(parent_field))]) or 1
 	for col_idx in has_percent:
-		total_row[col_idx] = flt(total_row[col_idx]) / len(result)
+		total_row[col_idx] = flt(total_row[col_idx]) / row_count
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], str):
@@ -1257,8 +1258,6 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 		if field.get("fieldname") in filters and field.get("fieldtype") == "Link":
 			linked_doctype = field.get("options")
 			if not has_permission(
-				doctype=linked_doctype, ptype="read", doc=filters[field.get("fieldname")], user=user
-			) and not has_permission(
 				doctype=linked_doctype, ptype="select", doc=filters[field.get("fieldname")], user=user
 			):
 				frappe.throw(

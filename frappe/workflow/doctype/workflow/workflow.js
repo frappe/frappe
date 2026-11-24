@@ -3,6 +3,11 @@ frappe.provide("frappe.core");
 frappe.ui.form.on("Workflow", {
 	onload: function (frm) {
 		frm.set_query("document_type", { issingle: 0, istable: 0 });
+		const get_states_query = () => ({
+			filters: { name: ["in", frm.doc.states.map((row) => row.state)] },
+		});
+		frm.set_query("state", "transitions", get_states_query);
+		frm.set_query("next_state", "transitions", get_states_query);
 	},
 	refresh: function (frm) {
 		frm.layout.message.empty();

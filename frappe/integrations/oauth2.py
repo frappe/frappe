@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Literal, cast
 from urllib.parse import quote, urlencode
 
-from oauthlib.common import Request
-from oauthlib.oauth2 import FatalClientError, OAuth2Error
+from oauthlib.common import Request, add_params_to_uri
+from oauthlib.oauth2 import AccessDeniedError, FatalClientError, OAuth2Error
 from oauthlib.openid.connect.core.endpoints.pre_configured import Server as WebApplicationServer
 from pydantic import ValidationError
 from werkzeug import Response
@@ -106,7 +106,6 @@ def authorize(**kwargs):
 		)
 
 	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(sanitize_kwargs(kwargs))
-	failure_url = frappe.form_dict.get("redirect_uri", "") + "?error=access_denied"
 
 	if frappe.session.user == "Guest":
 		# Force login, redirect to preauth again.
@@ -154,6 +153,13 @@ def authorize(**kwargs):
 				if "openid" in scopes:
 					scopes.remove("openid")
 					scopes.extend(["Full Name", "Email", "User Image", "Roles"])
+
+				credentials = frappe.flags.oauth_credentials
+				failure_url = add_params_to_uri(
+					credentials["redirect_uri"],
+					AccessDeniedError(state=credentials["state"]).twotuples,
+					fragment=credentials["response_type"] != "code",
+				)
 
 				# Show Allow/Deny screen.
 				response_html_params = frappe._dict(

@@ -129,6 +129,17 @@
 					</option>
 				</select>
 			</InspectorRow>
+			<InspectorRow v-if="renderer === 'Typst'" :label="__('PDF standard')">
+				<select
+					class="form-control form-control-sm pfb-insp-select"
+					:value="print_format.pdf_standard || ''"
+					@change="print_format.pdf_standard = $event.target.value"
+				>
+					<option value="">{{ __("None") }}</option>
+					<option value="PDF/A-2b">PDF/A-2b</option>
+					<option value="PDF/A-3b">PDF/A-3b</option>
+				</select>
+			</InspectorRow>
 			<InspectorRow :label="__('Letter head')">
 				<DeskControl
 					:df="letterhead_df"

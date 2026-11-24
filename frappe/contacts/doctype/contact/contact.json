@@ -88,6 +88,7 @@
    "in_global_search": 1,
    "label": "User Id",
    "options": "User",
+   "read_only_depends_on": "eval:!frappe.model.can_write(\"User\")",
    "search_index": 1
   },
   {
@@ -272,7 +273,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-17 11:13:11.868270",
+ "modified": "2026-11-23 22:46:58.446965",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",

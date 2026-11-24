@@ -56,6 +56,8 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			def_value = frappe.session.user;
 		} else if (def_value == "user_fullname") {
 			def_value = frappe.session.user_fullname;
+		} else if (frappe.model.is_numeric_field(field.df.fieldtype)) {
+			def_value = flt(def_value, null, "#,###.##");
 		}
 
 		return def_value;

@@ -28,6 +28,7 @@ from frappe.flow.daemon.client import DaemonClient, DaemonError
 from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
 from frappe.installer import update_site_config
 from frappe.utils import get_bench_path
+from frappe.utils.file_lock import LockTimeoutError
 from frappe.utils.synchronization import filelock
 
 START_TIMEOUT = 30
@@ -80,7 +81,7 @@ def _run_or_warn(step: Callable[[], object]) -> None:
 	"""A daemon that cannot come up must not fail the install or migrate."""
 	try:
 		step()
-	except (OSError, RuntimeError) as exc:
+	except (OSError, RuntimeError, LockTimeoutError) as exc:
 		click.secho(f"flow server not running: {exc}", fg="yellow")
 		click.secho("Run `bench flow-server setup` to finish setting it up.", fg="yellow")
 

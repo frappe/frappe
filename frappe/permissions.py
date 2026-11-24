@@ -352,6 +352,25 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 	return frappe.local.role_permissions[cache_key]
 
 
+def requires_owner_constraint(role_permissions) -> bool | None:
+	"""Return True if "select" or "read" isn't available without being creator."""
+	if not role_permissions.get("has_if_owner_enabled"):
+		return
+
+	if_owner_perms = role_permissions.get("if_owner")
+	if not if_owner_perms:
+		return
+
+	# has select or read without if owner, no need for constraint
+	for perm_type in ("select", "read"):
+		if role_permissions.get(perm_type) and perm_type not in if_owner_perms:
+			return
+
+	# not checking if either select or read if present in if_owner_perms
+	# because either of those is required to perform a query
+	return True
+
+
 def get_user_permissions(user):
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 

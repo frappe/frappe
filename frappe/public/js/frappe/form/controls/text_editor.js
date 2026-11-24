@@ -438,7 +438,10 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 					: this.get_toolbar_options(),
 				table: true,
 				imageResize: {},
-				magicUrl: true,
+				magicUrl: {
+					globalRegularExpression: /(https?:\/\/|www\.)[\w.-]+\.[\w.-]+([/?#]\S*)?/gi,
+					urlRegularExpression: /(https?:\/\/|www\.)[\w.-]+\.[\w.-]+([/?#]\S*)?/i,
+				},
 				mention: this.get_mention_options(),
 				keyboard: {
 					bindings: this.get_keyboard_bindings(),

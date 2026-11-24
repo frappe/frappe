@@ -66,6 +66,25 @@ class TestReportview(IntegrationTestCase):
 		self.assertIn("keys", result)
 		self.assertIn("values", result)
 
+	def test_get_leaves_out_comments_field(self):
+		with self.set_user("test@example.com"):
+			todo = self.make_todo("Report view comments field")
+			todo.add_comment("Comment", "First comment")
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo",
+				fields=["name", "_comments", "`tabToDo`.`_comments`"],
+				filters={"name": todo.name},
+				with_comment_count=1,
+			)
+			result = get()
+			self.assertEqual(result["keys"], ["name", "_comment_count"])
+			self.assertEqual(result["values"], [[todo.name, 1]])
+
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo", fields=["name"], filters=[["ToDo", "_comments", "like", "%a%"]]
+			)
+			self.assertRaises(frappe.DataError, get)
+
 	def test_get_stats_accepts_native(self):
 		# stats as native list (L738) and filters as native list (L740)
 		out = get_stats(stats=["_user_tags"], doctype="ToDo", filters=[["ToDo", "status", "=", "Open"]])

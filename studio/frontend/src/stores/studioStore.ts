@@ -176,7 +176,7 @@ const useStudioStore = defineStore("store", () => {
 		await studioPages.reload()
 	}
 
-	function updateActiveApp(key: string, value: string) {
+	function updateActiveApp(key: string, value: string | number) {
 		return studioApps.setValue.submit(
 			{ name: activeApp.value?.name, [key]: value },
 			{

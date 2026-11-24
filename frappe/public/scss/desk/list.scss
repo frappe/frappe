@@ -929,7 +929,7 @@ input.list-header-checkbox {
 		}
 	}
 
-	.page-indicator-pill {
+	body[data-route^="List"] .page-indicator-pill {
 		display: none;
 	}
 }

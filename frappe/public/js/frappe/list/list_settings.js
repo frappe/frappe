@@ -384,6 +384,10 @@ export default class ListSettings {
 			me.set_list_view_fields(meta);
 		} else {
 			me.fields = JSON.parse(this.settings.fields);
+			me.fields.forEach((f) => {
+				const df = frappe.meta.get_docfield(me.doctype, f.fieldname);
+				if (df) f.label = __(df.label, null, me.doctype);
+			});
 		}
 
 		me.fields.uniqBy((f) => f.fieldname);

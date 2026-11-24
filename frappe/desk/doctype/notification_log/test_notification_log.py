@@ -106,6 +106,16 @@ class TestNotificationLog(IntegrationTestCase):
 				frappe.db.exists("Notification Log", {"for_user": user.name, "subject": "Sent by user ID"})
 			)
 
+	def test_enqueue_create_notification_skips_guest(self):
+		install_notification_types()
+		guest_email = frappe.db.get_value("User", "Guest", "email")
+		enqueue_create_notification(
+			["Guest", guest_email],
+			{"type": "Alert", "subject": "Not for Guest", "from_user": "Administrator"},
+		)
+
+		self.assertFalse(frappe.db.exists("Notification Log", {"subject": "Not for Guest"}))
+
 	def test_dedupe_on_prevents_duplicate_rows(self):
 		install_notification_types()
 		recipient = make_recipient("notify_dedupe@example.com")

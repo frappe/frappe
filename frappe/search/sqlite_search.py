@@ -3,6 +3,7 @@
 
 import datetime
 import inspect
+import json
 import os
 import re
 import sqlite3
@@ -944,9 +945,8 @@ class SQLiteSearch(ABC):
 						filter_conditions.append(f"{field} = ?")
 						filter_params.append(values[0])
 					else:
-						placeholders = ",".join(["?" for _ in values])
-						filter_conditions.append(f"{field} IN ({placeholders})")
-						filter_params.extend(values)
+						filter_conditions.append(f"{field} IN (SELECT value FROM json_each(?))")
+						filter_params.append(json.dumps(values, default=str))
 				else:
 					filter_conditions.append(f"{field} = ?")
 					filter_params.append(values)

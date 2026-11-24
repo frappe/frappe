@@ -55,7 +55,7 @@ body {
 	}
 }
 
-{%- if (for_chrome and chrome_layout_footer) or not (for_chrome or repeat_frame) %}
+{%- if (for_chrome and chrome_layout_footer) or (repeat_frame and once_footer) or not (for_chrome or repeat_frame) %}
 body {
 	display: flex;
 	flex-direction: column;
@@ -71,6 +71,7 @@ body {
 {%- if repeat_frame %}
 .print-repeating-frame {
 	width: 100%;
+	table-layout: fixed;
 	border-collapse: collapse;
 }
 .print-repeating-frame > thead {

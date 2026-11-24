@@ -508,6 +508,9 @@ class CustomizeForm(Document):
 		for prop in docfield_properties:
 			d.set(prop, df.get(prop))
 
+		if df.fieldname and df.fieldname.startswith("custom_"):
+			d.fieldname = "".join(c for c in df.fieldname if c.isalnum() or c == "_")
+
 		if i != 0:
 			d.insert_after = self.fields[i - 1].fieldname
 		d.idx = i
@@ -561,15 +564,15 @@ class CustomizeForm(Document):
 				frappe.delete_doc("Custom Field", df.name)
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None):
-		delete_property_setter(self.doc_type, prop, fieldname, row_name)
+		if not apply_on:
+			apply_on = "DocField" if fieldname else "DocType"
+
+		delete_property_setter(self.doc_type, prop, fieldname, row_name, apply_on)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
 
 		if property_value == value:
 			return
-
-		if not apply_on:
-			apply_on = "DocField" if fieldname else "DocType"
 
 		# create a new property setter
 		frappe.make_property_setter(

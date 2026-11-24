@@ -421,7 +421,7 @@ def get_app_data() -> list[dict]:
 def get_module_icons(app_info: dict) -> list[dict]:
 	"""The `module_icons` of an app's `add_to_apps_screen` entry that this user may open.
 
-	The apps screen fans them out behind the app's own icon, each linking to its own route. An
+	The apps screen shows the app as a folder holding them, each linking to its own route. An
 	icon with a `has_permission` hook is dropped when the hook says no; one without it shows to
 	everyone who can see the app.
 	"""

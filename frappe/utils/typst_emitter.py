@@ -20,7 +20,7 @@ import filetype
 import frappe
 from frappe import _
 from frappe.printing.fieldtypes import MERGE_IMAGE_FIELDTYPES, is_image_column
-from frappe.printing.layout import iter_nodes
+from frappe.printing.layout import iter_nodes, zone_repeats, zone_show_on
 from frappe.translate import get_parent_language
 from frappe.utils.html_utils import unescape_html
 from frappe.utils.jinja_globals import is_rtl
@@ -56,6 +56,12 @@ def pt(px, default=0.0) -> float:
 BLOCKER_FIELDTYPES = {
 	"HTML": "HTML block",
 	"Field Template": "Field Template block",
+}
+
+ZONE_PAGE_CONDITIONS = {
+	"first_page": "counter(page).get().first() == 1",
+	"last_page": "counter(page).get().first() == counter(page).final().first()",
+	"after_first_page": "counter(page).get().first() > 1",
 }
 
 PAGE_NUMBER_POSITIONS = {
@@ -650,13 +656,13 @@ class TypstEmitter:
 		header/footer slots (repeated on every page, like Chromium's repeating
 		frame) and the margins grow by their measured heights."""
 		self.prepare()
-		in_page_header = bool(repeat_header_footer and self.header_src)
-		in_page_footer = bool(repeat_header_footer and self.footer_src)
+		in_page_header = bool(zone_repeats(self.layout, "header", repeat_header_footer) and self.header_src)
+		in_page_footer = bool(zone_repeats(self.layout, "footer", repeat_header_footer) and self.footer_src)
 		lines = [
 			f"#set document(title: {q(f'{self.doc.doctype}: {self.doc.name}')})",
 			self._page_setup(
-				header_zone=self.header_src if in_page_header else None,
-				footer_zone=self.footer_src if in_page_footer else None,
+				header_zone=self._on_its_pages("header", self.header_src) if in_page_header else None,
+				footer_zone=self._on_its_pages("footer", self.footer_src) if in_page_footer else None,
 				header_height_pt=header_height_pt,
 				footer_height_pt=footer_height_pt,
 			),
@@ -669,6 +675,10 @@ class TypstEmitter:
 		if self.footer_src and not in_page_footer:
 			lines.append(self.footer_src)
 		return "\n".join(line for line in lines if line), self.assets
+
+	def _on_its_pages(self, kind: str, source: str) -> str:
+		condition = ZONE_PAGE_CONDITIONS.get(zone_show_on(self.layout, kind))
+		return f"#context if {condition} [{source}]" if condition else source
 
 	def _page_setup(self, header_zone=None, footer_zone=None, header_height_pt=0, footer_height_pt=0) -> str:
 		pf = self.print_format
@@ -1131,6 +1141,9 @@ class TypstEmitter:
 	def _read_site_file(self, src: str) -> bytes | None:
 		import base64
 		import os
+		from urllib.parse import parse_qs, unquote, urlsplit
+
+		from frappe.core.doctype.file.utils import find_file_by_url
 
 		if src.startswith("data:"):
 			try:
@@ -1139,12 +1152,14 @@ class TypstEmitter:
 				return None
 		if src.startswith(("http://", "https://")):
 			return None
-		src = src.split("?", 1)[0]
+		url = urlsplit(src)
+		src, fid = unquote(url.path), parse_qs(url.query).get("fid", [None])[0]
+		if "\0" in src:
+			return None
 		if src.startswith("/private/files/"):
 			# private files are permission-gated through the File doctype — the
 			# browser path enforces this over HTTP, so the direct read must too
-			file_names = frappe.get_all("File", filters={"file_url": src}, pluck="name")
-			if not any(frappe.has_permission("File", doc=name, ptype="read") for name in file_names):
+			if frappe.session.user == "Guest" or not find_file_by_url(src):
 				return None
 			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
@@ -1172,7 +1187,12 @@ class TypstEmitter:
 			with open(path, "rb") as f:
 				return f.read()
 		except OSError:
-			return None
+			if src.startswith("/assets/"):
+				return None
+			from frappe.utils.chromium.page import read_blob_for_url, read_file_for_url
+
+			stored = read_blob_for_url(src[1:], fid) or read_file_for_url(src[1:], fid)
+			return base64.b64decode(stored[0]) if stored else None
 
 	@staticmethod
 	def _dimension(width) -> str | None:
