@@ -383,6 +383,72 @@ class TestEmailAccount(IntegrationTestCase):
 			if communication.sender in [r.recipient for r in queue.recipients]
 		]
 
+	def test_inbound_copy_has_own_message_id_and_references(self):
+		sent, received, copy_queue = self.receive_reply_to_assigned_todo()
+		copy = email.message_from_string(copy_queue.message)
+
+		self.assertEqual(copy_queue.message_id, f"{received.name}@{frappe.local.site}")
+		self.assertEqual(copy["Message-Id"], f"<{copy_queue.message_id}>")
+		self.assertEqual(copy["In-Reply-To"], f"<{sent.message_id}>")
+		self.assertEqual(copy["References"], f"<{sent.message_id}> <{received.message_id}>")
+
+	def test_inbound_copy_returning_to_inbox_is_not_duplicated(self):
+		_, received, copy_queue = self.receive_reply_to_assigned_todo()
+		frappe.db.delete("Email Queue")
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		messages = {'"INBOX"': {"latest_messages": [copy_queue.message], "uid_list": [3]}}
+		TestEmailAccount.mocked_email_receive(email_account, messages)
+
+		self.assertEqual(
+			frappe.get_all("Communication", {"sent_or_received": "Received"}, pluck="name"), [received.name]
+		)
+
+	def test_reply_to_inbound_copy_threads_without_email_queue(self):
+		_, received, copy_queue = self.receive_reply_to_assigned_todo()
+		copy = email.message_from_string(copy_queue.message)
+		frappe.db.delete("Email Queue")
+
+		reply = self.get_test_mail("reply-4.raw").replace("{{ message_id }}", copy["Message-Id"])
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		TestEmailAccount.mocked_email_receive(email_account, {'"INBOX"': {"latest_messages": [reply]}})
+
+		reply_communication = frappe.get_doc(
+			"Communication", {"message_id": "07D687F6-10AA-4B9F-82DE-27753096164E@gmail.com"}
+		)
+		self.assertEqual(reply_communication.in_reply_to, received.name)
+		self.assertEqual(reply_communication.reference_name, received.reference_name)
+
+	def receive_reply_to_assigned_todo(self):
+		"""Receive a reply on a ToDo assigned to test@example.com and return the sent and received
+		Communications and the Email Queue of the copy sent to the assignee."""
+		cleanup()
+		todo = frappe.get_doc(doctype="ToDo", description="Inbound copy").insert()
+		frappe.get_doc(
+			doctype="ToDo",
+			description="Assigned",
+			allocated_to="test@example.com",
+			reference_type="ToDo",
+			reference_name=todo.name,
+		).insert()
+		sent = make(
+			subject="Test",
+			content="test content",
+			recipients="test_receiver@example.com",
+			sender="test@example.com",
+			doctype="ToDo",
+			name=todo.name,
+			send_email=True,
+		)["name"]
+		sent = frappe.get_doc("Communication", sent)
+
+		reply = self.get_test_mail("reply-1.raw").replace("<-- in-reply-to -->", f"<{sent.message_id}>")
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		TestEmailAccount.mocked_email_receive(email_account, {'"INBOX"': {"latest_messages": [reply]}})
+
+		received = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		return sent, received, frappe.get_doc("Email Queue", {"communication": received.name})
+
 	def test_handle_bad_emails(self):
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).mail.get("Message-ID")
@@ -702,6 +768,16 @@ class TestInboundMail(IntegrationTestCase):
 		# Make sure that uid is changed to new uid
 		self.assertEqual(new_communication.uid, 12345)
 		self.assertEqual(communication.name, new_communication.name)
+
+	def test_mail_with_site_as_message_id_is_saved(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		mail_content = self.get_test_mail(fname="incoming-1.raw").replace(
+			"<9143999C-8456-4399-9CF1-4A2DA9DD7711@gmail.com>", f"<{frappe.local.site}>"
+		)
+
+		communication = InboundMail(mail_content, email_account, 12345, 1).process()
+
+		self.assertEqual(communication.message_id, frappe.local.site)
 
 	def test_find_parent_email_queue(self):
 		"""If the mail is reply to the already sent mail, there will be a email queue record."""
