@@ -194,16 +194,10 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
   function setUp(steps: OnboardingStep[]) {
     showHelpModal.value = !isOnboardingStepsCompleted.value;
 
+    // In place: callers hold the `steps` array returned earlier.
     const current = onboardings[appName];
-    if (current) {
-      // Setup can save a new goal after the steps loaded: take its order, keep progress.
-      const order = new Map(steps.map((step, index) => [step.name, index]));
-      const rank = (name: string) => order.get(name) ?? steps.length;
-      current.sort((a, b) => rank(a.name) - rank(b.name));
-      return;
-    }
-
-    onboardings[appName] = steps;
+    if (current) current.splice(0, current.length, ...steps);
+    else onboardings[appName] = steps;
     syncStatus();
   }
 

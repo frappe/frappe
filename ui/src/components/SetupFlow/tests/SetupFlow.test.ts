@@ -1,10 +1,23 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
-import type { App } from "vue";
+import { createApp, h, nextTick, ref } from "vue";
+import type { App, Ref } from "vue";
 import type { SetupFlowResult, SetupStepSlotProps } from "../types";
 
 const capture = vi.hoisted(() => vi.fn());
-vi.mock("../../../telemetry", () => ({ useTelemetry: () => ({ capture }) }));
+const telemetry = vi.hoisted(() => ({ on: null as unknown as Ref<boolean> }));
+vi.mock("../../../telemetry", async () => {
+  const { ref } = await import("vue");
+  telemetry.on = ref(true);
+  return { useTelemetry: () => ({ capture, isEnabled: telemetry.on }) };
+});
+
+// jsdom has no matchMedia; the header's theme switch reads the OS scheme through it.
+const media = (matches = false) => () => ({
+  matches,
+  addEventListener: () => {},
+  removeEventListener: () => {},
+});
+vi.stubGlobal("matchMedia", media());
 
 let app: App | null = null;
 
@@ -13,7 +26,12 @@ async function mountFlow(
     { name: "goal" },
     { name: "invite" },
   ],
-  props: { backButton?: boolean } = {},
+  props: {
+    backButton?: boolean;
+    themeToggle?: boolean;
+    step?: string;
+    "onUpdate:step"?: (name: string) => void;
+  } = {},
 ) {
   const { default: SetupFlow } = await import("../SetupFlow.vue");
   const finished: SetupFlowResult[] = [];
@@ -44,6 +62,7 @@ afterEach(() => {
   app?.unmount();
   app = null;
   capture.mockReset();
+  if (telemetry.on) telemetry.on.value = true;
 });
 
 describe("SetupFlow", () => {
@@ -185,5 +204,137 @@ describe("SetupFlow", () => {
     expect(el.textContent).toContain("Skip setup");
     // Done is done: a required step is not offered again through Back.
     expect(el.textContent).not.toContain("Back");
+  });
+
+  it("lets a step with screens of its own take Back first", async () => {
+    const { el, slot } = await mountFlow([{ name: "goal" }, { name: "import" }]);
+    slot().done();
+    await nextTick();
+
+    const screen = ref<"upload" | "review">("review");
+    slot().handleBack({
+      canGoBack: () => screen.value === "review",
+      back: () => (screen.value = "upload"),
+    });
+    await nextTick();
+    slot().back();
+    await nextTick();
+    expect(screen.value).toBe("upload");
+    expect(el.textContent).toContain("import");
+    expect(capture).toHaveBeenCalledWith("setup_back", {
+      from_step: "import",
+      within_step: true,
+    });
+
+    slot().back();
+    await nextTick();
+    expect(el.textContent).toContain("goal");
+  });
+
+  it("shows Back on the first step when the step can go back itself", async () => {
+    const { el, slot } = await mountFlow([{ name: "import" }, { name: "invite" }]);
+    expect(el.textContent).not.toContain("Back");
+    slot().handleBack({ canGoBack: () => true, back: () => {} });
+    await nextTick();
+    expect(slot().canGoBack).toBe(true);
+    expect(el.textContent).toContain("Back");
+  });
+
+  it("forgets a step's Back once the step changes", async () => {
+    const { slot } = await mountFlow([{ name: "import" }, { name: "invite" }]);
+    const back = vi.fn();
+    const first = slot();
+    first.handleBack({ canGoBack: () => true, back });
+    first.done();
+    await nextTick();
+    first.handleBack({ canGoBack: () => true, back });
+    slot().back();
+    await nextTick();
+    expect(back).not.toHaveBeenCalled();
+    expect(slot().step.name).toBe("import");
+  });
+
+  it("puts the host's own actions in the header", async () => {
+    const { default: SetupFlow } = await import("../SetupFlow.vue");
+    const el = document.createElement("div");
+    app = createApp({
+      render: () =>
+        h(
+          SetupFlow,
+          { steps: [{ name: "goal" }] },
+          {
+            step: () => h("p", "goal"),
+            actions: () => h("button", { "aria-label": "Switch to dark mode" }),
+          },
+        ),
+    });
+    app.mount(el);
+    const header = el.querySelector("header")!;
+    expect(header.querySelector('[aria-label="Switch to dark mode"]')).not.toBeNull();
+    expect(header.textContent).toContain("Skip setup");
+  });
+
+  it("switches between light and dark from the header", async () => {
+    const { el } = await mountFlow();
+    const toggle = () =>
+      el.querySelector('header button[aria-label^="Switch to"]') as HTMLButtonElement;
+    const before = document.documentElement.getAttribute("data-theme");
+    toggle().click();
+    await nextTick();
+    const after = document.documentElement.getAttribute("data-theme");
+    expect(after).not.toBe(before);
+    expect(toggle().getAttribute("aria-label")).toBe(
+      after === "dark" ? "Switch to light mode" : "Switch to dark mode",
+    );
+    toggle().click();
+  });
+
+  it("leaves the theme switch out for an app without a dark mode", async () => {
+    const { el } = await mountFlow(undefined, { themeToggle: false });
+    expect(el.querySelector('header button[aria-label^="Switch to"]')).toBeNull();
+    expect(el.querySelector("header")!.textContent).toContain("Skip setup");
+  });
+
+  it("opens the step it is given and reports each step it moves to", async () => {
+    const seen: string[] = [];
+    const { el, slot } = await mountFlow(
+      [{ name: "goal" }, { name: "email" }, { name: "invite" }],
+      { step: "email", "onUpdate:step": (name) => seen.push(name) },
+    );
+    expect(el.textContent).toContain("email");
+    expect(el.textContent).toContain("Step 2 of 3");
+    slot().done();
+    await nextTick();
+    expect(seen).toEqual(["invite"]);
+  });
+
+  it("moves to a step the host names later", async () => {
+    const step = ref("goal");
+    const { el } = await mountFlow(
+      [{ name: "goal" }, { name: "email" }, { name: "invite" }],
+      {
+        get step() {
+          return step.value;
+        },
+        "onUpdate:step": (name) => (step.value = name),
+      },
+    );
+    step.value = "invite";
+    await nextTick();
+    expect(el.textContent).toContain("Step 3 of 3");
+    step.value = "email";
+    await nextTick();
+    expect(el.textContent).toContain("Step 2 of 3");
+  });
+
+  it("holds its first events until telemetry is on", async () => {
+    await import("../../../telemetry");
+    telemetry.on.value = false;
+    await mountFlow();
+    expect(capture).not.toHaveBeenCalledWith("setup_started");
+    telemetry.on.value = true;
+    await nextTick();
+    expect(capture).toHaveBeenCalledWith("setup_started");
+    expect(capture).toHaveBeenCalledWith("setup_step_viewed", { step: "goal" });
   });
 });

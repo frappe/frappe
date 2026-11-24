@@ -2,9 +2,23 @@ export { default as SetupFlow } from "./SetupFlow.vue";
 export { default as ChoiceStep } from "./ChoiceStep.vue";
 export { default as ListStep } from "./ListStep.vue";
 export { default as PasswordStep } from "./PasswordStep.vue";
+export { default as BrandStep } from "./BrandStep.vue";
+export type { BrandStepLabels } from "./BrandStep.vue";
+export { default as InviteStep } from "./InviteStep.vue";
+export type {
+  InviteOutcome,
+  InviteRole,
+  Invitee,
+  InviteStepLabels,
+} from "./InviteStep.vue";
 export type { PasswordStepLabels } from "./PasswordStep.vue";
 export { default as TelemetryConsent } from "./TelemetryConsent.vue";
 export { default as SetupPreviewFrame } from "./SetupPreviewFrame.vue";
+export type {
+  SetupPreviewPoint,
+  SetupPreviewTab,
+} from "./SetupPreviewFrame.vue";
+export { default as SetupPreviewCursor } from "./SetupPreviewCursor.vue";
 export { default as SetupPreviewLogin } from "./SetupPreviewLogin.vue";
 export type { SetupPreviewLoginLabels } from "./SetupPreviewLogin.vue";
 export { default as SetupPreviewSwap } from "./SetupPreviewSwap.vue";
@@ -18,4 +32,5 @@ export type {
   SetupPreviewSlotProps,
   SetupStep,
   SetupStepSlotProps,
+  StepBack,
 } from "./types";
