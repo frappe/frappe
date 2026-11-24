@@ -1655,6 +1655,9 @@ export default class GridRow {
 			field.refresh();
 		};
 
+		const df = this.docfields?.find((d) => d.fieldname === fieldname);
+		if (df) df[property] = value;
+
 		if (this.grid_form) {
 			set_property(this.grid_form.fields_dict[fieldname]);
 			this.grid_form.layout && this.grid_form.layout.refresh_sections();
