@@ -709,7 +709,7 @@ def create_admin_kanban():
 
 @whitelist_for_tests()
 def add_remove_role(action: str, user: str, role: str):
-	user_doc = frappe.get_doc("User", user)
+	user_doc = frappe.get_doc("User", get_user_by_email(user) or user)
 	if action == "remove":
 		user_doc.remove_roles(role)
 	else:

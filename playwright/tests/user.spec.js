@@ -4,7 +4,8 @@ test.describe("User", () => {
 	const email = "test_add_roles@example.com";
 
 	test.afterEach(async ({ admin }) => {
-		await admin.remove_doc("User", email, true);
+		const user = await admin.user_id(email);
+		if (user) await admin.remove_doc("User", user, true);
 	});
 
 	test("Add Roles opens the roles of a user created outside the form", async ({
@@ -13,7 +14,7 @@ test.describe("User", () => {
 	}) => {
 		await page.goto("/desk/user");
 		await desk.ready();
-		await page.evaluate(
+		const user = await page.evaluate(
 			(email) =>
 				frappe.xcall("frappe.client.insert", {
 					doc: {
@@ -31,6 +32,6 @@ test.describe("User", () => {
 			.poll(() =>
 				page.evaluate(() => [frappe.get_route(), cur_frm?.get_active_tab()?.df.fieldname])
 			)
-			.toEqual([["Form", "User", email], "roles_permissions_tab"]);
+			.toEqual([["Form", "User", user.name], "roles_permissions_tab"]);
 	});
 });

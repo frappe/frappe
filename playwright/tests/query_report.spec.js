@@ -54,14 +54,14 @@ test.describe("Query Report", () => {
 		});
 	});
 
-	test("add custom column in report", async ({ page, desk }) => {
+	test("add custom column in report", async ({ page, desk, admin }) => {
 		await page.goto("/desk/query-report/Permitted Documents For User");
 
 		await expect(page.locator(".page-form.flex")).toHaveCount(1, { timeout: 60000 });
 
 		// set each filter in one go: typing it out makes the report run with partial values
 		const input_user = page.locator(`${REPORT_PAGE} input[data-fieldname="user"]`);
-		await input_user.fill("test@erpnext.com");
+		await input_user.fill(await admin.user_id("test@erpnext.com"));
 		await input_user.blur();
 		const input_role = page.locator(`${REPORT_PAGE} input[data-fieldname="doctype"]`);
 		await input_role.fill("Role");

@@ -1,4 +1,4 @@
-import { test, expect, TEST_USER } from "../support";
+import { test, expect } from "../support";
 
 const pathname = (page) => new URL(page.url()).pathname;
 const win_slug = (name) => name.toLowerCase().replace(/ /g, "-");
@@ -116,10 +116,11 @@ test.describe("Desk URL shell segment", () => {
 		page,
 		desk,
 		api,
+		test_user_id: user,
 	}) => {
 		await open_desk(page, desk);
 		const module = await page.evaluate(() => frappe.boot.module_sidebars["Build"].module);
-		const name = `Test Private Page-${TEST_USER}`;
+		const name = `Test Private Page-${user}`;
 
 		await api.remove_doc("Workspace", name, true);
 		await api.call("frappe.client.insert", {
@@ -129,7 +130,7 @@ test.describe("Desk URL shell segment", () => {
 				label: name,
 				module,
 				public: 0,
-				for_user: TEST_USER,
+				for_user: user,
 				content: "[]",
 			},
 		});
@@ -154,8 +155,9 @@ test.describe("Desk URL shell segment", () => {
 		page,
 		desk,
 		api,
+		test_user_id: user,
 	}) => {
-		const name = `Test Module Private Page-${TEST_USER}`;
+		const name = `Test Module Private Page-${user}`;
 		await api.remove_doc("Workspace", name, true);
 
 		try {
@@ -181,8 +183,9 @@ test.describe("Desk URL shell segment", () => {
 	test("opens the Private shell on the first item of its sidebar, page or not", async ({
 		page,
 		api,
+		test_user_id: user,
 	}) => {
-		const name = `Test Landing Page-${TEST_USER}`;
+		const name = `Test Landing Page-${user}`;
 
 		await api.remove_doc("Workspace", name, true);
 		await api.call("frappe.client.insert", {
@@ -192,7 +195,7 @@ test.describe("Desk URL shell segment", () => {
 				label: name,
 				module: "Private",
 				public: 0,
-				for_user: TEST_USER,
+				for_user: user,
 				content: "[]",
 			},
 		});
@@ -301,9 +304,10 @@ test.describe("Desk URL shell segment", () => {
 		page,
 		desk,
 		admin,
+		test_user_id,
 	}) => {
-		const { block_modules } = (await admin.get_doc("User", TEST_USER)).data;
-		await admin.update_doc("User", TEST_USER, {
+		const { block_modules } = (await admin.get_doc("User", test_user_id)).data;
+		await admin.update_doc("User", test_user_id, {
 			block_modules: [...block_modules, { module: "Website" }],
 		});
 		try {
@@ -316,7 +320,7 @@ test.describe("Desk URL shell segment", () => {
 			await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
 			await expect_shell(page, "Build");
 		} finally {
-			await admin.update_doc("User", TEST_USER, { block_modules });
+			await admin.update_doc("User", test_user_id, { block_modules });
 		}
 	});
 
