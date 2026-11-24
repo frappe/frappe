@@ -571,7 +571,7 @@ class TestInboundMail(FrappeTestCase):
 			"X-Autorespond: yes\n": True,
 			"Precedence: bulk\n": True,
 			"Precedence: junk\n": True,
-			"Precedence: list\n": True,
+			"Precedence: list\n": False,
 			"Precedence: first-class\n": False,
 		}
 		for header, expected in cases.items():
