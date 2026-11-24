@@ -180,17 +180,13 @@ def reload_doc(args):
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 	from frappe import conf
 
-	developer_mode = conf.developer_mode
 	# don't write txt files
 	conf.developer_mode = 0
 
-	try:
-		if force or method or not executed(patchmodule):
-			return execute_patch(patchmodule, method, methodargs)
-		else:
-			return True
-	finally:
-		conf.developer_mode = developer_mode
+	if force or method or not executed(patchmodule):
+		return execute_patch(patchmodule, method, methodargs)
+	else:
+		return True
 
 
 def execute_patch(patchmodule: str, method=None, methodargs=None):
