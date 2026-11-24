@@ -84,8 +84,7 @@ class TestQuery(IntegrationTestCase):
 			user_doc.remove_roles("System Manager")
 
 	def delete_doctype_on_cleanup(self, doctype):
-		if frappe.db.db_type != "mariadb":
-			return
+		self.addCleanup(frappe.db.commit)
 		self.addCleanup(frappe.db.sql_ddl, f"DROP TABLE IF EXISTS `tab{doctype.name}`")
 		self.addCleanup(doctype.delete)
 
