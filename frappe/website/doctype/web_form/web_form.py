@@ -976,7 +976,7 @@ def get_web_form_list(
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep: guest-whitelisted-method
 def get_form_data(
 	doctype: str,
 	docname: str | None = None,
@@ -985,6 +985,9 @@ def get_form_data(
 ):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
+
+	if doctype != web_form.doc_type:
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
