@@ -145,7 +145,10 @@ def send_via_gateway(arg):
 			frappe.msgprint(_("SMS sent successfully"))
 
 	if failed_list:
-		frappe.msgprint(_("SMS could not be sent to {0}").format(", ".join(failed_list)), indicator="red")
+		failed_msg = _("SMS could not be sent to {0}").format(", ".join(failed_list))
+		if not success_list:
+			frappe.throw(failed_msg)
+		frappe.msgprint(failed_msg, indicator="red")
 
 
 def get_headers(sms_settings=None):
