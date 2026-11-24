@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import frappe
+from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app
 from frappe.tests import IntegrationTestCase
 
 
@@ -98,6 +99,113 @@ class TestPage(IntegrationTestCase):
 			page.load_assets()
 			self.assertEqual(page.as_dict()["island"], "frappe.dashboard")
 
+	@patch.dict(frappe.conf, {"developer_mode": 0})
+	def test_a_site_page_that_names_an_island_needs_no_developer_mode(self):
+		with self.an_island("frappe.dashboard"):
+			page = frappe.new_doc(
+				"Page",
+				page_name=frappe.generate_hash(),
+				module="Core",
+				standard="No",
+				type="Frappe UI",
+				island="frappe.dashboard",
+			).insert()
+			page.delete()
+
+		self.assertFalse(frappe.db.exists("Page", page.name))
+
+	@patch.dict(frappe.conf, {"developer_mode": 0})
+	def test_a_system_manager_can_add_a_page_that_names_an_island(self):
+		user = self.a_system_manager()
+		with self.an_island("frappe.dashboard"), self.set_user(user):
+			page = frappe.new_doc(
+				"Page",
+				page_name=frappe.generate_hash(),
+				module="Core",
+				standard="No",
+				type="Frappe UI",
+				island="frappe.dashboard",
+			).insert()
+			page.delete()
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_deleting_an_island_reference_preserves_a_colliding_page_folder(self):
+		page = self.make_page(page_name=f"island-{frappe.generate_hash()}")
+		folder = Path(page.get_folder_path())
+		user = self.a_system_manager()
+		with self.an_island("frappe.dashboard"), self.set_user(user):
+			reference = frappe.new_doc(
+				"Page",
+				page_name=frappe.scrub(page.name),
+				module="Core",
+				standard="No",
+				type="Frappe UI",
+				island="frappe.dashboard",
+			).insert()
+			reference.delete()
+		frappe.db.after_commit.run()
+
+		self.assertTrue(folder.is_dir())
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_system_manager_cannot_add_a_page_with_code(self):
+		user = self.a_system_manager()
+		with self.set_user(user), self.assertRaises(frappe.ValidationError):
+			frappe.new_doc("Page", page_name=frappe.generate_hash(), module="Core", standard="No").insert()
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_system_manager_cannot_convert_a_code_page_into_an_island(self):
+		user = self.a_system_manager()
+		with self.an_island("frappe.dashboard"):
+			for standard in ("Yes", "No"):
+				with self.subTest(standard=standard):
+					page = self.make_page(standard=standard)
+					page.update({"standard": "No", "type": "Frappe UI", "island": "frappe.dashboard"})
+					with (
+						self.set_user(user),
+						self.assertRaisesRegex(frappe.ValidationError, "Only Administrator can edit"),
+					):
+						page.save()
+
+	@patch.dict(frappe.conf, {"developer_mode": 0})
+	def test_a_studio_app_page_opens_the_apps_island(self):
+		app = self.a_studio_app()
+		user = self.a_system_manager()
+		with self.an_island(f"frappe.studio.{app.name}"), self.set_user(user):
+			page = frappe.new_doc(
+				"Page",
+				page_name=frappe.generate_hash(),
+				module="Core",
+				standard="No",
+				type="Studio App",
+				studio_app=app.name,
+			).insert()
+
+			page.load_assets()
+			self.assertEqual(page.as_dict()["island"], f"frappe.studio.{app.name}")
+			page.delete()
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_studio_app_page_needs_a_live_app(self):
+		app = self.a_studio_app()
+
+		with self.assertRaises(frappe.MandatoryError):
+			self.make_page(type="Studio App", standard="No")
+		with self.assertRaisesRegex(frappe.ValidationError, "is not live"):
+			self.make_page(type="Studio App", standard="No", studio_app=app.name)
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_page_that_stops_being_a_studio_app_page_drops_its_island(self):
+		app = self.a_studio_app()
+		with self.an_island(f"frappe.studio.{app.name}"):
+			page = self.make_page(type="Studio App", standard="No", studio_app=app.name)
+
+		page.type = ""
+		page.save()
+
+		self.assertIsNone(page.island)
+		self.assertIsNone(page.studio_app)
+
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_an_island_this_site_does_not_have_throws(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -187,6 +295,24 @@ class TestPage(IntegrationTestCase):
 
 		self.addCleanup(remove)
 		return page
+
+	def a_system_manager(self):
+		email = "page-island-manager@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				doctype="User",
+				email=email,
+				first_name="Page Island Manager",
+				send_welcome_email=0,
+				roles=[{"role": "System Manager"}],
+			).insert()
+		return email
+
+	def a_studio_app(self):
+		name = f"board-{frappe.generate_hash(length=8)}"
+		app = make_studio_app(app_title=name, app_name=name)
+		self.addCleanup(frappe.db.delete, "Studio App", app.name)
+		return app
 
 	def an_island(self, name):
 		"""One built island on the site, as an app's build would leave it."""

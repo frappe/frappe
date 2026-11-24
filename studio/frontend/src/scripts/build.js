@@ -22,6 +22,7 @@ import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import databaseAppImports from "../../vite/databaseAppImports.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
+import hostStylesheets from "../../vite/hostStylesheets.js"
 import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
@@ -131,20 +132,16 @@ export async function generateAppBuild(
 	// componentScripts: { component_id: file_path }
 	const componentScripts = componentScriptsJson ? JSON.parse(componentScriptsJson) : {}
 	const componentSources = findComponentSources(componentList, customComponents)
-	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile, componentScripts)
-	const tempRendererPath = writeRendererFile(appName, rendererContent)
+	const entryFiles = {
+		studioIsland: writeEntryFile(
+			`island-${appName}.js`,
+			getIslandContent(appName, componentSources, pageScripts, routerFile, componentScripts),
+		),
+		studioRenderer: writeEntryFile(`renderer-${appName}.js`, getRendererContent(appName)),
+	}
 	const iconList = icons ? icons.split(",") : []
-	await buildWithVite(
-		appName,
-		tempRendererPath,
-		outDir,
-		base,
-		iconList,
-		appFolder,
-		tailwindContent,
-		databaseApp,
-	)
-	deleteRendererFile(tempRendererPath)
+	await buildWithVite(appName, entryFiles, outDir, base, iconList, appFolder, tailwindContent, databaseApp)
+	Object.values(entryFiles).forEach(deleteEntryFile)
 }
 
 function findComponentSources(appComponents, customComponents = {}) {
@@ -190,7 +187,20 @@ function findComponentSources(appComponents, customComponents = {}) {
 	}
 }
 
-function getRendererContent(componentSources, pageScripts = [], routerFile = null, componentScripts = {}) {
+function getRendererContent(appName) {
+	return `import { mountPage } from "./island-${appName}.js"
+import { getWindowApp } from "@/router/app_router"
+
+mountPage("#app", getWindowApp())`
+}
+
+function getIslandContent(
+	appName,
+	componentSources,
+	pageScripts = [],
+	routerFile = null,
+	componentScripts = {},
+) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
@@ -263,17 +273,12 @@ ${componentScriptEntries
 
 	// An app without a router file falls back to Studio's own routing.
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
-	const routerConfig = routerFile ? "routerConfig" : ""
+	const routerConfig = routerFile ? "routerConfig" : "undefined"
 
-	const rendererContent = `import "@/index.css"
-import { createApp, defineAsyncComponent } from "vue"
-import { createPinia } from "pinia"
-import "@/setupFrappeUIResource"
-import { createAppRouter } from "@/router/app_router"
-import ErrorPage from "@/pages/ErrorPage.vue"
-import AppRenderer from "@/AppRenderer.vue"
-import { resourcesPlugin } from "frappe-ui"
-import { initSocket } from "@/socket"
+	const islandContent = `import "@/index.css"
+import { defineAsyncComponent } from "vue"
+import { mountApp } from "@/mountApp"
+import { mountIsland } from "@/mountIsland"
 ${routerImport}
 
 ${frappeUIImports}
@@ -285,26 +290,21 @@ ${customImports}
 ${pageScriptImport}
 ${componentScriptImport}
 
-const app = createApp(AppRenderer)
-const pinia = createPinia()
-
-app.use(pinia)
-app.use(resourcesPlugin)
-app.provide("socket", initSocket())
-
-${componentRegistrations}
-window.__APP_COMPONENTS__ = app._context.components
-
 ${pageScriptSetup}
 ${componentScriptSetup}
 
-createAppRouter(${routerConfig})
-	.then((router) => app.use(router).mount("#app"))
-	.catch((error) => {
-		console.error(error)
-		createApp(ErrorPage, { error }).mount("#app")
-	})`
-	return rendererContent
+function setup(app) {
+	${componentRegistrations}
+}
+
+export function mount(el, context) {
+	return mountIsland(el, context, { appName: ${JSON.stringify(appName)}, setup, routerConfig: ${routerConfig} })
+}
+
+export function mountPage(el, app) {
+	return mountApp(el, { app, setup, prepare: async () => ${routerConfig} })
+}`
+	return islandContent
 }
 
 // Build one `import { … } from "<source>"` line per @framework/ui source module,
@@ -329,17 +329,17 @@ function getFrameworkUIImports(frameworkUIComponents) {
 		.join("\n")
 }
 
-function writeRendererFile(appName, content) {
-	const rendererPath = path.resolve(TEMP_DIR, `renderer-${appName}.js`)
+function writeEntryFile(fileName, content) {
+	const entryPath = path.resolve(TEMP_DIR, fileName)
 
-	writeFileSync(rendererPath, content)
-	console.log(`Renderer file created at: ${rendererPath}`)
-	return rendererPath
+	writeFileSync(entryPath, content)
+	console.log(`Entry file created at: ${entryPath}`)
+	return entryPath
 }
 
 async function buildWithVite(
 	appName,
-	entryFilePath,
+	entryFiles,
 	outDir,
 	basePath,
 	icons = [],
@@ -368,6 +368,7 @@ async function buildWithVite(
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 			// resolves @framework/ui's own deps from studio's node_modules
 			frameworkui(),
+			hostStylesheets(),
 		],
 		resolve: {
 			alias: [
@@ -401,10 +402,10 @@ async function buildWithVite(
 		},
 		build: {
 			manifest: true,
+			cssCodeSplit: false,
 			rolldownOptions: {
-				input: {
-					studioRenderer: path.resolve(__dirname, entryFilePath),
-				},
+				input: entryFiles,
+				preserveEntrySignatures: "exports-only",
 			},
 			outDir: outDir,
 			emptyOutDir: true,
@@ -442,11 +443,11 @@ function getAppTailwindConfig(appFolder, appIconClasses, appTailwindContent) {
 	}
 }
 
-function deleteRendererFile(rendererPath) {
+function deleteEntryFile(entryPath) {
 	try {
-		fs.unlinkSync(rendererPath)
-		console.log(`Deleted temporary renderer file: ${rendererPath}`)
+		fs.unlinkSync(entryPath)
+		console.log(`Deleted temporary entry file: ${entryPath}`)
 	} catch (error) {
-		console.warn(`Could not delete temporary renderer file: ${rendererPath} - ${error.message}`)
+		console.warn(`Could not delete temporary entry file: ${entryPath} - ${error.message}`)
 	}
 }

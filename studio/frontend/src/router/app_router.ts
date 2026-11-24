@@ -1,6 +1,7 @@
 import {
 	createRouter,
 	createWebHistory,
+	type RouterHistory,
 	type RouteRecordRaw,
 	type Router,
 	type RouterOptions,
@@ -24,6 +25,15 @@ interface Page {
 	page_title: string
 }
 
+export type RendererApp = {
+	name: string
+	route: string
+	pages: Page[]
+	home?: string | null
+	isGuest?: boolean
+	history?: RouterHistory
+}
+
 declare global {
 	interface Window {
 		app_name: string
@@ -36,27 +46,38 @@ declare global {
 	}
 }
 
-export async function createAppRouter(config?: RouterConfig): Promise<Router> {
+export function getWindowApp(): RendererApp {
+	return {
+		name: window.app_name,
+		route: window.app_route,
+		pages: window.app_pages,
+		home: window.app_home,
+		isGuest: window.is_guest,
+	}
+}
+
+export async function createAppRouter(config: RouterConfig | undefined, app: RendererApp): Promise<Router> {
 	config ??= await loadRouterConfig()
 	const unknownKeys = Object.keys(config).filter((key) => !CONFIG_KEYS.includes(key))
 	if (unknownKeys.length) {
 		throw new Error(`router config: unknown keys ${unknownKeys.join(", ")}`)
 	}
 	const { routerOptions: options = {}, extendRoute } = config
-	const routes = getPageRoutes(window.app_pages)
-	if (extendRoute) await runHook("extendRoute", () => routes.forEach((route) => extendPageRoute(route, extendRoute)))
+	const routes = getPageRoutes(app)
+	if (extendRoute)
+		await runHook("extendRoute", () => routes.forEach((route) => extendPageRoute(route, extendRoute)))
 
 	const router = createRouter({
 		...options,
-		history: createWebHistory(`/${window.app_route}`),
+		history: app.history || createWebHistory(`/${app.route}`),
 		routes,
 	})
 	await runHook("setup", () => config.setup?.(router))
-	addHomeRouteFallback(router)
+	addHomeRouteFallback(router, app)
 	addNotFoundRouteFallback(router)
-	router.beforeEach(sendGuestToLogin)
+	router.beforeEach((to) => sendGuestToLogin(to, app))
 	router.beforeResolve((to, from) => loadPage(router, to, from))
-	router.afterEach((to, _from, failure) => discardPage(to, failure))
+	router.afterEach((to, _from, failure) => discardPage(router, to, failure))
 	router.onError(reportNavigationError)
 	return router
 }
@@ -69,15 +90,16 @@ async function loadRouterConfig(): Promise<RouterConfig> {
 	return mod.default || {}
 }
 
-function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
-	return pages.map((page) => ({
+function getPageRoutes(app: RendererApp): RouteRecordRaw[] {
+	return (app.pages || []).map((page) => ({
 		path: page.route,
 		name: page.page_title,
 		component: AppPage,
 		props: true,
 		meta: {
 			pageName: page.name,
-			appRoute: window.app_route,
+			appName: app.name,
+			appRoute: app.route,
 		},
 	}))
 }
@@ -89,9 +111,9 @@ function extendPageRoute(route: RouteRecordRaw, extendRoute: (route: RouteRecord
 	route.meta = { ...route.meta, ...pageMeta }
 }
 
-function addHomeRouteFallback(router: Router) {
+function addHomeRouteFallback(router: Router, app: RendererApp) {
 	if (router.getRoutes().some((route) => route.path === "/")) return
-	const home = router.getRoutes().find((route) => !route.aliasOf && route.meta.pageName === window.app_home)
+	const home = router.getRoutes().find((route) => !route.aliasOf && route.meta.pageName === app.home)
 	if (!home || home.path.includes(":")) return
 	router.addRoute({ path: "/", component: AppPage, beforeEnter: () => home.path })
 }
@@ -102,7 +124,7 @@ function addNotFoundRouteFallback(router: Router) {
 		path: "/:pathMatch(.*)*",
 		name: "Not Found",
 		component: NotFound,
-		props: { home: `/${window.app_route}/` },
+		props: { home: "/" },
 		meta: { notFound: true },
 	})
 }
@@ -113,9 +135,9 @@ function reportNavigationError(error: Error) {
 }
 
 // private routes are absent from a guest's page list, so an unknown path may exist after login
-function sendGuestToLogin(to: { meta: { notFound?: boolean }; fullPath: string }) {
-	if (!window.is_guest || !to.meta.notFound) return true
-	const redirectTo = encodeURIComponent(`/${window.app_route}${to.fullPath}`)
+function sendGuestToLogin(to: { meta: { notFound?: boolean }; fullPath: string }, app: RendererApp) {
+	if (!app.isGuest || !to.meta.notFound) return true
+	const redirectTo = encodeURIComponent(`/${app.route}${to.fullPath}`)
 	window.location.href = `/login?redirect-to=${redirectTo}`
 	return false
 }

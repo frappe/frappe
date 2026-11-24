@@ -1,4 +1,4 @@
-import { ref, nextTick, computed, toRaw, shallowReadonly, watch } from "vue"
+import { inject, ref, nextTick, computed, toRaw, shallowReadonly, watch } from "vue"
 import { useDark, useDebounceFn, useStorage, useToggle } from "@vueuse/core"
 import router from "@/router/studio_router"
 import { createEditorAppRouter } from "@/router/editor_app_router"
@@ -47,6 +47,7 @@ type PageFields = Partial<Pick<StudioPage, "page_title" | "tab_title" | "route" 
 const PAGE_CHANGED_MESSAGE = "This page was changed outside the editor. Refresh to load the latest version."
 
 const useStudioStore = defineStore("store", () => {
+	const registeredComponents = inject<Record<string, any>>("appComponents", {})
 	const studioLayout = useStorage(
 		"studioLayout",
 		{
@@ -638,7 +639,11 @@ const useStudioStore = defineStore("store", () => {
 	// Only a repository app ships .vue components. An empty app name clears the ones the last app registered.
 	async function setCustomComponents() {
 		const frappeApp = isDbApp.value ? "" : activeApp.value!.frappe_app!
-		customVueComponents.value = await reloadCustomVueComponents(frappeApp, activeApp.value?.name ?? "")
+		customVueComponents.value = await reloadCustomVueComponents(
+			frappeApp,
+			activeApp.value?.name ?? "",
+			registeredComponents,
+		)
 		await registerCustomComponentPaths(customVueComponents.value)
 	}
 

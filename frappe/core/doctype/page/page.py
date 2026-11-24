@@ -12,6 +12,9 @@ from frappe.desk.form.meta import get_code_files_via_hooks, get_js
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.utils import render_include
+from frappe.studio.islands import ISLAND_PREFIX as STUDIO_ISLAND_PREFIX
+
+ISLAND_PAGE_TYPES = ("Frappe UI", "Studio App")
 
 
 class Page(Document):
@@ -34,9 +37,10 @@ class Page(Document):
 		roles: DF.Table[HasRole]
 		shared_page: DF.Check
 		standard: DF.Literal["Yes", "No"]
+		studio_app: DF.Link | None
 		system_page: DF.Check
 		title: DF.Data | None
-		type: DF.Literal["", "Frappe UI"]
+		type: DF.Literal["", "Frappe UI", "Studio App"]
 	# end: auto-generated types
 
 	def autoname(self):
@@ -63,15 +67,31 @@ class Page(Document):
 	def validate(self):
 		validate_route_conflict(self.doctype, self.name)
 
-		if self.is_new() and not getattr(conf, "developer_mode", 0):
-			frappe.throw(_("Not in Developer Mode"))
+		if self.type != "Studio App":
+			self.studio_app = None
+		if self.type not in ISLAND_PAGE_TYPES:
+			self.island = None
+		elif self.type == "Studio App":
+			if not self.studio_app:
+				frappe.throw(_("Choose the Studio app this page opens."), frappe.MandatoryError)
+			self.island = STUDIO_ISLAND_PREFIX + self.studio_app
 
-		# setting ignore_permissions via update_setup_wizard_access (setup_wizard.py)
-		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
-			frappe.throw(_("Only Administrator can edit"))
+		previous = self.get_doc_before_save()
+		if not (self.is_island_reference and (self.is_new() or previous.is_island_reference)):
+			if self.is_new() and not getattr(conf, "developer_mode", 0):
+				frappe.throw(_("Not in Developer Mode"))
+
+			# setting ignore_permissions via update_setup_wizard_access (setup_wizard.py)
+			if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
+				frappe.throw(_("Only Administrator can edit"))
 
 		self.validate_shell()
 		self.validate_island()
+
+	@property
+	def is_island_reference(self) -> bool:
+		"""A site's page that names an island and holds no code, so it is configuration."""
+		return self.standard != "Yes" and self.type in ISLAND_PAGE_TYPES and bool(self.island)
 
 	def validate_shell(self):
 		if self.system_page and self.shared_page:
@@ -83,7 +103,7 @@ class Page(Document):
 
 	def validate_island(self):
 		"""The two things a Frappe UI page needs before it can be built at all."""
-		if self.type != "Frappe UI":
+		if self.type not in ISLAND_PAGE_TYPES:
 			return
 
 		if self.island:
@@ -92,6 +112,12 @@ class Page(Document):
 			# A page that names an app's island has no source folder of its own,
 			# so neither the Standard rule nor the page script below applies.
 			if self.island not in get_ui_islands():
+				if self.type == "Studio App":
+					frappe.throw(
+						_("Studio app {0} is not live. Publish it, then save this page again.").format(
+							self.studio_app
+						)
+					)
 				frappe.throw(
 					_('Island "{0}" is not on this site. Build the app that ships it.').format(self.island)
 				)
@@ -140,7 +166,7 @@ class Page(Document):
 		if not path:
 			return
 
-		if self.type == "Frappe UI":
+		if self.type in ISLAND_PAGE_TYPES:
 			# A page that names an app's island is drawn by code the app already
 			# has. There is nothing to scaffold beside its json.
 			if not self.island:
@@ -207,11 +233,14 @@ class Page(Document):
 		return super().clear_cache()
 
 	def on_trash(self):
-		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
-			frappe.throw(_("Deletion of this document is only permitted in developer mode."))
+		if not self.is_island_reference:
+			if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
+				frappe.throw(_("Deletion of this document is only permitted in developer mode."))
+			if frappe.session.user != "Administrator":
+				frappe.throw(_("Only Administrator can delete"))
 
 		delete_custom_role("page", self.name)
-		if frappe.conf.developer_mode:
+		if frappe.conf.developer_mode and not self.is_island_reference:
 			frappe.db.after_commit(self.delete_folder_with_contents)
 
 	def delete_folder_with_contents(self):
@@ -255,7 +284,7 @@ class Page(Document):
 		#
 		# Desk mounts by name, and only this side knows which app the page's
 		# module belongs to.
-		if self.type == "Frappe UI":
+		if self.type in ISLAND_PAGE_TYPES:
 			self._island = self.get_island_name()
 			return
 

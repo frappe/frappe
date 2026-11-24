@@ -10,6 +10,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
+from frappe.studio.api import get_island_app
 from frappe.studio.build import (
 	StudioAppBuilder,
 	StudioAppBuildError,
@@ -18,9 +19,11 @@ from frappe.studio.build import (
 )
 from frappe.studio.doctype.studio_app.studio_app import StudioApp, get_desktop_apps
 from frappe.studio.files import read_db_file, write_db_file
+from frappe.studio.islands import get_island_assets
 from frappe.studio.utils import get_exported_app_name
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path, set_request
+from frappe.utils.island import get_ui_islands
 from frappe.website.serve import get_response
 
 
@@ -71,6 +74,93 @@ class TestStudioApp(FrappeTestCase):
 		with patch(gate, return_value=False):
 			html = get_website_response("shop-demo/board").get_data(as_text=True)
 		self.assertNotIn("Could not find app assets", html)
+
+	def test_an_island_routes_between_the_published_pages(self):
+		app = make_studio_app(app_title="Island App", app_name="island-app")
+		make_studio_page(app.name, page_title="Board", route="/board")
+		make_studio_page(app.name, page_title="Draft", route="/draft", published=0)
+
+		island_app = get_island_app(app.name)
+
+		self.assertEqual(island_app["route"], "island-app")
+		self.assertEqual([page["route"] for page in island_app["pages"]], ["/board"])
+
+	def test_an_island_requires_a_published_page_for_users_without_page_read_permission(self):
+		app = make_studio_app(app_title="Private Island", app_name="private-island")
+		page = make_studio_page(app.name, published=0)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "island-viewer@example.com",
+				"first_name": "Island Viewer",
+				"send_welcome_email": 0,
+			}
+		).insert()
+
+		with patch.object(frappe.local, "session", frappe._dict(frappe.session)), self.set_user(user.name):
+			self.assertFalse(frappe.has_permission("Studio Page", ptype="read"))
+			with self.assertRaises(frappe.PermissionError):
+				get_island_app(app.name)
+
+			page.db_set("published", 1)
+			island_app = get_island_app(app.name)
+			self.assertEqual(island_app["name"], app.name)
+			self.assertEqual([item["name"] for item in island_app["pages"]], [page.name])
+
+	def test_a_built_app_with_published_pages_is_an_island(self):
+		app = make_studio_app(app_title="Desk App", app_name="desk-app")
+		make_studio_page(app.name, page_title="Board", route="/board")
+		write_build_manifest(
+			app,
+			{
+				"../../../.temp-app-renderers/island-desk-app.js": {
+					"file": "assets/studioIsland-1.js",
+					"isEntry": True,
+				},
+				"style.css": {"file": "assets/style-1.css"},
+			},
+		)
+		self.addCleanup(shutil.rmtree, app.get_build_path(), True)
+
+		assets = get_island_assets()
+
+		self.assertEqual(
+			assets["frappe.studio.desk-app.island.js"], "/files/app_builds/desk-app/assets/studioIsland-1.js"
+		)
+		self.assertEqual(
+			assets["frappe.studio.desk-app.island.css"], "/files/app_builds/desk-app/assets/style-1.host.css"
+		)
+		self.assertIn("frappe.studio.desk-app", get_ui_islands())
+
+	def test_a_renderer_only_build_is_not_an_island_and_logs_no_error(self):
+		app = make_studio_app(app_title="Renderer Only", app_name="renderer-only")
+		make_studio_page(app.name, page_title="Board", route="/board")
+		write_build_manifest(
+			app,
+			{"renderer-renderer-only.js": {"file": "assets/renderer.js", "isEntry": True}},
+		)
+		self.addCleanup(shutil.rmtree, app.get_build_path(), True)
+		errors = len(frappe.get_all("Error Log", pluck="name"))
+
+		self.assertIsNone(app.get_assets_from_manifest("island"))
+		self.assertNotIn("frappe.studio.renderer-only.island.js", get_island_assets())
+		self.assertEqual(len(frappe.get_all("Error Log", pluck="name")), errors)
+
+	def test_an_app_without_published_pages_is_not_an_island(self):
+		app = make_studio_app(app_title="Unpublished Island", app_name="unpublished-island")
+		make_studio_page(app.name, page_title="Board", route="/board", published=0)
+		write_build_manifest(
+			app,
+			{
+				"../../../.temp-app-renderers/island-unpublished-island.js": {
+					"file": "assets/studioIsland-1.js",
+					"isEntry": True,
+				}
+			},
+		)
+		self.addCleanup(shutil.rmtree, app.get_build_path(), True)
+
+		self.assertNotIn("frappe.studio.unpublished-island.island.js", get_island_assets())
 
 	def test_app_favicon(self):
 		app = make_studio_app(app_title="Favicon App", app_name="favicon-app")
@@ -865,6 +955,11 @@ def make_studio_app(**kwargs):
 	return app
 
 
+def write_build_manifest(app, manifest):
+	build_path = app.get_build_path()
+	write_file(os.path.join(build_path, ".vite", "manifest.json"), json.dumps(manifest))
+
+
 def make_studio_page(studio_app, **kwargs):
 	page = frappe.new_doc("Studio Page")
 	page.update(
@@ -892,12 +987,9 @@ def write_file(path: str, text: str) -> None:
 def get_built_css(out_dir: str) -> str:
 	assets_dir = os.path.join(out_dir, "assets")
 	css_files = [
-		name
-		for name in os.listdir(assets_dir)
-		if name.startswith("studioRenderer-") and name.endswith(".css")
+		name for name in os.listdir(assets_dir) if name.endswith(".css") and not name.endswith(".host.css")
 	]
-	with open(os.path.join(assets_dir, css_files[0])) as f:
-		return f.read()
+	return "".join(frappe.read_file(os.path.join(assets_dir, name)) for name in css_files)
 
 
 def get_bundled_packages(out_dir: str) -> set[str]:

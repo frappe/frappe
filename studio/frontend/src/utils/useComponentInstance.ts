@@ -1,4 +1,4 @@
-import { ref, watch } from "vue"
+import { getCurrentInstance, ref, watch } from "vue"
 import Block from "@/utils/block"
 import { customVueComponentsRegistry } from "@/utils/customVueComponents"
 import useComponentStore from "@/stores/componentStore"
@@ -12,6 +12,7 @@ async function resolveComponent(component: any) {
 }
 
 export default function useComponentInstance(blockGetter: () => Block | undefined) {
+	const registeredComponents = getCurrentInstance()?.appContext.components ?? {}
 	const componentInstance = ref<any>({})
 	const componentStore = useComponentStore()
 	watch(
@@ -32,11 +33,12 @@ export default function useComponentInstance(blockGetter: () => Block | undefine
 				return
 			}
 			if (block?.isCustomVueComponent) {
-				const asyncComponent = customVueComponentsRegistry.value[block.componentName]
+				const asyncComponent =
+					registeredComponents[block.componentName] || customVueComponentsRegistry.value[block.componentName]
 				if (!asyncComponent) return
 				componentInstance.value = await resolveComponent(asyncComponent)
 			} else {
-				const component = window.__APP_COMPONENTS__?.[block.componentName]
+				const component = registeredComponents[block.componentName]
 				componentInstance.value = await resolveComponent(component)
 			}
 		},

@@ -46,6 +46,17 @@ def get_app_boot(app_name: str) -> dict:
 	return app.get_boot()
 
 
+@frappe.whitelist(methods=["GET"])
+def get_island_app(app_name: str) -> dict:
+	"""The route, home and published pages an app's island routes between."""
+	validate_app_viewer_access(app_name)
+	app = frappe.get_doc("Studio App", app_name)
+	pages = frappe.get_all(
+		"Studio Page", {"studio_app": app.name, "published": 1}, ["name", "page_title", "route"]
+	)
+	return {"name": app.name, "route": app.route, "home": app.app_home, "pages": pages}
+
+
 @frappe.whitelist()
 def get_doctype_fields(doctype: str, with_standard_fields: bool = False) -> list[dict]:
 	frappe.has_permission(doctype, ptype="read", throw=True)

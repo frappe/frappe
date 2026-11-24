@@ -1,4 +1,4 @@
-import { shallowRef, watch, type ShallowRef } from "vue"
+import { inject, shallowRef, watch, type App, type ShallowRef } from "vue"
 import { useRouter, type Router, type RouteLocationNormalized } from "vue-router"
 import { fetchAppPage } from "@/utils/helpers"
 import { getBlockInstance } from "@/utils/serializer"
@@ -14,44 +14,58 @@ export type LoadedPage = {
 	root: Block
 }
 
-const loadedPages = new Map<string, LoadedPage>()
-let latestNavigation = 0
+const pageLoaders = new WeakMap<Router, { loadedPages: Map<string, LoadedPage>; latestNavigation: number }>()
 
 // beforeResolve guard: load the next page before the navigation completes. The page being left
 // stays untouched meanwhile, and the new page mounts with every binding already resolved.
 export async function loadPage(router: Router, to: RouteLocationNormalized, from: RouteLocationNormalized) {
-	const navigation = ++latestNavigation
+	const state = getPageLoader(router)
+	const navigation = ++state.latestNavigation
 	const pageName = to.meta.pageName as string | undefined
 	if (!pageName) return
 	// same page, new params: the mounted page follows its route. A forced replace (preview reload) loads afresh.
 	if (pageName === from.meta.pageName && to.fullPath !== from.fullPath) return
 
-	const page = await fetchAppPage(window.app_name, pageName, Boolean(window.is_preview))
-	if (navigation !== latestNavigation) return
+	const vueApp = inject<App>("vueApp")!
+	const registeredComponents = inject("appComponents", {})
+	const socket = inject("socket", null)
+	const componentStore = useComponentStore()
+	const appName = to.meta.appName as string
+	const page = await fetchAppPage(appName, pageName, Boolean(window.is_preview))
+	if (navigation !== state.latestNavigation) return
 	if (!page) return redirectToNotFound(router, to)
 
 	const pageRoute = shallowRef(to)
-	const scope = createPageScope(pageRoute, shallowRef(router))
+	const scope = createPageScope(pageRoute, shallowRef(router), registeredComponents, socket)
 	try {
 		await scope.setPageVariables(page, page.variables)
 		await scope.setPageResources(page, false, page.resources)
-		if (navigation !== latestNavigation) return scope.teardownPage()
+		if (navigation !== state.latestNavigation) return scope.teardownPage()
 		await scope.loadPageScript(page)
-		if (navigation !== latestNavigation) return scope.teardownPage()
+		if (navigation !== state.latestNavigation) return scope.teardownPage()
 		// before the block tree, so no block fetches its component (Guests can't read Studio Component)
-		await useComponentStore().setComponents(page.components || [])
-		if (navigation !== latestNavigation) return scope.teardownPage()
-		const root = getBlockInstance(JSON.parse(page.blocks)[0])
-		loadedPages.set(to.fullPath, { page, scope, pageRoute, root })
+		componentStore.setStudioApp(appName)
+		await componentStore.setComponents(page.components || [])
+		if (navigation !== state.latestNavigation) return scope.teardownPage()
+		const root = vueApp.runWithContext(() => getBlockInstance(JSON.parse(page.blocks)[0]))
+		state.loadedPages.set(to.fullPath, { page, scope, pageRoute, root })
 	} catch (error) {
 		scope.teardownPage()
 		throw error
 	}
 }
 
+export function disposePageLoader(router: Router) {
+	const state = getPageLoader(router)
+	state.latestNavigation++
+	for (const { scope } of state.loadedPages.values()) scope.teardownPage()
+	state.loadedPages.clear()
+}
+
 // afterEach: a navigation that did not go through drops the page it loaded
-export function discardPage(to: RouteLocationNormalized, failure: unknown) {
+export function discardPage(router: Router, to: RouteLocationNormalized, failure: unknown) {
 	if (!failure) return
+	const { loadedPages } = getPageLoader(router)
 	loadedPages.get(to.fullPath)?.scope.teardownPage()
 	loadedPages.delete(to.fullPath)
 }
@@ -59,6 +73,7 @@ export function discardPage(to: RouteLocationNormalized, failure: unknown) {
 // AppPage setup: hand over the page loaded for the current route
 export function useLoadedPage(): LoadedPage {
 	const router = useRouter()
+	const { loadedPages } = getPageLoader(router)
 	const fullPath = router.currentRoute.value.fullPath
 	const loaded = loadedPages.get(fullPath)
 	if (!loaded) throw new Error(`No page was loaded for ${fullPath}`)
@@ -69,6 +84,13 @@ export function useLoadedPage(): LoadedPage {
 		if (to.meta.pageName === loaded.page.name) loaded.pageRoute.value = to
 	})
 	return loaded
+}
+
+function getPageLoader(router: Router) {
+	if (!pageLoaders.has(router)) {
+		pageLoaders.set(router, { loadedPages: new Map(), latestNavigation: 0 })
+	}
+	return pageLoaders.get(router)!
 }
 
 function redirectToNotFound(router: Router, to: RouteLocationNormalized) {

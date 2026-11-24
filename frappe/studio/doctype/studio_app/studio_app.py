@@ -374,7 +374,7 @@ class StudioApp(WebsiteGenerator):
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.unpublish()
 
-	def get_assets_from_manifest(self):
+	def get_assets_from_manifest(self, entry: str = "renderer"):
 		"""
 		Read the Vite manifest file for this app and return asset paths
 		https://vite.dev/guide/backend-integration.html#backend-integration
@@ -397,8 +397,11 @@ class StudioApp(WebsiteGenerator):
 				manifest = json.load(f)
 
 			# find the entry point for a studio app
-			entry_key = f"renderer-{self.name}.js"
+			entry_key = f"{entry}-{self.name}.js"
 			entry_key = next((key for key in manifest if key.endswith(entry_key)), entry_key)
+
+			if entry_key not in manifest:
+				return None
 
 			entry = manifest[entry_key]
 			result = {
@@ -410,6 +413,9 @@ class StudioApp(WebsiteGenerator):
 			for chunk_key, chunk_data in manifest.items():
 				if chunk_key != entry_key and "css" in chunk_data:
 					result["stylesheets"].extend(f"{base_path}{css_file}" for css_file in chunk_data["css"])
+
+			if "style.css" in manifest:
+				result["stylesheets"].append(f"{base_path}{manifest['style.css']['file']}")
 
 			return result
 

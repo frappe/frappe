@@ -30,19 +30,19 @@ setConfig("serverMessagesHandler", (messages: string[]) => {
 
 const studio = createApp(App)
 const pinia = createPinia()
+studio.provide("vueApp", studio)
 
 // For the main app builder
 studio.use(studio_router)
 studio.use(resourcesPlugin)
 studio.use(pinia)
 registerGlobalComponents(studio)
-window.__APP_COMPONENTS__ = studio._context.components
+studio.provide("appComponents", studio._context.components)
 
 declare global {
 	interface Window {
 		site_url: string
 		is_developer_mode?: boolean
-		__APP_COMPONENTS__: any
 		[key: string]: string
 	}
 }

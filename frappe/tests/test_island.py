@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import frappe
+import frappe.sessions
 from frappe.tests import IntegrationTestCase
 from frappe.utils.island import get_island_assets, get_ui_islands, page_island_name
 
@@ -21,6 +22,9 @@ def draws_the_chart(doc, method=None):
 
 class TestUiIslandsRegistry(IntegrationTestCase):
 	"""A build registers an island by writing its asset key."""
+
+	def setUp(self):
+		self.enterContext(patch("frappe.utils.island.get_hooked_island_assets", return_value={}))
 
 	def patch_assets_json(self, assets):
 		return patch("frappe.utils.island.get_assets_json", return_value=assets)
@@ -68,12 +72,44 @@ class TestUiIslandsRegistry(IntegrationTestCase):
 			self.assertIn("ui_islands", frappe.sessions.get())
 
 
+def adds_a_site_island():
+	return {
+		"site.report.island.js": "/files/islands/report.js",
+		"site.report.island.css": "/files/islands/report.css",
+	}
+
+
+class TestHookedIslands(IntegrationTestCase):
+	"""An `island_assets` hook adds islands built outside the bench build."""
+
+	def setUp(self):
+		self.enterContext(patch("frappe.utils.island.get_assets_json", return_value={}))
+		self.enterContext(self.patch_hooks({"island_assets": [f"{HERE}.adds_a_site_island"]}))
+
+	def test_a_hooked_island_is_on_the_site(self):
+		self.assertEqual(get_ui_islands(), ["site.report"])
+
+	def test_a_hooked_island_resolves_to_its_js_and_css(self):
+		self.assertEqual(
+			get_island_assets("site.report"),
+			{"js": "/files/islands/report.js", "css": "/files/islands/report.css"},
+		)
+
+	def test_boot_carries_a_hooked_island(self):
+		with patch.object(frappe.local, "request", None, create=True):
+			boot = frappe.sessions.get()
+		self.assertEqual(boot.assets_json["site.report.island.js"], "/files/islands/report.js")
+
+
 class TestPageIslandName(IntegrationTestCase):
 	def test_the_name_carries_the_app_and_the_page(self):
 		self.assertEqual(page_island_name("insights", "sales-dashboard"), "insights.page.sales-dashboard")
 
 
 class TestIslandAssets(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch("frappe.utils.island.get_hooked_island_assets", return_value={}))
+
 	def patch_assets_json(self, assets):
 		return patch("frappe.utils.island.get_assets_json", return_value=assets)
 

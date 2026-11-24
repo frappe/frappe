@@ -42,6 +42,8 @@ const styleSheets = new Map();
  * @property {Object} [history]          vue-router history for those routes, such
  *                                      as a web history for an island that fills
  *                                      its page. Default a memory history.
+ * @property {Object} [router]           A vue-router the island built itself, used
+ *                                      in place of `routes` and `history`.
  */
 
 /**
@@ -61,6 +63,7 @@ export async function mountVueIsland(el, options) {
 		configure,
 		routes,
 		history,
+		router,
 	} = options || {};
 
 	if (!component) {
@@ -172,7 +175,10 @@ export async function mountVueIsland(el, options) {
 		// frappe-ui components such as Button and MultiSelect always call
 		// useRouter(). A memory router keeps that inject resolvable. An island that
 		// wants navigation of its own passes real routes.
-		app.use(createRouter({ history: history || createMemoryHistory(), routes: routes || [] }));
+		app.use(
+			router ||
+				createRouter({ history: history || createMemoryHistory(), routes: routes || [] })
+		);
 
 		app.provide(portalTargetKey, portal);
 		app.provide(hostKey, context);

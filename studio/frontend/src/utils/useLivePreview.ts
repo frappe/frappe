@@ -12,6 +12,7 @@ import useComponentStore from "@/stores/componentStore"
 // coalesces into one reload.
 export function useLivePreview() {
 	const socket = inject<any>("socket")
+	const registeredComponents = inject<Record<string, any>>("appComponents", {})
 	const router = useRouter()
 	const revision = ref(0)
 
@@ -50,7 +51,7 @@ export function useLivePreview() {
 	// a custom .vue component was added/removed/renamed in a studio folder (Vite emits this in dev;
 	// content edits hot-reload on their own). Re-register so the preview picks it up.
 	const onCustomComponentsChanged = () =>
-		reloadCustomVueComponents((window as any).frappe_app, (window as any).app_name)
+		reloadCustomVueComponents((window as any).frappe_app, (window as any).app_name, registeredComponents)
 
 	onMounted(() => {
 		socket?.on("studio_doc_update", onDocUpdate)
