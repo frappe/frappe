@@ -59,4 +59,14 @@ test.describe("Msgprint", () => {
 			page.locator(".msgprint-dialog").getByRole("button", { name: "Add Roles" })
 		).toBeVisible();
 	});
+
+	test("shows the connection toast when a call cannot reach the server", async ({ page }) => {
+		await page.route("**/api/method/ping", (route) => route.abort());
+		await page.evaluate(() => {
+			frappe.call("ping");
+		});
+		await expect(
+			page.locator(".es-toast", { hasText: "Could not reach the server" })
+		).toBeVisible();
+	});
 });

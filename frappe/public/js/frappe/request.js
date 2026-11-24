@@ -29,16 +29,6 @@ frappe.xcall = function (method, params, type, opts = {}) {
 
 // generic server call (call page, object)
 frappe.call = function (opts) {
-	if (!frappe.is_online()) {
-		// the same toast as the offline event in dom.js, so calls made while offline don't stack copies
-		frappe.ui.toast({
-			id: "connection-status",
-			type: "warning",
-			message: __("Connection Lost"),
-			description: __("You are not connected to Internet. Retry after sometime."),
-			duration: 3000,
-		});
-	}
 	if (typeof arguments[0] === "string") {
 		opts = {
 			method: arguments[0],
@@ -326,6 +316,16 @@ frappe.request.call = function (opts) {
 		})
 		.fail(function (xhr, textStatus) {
 			try {
+				if (textStatus === "error" && xhr.status === 0) {
+					// the same toast as the offline event in dom.js, so failed calls don't stack copies
+					frappe.ui.toast({
+						id: "connection-status",
+						type: "warning",
+						message: __("Connection Lost"),
+						description: __("Could not reach the server. Please try again."),
+						duration: 3000,
+					});
+				}
 				if (
 					xhr.getResponseHeader("content-type") == "application/json" &&
 					xhr.responseText
