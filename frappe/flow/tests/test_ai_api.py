@@ -993,6 +993,7 @@ class TestSessionEndpoints(ApiCase):
 		)
 		self.assertEqual(self.daemon.calls[-1], ("resume", name, {"c9": "Approve"}, 8))
 		self.assertEqual(self.run_status(run), "Running")
+		self.assertFalse(frappe.db.get_value("Flow Run", run, "questions"))
 
 	def test_rewind_branches_the_chat_and_never_reads_a_bad_target_as_the_start(self):
 		name = self.create()

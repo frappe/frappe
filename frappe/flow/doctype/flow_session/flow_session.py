@@ -299,7 +299,7 @@ class FlowSession(Document):
 		run = self._paused_run(approval_seq)
 		with flow_server() as client:
 			client.resume(self.name, answers, approval_seq=approval_seq or run.approval_seq)
-		if run.status == "Paused":
+		if run.status == "Paused" or run.approval_seq == approval_seq:
 			run.db_set({"status": "Running", "questions": None, "approval_seq": 0})
 		return run
 
