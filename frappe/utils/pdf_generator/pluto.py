@@ -292,16 +292,12 @@ def local_resource_fetcher(block_external_requests=False):
 	import plutoprint
 	from werkzeug.http import parse_options_header
 
-<<<<<<< HEAD
-	from frappe.utils.pdf_generator.page import read_local_resource
-=======
 	from frappe.core.api.file import get_max_file_size
-	from frappe.utils.chromium.page import (
+	from frappe.utils.pdf_generator.page import (
 		allows_internal_print_urls,
 		read_external_resource,
 		read_local_resource,
 	)
->>>>>>> 6ca9aa2 (fix(print): load external pdf resources through the safe request session)
 
 	class Fetcher(plutoprint.ResourceFetcher):
 		def __init__(self):

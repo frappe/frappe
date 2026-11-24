@@ -416,19 +416,9 @@ class Page:
 							return_future=True,
 						)
 						return
-<<<<<<< HEAD:frappe/utils/pdf_generator/page.py
-=======
-				elif self.block_external_requests:
-					self.send(
-						"Fetch.failRequest",
-						{"requestId": data["request_id"], "errorReason": "BlockedByClient"},
-						return_future=True,
-					)
-					return
 				elif url.startswith(("http://", "https://")) and not allows_internal_print_urls():
 					self.fulfill_external_request(data["request_id"], params["request"])
 					return
->>>>>>> 6ca9aa2 (fix(print): load external pdf resources through the safe request session):frappe/utils/chromium/page.py
 				self.send(
 					"Fetch.continueRequest",
 					{"requestId": data["request_id"]},
