@@ -167,7 +167,11 @@ class MariaDBTable(DBTable):
 			name_clash = plain_indexes.get(col.fieldname.lower())
 			drop_name_clash = f"DROP INDEX `{name_clash}`"
 			if name_clash and drop_name_clash not in drop_index_query:
-				if frappe.flags.in_migrate and self.has_duplicate_values(col.fieldname):
+				if (
+					frappe.flags.in_migrate
+					and col.fieldname.lower() in self.current_columns
+					and self.has_duplicate_values(col.fieldname)
+				):
 					click.secho(
 						f"Kept plain index {name_clash} on {self.table_name}: {col.fieldname} has duplicate values, so it cannot be set as unique",
 						fg="yellow",
