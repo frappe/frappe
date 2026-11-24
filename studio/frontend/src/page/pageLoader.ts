@@ -28,6 +28,7 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 
 	const vueApp = inject<App>("vueApp")!
 	const registeredComponents = inject("appComponents", {})
+	const socket = inject("socket", null)
 	const componentStore = useComponentStore()
 	const appName = to.meta.appName as string
 	const page = await fetchAppPage(appName, pageName, Boolean(window.is_preview))
@@ -35,7 +36,7 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 	if (!page) return redirectToNotFound(router, to)
 
 	const pageRoute = shallowRef(to)
-	const scope = createPageScope(pageRoute, shallowRef(router), registeredComponents)
+	const scope = createPageScope(pageRoute, shallowRef(router), registeredComponents, socket)
 	try {
 		await scope.setPageVariables(page, page.variables)
 		await scope.setPageResources(page, false, page.resources)

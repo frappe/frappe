@@ -16,7 +16,9 @@ import { createPageScope, type PageScope } from "@/page/pageScope"
 const useCodeStore = defineStore("codeStore", () => {
 	const routeObject = ref<ComputedRef>()
 	const routerObject = ref<Router | Readonly<Router>>()
-	const pageScope = shallowRef(createPageScope(routeObject, routerObject, inject("appComponents", {})))
+	const pageScope = shallowRef(
+		createPageScope(routeObject, routerObject, inject("appComponents", {}), inject("socket", null)),
+	)
 
 	onScopeDispose(
 		onPageScriptHotUpdate((pageName, setup) => pageScope.value.applyPageScriptHotUpdate(pageName, setup)),

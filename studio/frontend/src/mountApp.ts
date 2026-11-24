@@ -7,16 +7,20 @@ import ErrorPage from "@/pages/ErrorPage.vue"
 import { createAppRouter, type RendererApp, type RouterConfig } from "@/router/app_router"
 import { initSocket } from "@/socket"
 import { disposePageLoader } from "@/page/pageLoader"
+import type { Socket } from "socket.io-client"
 
-export type MountOptions = {
-	app: RendererApp
+export type InstallOptions = {
 	setup?: (vueApp: App) => void
+	socket?: Socket | null
+}
+
+export type MountOptions = InstallOptions & {
+	app: RendererApp
 	prepare?: (vueApp: App) => Promise<RouterConfig | undefined>
 }
 
-export async function mountApp(el: Element | string, { app, setup, prepare }: MountOptions): Promise<() => void> {
-	const socket = initSocket()
-	const vueApp = createApp(AppRenderer)
+export function installApp(vueApp: App, { setup, socket: suppliedSocket }: InstallOptions): () => void {
+	const socket = suppliedSocket === undefined ? initSocket() : suppliedSocket
 	const pinia = createPinia()
 	vueApp.use(pinia)
 	vueApp.provide("vueApp", vueApp)
@@ -24,6 +28,18 @@ export async function mountApp(el: Element | string, { app, setup, prepare }: Mo
 	vueApp.provide("socket", socket)
 	setup?.(vueApp)
 	vueApp.provide("appComponents", vueApp._context.components)
+	return () => {
+		disposePinia(pinia)
+		if (suppliedSocket === undefined) socket?.disconnect()
+	}
+}
+
+export async function mountApp(
+	el: Element | string,
+	{ app, prepare, ...options }: MountOptions,
+): Promise<() => void> {
+	const vueApp = createApp(AppRenderer)
+	const dispose = installApp(vueApp, options)
 
 	try {
 		const router = await createAppRouter(await prepare?.(vueApp), app)
@@ -31,8 +47,7 @@ export async function mountApp(el: Element | string, { app, setup, prepare }: Mo
 		return () => {
 			disposePageLoader(router)
 			vueApp.unmount()
-			disposePinia(pinia)
-			socket.disconnect()
+			dispose()
 		}
 	} catch (error) {
 		console.error(error)
@@ -40,8 +55,7 @@ export async function mountApp(el: Element | string, { app, setup, prepare }: Mo
 		errorApp.mount(el)
 		return () => {
 			errorApp.unmount()
-			disposePinia(pinia)
-			socket.disconnect()
+			dispose()
 		}
 	}
 }

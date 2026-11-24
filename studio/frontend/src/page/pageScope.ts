@@ -8,7 +8,7 @@ import { studioVariables } from "@/data/studioVariables"
 import { hasBuiltPageScript, loadBuiltPageScript } from "@/data/studioPageScripts"
 import { compilePageScript } from "@/browserRuntime/appRuntime"
 import * as globalUtils from "@/utils/globalUtils"
-import { useSocket } from "@/socket"
+import type { Socket } from "socket.io-client"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import { DYNAMIC_EXPRESSION_CONTENT_REGEX } from "@/utils/constants"
@@ -32,6 +32,7 @@ export function createPageScope(
 	routeObject: Ref<ComputedRef | RouteLocationNormalized | undefined>,
 	routerObject: Ref<Router | Readonly<Router> | undefined>,
 	registeredComponents: Record<string, any> = {},
+	socket: Socket | null = null,
 ) {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
@@ -468,7 +469,7 @@ export function createPageScope(
 			...resources.value,
 			...pageScriptTemplateBindings.value,
 			...globalUtils,
-			socket: useSocket(),
+			socket,
 			route: unref(routeObject.value),
 			router: routerObject.value,
 		}
@@ -483,7 +484,7 @@ export function createPageScope(
 			...currentResourceProxies(),
 			...pageScriptBindings.value,
 			...globalUtils,
-			socket: useSocket(),
+			socket,
 			route: currentRoute,
 			router: routerObject.value,
 		}

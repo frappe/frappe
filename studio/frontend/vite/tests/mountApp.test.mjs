@@ -113,7 +113,7 @@ async function loadRuntime() {
 	return import(`data:text/javascript;base64,${Buffer.from(result.output[0].code).toString("base64")}`)
 }
 
-test("unmount disposes stores and hot-update subscriptions while preserving the editor", async () => {
+test("unmount disposes stores and hot-update subscriptions while preserving the editor and supplied sockets", async () => {
 	const runtime = await loadRuntime()
 	const editor = runtime.createApp({ render: () => null }).use(runtime.createPinia())
 	editor.provide("vueApp", editor)
@@ -126,7 +126,7 @@ test("unmount disposes stores and hot-update subscriptions while preserving the 
 	let editorChanges = 0
 	editorStore.$subscribe(() => editorChanges++, { flush: "sync" })
 	for (const fails of [false, true]) {
-		for (const kind of ["owned"]) {
+		for (const kind of ["owned", "supplied", "disabled"]) {
 			let store
 			let pinia
 			let changes = 0
