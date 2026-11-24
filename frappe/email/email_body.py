@@ -670,7 +670,7 @@ def format_sender(names: tuple[str, ...], email_id: str) -> str:
 	"""Return an unencoded address with the first valid name that fits `Email Queue.sender`."""
 	for name in names:
 		display_name = get_display_name(name)
-		sender = str(policy.SMTP.header_factory("From", formataddr((display_name, email_id))))
+		sender = str(policy.SMTP.header_factory("From", email.utils.formataddr((display_name, email_id))))
 		if display_name and len(sender) <= frappe.db.VARCHAR_LEN:
 			return sender
 	return email_id
