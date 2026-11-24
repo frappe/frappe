@@ -4,16 +4,18 @@
 import frappe
 from frappe.core.doctype.permission_log.permission_log import get_timeline_content, insert_perm_log
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestPermissionLog(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.manager = "perm-log-manager@example.com"
-		if not frappe.db.exists("User", cls.manager):
-			frappe.get_doc(doctype="User", email=cls.manager, first_name="Perm Log Manager").insert()
-		frappe.get_doc("User", cls.manager).add_roles("System Manager")
+		email = "perm-log-manager@example.com"
+		if not (manager := get_user_by_email(email)):
+			manager = frappe.get_doc(doctype="User", email=email, first_name="Perm Log Manager").insert().name
+		frappe.get_doc("User", manager).add_roles("System Manager")
+		cls.manager = manager
 
 	def test_user_timeline_shows_role_changes(self):
 		user = frappe.get_doc(doctype="User", email="perm-log@example.com", first_name="Perm Log").insert()

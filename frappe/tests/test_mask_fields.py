@@ -19,7 +19,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.utils.mask import mask_field_value
 from frappe.permissions import add_user_permission, update_permission_property
 from frappe.tests import IntegrationTestCase
-from frappe.utils import flt
+from frappe.utils import flt, get_user_by_email
 
 
 def _make_field(fieldname, fieldtype="Data", options=None, mask=1, **kwargs):
@@ -717,19 +717,24 @@ class TestMaskFieldsWithUserPermissions(IntegrationTestCase):
 		if not frappe.db.exists("Role", cls.TEST_ROLE):
 			frappe.get_doc({"doctype": "Role", "role_name": cls.TEST_ROLE, "desk_access": 1}).insert()
 
-		if not frappe.db.exists("User", cls.TEST_USER):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": cls.TEST_USER,
-					"first_name": "Mask Link Test",
-					"new_password": "Test@12345",
-					"send_welcome_email": 0,
-					"roles": [{"role": cls.TEST_ROLE}],
-				}
-			).insert(ignore_permissions=True)
+		if user := get_user_by_email(cls.TEST_USER):
+			frappe.get_doc("User", user).add_roles(cls.TEST_ROLE)
 		else:
-			frappe.get_doc("User", cls.TEST_USER).add_roles(cls.TEST_ROLE)
+			user = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": cls.TEST_USER,
+						"first_name": "Mask Link Test",
+						"new_password": "Test@12345",
+						"send_welcome_email": 0,
+						"roles": [{"role": cls.TEST_ROLE}],
+					}
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
+		cls.user = user
 
 		# Doctype with a masked Link field pointing to User
 		cls.doctype = new_doctype(
@@ -744,11 +749,9 @@ class TestMaskFieldsWithUserPermissions(IntegrationTestCase):
 		cls.dt = cls.doctype.name
 
 		# User Permission: TEST_USER can only access docs where owner_user == TEST_USER
-		add_user_permission("User", cls.TEST_USER, cls.TEST_USER)
+		add_user_permission("User", cls.user, cls.user)
 
-		cls.doc = frappe.get_doc(
-			{"doctype": cls.dt, "owner_user": cls.TEST_USER, "title": "Test Record"}
-		).insert()
+		cls.doc = frappe.get_doc({"doctype": cls.dt, "owner_user": cls.user, "title": "Test Record"}).insert()
 		cls.docname = cls.doc.name
 
 		frappe.db.commit()
@@ -756,11 +759,10 @@ class TestMaskFieldsWithUserPermissions(IntegrationTestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.set_user("Administrator")
-		frappe.db.delete("User Permission", {"user": cls.TEST_USER})
+		frappe.db.delete("User Permission", {"user": cls.user})
 		frappe.db.delete(cls.dt)
 		frappe.delete_doc("DocType", cls.dt, force=True)
-		if frappe.db.exists("User", cls.TEST_USER):
-			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		frappe.db.set_value("User", cls.user, "enabled", 0)
 		frappe.db.commit()
 		super().tearDownClass()
 
@@ -779,7 +781,7 @@ class TestMaskFieldsWithUserPermissions(IntegrationTestCase):
 		frappe.set_user(self.TEST_USER)
 		# Must not raise frappe.PermissionError
 		doc = frappe.get_doc(self.dt, self.docname)
-		self.assertEqual(doc.owner_user, self.TEST_USER)
+		self.assertEqual(doc.owner_user, self.user)
 
 	def test_user_can_save_doc_with_masked_link_field(self):
 		"""
@@ -798,7 +800,7 @@ class TestMaskFieldsWithUserPermissions(IntegrationTestCase):
 			(self.docname,),
 			as_dict=True,
 		)[0]["owner_user"]
-		self.assertEqual(db_val, self.TEST_USER)
+		self.assertEqual(db_val, self.user)
 
 	def test_masked_link_field_is_masked_in_response(self):
 		"""After saving, the response returned to the client must still mask the link field."""
