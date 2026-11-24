@@ -223,6 +223,10 @@ def get_website_settings(context=None):
 	if settings.address:
 		context["footer_address"] = settings.address
 
+	for k in ("navbar_template", "footer_template"):
+		if settings.get(k):
+			context[f"{k}_values"] = frappe.parse_json(settings.get(f"{k}_values") or "{}")
+
 	if frappe.request:
 		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
 
