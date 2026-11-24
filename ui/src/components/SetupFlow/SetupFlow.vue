@@ -116,7 +116,8 @@ const defaults: SetupFlowLabels = {
 };
 const text = computed(() => ({ ...defaults, ...props.labels }));
 
-const { capture, isEnabled } = useTelemetry();
+const telemetry = useTelemetry();
+const { capture } = telemetry;
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
 const isDark = computed(() => resolvedColorScheme.value === "dark");
 const themeLabel = computed(() => (isDark.value ? text.value.lightMode : text.value.darkMode));
@@ -143,12 +144,15 @@ const seconds = (since: number) => Math.round((Date.now() - since) / 1000);
 // Telemetry loads after the page starts and drops events sent before it is on, so the first
 // ones wait for it.
 function whenTelemetryOn(send: () => void) {
-	if (!isEnabled || isEnabled.value) return send();
-	const stop = watch(isEnabled, (on) => {
-		if (!on) return;
-		stop();
-		send();
-	});
+	if (telemetry.isEnabled) return send();
+	const stop = watch(
+		() => telemetry.isEnabled,
+		(on) => {
+			if (!on) return;
+			stop();
+			send();
+		}
+	);
 }
 const viewed = (index: number) => capture("setup_step_viewed", { step: props.steps[index]?.name });
 whenTelemetryOn(() => {

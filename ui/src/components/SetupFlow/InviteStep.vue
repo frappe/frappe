@@ -202,13 +202,13 @@ watch(
 );
 
 const problems = computed(() => {
-	const seen = new Set<string>();
+	const seen = new Set(rows.value.filter((row) => row.sent).map((row) => normal(row.email)));
 	const found: Record<number, string> = {};
 	for (const row of rows.value) {
 		const email = normal(row.email);
-		if (!email) continue;
-		if (!row.sent && !EMAIL.test(email)) found[row.id] = text.value.invalid;
-		else if (!row.sent && seen.has(email)) found[row.id] = text.value.duplicate;
+		if (row.sent || !email) continue;
+		if (!EMAIL.test(email)) found[row.id] = text.value.invalid;
+		else if (seen.has(email)) found[row.id] = text.value.duplicate;
 		seen.add(email);
 	}
 	return found;
