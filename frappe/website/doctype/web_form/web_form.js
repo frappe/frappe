@@ -285,9 +285,9 @@ frappe.ui.form.on("Web Form", {
 			frm.get_field("dynamic_filters_label").$wrapper.find(".control-label")[0]
 		);
 
-		frm.dynamic_filter_table = $(`<table class="table table-bordered" style="cursor:${
-			can_edit ? "pointer" : "default"
-		}; margin: 0 0 var(--margin-lg); border-radius: 10px; border-spacing: 0; border-collapse: separate;">
+		frm.dynamic_filter_table = $(`<table class="table table-bordered ${
+			can_edit ? "cursor-pointer" : ""
+		}" style="margin: 0 0 var(--margin-lg); border-radius: 10px; border-spacing: 0; border-collapse: separate;">
 			<thead>
 				<tr>
 					<th>${__("Filter")}</th>
