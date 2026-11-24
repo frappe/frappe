@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.model import get_permitted_fields
 from frappe.utils.data import flt
 
 
@@ -68,6 +69,9 @@ def return_location(doctype, filters):
 	if not meta.has_field("location"):
 		frappe.throw(frappe._("This Doctype does not contain location fields"))
 
+	if "location" not in get_permitted_fields(doctype):
+		frappe.throw(frappe._("You are not permitted to read the location field"), frappe.PermissionError)
+
 	fields = ["name", "location"]
 	if title_field := get_title_field(meta):
 		fields.append(f"{title_field} as title")
@@ -80,6 +84,12 @@ def return_coordinates(doctype, filters):
 	meta = frappe.get_meta(doctype)
 	if not (meta.has_field("latitude") and meta.has_field("longitude")):
 		frappe.throw(frappe._("This Doctype does not contain latitude and longitude fields"))
+
+	if not {"latitude", "longitude"}.issubset(get_permitted_fields(doctype)):
+		frappe.throw(
+			frappe._("You are not permitted to read the latitude and longitude fields"),
+			frappe.PermissionError,
+		)
 
 	fields = ["name", "latitude", "longitude"]
 	if title_field := get_title_field(meta):
