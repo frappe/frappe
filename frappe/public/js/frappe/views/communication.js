@@ -1242,7 +1242,8 @@ frappe.views.CommunicationComposer = class {
 
 	async set_values() {
 		for (const fieldname of ["recipients", "cc", "bcc"]) {
-			await this.dialog.set_value(fieldname, this.as_recipient_list(this[fieldname]));
+			const recipients = this.as_recipient_list(this[fieldname]);
+			if (recipients.length) await this.dialog.set_value(fieldname, recipients);
 		}
 		await this.dialog.set_value("sender", this.sender || "");
 
