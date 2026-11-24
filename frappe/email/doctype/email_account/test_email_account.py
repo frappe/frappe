@@ -671,6 +671,16 @@ class TestInboundMail(FrappeTestCase):
 		self.assertEqual(new_communication.uid, 12345)
 		self.assertEqual(communication.name, new_communication.name)
 
+	def test_mail_with_site_as_message_id_is_saved(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		mail_content = self.get_test_mail(fname="incoming-1.raw").replace(
+			"<9143999C-8456-4399-9CF1-4A2DA9DD7711@gmail.com>", f"<{frappe.local.site}>"
+		)
+
+		communication = InboundMail(mail_content, email_account, 12345, 1).process()
+
+		self.assertEqual(communication.message_id, frappe.local.site)
+
 	def test_find_parent_email_queue(self):
 		"""If the mail is reply to the already sent mail, there will be a email queue record."""
 		# Create email queue record
