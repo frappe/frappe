@@ -132,6 +132,8 @@ frappe.views.Page = class Page {
 	 * Desk keeps its page head and sets the chrome from what the island reports.
 	 * `title` names the page and `actions` fill the page menu. See
 	 * ui/island/decisions/0010-a-page-island-reports-title-and-actions.md.
+	 * `route` moves the URL to where the island navigated, as in
+	 * ui/island/decisions/0018-a-page-island-reports-its-route.md.
 	 *
 	 * The island stays mounted while the page is hidden, so coming back keeps
 	 * what the reader left. A route change inside the page updates its props
@@ -195,6 +197,11 @@ frappe.views.Page = class Page {
 			onActions: (actions) => {
 				this.island_actions = actions || [];
 				this.set_island_chrome();
+			},
+			onRoute: (route, query) => {
+				if (frappe.container.page !== this.wrapper) return;
+				frappe.route_options = query;
+				frappe.set_route([this.pagedoc.name, ...route]);
 			},
 		});
 
