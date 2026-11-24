@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.database.query import _cast_autoincrement_name
 from frappe.model import is_default_field
+from frappe.model.utils.mask import as_aliased_field, mask_dict_results
 from frappe.query_builder import Field, Order
 from frappe.query_builder.functions import Avg, Count, Max, Min, Sum
 from frappe.query_builder.terms import SubQuery
@@ -75,7 +76,12 @@ def get_assignee_groups(
 		frappe.qb.from_(ToDo)
 		.select(ToDo.reference_name, ToDo.allocated_to)
 		.distinct()
-		.where((ToDo.reference_type == doctype) & ToDo.status.notin(("Cancelled", "Closed")))
+		.where(
+			(ToDo.reference_type == doctype)
+			& ToDo.status.notin(("Cancelled", "Closed"))
+			& ToDo.allocated_to.isnotnull()
+			& (ToDo.allocated_to != "")
+		)
 	).as_("assignments")
 
 	terms = {
@@ -103,7 +109,14 @@ def get_assignee_groups(
 	if limit := cint(limit_page_length):
 		query = query.limit(limit).offset(cint(limit_start))
 
-	return query.run(as_dict=True)
+	rows = query.run(as_dict=True)
+	masked = {df.fieldname: df for df in frappe.get_meta(doctype).get_masked_fields()}
+	to_mask = [masked[f] for f in group_fields if f in masked] + [
+		as_aliased_field(masked[fieldname], alias)
+		for fn, fieldname, alias in aggregates
+		if fieldname in masked and fn != "COUNT"
+	]
+	return mask_dict_results(rows, to_mask) if to_mask else rows
 
 
 # `{"SUM": "amount", "as": "total"}`, as `frappe.client.get_list` takes it, as (function, fieldname, alias).

@@ -163,6 +163,17 @@ class TestListView(IntegrationTestCase):
 		rows = get_assignee_groups("MapReduce Job", ["_assign"], "_assign", [["name", "in", names]])
 		self.assertCountEqual(rows, [{"_assign": "Administrator"}, {"_assign": None}])
 
+	def test_assignee_groups_leave_out_tasks_without_an_assignee(self):
+		names = self._assigned_jobs(["Administrator"])
+		frappe.get_doc(
+			doctype="ToDo",
+			description="Test assignee groups",
+			reference_type="MapReduce Job",
+			reference_name=names[0],
+		).insert()
+		rows = get_assignee_groups("MapReduce Job", ["_assign"], "_assign", [["name", "in", names]])
+		self.assertEqual(rows, [{"_assign": "Administrator"}])
+
 	def test_assignee_groups_sort_and_page_in_the_query(self):
 		names = self._assigned_jobs(["Guest"], ["Administrator", "Guest"])
 		rows = get_assignee_groups(
