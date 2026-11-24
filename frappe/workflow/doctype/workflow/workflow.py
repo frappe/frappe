@@ -10,6 +10,7 @@ from pypika.terms import Criterion, Not
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.executable_fields import CodeFieldGuard
 from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS, get_workflow_names
 from frappe.utils import cint
 from frappe.utils.data import cast, compare, evaluate_filters
@@ -61,6 +62,7 @@ class Workflow(Document):
 		if self.is_active and not (self.states and self.transitions):
 			frappe.throw(_("Workflow must have atleast one state and transition"))
 		self.validate_fields_in_conditions()
+		ExpressionValueGuard(self).validate()
 		self.validate_shared_state_field()
 		self.set_active()
 		self.validate_no_ambiguous_peer()
@@ -403,3 +405,17 @@ def get_workflow_state_count(doctype: str, workflow_state_field: str, states: st
 @frappe.whitelist(methods=["GET"])
 def get_workflow_methods():
 	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + DEFAULT_WORKFLOW_TASKS
+
+
+class ExpressionValueGuard(CodeFieldGuard):
+	"""`update_value` is code only on states that evaluate it as an expression, now or when saved."""
+
+	def __init__(self, doc):
+		states_df = doc.meta.get_field("states")
+		value_df = frappe.get_meta(states_df.options).get_field("update_value")
+		super().__init__(doc, tables=[(states_df, [value_df])])
+
+	def is_authored(self, row, reference, df, is_new, child_doctype=None):
+		if not (row.evaluate_as_expression or reference.get("evaluate_as_expression")):
+			return False
+		return super().is_authored(row, reference, df, is_new, child_doctype)
