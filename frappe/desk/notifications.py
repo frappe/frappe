@@ -411,6 +411,8 @@ def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes,
 		if child_names is None:
 			return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
 		names = unique(names + child_names)[:LINK_COUNT_LIMIT]
+		if len(names) == LINK_COUNT_LIMIT:
+			break
 
 	open_count = 0
 	if names and (open_count_filters := get_filters_for(doctype)):
