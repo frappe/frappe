@@ -61,7 +61,7 @@ class TestPlutoResourceFetcher(UnitTestCase):
 		image = _response(200, **{"Content-Type": "image/png"})
 		with (
 			patch("requests.adapters.HTTPAdapter.send", return_value=image),
-			patch("frappe.utils.chromium.page.EXTERNAL_FETCH_SECONDS", -1),
+			patch("frappe.utils.pdf_generator.page.EXTERNAL_FETCH_SECONDS", -1),
 			self.assertRaises(plutoprint.Error),
 		):
 			self.fetcher.fetch(PUBLIC_IMAGE)

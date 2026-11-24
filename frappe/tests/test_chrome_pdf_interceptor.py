@@ -2,27 +2,15 @@
 # License: MIT. See LICENSE
 import contextlib
 import os
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
 import socket
->>>>>>> 6ce1991 (test(print): external pdf resources end at their time limit)
-import tempfile
 import threading
 import time
 from concurrent.futures import Future
->>>>>>> 9026635 (test(print): pdf resources load through the safe request session)
 from unittest.mock import MagicMock, patch
 
 import frappe
-<<<<<<< HEAD
 from frappe.tests import IntegrationTestCase, UnitTestCase
-from frappe.utils.pdf_generator.page import Page
-=======
-from frappe.tests import UnitTestCase
-from frappe.utils.chromium.page import Page, read_external_resource
->>>>>>> 6ce1991 (test(print): external pdf resources end at their time limit)
+from frappe.utils.pdf_generator.page import Page, read_external_resource
 
 
 def _make_page(session):
@@ -54,7 +42,6 @@ def _make_session(captured):
 	return session
 
 
-<<<<<<< HEAD
 class TestPdfStreamHandle(UnitTestCase):
 	def _page_with_pdf_futures(self, response):
 		import asyncio
@@ -81,10 +68,7 @@ class TestPdfStreamHandle(UnitTestCase):
 			page.get_pdf_stream_id()
 
 
-def _fire_request(callback, request_id, url):
-=======
 def _fire_request(callback, request_id, url, **params):
->>>>>>> 9026635 (test(print): pdf resources load through the safe request session)
 	"""Simulate Chrome firing a Fetch.requestPaused CDP event."""
 	callback(
 		future=MagicMock(),
@@ -185,14 +169,10 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		"""
 		callback = self._register()
 
-<<<<<<< HEAD
-		with patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST):
-=======
 		with (
-			patch("frappe.utils.chromium.page.get_host_url", return_value=HOST),
-			patch("frappe.utils.chromium.page.allows_internal_print_urls", return_value=True),
+			patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST),
+			patch("frappe.utils.pdf_generator.page.allows_internal_print_urls", return_value=True),
 		):
->>>>>>> 9026635 (test(print): pdf resources load through the safe request session)
 			_fire_request(callback, "req-4", "https://cdn.example.com/some.js")
 
 		sent = self._sent_methods()
@@ -200,17 +180,15 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		self.assertNotIn("Fetch.fulfillRequest", sent)
 		self.assertNotIn("Fetch.failRequest", sent)
 
-<<<<<<< HEAD
-=======
 	def test_external_url_is_fulfilled_from_guarded_read(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		callback = self._register()
 
 		with (
-			patch("frappe.utils.chromium.page.get_host_url", return_value=HOST),
+			patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST),
 			patch(
-				"frappe.utils.chromium.page.read_external_resource",
+				"frappe.utils.pdf_generator.page.read_external_resource",
 				return_value=(b"image", {"Content-Type": "image/png"}, 200),
 			),
 		):
@@ -225,7 +203,7 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		frappe.set_user("test@example.com")
 		callback = self._register()
 
-		with patch("frappe.utils.chromium.page.get_host_url", return_value=HOST):
+		with patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST):
 			_fire_request(callback, "req-6", "http://127.0.0.1/some.js")
 
 		sent = self._sent_methods()
@@ -238,7 +216,7 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		frappe.set_user("test@example.com")
 		callback = self._register()
 
-		with patch("frappe.utils.chromium.page.get_host_url", return_value=HOST):
+		with patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST):
 			_fire_request(callback, "req-7", f"http://{'a' * 64}.example.com/logo.png")
 
 		self.assertIn("Fetch.failRequest", self._sent_methods())
@@ -263,17 +241,13 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		with (
 			patch("frappe.utils.safe_exec.validate_request_url"),
 			patch("frappe.utils.safe_exec.validate_request_address"),
-			patch("frappe.utils.chromium.page.EXTERNAL_FETCH_SECONDS", 0.3),
+			patch("frappe.utils.pdf_generator.page.EXTERNAL_FETCH_SECONDS", 0.3),
 		):
 			resource = read_external_resource(f"http://127.0.0.1:{server.getsockname()[1]}/logo.png", 1024)
 
 		self.assertIsNone(resource)
 		self.assertLess(time.monotonic() - started, 2)
 
-	def test_unknown_origin_url_sends_fail_when_external_requests_are_blocked(self):
-		self.page.block_external_requests = True
-		callback = self._register()
->>>>>>> 9026635 (test(print): pdf resources load through the safe request session)
 
 class TestChromePDFElementHeight(UnitTestCase):
 	def setUp(self):
