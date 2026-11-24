@@ -337,12 +337,12 @@ class SystemHealthReport(Document):
 
 	@health_check("Storage")
 	def fetch_storage_details(self):
-		from frappe.desk.page.backups.backups import get_context
+		from frappe.desk.page.backups.backups import get_backup_files
 
 		self.backups_size = get_directory_size("private", "backups") / (1024 * 1024)
 		self.private_files_size = get_directory_size("private", "files") / (1024 * 1024)
 		self.public_files_size = get_directory_size("public", "files") / (1024 * 1024)
-		self.onsite_backups = len(get_context(frappe._dict()).get("files", []))
+		self.onsite_backups = len(get_backup_files())
 
 	@health_check("Users")
 	def fetch_user_stats(self):
