@@ -1957,7 +1957,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					label: fullname,
 					image,
 					css_class: "filterable",
-					attrs: { "data-filter": `_assign,=,${user}` },
+					attrs: { "data-filter": `_assign,like,%${user}%` },
 				};
 			});
 			assigned_to = `<div class="list-assignments d-flex align-items-center">

@@ -211,6 +211,10 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			operator = "is";
 			value = "not set";
 		}
+		if (fieldname === "_assign") {
+			operator = "like";
+			value = `%${value}%`;
+		}
 		return this.list_view.filter_area.add(this.doctype, fieldname, operator, value);
 	}
 };
