@@ -343,6 +343,21 @@ def select_specs(files_list):
 	return None
 
 
+def select(build_type, files_list):
+	"""What the impact map picks for the changed files: None is the full suite, [] is nothing."""
+	return select_tests(files_list) if build_type == "server" else select_specs(files_list)
+
+
+def shadow_select(build_type, files_list):
+	"""Log what the impact map would pick for a merge queue group, which still runs the full suite."""
+	print("Shadow mode, the full suite runs. The impact map would pick:")
+	try:
+		if select(build_type, files_list) == []:
+			print("  nothing")
+	except Exception as exc:
+		print(f"  no selection ({exc!r})")
+
+
 def shards(selected, full, per_shard):
 	"""Shard indexes for the test matrix: fewer machines when only a few files run."""
 	count = full if selected is None else max(1, min(full, -(-len(selected) // per_shard)))
@@ -539,8 +554,11 @@ if __name__ == "__main__":
 
 	base_sha, head_sha = os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")
 	if not pr_number and base_sha and head_sha:
-		jobs = queue_jobs(build_type, files_list or get_queue_files(repo, base_sha, head_sha))
+		files_list = files_list or get_queue_files(repo, base_sha, head_sha)
+		jobs = queue_jobs(build_type, files_list)
 		print(f"Merge queue group runs: {', '.join(sorted(jobs)) or 'nothing'}")
+		if "build" in jobs and files_list is not None and not any(is_ci(f) for f in files_list):
+			shadow_select(build_type, files_list)
 		run_jobs(jobs)
 		sys.exit(0)
 
@@ -576,9 +594,13 @@ if __name__ == "__main__":
 	else:
 		tests_requested = has_run_ui_tests_label(pr_number, repo)
 
-	if os.environ.get("SKIP_ON_PRS") and skips_test_suites(pr_number, repo) and not tests_requested:
+	skips_suites = (
+		os.environ.get("SKIP_ON_PRS") and skips_test_suites(pr_number, repo) and not tests_requested
+	)
+	picked_only = skips_suites and fetch_pr_data(pr_number, repo)["base"]["ref"] == "develop"
+	if skips_suites and not picked_only:
 		print(
-			"Develop and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
+			"desk-v2 and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
 		)
 		sys.exit(0)
 
@@ -591,6 +613,9 @@ if __name__ == "__main__":
 		else:
 			print("Found `Skip CI` label on pr, stopping build process.")
 			sys.exit(0)
+	elif ci_files_changed and picked_only:
+		print("CI related files were updated, the full suite runs in the merge queue.")
+		sys.exit(0)
 	elif ci_files_changed:
 		print("CI related files were updated, running all build processes.")
 	elif only_docs_changed and not tests_requested:
@@ -607,28 +632,27 @@ if __name__ == "__main__":
 		print("Only Python code was updated, stopping UI test build process.")
 		sys.exit(0)
 
-	# If we reach here, run the build
-	run_jobs()
-	selected_tests = None
-	# An explicit request for server tests gets the full suite.
-	if build_type == "server" and not ci_files_changed and not has_run_server_tests_label(pr_number, repo):
-		selected_tests = select_tests(files_list)
-		if selected_tests == []:
-			print("No server-side changes; Stopping Python build process.")
+	selected = None if ci_files_changed or tests_requested else select(build_type, files_list)
+	if build_type == "server" and selected == []:
+		print("No server-side changes; Stopping Python build process.")
+		sys.exit(0)
+
+	jobs = {"build", "studio", "flow"}
+	if picked_only:
+		jobs = queue_jobs(build_type, files_list) - (set() if selected else {"build"})
+		if selected is None:
+			print("These changes need the full suite, which runs in the merge queue.")
+		if not jobs:
 			sys.exit(0)
 
-	selected_specs = None
-	if build_type == "ui" and not ci_files_changed and not has_run_ui_tests_label(pr_number, repo):
-		selected_specs = select_specs(files_list)
-
-	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+	run_jobs(jobs)
 	# Empty means the full suite. Written without a shell: these are PR-controlled file names.
 	with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-		f.write(f"tests={' '.join(selected_tests or [])}\n")
-		f.write(f"specs={' '.join(selected_specs or [])}\n")
 		if build_type == "server":
-			matrix = shards(None if run_postgres else selected_tests, full=2, per_shard=40)
+			matrix = shards(None if run_postgres else selected, full=2, per_shard=40)
+			f.write(f"tests={' '.join(selected or [])}\n")
 		else:
-			matrix = shards(selected_specs, full=4, per_shard=15)
+			matrix = shards(selected, full=4, per_shard=15)
+			f.write(f"specs={' '.join(selected or [])}\n")
 		f.write(f"shards={json.dumps(matrix)}\nshard_total={len(matrix)}\n")
-	os.system(f'echo "run_postgres={"true" if run_postgres else "false"}" >> $GITHUB_OUTPUT')
+		f.write(f"run_postgres={'true' if run_postgres else 'false'}\n")

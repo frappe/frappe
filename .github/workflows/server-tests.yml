@@ -33,13 +33,13 @@ jobs:
         uses: actions/checkout@v7
       - name: Download test impact map
         run: |
-          for run_id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow server-tests.yml --event schedule --branch "$BRANCH" --limit 3 --json databaseId --jq '.[].databaseId'); do
+          for run_id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow server-tests.yml --event schedule --branch "${BRANCH#refs/heads/}" --limit 3 --json databaseId --jq '.[].databaseId'); do
             gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --name impact-map && break
           done
           true
         env:
           GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ github.base_ref || github.ref_name }}
+          BRANCH: ${{ github.base_ref || github.event.merge_group.base_ref || github.ref_name }}
       - name: Check if unit tests should be run
         id: check-build
         run: |
