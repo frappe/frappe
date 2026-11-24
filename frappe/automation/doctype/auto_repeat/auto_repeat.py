@@ -703,9 +703,9 @@ def unlink_auto_repeat(doctype: str, docname: str | int):
 		"Auto Repeat", {"name": auto_repeat, "reference_doctype": doctype, "reference_document": docname}
 	):
 		frappe.throw(
-			_(
-				"This document is the reference of Auto Repeat {0}. Disable or delete the Auto Repeat instead."
-			).format(frappe.bold(auto_repeat))
+			_("This document is the reference of Auto Repeat {0}. Disable the Auto Repeat instead.").format(
+				frappe.bold(auto_repeat)
+			)
 		)
 
 	frappe.db.set_value(doctype, docname, "auto_repeat", None)
