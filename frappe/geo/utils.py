@@ -6,15 +6,13 @@ from frappe.utils.data import flt
 
 
 @frappe.whitelist()
-def get_coords(doctype, filters, type):
+def get_coords(doctype: str, filters: str | list | dict | None, type: str):
 	"""Get a geojson dict representing a doctype."""
-	filters_sql = get_coords_conditions(doctype, filters)[4:]
-
 	coords = None
 	if type == "location_field":
-		coords = return_location(doctype, filters_sql)
+		coords = return_location(doctype, filters)
 	elif type == "coordinates":
-		coords = return_coordinates(doctype, filters_sql)
+		coords = return_coordinates(doctype, filters)
 
 	return convert_to_geojson(type, coords)
 
@@ -64,56 +62,31 @@ def create_gps_markers(coords):
 	]
 
 
-def return_location(doctype, filters_sql):
+def return_location(doctype, filters):
 	"""Get name and location fields for Doctype."""
-	fields = ["name", "location", *get_title_field(doctype)]
-	if filters_sql:
-		try:
-			# nosemgrep: frappe-sql-format-injection
-			coords = frappe.db.sql(
-				f"""SELECT {", ".join(fields)} FROM `tab{doctype}`  WHERE {filters_sql}""", as_dict=True
-			)
-		except frappe.db.InternalError:
-			frappe.msgprint(frappe._("This Doctype does not contain location fields"), raise_exception=True)
-			return
-	else:
-		coords = frappe.get_all(doctype, fields=fields)
-	return coords
-
-
-def return_coordinates(doctype, filters_sql):
-	"""Get name, latitude and longitude fields for Doctype."""
-	fields = ["name", "latitude", "longitude", *get_title_field(doctype)]
-	if filters_sql:
-		try:
-			# nosemgrep: frappe-sql-format-injection
-			coords = frappe.db.sql(
-				f"""SELECT {", ".join(fields)} FROM `tab{doctype}`  WHERE {filters_sql}""",
-				as_dict=True,
-			)
-		except frappe.db.InternalError:
-			frappe.msgprint(
-				frappe._("This Doctype does not contain latitude and longitude fields"), raise_exception=True
-			)
-			return
-	else:
-		coords = frappe.get_all(doctype, fields=fields)
-	return coords
-
-
-def get_title_field(doctype):
-	"""Return the title field as `title` when the DocType shows titles in links."""
 	meta = frappe.get_meta(doctype)
-	if meta.show_title_field_in_link and meta.title_field:
-		return [f"{meta.title_field} as title"]
-	return []
+	if not meta.has_field("location"):
+		frappe.throw(frappe._("This Doctype does not contain location fields"))
+
+	fields = ["name", "location"]
+	if title_field := get_title_field(meta):
+		fields.append(f"{title_field} as title")
+
+	return frappe.get_list(doctype, filters=filters, fields=fields)
 
 
-def get_coords_conditions(doctype, filters=None):
-	"""Returns SQL conditions with user permissions and filters for event queries."""
-	from frappe.desk.reportview import get_filters_cond
+def return_coordinates(doctype, filters):
+	"""Get name, latitude and longitude fields for Doctype."""
+	meta = frappe.get_meta(doctype)
+	if not (meta.has_field("latitude") and meta.has_field("longitude")):
+		frappe.throw(frappe._("This Doctype does not contain latitude and longitude fields"))
 
-	if not frappe.has_permission(doctype):
-		frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+	fields = ["name", "latitude", "longitude"]
+	if title_field := get_title_field(meta):
+		fields.append(f"{title_field} as title")
 
-	return get_filters_cond(doctype, filters, [], with_match_conditions=True)
+	return frappe.get_list(doctype, filters=filters, fields=fields)
+
+
+def get_title_field(meta):
+	return meta.title_field if meta.show_title_field_in_link else None
