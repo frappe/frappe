@@ -143,11 +143,6 @@ def sync_contacts_from_google_contacts(g_contact):
 
 		results.extend(contact for contact in contacts.get("connections", []))
 		if not contacts.get("nextPageToken"):
-			if contacts.get("nextSyncToken"):
-				frappe.db.set_value(
-					"Google Contacts", account.name, "next_sync_token", contacts.get("nextSyncToken")
-				)
-				frappe.db.commit()
 			break
 
 	frappe.db.set_value("Google Contacts", account.name, "last_sync_on", frappe.utils.now_datetime())
@@ -196,6 +191,9 @@ def sync_contacts_from_google_contacts(g_contact):
 					account.log_error(_("Google Contacts - Could not import a contact"))
 				else:
 					contacts_updated += 1
+
+	if contacts.get("nextSyncToken"):
+		frappe.db.set_value("Google Contacts", account.name, "next_sync_token", contacts.get("nextSyncToken"))
 
 	return (
 		_("{0} Google Contacts synced.").format(contacts_updated)
