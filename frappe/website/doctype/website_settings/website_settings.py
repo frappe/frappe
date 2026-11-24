@@ -226,7 +226,11 @@ def get_website_settings(context=None):
 	for k in ("navbar_template", "footer_template"):
 		if template := settings.get(k):
 			values = frappe.parse_json(settings.get(f"{k}_values") or "{}")
-			fields = {f.fieldname for f in frappe.get_cached_doc("Web Template", template).fields}
+			try:
+				fields = {f.fieldname for f in frappe.get_cached_doc("Web Template", template).fields}
+			except frappe.DoesNotExistError:
+				frappe.clear_last_message()
+				fields = set()
 			context[f"{k}_values"] = {key: value for key, value in values.items() if key in fields}
 
 	if frappe.request:
