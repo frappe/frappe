@@ -751,6 +751,19 @@ class Engine:
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
 
+		if (
+			isinstance(field, str)
+			and field in ("_assign", "_liked_by")
+			and _operator.casefold() in ("in", "not in")
+			and _value
+		):
+			values = _value.split(",") if isinstance(_value, str) else _value
+			member_operator = "=" if _operator.casefold() == "in" else "!="
+			criteria = [
+				self._build_criterion_for_simple_filter(field, v, member_operator, doctype) for v in values
+			]
+			return Criterion.any(criteria) if member_operator == "=" else Criterion.all(criteria)
+
 		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
 		# single member; treat them as `like`/`not like` against the serialized value.
 		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
