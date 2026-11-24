@@ -5,13 +5,8 @@ from datetime import datetime
 
 import frappe
 import frappe.monitor
-<<<<<<< HEAD
-from frappe.monitor import MONITOR_REDIS_KEY, get_trace_id
-from frappe.tests.utils import FrappeTestCase
-=======
 from frappe.monitor import MONITOR_REDIS_KEY, MONITOR_TIMESTAMP_FORMAT, get_trace_id
-from frappe.tests import IntegrationTestCase
->>>>>>> b6ae45d (fix(monitor): write timestamp in a fixed format)
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.utils.response import build_response
 
