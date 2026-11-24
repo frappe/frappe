@@ -562,7 +562,9 @@ def _flow_users(text: str = "", user: str | None = None) -> list[dict[str, Any]]
 		filters.append(["name", "=", user])
 	if text:
 		person = frappe.qb.DocType("User")
-		filters.append(_contains(person.name, text) | _contains(person.full_name, text))
+		filters.append(
+			_contains(person.name, text) | _contains(person.email, text) | _contains(person.full_name, text)
+		)
 	return frappe.get_all(
 		"User",
 		filters=filters,
