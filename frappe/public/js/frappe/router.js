@@ -814,9 +814,7 @@ frappe.router = {
 		// set query parameters as frappe.route_options
 		let query_string = window.location.search;
 
-		if (!frappe.route_options) {
-			frappe.route_options = {};
-		}
+		frappe.route_options = {};
 
 		if (localStorage.getItem("route_options")) {
 			frappe.route_options = JSON.parse(localStorage.getItem("route_options"));
