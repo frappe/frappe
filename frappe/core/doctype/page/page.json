@@ -14,6 +14,7 @@
   "page_name",
   "title",
   "type",
+  "studio_app",
   "island",
   "icon",
   "column_break0",
@@ -58,7 +59,16 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "\nFrappe UI"
+   "options": "\nFrappe UI\nStudio App"
+  },
+  {
+   "depends_on": "eval:doc.type == 'Studio App'",
+   "description": "A Studio app with published pages. The page opens it in desk.",
+   "fieldname": "studio_app",
+   "fieldtype": "Link",
+   "label": "Studio App",
+   "mandatory_depends_on": "eval:doc.type == 'Studio App'",
+   "options": "Studio App"
   },
   {
    "depends_on": "eval:doc.type == 'Frappe UI'",
@@ -108,7 +118,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.standard == 'Yes' || doc.type == 'Frappe UI'",
+   "depends_on": "eval:doc.standard == 'Yes' || ['Frappe UI', 'Studio App'].includes(doc.type)",
    "fieldname": "roles",
    "fieldtype": "Table",
    "label": "Roles",
@@ -127,7 +137,7 @@
  "icon": "file",
  "idx": 1,
  "links": [],
- "modified": "2026-11-24 12:00:00.000000",
+ "modified": "2026-11-24 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Page",

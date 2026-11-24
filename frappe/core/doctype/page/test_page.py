@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import frappe
+from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app
 from frappe.tests import IntegrationTestCase
 
 
@@ -166,6 +167,45 @@ class TestPage(IntegrationTestCase):
 					):
 						page.save()
 
+	@patch.dict(frappe.conf, {"developer_mode": 0})
+	def test_a_studio_app_page_opens_the_apps_island(self):
+		app = self.a_studio_app()
+		user = self.a_system_manager()
+		with self.an_island(f"frappe.studio.{app.name}"), self.set_user(user):
+			page = frappe.new_doc(
+				"Page",
+				page_name=frappe.generate_hash(),
+				module="Core",
+				standard="No",
+				type="Studio App",
+				studio_app=app.name,
+			).insert()
+
+			page.load_assets()
+			self.assertEqual(page.as_dict()["island"], f"frappe.studio.{app.name}")
+			page.delete()
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_studio_app_page_needs_a_live_app(self):
+		app = self.a_studio_app()
+
+		with self.assertRaises(frappe.MandatoryError):
+			self.make_page(type="Studio App", standard="No")
+		with self.assertRaisesRegex(frappe.ValidationError, "is not live"):
+			self.make_page(type="Studio App", standard="No", studio_app=app.name)
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_page_that_stops_being_a_studio_app_page_drops_its_island(self):
+		app = self.a_studio_app()
+		with self.an_island(f"frappe.studio.{app.name}"):
+			page = self.make_page(type="Studio App", standard="No", studio_app=app.name)
+
+		page.type = ""
+		page.save()
+
+		self.assertIsNone(page.island)
+		self.assertIsNone(page.studio_app)
+
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_an_island_this_site_does_not_have_throws(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -267,6 +307,12 @@ class TestPage(IntegrationTestCase):
 				roles=[{"role": "System Manager"}],
 			).insert()
 		return email
+
+	def a_studio_app(self):
+		name = f"board-{frappe.generate_hash(length=8)}"
+		app = make_studio_app(app_title=name, app_name=name)
+		self.addCleanup(frappe.db.delete, "Studio App", app.name)
+		return app
 
 	def an_island(self, name):
 		"""One built island on the site, as an app's build would leave it."""

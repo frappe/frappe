@@ -2,8 +2,22 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Page", {
+	setup: function (frm) {
+		const prefix = "frappe.studio.";
+		frm.set_query("studio_app", () => ({
+			filters: {
+				name: [
+					"in",
+					(frappe.boot.ui_islands || [])
+						.filter((island) => island.startsWith(prefix))
+						.map((island) => island.slice(prefix.length)),
+				],
+			},
+		}));
+	},
 	refresh: function (frm) {
-		const is_island_reference = frm.doc.standard === "No" && frm.doc.type === "Frappe UI";
+		const is_island_reference =
+			frm.doc.standard === "No" && ["Frappe UI", "Studio App"].includes(frm.doc.type);
 		if (
 			!frappe.boot.developer_mode &&
 			frappe.session.user != "Administrator" &&
