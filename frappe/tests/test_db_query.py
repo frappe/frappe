@@ -837,6 +837,7 @@ class TestDBQuery(IntegrationTestCase):
 		# to avoid if_owner filter
 		update("Nested DocType", "All", 0, "if_owner", 0)
 
+		frappe.get_doc("User", "test2@example.com").add_roles("Blogger")
 		with self.set_user("test2@example.com"):
 			data = DatabaseQuery("Nested DocType").execute()
 
