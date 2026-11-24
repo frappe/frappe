@@ -402,7 +402,7 @@
    "label": "Translatable"
   },
   {
-   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Int', 'Float', 'Currency', 'Percent'], doc.fieldtype)",
+   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Int'], doc.fieldtype)",
    "fieldname": "length",
    "fieldtype": "Int",
    "label": "Length"
@@ -574,7 +574,7 @@
  "idx": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-24 12:54:37.864038",
+ "modified": "2026-11-10 08:49:31.975538",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
