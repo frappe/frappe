@@ -752,7 +752,9 @@ class DesktopIcon {
 			} else {
 				this.icon.on("click", () => {
 					frappe.msgprint(
-						__("{0} has no page to open.", [frappe.utils.escape_html(this.icon_title)])
+						__("{0} has no page to open.", [
+							frappe.utils.escape_html(__(this.icon_title)),
+						])
 					);
 				});
 			}
