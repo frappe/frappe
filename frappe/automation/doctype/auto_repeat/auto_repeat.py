@@ -689,6 +689,31 @@ def update_reference(docname: str, reference: str):
 
 
 @frappe.whitelist(methods=["POST"])
+def unlink_auto_repeat(doctype: str, docname: str | int):
+	docname = str(docname)
+	if not frappe.get_meta(doctype).has_field("auto_repeat"):
+		frappe.throw(_("{0} does not support Auto Repeat").format(_(doctype)), title=_("Not Supported"))
+
+	frappe.has_permission(doctype, "write", docname, throw=True)
+	auto_repeat = frappe.db.get_value(doctype, docname, "auto_repeat")
+	if not auto_repeat:
+		return
+
+	if frappe.db.exists(
+		"Auto Repeat", {"name": auto_repeat, "reference_doctype": doctype, "reference_document": docname}
+	):
+		frappe.throw(
+			_("This document is the reference of Auto Repeat {0}. Disable the Auto Repeat instead.").format(
+				frappe.bold(auto_repeat)
+			),
+			title=_("Cannot Unlink Auto Repeat"),
+		)
+
+	frappe.db.set_value(doctype, docname, "auto_repeat", None)
+	frappe.get_doc(doctype, docname).notify_update()
+
+
+@frappe.whitelist(methods=["POST"])
 def generate_message_preview(name: str):
 	frappe.has_permission("Auto Repeat", "write", throw=True)
 	auto_repeat = frappe.get_doc("Auto Repeat", str(name))
