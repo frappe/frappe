@@ -95,10 +95,15 @@ class CodeFieldGuard:
 	def exists_in_readable_doc(self, fieldname, value, child_doctype=None):
 		source = child_doctype or self.doc.doctype
 		filters = [[source, fieldname, "=", value], *self.get_source_filters(value, child_doctype)]
+		# SQL equality ignores case and trailing spaces under MariaDB collations, Python does not;
+		# distinct keeps one row per collation match instead of every document that holds it
 		rows = frappe.get_list(
-			self.doc.doctype, filters=filters, fields=[f"`tab{source}`.`{fieldname}`"], as_list=True
+			self.doc.doctype,
+			filters=filters,
+			fields=[f"`tab{source}`.`{fieldname}`"],
+			distinct=True,
+			as_list=True,
 		)
-		# SQL equality ignores case and trailing spaces under MariaDB collations, Python does not
 		return any(row[0] == value for row in rows)
 
 	def get_source_filters(self, value, child_doctype=None):
