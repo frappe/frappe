@@ -913,11 +913,26 @@ class QueueBuilder:
 			mail.set_header("Auto-Submitted", self.auto_submitted)
 		if self.read_receipt:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
-		if self.in_reply_to:
-			if message_id := frappe.db.get_value("Communication", self.in_reply_to, "message_id"):
-				message_id = message_id.strip("<> \t\n")
-				mail.set_in_reply_to(f"<{message_id}>")
+		self.set_thread_headers(mail)
 		return mail
+
+	def set_thread_headers(self, mail):
+		"""Set In-Reply-To to the replied Communication, and References to it plus the received mail this one copies."""
+		parent_message_id = self.in_reply_to and frappe.db.get_value(
+			"Communication", self.in_reply_to, "message_id"
+		)
+		received_message_id = self.communication and frappe.db.get_value(
+			"Communication", {"name": self.communication, "sent_or_received": "Received"}, "message_id"
+		)
+		references = [
+			f"<{message_id.strip('<> \t\n')}>"
+			for message_id in (parent_message_id, received_message_id)
+			if message_id
+		]
+		if parent_message_id:
+			mail.set_in_reply_to(references[0])
+		if references:
+			mail.set_header("References", " ".join(references))
 
 	def process(self, send_now=False) -> EmailQueue | None:
 		"""Build and return the email queues those are created.
