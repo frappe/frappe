@@ -326,11 +326,7 @@ export default class ListSettings {
 			],
 		});
 		d.set_primary_action(__("Save"), (dialog_values) => {
-			const position = (fieldname) => {
-				const index = field_order.indexOf(fieldname);
-				return index === -1 ? field_order.length : index;
-			};
-			let values = [...dialog_values.fields].sort((a, b) => position(a) - position(b));
+			let values = frappe.utils.sort_by_order(dialog_values.fields, field_order);
 
 			me.set_removed_fields(
 				me.get_removed_listview_fields(
