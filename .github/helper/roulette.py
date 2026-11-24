@@ -261,7 +261,9 @@ def select_tests(files_list):
 		if f.endswith((".py", ".po")) or (f.endswith(".json") and f.startswith("frappe/"))
 	]
 	# Coverage cannot see dependency bumps and the like, so those force the full suite.
-	ignorable_files = [f for f in files_list if is_docs(f) or is_frontend_code(f)]
+	ignorable_files = [
+		f for f in files_list if (is_docs(f) and not f.endswith(".csv")) or is_frontend_code(f)
+	]
 	other_files = [f for f in files_list if f not in relevant_files and f not in ignorable_files]
 	# A doctype's schema is exercised wherever its controller runs.
 	code_files = [doctype_controller(f) or f for f in relevant_files]
@@ -348,14 +350,17 @@ def select(build_type, files_list):
 	return select_tests(files_list) if build_type == "server" else select_specs(files_list)
 
 
-def shadow_select(build_type, files_list):
-	"""Log what the impact map would pick for a merge queue group, which still runs the full suite."""
-	print("Shadow mode, the full suite runs. The impact map would pick:")
-	try:
-		if select(build_type, files_list) == []:
-			print("  nothing")
-	except Exception as exc:
-		print(f"  no selection ({exc!r})")
+def write_selection(build_type, selected, run_postgres=False):
+	"""Hand the picked tests and the machines they need to the workflow. Empty means the full suite."""
+	with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+		if build_type == "server":
+			matrix = shards(None if run_postgres else selected, full=2, per_shard=40)
+			f.write(f"tests={' '.join(selected or [])}\n")
+		else:
+			matrix = shards(selected, full=4, per_shard=15)
+			f.write(f"specs={' '.join(selected or [])}\n")
+		f.write(f"shards={json.dumps(matrix)}\nshard_total={len(matrix)}\n")
+		f.write(f"run_postgres={'true' if run_postgres else 'false'}\n")
 
 
 def shards(selected, full, per_shard):
@@ -498,6 +503,9 @@ def _selftest():
 				"test-only changes must not need a map"
 			)
 			assert select_tests(["frappe/a.py"]) is None, "code changes without a map must run the full suite"
+			assert (
+				select_tests(["frappe/core/doctype/data_import/fixtures/sample_import_file.csv"]) is None
+			), "tests read CSV files"
 			assert select_tests(["frontend/package.base.json"]) is None, (
 				"dependency bumps must run the full suite"
 			)
@@ -558,7 +566,11 @@ if __name__ == "__main__":
 		jobs = queue_jobs(build_type, files_list)
 		print(f"Merge queue group runs: {', '.join(sorted(jobs)) or 'nothing'}")
 		if "build" in jobs and files_list is not None and not any(is_ci(f) for f in files_list):
-			shadow_select(build_type, files_list)
+			selected = select(build_type, files_list)
+			if selected == []:
+				jobs.discard("build")
+			else:
+				write_selection(build_type, selected)
 		run_jobs(jobs)
 		sys.exit(0)
 
@@ -646,13 +658,4 @@ if __name__ == "__main__":
 			sys.exit(0)
 
 	run_jobs(jobs)
-	# Empty means the full suite. Written without a shell: these are PR-controlled file names.
-	with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-		if build_type == "server":
-			matrix = shards(None if run_postgres else selected, full=2, per_shard=40)
-			f.write(f"tests={' '.join(selected or [])}\n")
-		else:
-			matrix = shards(selected, full=4, per_shard=15)
-			f.write(f"specs={' '.join(selected or [])}\n")
-		f.write(f"shards={json.dumps(matrix)}\nshard_total={len(matrix)}\n")
-		f.write(f"run_postgres={'true' if run_postgres else 'false'}\n")
+	write_selection(build_type, selected, run_postgres)
