@@ -211,6 +211,7 @@ body {
 {%- if repeat_frame %}
 .print-repeating-frame {
 	width: 100%;
+	table-layout: fixed;
 	border-collapse: collapse;
 }
 .print-repeating-frame > thead {
