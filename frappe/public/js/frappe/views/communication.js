@@ -1192,6 +1192,9 @@ frappe.views.CommunicationComposer = class {
 				!this.subject.trim().toLowerCase().startsWith(translated_prefix)
 			) {
 				this.subject = add_prefix(this.subject);
+				if (!this.title) {
+					this.dialog.set_title(this.subject);
+				}
 			}
 		}
 
