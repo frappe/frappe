@@ -518,15 +518,7 @@ class TestUser(IntegrationTestCase):
 
 	def test_user_rename_defers_the_owner_sweep(self):
 		new_name = "test_user_rename_owner_new@example.com"
-		user = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": "test_user_rename_owner@example.com",
-				"first_name": "_Test",
-				"send_welcome_email": 0,
-			}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-		old_name = user.name
+		old_name = get_or_create_user("test_user_rename_owner@example.com")
 
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a renamed user"}).insert()
 		frappe.db.set_value(
@@ -534,7 +526,7 @@ class TestUser(IntegrationTestCase):
 		)
 
 		with patch("frappe.enqueue") as enqueue:
-			frappe.rename_doc("User", user.name, new_name)
+			frappe.rename_doc("User", old_name, new_name)
 
 		enqueue.assert_any_call(
 			"frappe.core.doctype.user.user.rewrite_owner_fields",
@@ -553,11 +545,8 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
 
 	def test_owner_sweep_leaves_rows_of_a_new_user_at_the_old_name(self):
-		email = "test_user_rename_reused@example.com"
+		old_name = get_or_create_user("test_user_rename_reused@example.com")
 		new_name = "test_user_rename_reused_new@example.com"
-		if not (old_name := get_user_by_email(email)):
-			new_user = frappe.new_doc("User", email=email, first_name="_Test", send_welcome_email=0)
-			old_name = new_user.insert(ignore_permissions=True).name
 		taken_at = frappe.db.get_value("User", old_name, "creation")
 
 		before = frappe.get_doc({"doctype": "ToDo", "description": "written before the rename"}).insert()
@@ -584,11 +573,7 @@ class TestUser(IntegrationTestCase):
 
 	def test_user_rename_and_delete_blocked_while_owner_sweep_is_pending(self):
 		freed, renamed, other, unrelated = (
-			frappe.get_doc(
-				{"doctype": "User", "email": email, "first_name": "_Test", "send_welcome_email": 0}
-			)
-			.insert(ignore_permissions=True, ignore_if_duplicate=True)
-			.name
+			get_or_create_user(email)
 			for email in (
 				"test_user_rename_pending_freed@example.com",
 				"test_user_rename_pending@example.com",
@@ -1244,6 +1229,14 @@ def test_user(
 	finally:
 		user.delete(force=True, ignore_permissions=True)
 		commit and frappe.db.commit()
+
+
+def get_or_create_user(email: str) -> str:
+	if user := get_user_by_email(email):
+		return user
+
+	new_user = frappe.new_doc("User", email=email, first_name="_Test", send_welcome_email=0)
+	return new_user.insert(ignore_permissions=True).name
 
 
 def delete_contact(user):
