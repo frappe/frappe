@@ -52,7 +52,9 @@ class TestExecutableFields(IntegrationTestCase):
 	def test_copy_allowance(self):
 		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
 			make_notification()
-			self.assertRaises(frappe.PermissionError, make_notification, condition="doc.status == 'Closed'")
+			for condition in ("doc.status == 'Closed'", "doc.status == 'OPEN'"):
+				with self.subTest(condition=condition):
+					self.assertRaises(frappe.PermissionError, make_notification, condition=condition)
 
 	def test_child_rows(self):
 		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):

@@ -93,11 +93,13 @@ class CodeFieldGuard:
 		)
 
 	def exists_in_readable_doc(self, fieldname, value, child_doctype=None):
-		filters = [
-			[child_doctype or self.doc.doctype, fieldname, "=", value],
-			*self.get_source_filters(value, child_doctype),
-		]
-		return bool(frappe.get_list(self.doc.doctype, filters=filters, limit=1, pluck="name"))
+		source = child_doctype or self.doc.doctype
+		filters = [[source, fieldname, "=", value], *self.get_source_filters(value, child_doctype)]
+		rows = frappe.get_list(
+			self.doc.doctype, filters=filters, fields=[f"`tab{source}`.`{fieldname}`"], as_list=True
+		)
+		# SQL equality ignores case and trailing spaces under MariaDB collations, Python does not
+		return any(row[0] == value for row in rows)
 
 	def get_source_filters(self, value, child_doctype=None):
 		"""Extra filters for the copied value's source, e.g. that it also runs the value as code."""
