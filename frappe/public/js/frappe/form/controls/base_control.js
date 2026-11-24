@@ -125,6 +125,8 @@ frappe.ui.form.Control = class BaseControl {
 			!this.only_input &&
 			is_null(value) &&
 			frappe.defaults.is_enabled("hide_empty_read_only_fields") &&
+			// keep code fields visible, so users without the role see they exist
+			!this.read_only_because_of_code_author?.() &&
 			![
 				"Attachment Gallery",
 				"HTML",
