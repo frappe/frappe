@@ -1438,7 +1438,7 @@ def validate_fields(meta: Meta):
 				title=_("Invalid Fieldname"),
 			)
 
-		if fieldname in RESERVED_DOCFIELD_NAMES and docname != "DocType":
+		if fieldname in RESERVED_DOCFIELD_NAMES and docname not in ("DocType", "Customize Form"):
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved field {1} in DocType").format(
 					frappe.bold(docname),
