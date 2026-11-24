@@ -20,6 +20,7 @@ async function loadRuntime() {
 			})`,
 		"frappe-ui": `
 			import { pending, pendingComponents } from "test-state"
+			export const frappeRequest = async () => ({})
 			export const portalTargetKey = Symbol()
 			export const resourcesPlugin = { install() {} }
 			export const createResource = () => ({
@@ -34,6 +35,15 @@ async function loadRuntime() {
 					return new Promise(resolve => pendingComponents.push(resolve))
 				throw new Error("unexpected request")
 			}`,
+		"@framework/ui/island": `
+			import { createApp } from "vue"
+			export async function mountVueIsland(el, options) {
+				const app = createApp({ render: () => null })
+				options.configure(app)
+				app.mount(el)
+				return { update() {}, unmount() { app.unmount() } }
+			}`,
+		"@/StudioIsland.vue": "export default {}",
 		"@/socket": `
 			import { sockets } from "test-state"
 			export function initSocket() {
@@ -82,6 +92,7 @@ async function loadRuntime() {
 				load: (id) =>
 					id === "\0test-entry"
 						? `export * from ${JSON.stringify(`${source}mountApp.ts`)}
+							export * from "@/mountIsland"
 							export * from "@/utils/variants"
 							export * from "test-state"
 							export { loadPage, useLoadedPage } from "@/page/pageLoader"
@@ -402,5 +413,27 @@ test("variant sets and tokens belong to each mount", async () => {
 	} finally {
 		a.dispose()
 		b.dispose()
+	}
+})
+
+test("islands use a supplied socket or none", async () => {
+	const runtime = await loadRuntime()
+	const socket = { disconnect: () => assert.fail("host owns socket") }
+	const socketCount = runtime.sockets.length
+	for (const host of [undefined, {}, { socket: null }, { socket }]) {
+		let provided
+		const island = await runtime.mountIsland(
+			{},
+			{ host },
+			{
+				appName: "test",
+				setup(app) {
+					provided = app._context.provides.socket
+				},
+			},
+		)
+		assert.equal(provided, host?.socket ?? null)
+		assert.equal(runtime.sockets.length, socketCount)
+		island.unmount()
 	}
 })

@@ -131,20 +131,16 @@ export async function generateAppBuild(
 	// componentScripts: { component_id: file_path }
 	const componentScripts = componentScriptsJson ? JSON.parse(componentScriptsJson) : {}
 	const componentSources = findComponentSources(componentList, customComponents)
-	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile, componentScripts)
-	const tempRendererPath = writeRendererFile(appName, rendererContent)
+	const entryFiles = {
+		studioIsland: writeEntryFile(
+			`island-${appName}.js`,
+			getIslandContent(appName, componentSources, pageScripts, routerFile, componentScripts),
+		),
+		studioRenderer: writeEntryFile(`renderer-${appName}.js`, getRendererContent(appName)),
+	}
 	const iconList = icons ? icons.split(",") : []
-	await buildWithVite(
-		appName,
-		tempRendererPath,
-		outDir,
-		base,
-		iconList,
-		appFolder,
-		tailwindContent,
-		databaseApp,
-	)
-	deleteRendererFile(tempRendererPath)
+	await buildWithVite(appName, entryFiles, outDir, base, iconList, appFolder, tailwindContent, databaseApp)
+	Object.values(entryFiles).forEach(deleteEntryFile)
 }
 
 function findComponentSources(appComponents, customComponents = {}) {
@@ -190,7 +186,20 @@ function findComponentSources(appComponents, customComponents = {}) {
 	}
 }
 
-function getRendererContent(componentSources, pageScripts = [], routerFile = null, componentScripts = {}) {
+function getRendererContent(appName) {
+	return `import { mountPage } from "./island-${appName}.js"
+import { getWindowApp } from "@/router/app_router"
+
+mountPage("#app", getWindowApp())`
+}
+
+function getIslandContent(
+	appName,
+	componentSources,
+	pageScripts = [],
+	routerFile = null,
+	componentScripts = {},
+) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
@@ -265,10 +274,10 @@ ${componentScriptEntries
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : "undefined"
 
-	const rendererContent = `import "@/index.css"
+	const islandContent = `import "@/index.css"
 import { defineAsyncComponent } from "vue"
 import { mountApp } from "@/mountApp"
-import { getWindowApp } from "@/router/app_router"
+import { mountIsland } from "@/mountIsland"
 ${routerImport}
 
 ${frappeUIImports}
@@ -283,14 +292,18 @@ ${componentScriptImport}
 ${pageScriptSetup}
 ${componentScriptSetup}
 
-mountApp("#app", {
-	app: getWindowApp(),
-	setup: (app) => {
-		${componentRegistrations}
-	},
-	prepare: async () => ${routerConfig},
-})`
-	return rendererContent
+function setup(app) {
+	${componentRegistrations}
+}
+
+export function mount(el, context) {
+	return mountIsland(el, context, { appName: ${JSON.stringify(appName)}, setup, routerConfig: ${routerConfig} })
+}
+
+export function mountPage(el, app) {
+	return mountApp(el, { app, setup, prepare: async () => ${routerConfig} })
+}`
+	return islandContent
 }
 
 // Build one `import { … } from "<source>"` line per @framework/ui source module,
@@ -315,17 +328,17 @@ function getFrameworkUIImports(frameworkUIComponents) {
 		.join("\n")
 }
 
-function writeRendererFile(appName, content) {
-	const rendererPath = path.resolve(TEMP_DIR, `renderer-${appName}.js`)
+function writeEntryFile(fileName, content) {
+	const entryPath = path.resolve(TEMP_DIR, fileName)
 
-	writeFileSync(rendererPath, content)
-	console.log(`Renderer file created at: ${rendererPath}`)
-	return rendererPath
+	writeFileSync(entryPath, content)
+	console.log(`Entry file created at: ${entryPath}`)
+	return entryPath
 }
 
 async function buildWithVite(
 	appName,
-	entryFilePath,
+	entryFiles,
 	outDir,
 	basePath,
 	icons = [],
@@ -388,9 +401,8 @@ async function buildWithVite(
 		build: {
 			manifest: true,
 			rolldownOptions: {
-				input: {
-					studioRenderer: path.resolve(__dirname, entryFilePath),
-				},
+				input: entryFiles,
+				preserveEntrySignatures: "exports-only",
 			},
 			outDir: outDir,
 			emptyOutDir: true,
@@ -428,11 +440,11 @@ function getAppTailwindConfig(appFolder, appIconClasses, appTailwindContent) {
 	}
 }
 
-function deleteRendererFile(rendererPath) {
+function deleteEntryFile(entryPath) {
 	try {
-		fs.unlinkSync(rendererPath)
-		console.log(`Deleted temporary renderer file: ${rendererPath}`)
+		fs.unlinkSync(entryPath)
+		console.log(`Deleted temporary entry file: ${entryPath}`)
 	} catch (error) {
-		console.warn(`Could not delete temporary renderer file: ${rendererPath} - ${error.message}`)
+		console.warn(`Could not delete temporary entry file: ${entryPath} - ${error.message}`)
 	}
 }

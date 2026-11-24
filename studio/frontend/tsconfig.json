@@ -22,6 +22,7 @@
 	  "paths": {
 		"@/*": ["src/*"],
 		"@framework/ui": ["../../ui/src/index.ts"],
+		"@framework/ui/island": ["../../ui/island/index.js"],
   		"@framework/ui/*": ["../../ui/src/*"]
 	  },
 	  "lib": [
