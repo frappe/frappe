@@ -19,7 +19,7 @@
 		"@vitejs/plugin-vue": "^6.0.0",
 		"@vueuse/core": "^11.3.0",
 		"autoprefixer": "^10.4.20",
-		"dompurify": "^3.2.3",
+		"dompurify": "^3.4.17",
 		"frappe-ui": "1.0.2",
 		"highlight.js": "^11.11.1",
 		"marked": "^15.0.4",
