@@ -1116,6 +1116,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			".list-row-head .list-col-resize-handle",
 			(e) => {
 				e.preventDefault();
+				if (this.list_view_settings?.disable_scrolling) {
+					frappe.show_alert({
+						message: __(
+							"Column width cannot be saved because Disable Scrolling is enabled in List Settings"
+						),
+						indicator: "orange",
+					});
+					return;
+				}
 				const $col = $(e.target).closest(".list-row-col");
 				fieldname = $col.attr("data-fieldname");
 				if (!fieldname || fieldname === "undefined") return;
