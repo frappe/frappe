@@ -14,11 +14,9 @@ ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run", "Flow S
 
 
 def _user(email: str, *roles: str) -> str:
-	if not get_user_by_email(email):
-		frappe.get_doc(
-			{"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
-		).insert(ignore_permissions=True)
-	user = get_user_by_email(email)
+	if not (user := get_user_by_email(email)):
+		new_user = frappe.new_doc("User", email=email, first_name=email.split("@")[0], send_welcome_email=0)
+		user = new_user.insert(ignore_permissions=True).name
 	if roles:
 		frappe.get_doc("User", user).add_roles(*roles)
 	return user

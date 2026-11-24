@@ -91,11 +91,12 @@ class MemoryCase(IntegrationTestCase):
 
 def _member() -> str:
 	ensure_flow_role()
-	if not get_user_by_email(MEMBER):
-		frappe.get_doc(
+	if user := get_user_by_email(MEMBER):
+		member = frappe.get_doc("User", user)
+	else:
+		member = frappe.get_doc(
 			{"doctype": "User", "email": MEMBER, "first_name": "Member", "send_welcome_email": 0}
 		).insert(ignore_permissions=True)
-	member = frappe.get_doc("User", get_user_by_email(MEMBER))
 	member.add_roles(FLOW_USER_ROLE)
 	return member.name
 

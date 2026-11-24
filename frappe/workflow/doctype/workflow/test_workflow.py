@@ -909,15 +909,19 @@ class TestWorkflowFieldLevelRead(IntegrationTestCase):
 
 		frappe.set_user("Administrator")
 		email = "workflow.fieldlevel@example.com"
-		if not get_user_by_email(email):
-			frappe.get_doc(
-				doctype="User",
-				email=email,
-				first_name="Workflow Field Level",
-				roles=[{"role": "Desk User"}],
-				send_welcome_email=0,
-			).insert()
 		self.user = get_user_by_email(email)
+		if not self.user:
+			self.user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="Workflow Field Level",
+					roles=[{"role": "Desk User"}],
+					send_welcome_email=0,
+				)
+				.insert()
+				.name
+			)
 		keys = generate_keys(self.user)
 		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
 

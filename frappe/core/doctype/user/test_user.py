@@ -555,11 +555,9 @@ class TestUser(IntegrationTestCase):
 	def test_owner_sweep_leaves_rows_of_a_new_user_at_the_old_name(self):
 		email = "test_user_rename_reused@example.com"
 		new_name = "test_user_rename_reused_new@example.com"
-		if not get_user_by_email(email):
-			frappe.get_doc(
-				{"doctype": "User", "email": email, "first_name": "_Test", "send_welcome_email": 0}
-			).insert(ignore_permissions=True)
-		old_name = get_user_by_email(email)
+		if not (old_name := get_user_by_email(email)):
+			new_user = frappe.new_doc("User", email=email, first_name="_Test", send_welcome_email=0)
+			old_name = new_user.insert(ignore_permissions=True).name
 		taken_at = frappe.db.get_value("User", old_name, "creation")
 
 		before = frappe.get_doc({"doctype": "ToDo", "description": "written before the rename"}).insert()

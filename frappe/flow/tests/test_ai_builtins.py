@@ -978,11 +978,11 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 
 def _user(email: str) -> str:
 	"""A user with no roles, so permission checks apply."""
-	if not get_user_by_email(email):
-		frappe.get_doc(
-			{"doctype": "User", "email": email, "first_name": "Probe", "send_welcome_email": 0}
-		).insert(ignore_permissions=True)
-	return get_user_by_email(email)
+	if user := get_user_by_email(email):
+		return user
+
+	new_user = frappe.new_doc("User", email=email, first_name="Probe", send_welcome_email=0)
+	return new_user.insert(ignore_permissions=True).name
 
 
 def _todo_hook_fails(hook: str, description: str):
