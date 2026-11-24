@@ -486,6 +486,15 @@ class SendMailContext:
 		for attachment in self.attachments:
 			add_attachment(**attachment, parent=message_obj)
 
+		parts = message_obj.get_payload()
+		if (
+			message_obj.get_content_type() == "multipart/mixed"
+			and len(parts) == 1
+			and parts[0].is_multipart()
+		):
+			message_obj.replace_header("Content-Type", parts[0]["Content-Type"])
+			message_obj.set_payload(parts[0].get_payload())
+
 		return safe_encode(message_obj.as_string())
 
 	def is_only_reply_to_address(self, message_obj, recipient_email):
