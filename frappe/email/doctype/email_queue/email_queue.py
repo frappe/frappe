@@ -823,11 +823,12 @@ class QueueBuilder:
 		received_message_id = self.communication and frappe.db.get_value(
 			"Communication", {"name": self.communication, "sent_or_received": "Received"}, "message_id"
 		)
-		references = [
-			f"<{message_id.strip('<> \t\n')}>"
+		message_ids = (
+			message_id.strip("<> \t\n")
 			for message_id in (parent_message_id, received_message_id)
 			if message_id
-		]
+		)
+		references = [f"<{message_id}>" for message_id in message_ids]
 		if parent_message_id:
 			mail.set_in_reply_to(references[0])
 		if references:
