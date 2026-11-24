@@ -150,7 +150,8 @@ class Communication(Document, CommunicationEmailMixin):
 		if self.communication_medium == "Email":
 			self.parse_email_for_timeline_links()
 			self.set_timeline_links()
-			self.deduplicate_timeline_links()
+
+		self.deduplicate_timeline_links()
 
 		self.set_sender_full_name()
 
