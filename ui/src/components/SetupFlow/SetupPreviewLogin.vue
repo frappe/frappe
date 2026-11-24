@@ -1,6 +1,10 @@
 <template>
 	<!-- Mirrors frappe/www/login.html; keep the two in step. -->
-	<div class="flex h-full w-full justify-center bg-surface-base pt-16">
+	<!-- Centred in the part of the preview window on screen; the frame sets the width. -->
+	<div
+		class="flex h-full justify-center bg-surface-base pt-16"
+		style="width: var(--setup-preview-visible, 100%)"
+	>
 		<div class="flex w-full max-w-[400px] flex-col gap-8 p-6">
 			<div class="flex flex-col items-start gap-4">
 				<div class="h-8 [&>*]:h-full [&>*]:w-auto">
@@ -44,10 +48,11 @@
 			</div>
 			<div class="flex flex-col gap-3">
 				<Button
+					data-slot="setup-preview-login-submit"
 					variant="solid"
 					size="md"
 					:label="text.submit"
-					:disabled="passwordLength < minLength"
+					:disabled="!ready"
 					tabindex="-1"
 				/>
 				<Button v-if="emailLink" size="md" :label="text.emailLink" tabindex="-1" />
@@ -77,13 +82,13 @@ const props = withDefaults(
 		email: string;
 		/** How many characters the owner has typed in the password step. Never the password. */
 		passwordLength?: number;
-		/** The length at which the password step accepts the password. */
-		minLength?: number;
+		/** Whether the password step can save the password: Continue is enabled with it. */
+		ready?: boolean;
 		/** Shows "Login with Email Link", as /login does when email links are on. */
 		emailLink?: boolean;
 		labels?: Partial<SetupPreviewLoginLabels>;
 	}>(),
-	{ passwordLength: 0, minLength: 8, emailLink: true }
+	{ passwordLength: 0, ready: false, emailLink: true }
 );
 
 defineSlots<{

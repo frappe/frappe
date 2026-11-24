@@ -247,18 +247,17 @@ describe("useOnboarding", () => {
     );
   });
 
-  it("keeps a step the new order leaves out at the end", async () => {
+  it("shows exactly the steps of the latest setUp", async () => {
     const { onboarding, onStatusLoaded } = await load();
     onboarding.setUp(steps());
     onStatusLoaded({});
 
-    onboarding.setUp(steps().slice(1));
+    const added = { name: "add_note", title: "Add a note", completed: false };
+    onboarding.setUp([...steps().slice(1), added]);
 
     const { useOnboarding } = await import("../onboarding");
     const shown = useOnboarding("frappecrm")!.steps!;
-    expect(shown.map((s) => s.name)).toEqual([
-      "invite_team",
-      "create_first_lead",
-    ]);
+    expect(shown.map((s) => s.name)).toEqual(["invite_team", "add_note"]);
+    expect(onboarding.totalSteps.value).toBe(2);
   });
 });
