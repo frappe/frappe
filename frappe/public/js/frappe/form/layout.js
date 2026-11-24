@@ -671,6 +671,7 @@ frappe.ui.form.Layout = class Layout {
 				this.wrapper.removeClass("show-tooltip");
 			}
 		});
+		$(window).on("blur", () => this.wrapper.removeClass("show-tooltip"));
 		this.frm.page &&
 			frappe.ui.keys.add_shortcut({
 				shortcut: "alt+hover",
