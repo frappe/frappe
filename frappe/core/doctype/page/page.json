@@ -108,7 +108,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.standard == 'Yes'",
+   "depends_on": "eval:doc.standard == 'Yes' || doc.type == 'Frappe UI'",
    "fieldname": "roles",
    "fieldtype": "Table",
    "label": "Roles",
@@ -127,7 +127,7 @@
  "icon": "file",
  "idx": 1,
  "links": [],
- "modified": "2026-10-02 18:15:22.203364",
+ "modified": "2026-11-24 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Page",
@@ -145,6 +145,8 @@
    "write": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "email": 1,
    "print": 1,
    "read": 1,
