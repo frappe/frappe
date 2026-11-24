@@ -28,6 +28,12 @@ def save_memory(
 	agent: str, *, content: str, scope: str, memory_id: str | None = None, session: str | None = None
 ) -> dict[str, Any]:
 	"""Core of the `update_memory` tool; `agent` and `session` come from its binding."""
+	if frappe.session.user == "Guest":
+		frappe.throw(
+			_("Memory is not saved in guest chats: every visitor shares the Guest user."),
+			frappe.PermissionError,
+			title=_("Memory Unavailable"),
+		)
 	scope_value = _SCOPE_BY_ARG.get(scope)
 	if not scope_value:
 		frappe.throw(_("scope must be 'agent' or 'user'."), title=_("Invalid Scope"))
@@ -43,6 +49,8 @@ def memory_block(agent: str, user: str, query: str) -> str:
 	"""The <memory> block for a turn: memories relevant to `query`, or "" when none."""
 	if not (query or "").strip() or not _has_memory_tool(agent):
 		return ""
+	if user == "Guest":
+		user = ""
 	try:
 		names = store.search(query, agent=agent, user=user)
 	except Exception:

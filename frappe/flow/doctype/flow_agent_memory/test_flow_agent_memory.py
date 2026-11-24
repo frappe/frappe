@@ -117,6 +117,23 @@ class TestFlowAgentMemory(MemoryCase):
 
 
 class TestSaveMemory(MemoryCase):
+	def test_guests_neither_save_nor_see_each_others_memory(self):
+		shared = save_memory(self.agent.name, content=ACME, scope="agent")
+		frappe.get_doc(_memory(self.agent.name, scope="User", user="Guest", content=FISCAL)).insert()
+
+		frappe.set_user("Guest")
+		for kwargs in (
+			{"scope": "user"},
+			{"scope": "agent"},
+			{"scope": "user", "memory_id": shared["memory_id"]},
+		):
+			with self.subTest(**kwargs), self.assertRaises(frappe.PermissionError):
+				save_memory(self.agent.name, content=WIDGET, **kwargs)
+		frappe.set_user("Administrator")
+
+		self.assertIn(shared["memory_id"], self.block(ACME, user="Guest"))
+		self.assertEqual(self.block(FISCAL, user="Guest"), "")
+
 	def test_adds_a_memory_in_its_scope_from_the_sessions_running_run(self):
 		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
 		run = frappe.get_doc(
