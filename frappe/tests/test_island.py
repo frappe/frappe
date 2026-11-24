@@ -23,6 +23,9 @@ def draws_the_chart(doc, method=None):
 class TestUiIslandsRegistry(IntegrationTestCase):
 	"""A build registers an island by writing its asset key."""
 
+	def setUp(self):
+		self.enterContext(patch("frappe.utils.island.get_hooked_island_assets", return_value={}))
+
 	def patch_assets_json(self, assets):
 		return patch("frappe.utils.island.get_assets_json", return_value=assets)
 
@@ -104,6 +107,9 @@ class TestPageIslandName(IntegrationTestCase):
 
 
 class TestIslandAssets(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch("frappe.utils.island.get_hooked_island_assets", return_value={}))
+
 	def patch_assets_json(self, assets):
 		return patch("frappe.utils.island.get_assets_json", return_value=assets)
 

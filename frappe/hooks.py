@@ -700,6 +700,8 @@ expose_discovery_source = True
 # A `Page` of type "Frappe UI" is drawn by an island too, and needs no line of
 # Python. Framework builds those islands for every app on the bench, in one
 # build, after any app's assets are built.
+island_assets = ["frappe.studio.islands.get_island_assets"]
+
 after_app_build = [
 	"frappe.bundler.build_page_islands",
 	# exported studio apps of the built apps; the editor itself is built by esbuild
