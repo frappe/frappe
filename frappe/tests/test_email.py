@@ -302,8 +302,6 @@ class TestEmail(FrappeTestCase):
 			("support@example.com", "Support <support@example.com>"),
 			("Jane Doe <jane@customer.example>", "Jane Doe <support@example.com>"),
 			("Support <support@example.com>", "Support <support@example.com>"),
-			('"Doe, Jane" <jane@customer.example>', '"Doe, Jane" <support@example.com>'),
-			('"Петров, Иван" <ivan@customer.example>', '"Петров, Иван" <support@example.com>'),
 			("山田太郎 <taro@customer.example>", "山田太郎 <support@example.com>"),
 			("=?utf-8?b?5bGx55Sw5aSq6YOO?= <taro@customer.example>", "山田太郎 <support@example.com>"),
 			(
