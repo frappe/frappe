@@ -65,7 +65,7 @@
 
 			frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }};
 			frappe._messages = {};
-			frappe.csrf_token = "{{ csrf_token }}";
+			window.csrf_token = frappe.csrf_token = "{{ csrf_token }}";
 
 			frappe._translations_loaded = fetch(
 				`/api/method/frappe.translate.get_boot_translations?v=${frappe.boot.translations_version}&lang=${frappe.boot.lang}`,
