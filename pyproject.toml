@@ -179,8 +179,8 @@ freezegun = "~=1.5.5"
 spdx-tools = "~=0.8.5"
 
 # flow: for OpenCV, which rapidocr installs
-[deploy.dependencies.apt]
-packages = ["libgl1", "libglib2.0-0"]
+[tool.frappe-cloud]
+apt-dependencies = ["libgl1", "libglib2.0-0"]
 
 [tool.pilot.processes.flow_server]
 frappe_command = ["flow-server", "serve"]
