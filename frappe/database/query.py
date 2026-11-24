@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pypika.enums import Arithmetic
 from pypika.queries import QueryBuilder, Table
-from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, ValueWrapper
+from pypika.terms import AggregateFunction, ArithmeticExpression, BasicCriterion, Star, Term, ValueWrapper
 
 import frappe
 from frappe import _
@@ -62,6 +62,11 @@ IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
 }
 # A NULL column's stand-in in db_query-style IFNULL filters; no real date is 0001-01-01.
 IFNULL_FALLBACK_VALUES = {**IS_SET_EMPTY_VALUES, "Date": "0001-01-01", "Datetime": "0001-01-01"}
+
+
+class EscapedLikeCriterion(BasicCriterion):
+	def get_sql(self, **kwargs) -> str:
+		return f"{super().get_sql(**kwargs)} ESCAPE '!'"
 
 
 class JSONColumnCast(functions.Cast):
@@ -750,6 +755,7 @@ class Engine:
 		if isinstance(value, Document):
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
+		escape_like = False
 
 		if (
 			isinstance(field, str)
@@ -769,8 +775,9 @@ class Engine:
 		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
 			_operator = "like" if _operator == "=" else "not like"
 			if isinstance(_value, str) and _value:
-				escaped = _value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+				escaped = _value.replace("!", "!!").replace("%", "!%").replace("_", "!_")
 				_value = f'%"{escaped}"%'
+				escape_like = True
 
 		if _operator.lower() in ("timespan", "previous", "next"):
 			_value = get_date_range(_operator.lower(), _value)
@@ -888,7 +895,10 @@ class Engine:
 				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
 				_value = tuple(fallback_value if v is None else v for v in _value)
 
-			return operator_fn(comparison_field, _value)
+			criterion = operator_fn(comparison_field, _value)
+			if escape_like:
+				return EscapedLikeCriterion(criterion.comparator, criterion.left, criterion.right)
+			return criterion
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
 		"""Parses a nested filter list like [cond1, 'and', cond2, 'or', cond3, ...] into a pypika Criterion."""
