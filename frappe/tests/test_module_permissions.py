@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.utils.modules import get_visible_modules, is_module_visible
 
 ROLE = "Test Module Grant Role"
@@ -16,51 +17,50 @@ class TestModulePermissions(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		if not frappe.db.exists("Role", ROLE):
 			frappe.get_doc({"doctype": "Role", "role_name": ROLE, "desk_access": 1}).insert()
-		if not frappe.db.exists("User", USER):
-			frappe.get_doc(
-				{"doctype": "User", "email": USER, "first_name": "Module", "send_welcome_email": 0}
-			).insert()
+		if not (user := get_user_by_email(USER)):
+			user = frappe.new_doc("User", email=USER, first_name="Module", send_welcome_email=0).insert().name
+		self.user = user
 		self.reset()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		self.reset()
 		frappe.delete_doc("Role", ROLE, force=True, ignore_missing=True)
-		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
+		frappe.delete_doc("User", self.user, force=True, ignore_missing=True)
 
 	def reset(self):
-		user = frappe.get_doc("User", USER)
+		user = frappe.get_doc("User", self.user)
 		user.set("block_modules", [])
 		user.save(ignore_permissions=True)
-		frappe.clear_cache(user=USER)
+		frappe.clear_cache(user=self.user)
 
 	def block(self, module):
-		user = frappe.get_doc("User", USER)
+		user = frappe.get_doc("User", self.user)
 		user.append("block_modules", {"module": module})
 		user.save(ignore_permissions=True)
-		frappe.clear_cache(user=USER)
+		frappe.clear_cache(user=self.user)
 
 	def give_role(self):
-		user = frappe.get_doc("User", USER)
+		user = frappe.get_doc("User", self.user)
 		user.add_roles(ROLE)
-		frappe.clear_cache(user=USER)
+		frappe.clear_cache(user=self.user)
 
 	def test_an_unblocked_module_is_visible_to_everyone(self):
 		"""Blocking is the whole gate: a module nobody blocked is open to all."""
-		self.assertTrue(is_module_visible(OPEN, USER))
-		self.assertTrue(is_module_visible(BLOCKED, USER))
+		self.assertTrue(is_module_visible(OPEN, self.user))
+		self.assertTrue(is_module_visible(BLOCKED, self.user))
 
 	def test_block_hides_the_module_it_names_and_nothing_else(self):
 		self.block(BLOCKED)
-		self.assertFalse(is_module_visible(BLOCKED, USER))
-		self.assertTrue(is_module_visible(OPEN, USER))
+		self.assertFalse(is_module_visible(BLOCKED, self.user))
+		self.assertTrue(is_module_visible(OPEN, self.user))
 
 	def test_get_visible_modules_matches_one_by_one(self):
 		self.block(BLOCKED)
 
 		modules = [BLOCKED, OPEN, "Custom"]
-		batched = set(get_visible_modules(modules, USER))
-		one_by_one = {m for m in modules if is_module_visible(m, USER)}
+		batched = set(get_visible_modules(modules, self.user))
+		one_by_one = {m for m in modules if is_module_visible(m, self.user)}
 		self.assertEqual(batched, one_by_one)
 
 	def test_role_gated_workspace_in_a_blocked_module_is_hidden(self):

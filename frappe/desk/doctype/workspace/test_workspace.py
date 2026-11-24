@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.sidebar.test_sidebar import sidebarless_module
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestAPrivatePageIsItsOwners(IntegrationTestCase):
@@ -20,13 +21,15 @@ class TestAPrivatePageIsItsOwners(IntegrationTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		users = []
 		for email, roles in (
 			(self.OWNER, ["Desk User"]),
 			(self.OTHER, ["Desk User"]),
 			(self.MANAGER, ["Desk User", "Workspace Manager"]),
 		):
-			frappe.delete_doc("User", email, force=True, ignore_missing=True)
-			frappe.get_doc(
+			if user := get_user_by_email(email):
+				frappe.delete_doc("User", user, force=True)
+			user = frappe.get_doc(
 				{
 					"doctype": "User",
 					"email": email,
@@ -35,10 +38,12 @@ class TestAPrivatePageIsItsOwners(IntegrationTestCase):
 					"roles": [{"role": role} for role in roles],
 				}
 			).insert()
-			self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+			self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
+			users.append(user.name)
+		self.owner, self.other, self.manager = users
 
 		frappe.set_user(self.OWNER)
-		self.make_page(self.PAGE, public=0, for_user=self.OWNER)
+		self.make_page(self.PAGE, public=0, for_user=self.owner)
 		frappe.set_user("Administrator")
 		self.make_page(self.PUBLIC_PAGE, public=1)
 
@@ -79,7 +84,7 @@ class TestAPrivatePageIsItsOwners(IntegrationTestCase):
 
 		frappe.set_user(self.OTHER)
 		with self.assertRaises(frappe.PermissionError):
-			set_value("Workspace", self.PAGE, "for_user", self.OTHER)
+			set_value("Workspace", self.PAGE, "for_user", self.other)
 		with self.assertRaises(frappe.PermissionError):
 			delete("Workspace", self.PAGE)
 		# `disable_saving_as_public` is true in every test, and it is what lifts this rule for an
@@ -88,19 +93,19 @@ class TestAPrivatePageIsItsOwners(IntegrationTestCase):
 			patch("frappe.desk.doctype.workspace.workspace.disable_saving_as_public", return_value=False),
 			self.assertRaises(frappe.ValidationError),
 		):
-			set_value("Workspace", self.PUBLIC_PAGE, {"public": 0, "for_user": self.OTHER})
+			set_value("Workspace", self.PUBLIC_PAGE, {"public": 0, "for_user": self.other})
 
 		frappe.set_user("Administrator")
-		self.assertEqual(frappe.db.get_value("Workspace", self.PAGE, "for_user"), self.OWNER)
+		self.assertEqual(frappe.db.get_value("Workspace", self.PAGE, "for_user"), self.owner)
 		self.assertEqual(frappe.db.get_value("Workspace", self.PUBLIC_PAGE, "public"), 1)
 
 	def test_a_workspace_manager_still_moves_it(self):
 		from frappe.client import set_value
 
 		frappe.set_user(self.MANAGER)
-		set_value("Workspace", self.PAGE, "for_user", self.MANAGER)
+		set_value("Workspace", self.PAGE, "for_user", self.manager)
 
-		self.assertEqual(frappe.db.get_value("Workspace", self.PAGE, "for_user"), self.MANAGER)
+		self.assertEqual(frappe.db.get_value("Workspace", self.PAGE, "for_user"), self.manager)
 
 
 class TestWorkspace(IntegrationTestCase):
@@ -291,15 +296,15 @@ class TestWorkspaceAccessLevels(IntegrationTestCase):
 		# not `create_module`: in developer mode a `Module Def` writes itself into modules.txt
 		# and only undoes that on commit, which a rolled-back test never reaches
 		self.enterContext(sidebarless_module(self.MODULE))
-		self.make_user(self.DESK_USER, ["Desk User"])
+		self.desk_user = self.make_user(self.DESK_USER, ["Desk User"])
 		self.make_user(self.MANAGER, ["Desk User", "Workspace Manager"])
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.addCleanup(frappe.db.delete, "Workspace", {"module": self.MODULE})
 
 	def make_user(self, email, roles):
-		if frappe.db.exists("User", email):
-			frappe.delete_doc("User", email, force=True, ignore_permissions=True)
-		frappe.get_doc(
+		if user := get_user_by_email(email):
+			frappe.delete_doc("User", user, force=True, ignore_permissions=True)
+		user = frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": email,
@@ -308,7 +313,8 @@ class TestWorkspaceAccessLevels(IntegrationTestCase):
 				"roles": [{"role": role} for role in roles],
 			}
 		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
+		return user.name
 
 	def page(self, title, **extra):
 		return {
@@ -328,10 +334,10 @@ class TestWorkspaceAccessLevels(IntegrationTestCase):
 		frappe.set_user(self.DESK_USER)
 		# The label carries the owner, which is what keeps two users' pages of the same name
 		# apart, and `Workspace` is named after it.
-		name = f"Test Desk User Private Page-{self.DESK_USER}"
-		new_page(self.page("Test Desk User Private Page", label=name, for_user=self.DESK_USER))
+		name = f"Test Desk User Private Page-{self.desk_user}"
+		new_page(self.page("Test Desk User Private Page", label=name, for_user=self.desk_user))
 
-		self.assertEqual(frappe.db.get_value("Workspace", name, "for_user"), self.DESK_USER)
+		self.assertEqual(frappe.db.get_value("Workspace", name, "for_user"), self.desk_user)
 
 	def test_a_desk_user_cannot_create_a_page_anybody_else_can_see(self):
 		from frappe.desk.doctype.workspace.workspace import new_page
@@ -473,9 +479,9 @@ class TestBothDoorsToTheModule(IntegrationTestCase):
 		self.enterContext(sidebarless_module(self.MODULE))
 		self.enterContext(sidebarless_module(self.BLOCKED))
 
-		if frappe.db.exists("User", self.USER):
-			frappe.delete_doc("User", self.USER, force=True, ignore_permissions=True)
-		frappe.get_doc(
+		if user := get_user_by_email(self.USER):
+			frappe.delete_doc("User", user, force=True, ignore_permissions=True)
+		self.user = frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": self.USER,
@@ -489,7 +495,7 @@ class TestBothDoorsToTheModule(IntegrationTestCase):
 
 		# Registration order matters: addCleanup runs LIFO, so the user has to be deleted as
 		# Administrator rather than as themselves.
-		self.addCleanup(frappe.delete_doc, "User", self.USER, force=True, ignore_missing=True)
+		self.addCleanup(frappe.delete_doc, "User", self.user.name, force=True, ignore_missing=True)
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.addCleanup(frappe.db.delete, "Workspace", {"module": self.MODULE})
 
@@ -498,7 +504,7 @@ class TestBothDoorsToTheModule(IntegrationTestCase):
 
 		frappe.set_user(self.USER)
 		title = "Test Both Doors Page"
-		name = f"{title}-{self.USER}"
+		name = f"{title}-{self.user.name}"
 		new_page(
 			{
 				"title": title,
@@ -507,7 +513,7 @@ class TestBothDoorsToTheModule(IntegrationTestCase):
 				"module": self.MODULE,
 				"type": "Workspace",
 				"public": 0,
-				"for_user": self.USER,
+				"for_user": self.user.name,
 			}
 		)
 		return name

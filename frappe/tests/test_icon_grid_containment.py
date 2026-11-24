@@ -32,6 +32,7 @@ from frappe.desk.doctype.desktop_settings.desktop_settings import (
 	seed_desktop_icons,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.utils.install import create_desktop_icons_for_app
 
 SHIPPED = "Test Shipped Grid Icon"
@@ -301,17 +302,22 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		if not frappe.db.exists("User", USER):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": USER,
-					"first_name": "Icon Grid",
-					"send_welcome_email": 0,
-					"roles": [{"role": "System Manager"}],
-				}
-			).insert()
-		if not frappe.db.exists("User", VIEWER):
+		if not (user := get_user_by_email(USER)):
+			user = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": USER,
+						"first_name": "Icon Grid",
+						"send_welcome_email": 0,
+						"roles": [{"role": "System Manager"}],
+					}
+				)
+				.insert()
+				.name
+			)
+		cls.user = user
+		if not get_user_by_email(VIEWER):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -404,7 +410,7 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 					"label": "Test Private Grid Workspace",
 					"module": MODULE,
 					"public": 0,
-					"for_user": USER,
+					"for_user": self.user,
 					"content": "[]",
 				}
 			).insert()
