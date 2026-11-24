@@ -1,6 +1,7 @@
 import csv
 import multiprocessing
 import os
+import re
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -291,20 +292,22 @@ def _compile_translation(app, locale, force=False, verbose=True):
 		print(f"MO file created at {mo_path}")
 
 
-def _positional_fields(text: str) -> set[str]:
+def _placeholder_fields(text: str) -> set[str]:
 	fields = [field for _, field, _, _ in Formatter().parse(text) if field is not None]
-	return {field or str(i) for i, field in enumerate(fields) if not field or field.isdigit()}
+	auto = iter(range(len(fields)))
+	names = [re.split(r"[.\[]", field, maxsplit=1)[0] for field in fields]
+	return {name or str(next(auto)) for name in names if not name or name.isdigit() or name.isidentifier()}
 
 
 def _has_valid_placeholders(message) -> bool:
 	ids = message.id if isinstance(message.id, tuple | list) else (message.id,)
 	strings = message.string if isinstance(message.string, tuple | list) else (message.string,)
 	try:
-		allowed = {field for msgid in ids for field in _positional_fields(msgid)}
+		allowed = {field for msgid in ids for field in _placeholder_fields(msgid)}
 	except ValueError:
 		return True
 	try:
-		return all(_positional_fields(string) <= allowed for string in strings if string)
+		return all(_placeholder_fields(string) <= allowed for string in strings if string)
 	except ValueError:
 		return not allowed
 
