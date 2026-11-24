@@ -47,6 +47,7 @@ from frappe.desk.doctype.sidebar.test_sidebar import (
 )
 from frappe.model.sync import remove_orphan_entities
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 USER = "test-dock-prefs@example.com"
 
@@ -2262,7 +2263,7 @@ class TestAddModule(IntegrationTestCase):
 			(self.CURATOR, ["Workspace Manager"]),
 			(self.DESK_USER, []),
 		):
-			if not frappe.db.exists("User", email):
+			if not get_user_by_email(email):
 				frappe.get_doc(
 					{
 						"doctype": "User",
@@ -2280,7 +2281,8 @@ class TestAddModule(IntegrationTestCase):
 			frappe.delete_doc("Workspace", name, force=True)
 		frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
 		for email in (self.MANAGER, self.CURATOR, self.DESK_USER):
-			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+			if user := get_user_by_email(email):
+				frappe.delete_doc("User", user, force=True)
 
 	def save(self, icon=None):
 		row = {"link_type": "Sidebar", "link_to": self.MODULE, "title": self.MODULE, "added": 1}

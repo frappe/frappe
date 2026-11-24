@@ -16,7 +16,7 @@ from frappe.search.sqlite_search import (
 	update_doc_index,
 )
 from frappe.tests import IntegrationTestCase
-from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, get_user_by_email, now_datetime
 from frappe.utils.synchronization import filelock
 
 
@@ -395,7 +395,7 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		try:
 			# Create a test user and switch to them
 			test_user_email = "test_search_user@example.com"
-			if not frappe.db.exists("User", test_user_email):
+			if not get_user_by_email(test_user_email):
 				test_user = frappe.get_doc(
 					{
 						"doctype": "User",

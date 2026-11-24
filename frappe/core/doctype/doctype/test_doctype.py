@@ -32,7 +32,7 @@ from frappe.model.sync import remove_orphan_doctypes
 from frappe.modules.import_file import import_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_table_name
+from frappe.utils import get_table_name, get_user_by_email
 
 
 class TestDocType(IntegrationTestCase):
@@ -819,9 +819,9 @@ class TestDocType(IntegrationTestCase):
 		if not frappe.db.exists("Role", role):
 			frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert()
 		email = "vue-component-user@example.com"
-		if not frappe.db.exists("User", email):
-			frappe.get_doc(doctype="User", email=email, first_name="Vue", send_welcome_email=0).insert()
-		frappe.get_doc("User", email).add_roles(role)
+		if not (user := get_user_by_email(email)):
+			user = frappe.new_doc("User", email=email, first_name="Vue", send_welcome_email=0).insert().name
+		frappe.get_doc("User", user).add_roles(role)
 
 		with patch("frappe.utils.island.get_ui_islands", return_value=["frappe.summary"]):
 			doctype = new_doctype(

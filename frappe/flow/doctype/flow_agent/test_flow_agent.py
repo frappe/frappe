@@ -510,10 +510,19 @@ class TestFlowAgentInstructions(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_tags_are_filled_in_and_other_text_stays_as_written(self):
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "instructions-user@example.com",
+				"first_name": "Ada",
+				"last_name": "Lovelace",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
 		cases = (
 			(
 				"Helping {{ full_name }} ({{ user }}) on {{ today }}.",
-				f"Helping Ada Lovelace (instructions-user@example.com) on {today()}.",
+				f"Helping Ada Lovelace ({user.name}) on {today()}.",
 			),
 			("{% raw %}Dear {{ doc.customer_name }},{% endraw %}", "Dear {{ doc.customer_name }},"),
 			("Answer using README.md", "Answer using README.md"),
@@ -523,15 +532,6 @@ class TestFlowAgentInstructions(IntegrationTestCase):
 			frappe.get_doc(_agent(self.model_doc.name, title=f"Agent {i}", instructions=text)).insert()
 			for i, (text, _rendered) in enumerate(cases)
 		]
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": "instructions-user@example.com",
-				"first_name": "Ada",
-				"last_name": "Lovelace",
-				"send_welcome_email": 0,
-			}
-		).insert(ignore_permissions=True)
 		frappe.set_user("instructions-user@example.com")
 
 		for agent, (text, rendered) in zip(agents, cases, strict=True):

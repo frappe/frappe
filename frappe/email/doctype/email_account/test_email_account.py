@@ -16,6 +16,7 @@ from frappe.email.doctype.email_account.email_account import EmailAccount, notif
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestEmailAccount(IntegrationTestCase):
@@ -443,7 +444,7 @@ class TestEmailAccount(IntegrationTestCase):
 		frappe.get_doc(
 			doctype="ToDo",
 			description="Assigned",
-			allocated_to="test@example.com",
+			allocated_to=get_user_by_email("test@example.com"),
 			reference_type="ToDo",
 			reference_name=todo.name,
 		).insert()

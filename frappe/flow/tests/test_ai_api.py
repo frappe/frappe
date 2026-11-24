@@ -18,7 +18,7 @@ from frappe.flow.tests.test_fake_daemon import PENDING, FakeDaemon, child_pause,
 from frappe.flow.tests.test_live_server import LiveServerCase
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-from frappe.utils import get_url
+from frappe.utils import get_url, get_user_by_email
 
 OTHER = "api-other-user@example.com"
 MANAGER = "api-manager@example.com"
@@ -91,18 +91,22 @@ class TestAttachFile(IntegrationTestCase):
 
 
 def _ensure_user(email: str) -> str:
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": email,
-				"first_name": email.split("@")[0],
-				"send_welcome_email": 0,
-				"enabled": 1,
-			}
-		).insert(ignore_permissions=True)
-	frappe.get_doc("User", email).add_roles(FLOW_USER_ROLE)
-	return email
+	if not (user := get_user_by_email(email)):
+		user = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@")[0],
+					"send_welcome_email": 0,
+					"enabled": 1,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+	frappe.get_doc("User", user).add_roles(FLOW_USER_ROLE)
+	return user
 
 
 def _ensure_manager() -> str:
@@ -115,7 +119,9 @@ def _ensure_manager() -> str:
 
 def _portal_user(email: str) -> str:
 	"""A website user, such as a customer."""
-	if not frappe.db.exists("User", email):
+	if user := get_user_by_email(email):
+		return user
+	return (
 		frappe.get_doc(
 			{
 				"doctype": "User",
@@ -124,18 +130,29 @@ def _portal_user(email: str) -> str:
 				"user_type": "Website User",
 				"send_welcome_email": 0,
 			}
-		).insert(ignore_permissions=True)
-	return email
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 def _desk_user(email: str) -> str:
 	"""A desk user without Flow's roles."""
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
-		).insert(ignore_permissions=True)
-	frappe.db.set_value("User", email, "user_type", "System User")
-	return email
+	if not (user := get_user_by_email(email)):
+		user = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@")[0],
+					"send_welcome_email": 0,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+	frappe.db.set_value("User", user, "user_type", "System User")
+	return user
 
 
 class TestSubmitFeedback(IntegrationTestCase):
@@ -514,9 +531,10 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(api.boot()["providers"], [])
 		provider = frappe.get_doc({"doctype": "Flow Provider", "provider": "openai"}).insert()
 		self.assertEqual(api.boot()["providers"], [provider.name])
-		frappe.set_user(_ensure_user(OTHER))
+		other = _ensure_user(OTHER)
+		frappe.set_user(other)
 		data = api.boot()
-		self.assertEqual(data["user"]["name"], OTHER)
+		self.assertEqual(data["user"]["name"], other)
 		self.assertEqual(data["permissions"]["Flow Provider"], [])
 		self.assertEqual(data["permissions"]["Flow Model"], ["read"])
 
@@ -791,9 +809,11 @@ class TestSessionEndpoints(ApiCase):
 			fields=["for_user", "type", "subject", "link"],
 			order_by="for_user asc",
 		)
-		self.assertEqual([log.for_user for log in logs], ["Administrator", viewer])
-		self.assertEqual((logs[1].type, logs[1].link), ("Share", get_url(f"/flow/s/{name}")))
-		self.assertIn("&lt;b&gt;Q3&lt;/b&gt;", logs[1].subject)
+		self.assertEqual(len(logs), 2)
+		self.assertEqual({log.for_user for log in logs}, {"Administrator", viewer})
+		shared = next(log for log in logs if log.for_user == viewer)
+		self.assertEqual((shared.type, shared.link), ("Share", get_url(f"/flow/s/{name}")))
+		self.assertIn("&lt;b&gt;Q3&lt;/b&gt;", shared.subject)
 
 	def test_a_chat_is_shared_only_with_active_flow_users(self):
 		name = self.create()

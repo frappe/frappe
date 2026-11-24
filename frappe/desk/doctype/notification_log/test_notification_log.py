@@ -12,6 +12,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.desk.form.assign_to import add as assign_task
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestNotificationLog(IntegrationTestCase):
@@ -278,7 +279,10 @@ class TestNotificationLog(IntegrationTestCase):
 
 
 def make_recipient(email: str) -> str:
-	if not frappe.db.exists("User", email):
+	if user := get_user_by_email(email):
+		return user
+
+	return (
 		frappe.get_doc(
 			{
 				"doctype": "User",
@@ -286,8 +290,10 @@ def make_recipient(email: str) -> str:
 				"first_name": email.split("@")[0],
 				"send_welcome_email": 0,
 			}
-		).insert(ignore_permissions=True)
-	return email
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 def get_last_email_queue():

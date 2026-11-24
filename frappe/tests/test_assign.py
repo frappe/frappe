@@ -45,48 +45,56 @@ class TestAssign(IntegrationTestCase):
 	def test_assignment_count(self):
 		frappe.db.delete("ToDo")
 
-		if not frappe.db.exists("User", "test_assign1@example.com"):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": "test_assign1@example.com",
-					"first_name": "Test",
-					"roles": [{"role": "System Manager"}],
-				}
-			).insert()
+		if not (user1 := get_user_by_email("test_assign1@example.com")):
+			user1 = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": "test_assign1@example.com",
+						"first_name": "Test",
+						"roles": [{"role": "System Manager"}],
+					}
+				)
+				.insert()
+				.name
+			)
 
-		if not frappe.db.exists("User", "test_assign2@example.com"):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": "test_assign2@example.com",
-					"first_name": "Test",
-					"roles": [{"role": "System Manager"}],
-				}
-			).insert()
+		if not (user2 := get_user_by_email("test_assign2@example.com")):
+			user2 = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": "test_assign2@example.com",
+						"first_name": "Test",
+						"roles": [{"role": "System Manager"}],
+					}
+				)
+				.insert()
+				.name
+			)
 
 		note = _make_test_record()
-		assign(note, "test_assign1@example.com")
+		assign(note, user1)
 
 		note = _make_test_record(public=1)
-		assign(note, "test_assign2@example.com")
+		assign(note, user2)
 
 		note = _make_test_record(public=1)
-		assign(note, "test_assign2@example.com")
+		assign(note, user2)
 
 		note = _make_test_record()
-		assign(note, "test_assign2@example.com")
+		assign(note, user2)
 
 		data = {d.name: d.count for d in get_group_by_count(TEST_DOCTYPE, "[]", "assigned_to")}
 
-		self.assertTrue("test_assign1@example.com" in data)
-		self.assertEqual(data["test_assign1@example.com"], 1)
-		self.assertEqual(data["test_assign2@example.com"], 3)
+		self.assertTrue(user1 in data)
+		self.assertEqual(data[user1], 1)
+		self.assertEqual(data[user2], 3)
 
 		data = {d.name: d.count for d in get_group_by_count(TEST_DOCTYPE, '[{"public": 1}]', "assigned_to")}
 
-		self.assertFalse("test_assign1@example.com" in data)
-		self.assertEqual(data["test_assign2@example.com"], 2)
+		self.assertFalse(user1 in data)
+		self.assertEqual(data[user2], 2)
 
 		frappe.db.rollback()
 

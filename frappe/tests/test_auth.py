@@ -29,7 +29,7 @@ from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_datetime, get_site_url, now
+from frappe.utils import get_datetime, get_site_url, get_user_by_email, now
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.logging import get_log_db, log_table
 from frappe.utils.password import check_password
@@ -45,6 +45,7 @@ def add_user(email, password, username=None, mobile_no=None):
 	user.simultaneous_sessions = 1
 	user.add_roles("System Manager")
 	frappe.db.commit()
+	return user.name
 
 
 def init_request_user(site, sites_path):
@@ -66,7 +67,7 @@ class TestAuth(IntegrationTestCase):
 		cls.test_user_password = "pwd_012"
 
 		cls.tearDownClass()
-		add_user(
+		cls.test_user = add_user(
 			email=cls.test_user_email,
 			password=cls.test_user_password,
 			username=cls.test_user_name,
@@ -76,7 +77,8 @@ class TestAuth(IntegrationTestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
-		frappe.delete_doc("User", cls.test_user_email, force=True)
+		if user := get_user_by_email(cls.test_user_email):
+			frappe.delete_doc("User", user, force=True)
 		frappe.local.request_ip = None
 		frappe.form_dict.email = None
 		frappe.local.response["http_status_code"] = None
@@ -122,7 +124,7 @@ class TestAuth(IntegrationTestCase):
 		ips = [f"10.8.0.{i}" for i in range(6)]
 
 		def cleanup():
-			for key in [self.test_user_email, *ips]:
+			for key in [self.test_user, *ips]:
 				LoginAttemptTracker(key).add_success_attempt()
 			get_login_attempt_tracker(
 				unknown, raise_locked_exception=False, unknown_user=True
@@ -171,7 +173,7 @@ class TestAuth(IntegrationTestCase):
 
 	def test_email_login_ignores_case_and_spaces(self):
 		user = User.find_by_credentials(f" {self.test_user_email.upper()} ", self.test_user_password)
-		self.assertEqual(user.name, self.test_user_email)
+		self.assertEqual(user.name, self.test_user)
 		self.assertTrue(user.is_authenticated)
 
 	def test_administrator_logs_in_by_name_not_email(self):
@@ -280,7 +282,7 @@ class TestAuth(IntegrationTestCase):
 		self.set_system_settings("force_user_to_reset_password", 1)
 		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
 
-		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.set_value("User", self.test_user, "last_password_reset_date", add_days(today(), -2))
 		frappe.db.commit()
 
 		set_request(method="POST", path="/api/method/login")
@@ -313,7 +315,7 @@ class TestAuth(IntegrationTestCase):
 		self.set_system_settings("force_user_to_reset_password", 1)
 		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
 
-		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.set_value("User", self.test_user, "last_password_reset_date", add_days(today(), -2))
 		frappe.db.commit()
 
 		set_request(method="POST", path="/api/method/login")
@@ -339,7 +341,7 @@ class TestAuth(IntegrationTestCase):
 
 		frappe.db.set_value(
 			"User",
-			self.test_user_email,
+			self.test_user,
 			{"last_password_reset_date": None, "creation": add_days(today(), -2)},
 		)
 
@@ -361,7 +363,7 @@ class TestAuth(IntegrationTestCase):
 		from frappe.utils import set_request
 
 		def home_page_after_login():
-			frappe.cache.hdel("home_page", self.test_user_email)
+			frappe.cache.hdel("home_page", self.test_user)
 			set_request(method="POST", path="/api/method/login")
 			frappe.form_dict.usr = self.test_user_email
 			frappe.form_dict.pwd = self.test_user_password
@@ -378,7 +380,7 @@ class TestAuth(IntegrationTestCase):
 				frappe.db.set_single_value, doctype, field, frappe.db.get_single_value(doctype, field)
 			)
 		self.addCleanup(frappe.db.set_value, "Role", "System Manager", "home_page", None)
-		self.addCleanup(frappe.db.set_value, "User", self.test_user_email, "default_workspace", None)
+		self.addCleanup(frappe.db.set_value, "User", self.test_user, "default_workspace", None)
 
 		# only frappe is installed in CI, and the apps screen leaves it out
 		with patch("frappe.apps.get_apps", return_value=[{"name": "test_app", "route": "/desk/test-app"}]):
@@ -393,10 +395,10 @@ class TestAuth(IntegrationTestCase):
 			frappe.db.set_single_value("Portal Settings", "default_portal_home", "/contact")
 			self.assertEqual(home_page_after_login(), app_home)
 
-			frappe.db.set_value("User", self.test_user_email, "default_workspace", "Users")
+			frappe.db.set_value("User", self.test_user, "default_workspace", "Users")
 			self.assertEqual(home_page_after_login(), "/desk/users")
 
-			frappe.db.set_value("User", self.test_user_email, "default_workspace", None)
+			frappe.db.set_value("User", self.test_user, "default_workspace", None)
 			frappe.db.set_single_value("Portal Settings", "default_portal_home", None)
 			with self.patch_hooks({"role_home_page": {"System Manager": ["orders"]}}):
 				self.assertEqual(home_page_after_login(), "orders")
@@ -533,13 +535,16 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.user_email = "test_api_ip_restriction@test.com"
-		if not frappe.db.exists("User", cls.user_email):
-			frappe.get_doc(doctype="User", email=cls.user_email, first_name="API IP Restricted").insert(
-				ignore_permissions=True
+		if not (user := get_user_by_email(cls.user_email)):
+			user = (
+				frappe.get_doc(doctype="User", email=cls.user_email, first_name="API IP Restricted")
+				.insert(ignore_permissions=True)
+				.name
 			)
+		cls.user = user
 
-		cls.api_secret = generate_keys(cls.user_email)["api_secret"]
-		cls.api_key = frappe.db.get_value("User", cls.user_email, "api_key")
+		cls.api_secret = generate_keys(cls.user)["api_secret"]
+		cls.api_key = frappe.db.get_value("User", cls.user, "api_key")
 		frappe.db.commit()
 
 	def setUp(self):
@@ -565,8 +570,8 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 		frappe.set_user("Guest")
 
 	def _set_restrict_ip(self, value):
-		frappe.db.set_value("User", self.user_email, "restrict_ip", value)
-		frappe.clear_cache(user=self.user_email)
+		frappe.db.set_value("User", self.user, "restrict_ip", value)
+		frappe.clear_cache(user=self.user)
 
 	def test_api_auth_blocked_from_disallowed_ip(self):
 		self._set_restrict_ip("192.168.255.254")
@@ -580,14 +585,14 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 		self._authenticated_request_from("10.0.0.1")
 
 		validate_auth()
-		self.assertEqual(frappe.session.user, self.user_email)
+		self.assertEqual(frappe.session.user, self.user)
 
 	def test_api_auth_unaffected_without_ip_restriction(self):
 		self._set_restrict_ip("")
 		self._authenticated_request_from("10.0.0.1")
 
 		validate_auth()
-		self.assertEqual(frappe.session.user, self.user_email)
+		self.assertEqual(frappe.session.user, self.user)
 
 	def test_auth_hook_user_without_user_record(self):
 		frappe.local.request = Request(EnvironBuilder().get_environ())
@@ -612,12 +617,15 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.user_email = "test_api_auth_failure@example.com"
-		if not frappe.db.exists("User", cls.user_email):
-			frappe.get_doc(doctype="User", email=cls.user_email, first_name="API Auth Failure").insert(
-				ignore_permissions=True
+		if not (user := get_user_by_email(cls.user_email)):
+			user = (
+				frappe.get_doc(doctype="User", email=cls.user_email, first_name="API Auth Failure")
+				.insert(ignore_permissions=True)
+				.name
 			)
-		cls.api_secret = generate_keys(cls.user_email)["api_secret"]
-		cls.api_key = frappe.db.get_value("User", cls.user_email, "api_key")
+		cls.user = user
+		cls.api_secret = generate_keys(cls.user)["api_secret"]
+		cls.api_key = frappe.db.get_value("User", cls.user, "api_key")
 
 	def setUp(self):
 		self._request = getattr(frappe.local, "request", None)
@@ -639,9 +647,7 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 		qb, table = log_table("Activity Log")
 		db.sql(qb.from_(table).where(table.subject.like(self.SUBJECT)).delete())
 		db.commit()
-		frappe.cache.delete_value(
-			[f"api_auth_failure_logged:{self.user_email}", "api_auth_failure_logged:unknown"]
-		)
+		frappe.cache.delete_value([f"api_auth_failure_logged:{self.user}", "api_auth_failure_logged:unknown"])
 
 	def _entries(self):
 		return frappe.get_all(
@@ -669,12 +675,12 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 		entries = {entry.user: entry for entry in self._entries()}
 		self.assertEqual(len(entries), 2)
 
-		known = entries[self.user_email]
+		known = entries[self.user]
 		self.assertEqual(known.status, "Failed")
 		self.assertEqual(known.ip_address, "10.0.0.1")
 		self.assertEqual(known.subject, "API key authentication failed: invalid API secret")
 
-		unknown = next(entry for user, entry in entries.items() if user != self.user_email)
+		unknown = next(entry for user, entry in entries.items() if user != self.user)
 		self.assertEqual(unknown.subject, "API key authentication failed: invalid API key")
 		for entry in entries.values():
 			for sent in ("not-the-secret", "unknown-key-123", "unknown-secret-456", self.api_key):
