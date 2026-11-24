@@ -774,6 +774,17 @@ class InboundMail(Email):
 		isnotification = self.mail.get("isnotification")
 		return isnotification and ("notification" in isnotification)
 
+	def is_auto_submitted(self):
+		"""Return True for automatic mails, such as out-of-office replies and bounces (RFC 3834)."""
+		auto_submitted = str(self.mail.get("Auto-Submitted") or "no").strip().lower()
+		precedence = str(self.mail.get("Precedence") or "").strip().lower()
+		return (
+			auto_submitted != "no"
+			or "X-Autoreply" in self.mail
+			or "X-Autorespond" in self.mail
+			or precedence in ("bulk", "junk", "list")
+		)
+
 	def is_exist_in_system(self):
 		"""Check if this email already exists in the system(as communication document)."""
 		from frappe.core.doctype.communication.communication import Communication
