@@ -1,4 +1,5 @@
 import { translate as __ } from "../../utils/translate";
+import { conditionOperators } from "../ConditionBuilder/adapters";
 /**
  * Filter rows <-> the Python expression a step condition is stored as.
  *
@@ -9,7 +10,14 @@ import { translate as __ } from "../../utils/translate";
  * `safe_eval` exposes no builtins, so the generated code sticks to comparisons, `in` and `or`.
  */
 
-const NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
+const NUMERIC_FIELDTYPES = [
+  "Int",
+  "Float",
+  "Currency",
+  "Percent",
+  "Rating",
+  "Duration",
+];
 const COMPARISONS = ["==", "!=", ">=", "<=", ">", "<"];
 const OPERATOR_TO_PYTHON = { "=": "==", "!=": "!=" };
 
@@ -17,13 +25,13 @@ const OPERATOR_TO_PYTHON = { "=": "==", "!=": "!=" };
  * `conditions` is the list view's builder shape: leaf rows with `and` / `or` between them, and
  * a nested list wherever the user grouped some. Groups become parentheses.
  */
-export function toExpression(conditions, fields = []) {
+export function toExpression(conditions, fields = [], scope = "doc") {
   const parts = [];
   withConjunctions(conditions || []).forEach((item) => {
     if (typeof item === "string") return parts.push(item);
     const clause = isGroup(item)
-      ? groupExpression(item, fields)
-      : clauseFor(item, fields);
+      ? groupExpression(item, fields, scope)
+      : clauseFor(item, fields, scope);
     parts.push(clause || "");
   });
   return joinParts(parts);
@@ -40,8 +48,8 @@ function isGroup(item) {
   return Array.isArray(item) && Array.isArray(item[0]);
 }
 
-function groupExpression(item, fields) {
-  const inner = toExpression(item, fields);
+function groupExpression(item, fields, scope) {
+  const inner = toExpression(item, fields, scope);
   return inner ? `(${inner})` : "";
 }
 
@@ -59,11 +67,12 @@ function joinParts(parts) {
   return kept.join(" ");
 }
 
-export function toFilters(expression) {
-  const text = String(expression || "").trim();
+export function toFilters(expression, scope = "doc") {
+  const text = normalizeScope(String(expression || "").trim(), scope);
+  if (text.includes("\\")) return null;
   if (!text) return [];
   const parts = splitTopLevel(text);
-  if (!parts) return null;
+  if (!parts || (parts.includes("and") && parts.includes("or"))) return null;
   const parsed = parts.map((part) => {
     if (part === "and" || part === "or") return part;
     // `expandGroups` already turned a parenthesised part into its own condition list.
@@ -106,8 +115,7 @@ function matchKeyword(text, index) {
   if (!before) return null;
   return ["and", "or"].find(
     (word) =>
-      text.startsWith(word, index) &&
-      /\s/.test(text[index + word.length] || ""),
+      text.startsWith(word, index) && /\s/.test(text[index + word.length] || "")
   );
 }
 
@@ -130,8 +138,57 @@ function expandGroups(parts) {
 }
 
 /** Whether the filter UI can represent this expression without losing anything. */
-export function isFilterExpression(expression) {
-  return toFilters(expression) !== null;
+export function isFilterExpression(expression, scope = "doc", fields = []) {
+  const conditions = toFilters(expression, scope);
+  return conditions !== null && supportsConditions(conditions, fields);
+}
+
+function normalizeScope(text, scope) {
+  return text.replace(/"[^"]*"|'[^']*'|\b(doc|target)\./g, (token, source) =>
+    source ? (source === scope ? "doc." : "unsupported.") : token
+  );
+}
+
+export function expressionOperators(fieldtype, fieldname) {
+  return conditionOperators(fieldtype, fieldname).filter(
+    ({ value }) =>
+      value !== "between" &&
+      !(
+        NUMERIC_FIELDTYPES.includes(fieldtype) &&
+        ["like", "not like"].includes(value)
+      )
+  );
+}
+
+export function normalizeCheckValues(conditions, fields = [], display = false) {
+  return conditions.map((item) => {
+    if (typeof item === "string") return item;
+    if (isGroup(item)) return normalizeCheckValues(item, fields, display);
+    const [fieldname, operator, value] = item;
+    const field = fields.find((field) => field.fieldname === fieldname);
+    if (field?.fieldtype !== "Check") return item;
+    const checked = [1, "1", true, "Yes"].includes(value);
+    const unchecked = [0, "0", false, "No"].includes(value);
+    if (!checked && !unchecked) return item;
+    return [
+      fieldname,
+      operator,
+      display ? (checked ? "Yes" : "No") : Number(checked),
+    ];
+  });
+}
+
+function supportsConditions(conditions, fields) {
+  return conditions.every((item) => {
+    if (typeof item === "string") return true;
+    if (isGroup(item)) return supportsConditions(item, fields);
+    const field = fields.find(({ fieldname }) => fieldname === item[0]);
+    if (!field) return true;
+    const operator = { "=": "equals", "!=": "not equals" }[item[1]] || item[1];
+    return expressionOperators(field.fieldtype, field.fieldname).some(
+      ({ value }) => value === operator
+    );
+  });
 }
 
 /** A one-line reading of a condition, for canvas nodes and the read-only view. */
@@ -177,36 +234,40 @@ function prettyField(fieldname) {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-function clauseFor(filter, fields) {
+function clauseFor(filter, fields, scope) {
   const [fieldname, operator, value] = filter;
-  if (operator === "is") return presenceClause(fieldname, value);
+  if (operator === "is") return presenceClause(fieldname, value, scope);
   if (operator === "like" || operator === "not like")
-    return containsClause(fieldname, operator, value);
+    return containsClause(fieldname, operator, value, scope);
   if (operator === "in" || operator === "not in")
-    return listClause(fieldname, operator, value, fields);
+    return listClause(fieldname, operator, value, fields, scope);
   const comparison = OPERATOR_TO_PYTHON[operator] || operator;
   if (!COMPARISONS.includes(comparison)) return "";
-  return `doc.${fieldname} ${comparison} ${literal(value, fieldname, fields)}`;
+  return `${scope}.${fieldname} ${comparison} ${literal(
+    value,
+    fieldname,
+    fields
+  )}`;
 }
 
-function presenceClause(fieldname, value) {
+function presenceClause(fieldname, value, scope) {
   const comparison = value === "not set" ? "==" : "!=";
-  return `(doc.${fieldname} or "") ${comparison} ""`;
+  return `(${scope}.${fieldname} or "") ${comparison} ""`;
 }
 
-function containsClause(fieldname, operator, value) {
+function containsClause(fieldname, operator, value, scope) {
   const needle = String(value ?? "")
     .replace(/%/g, "")
     .toLowerCase();
   const membership = operator === "like" ? "in" : "not in";
-  return `${quote(needle)} ${membership} (doc.${fieldname} or "").lower()`;
+  return `${quote(needle)} ${membership} (${scope}.${fieldname} or "").lower()`;
 }
 
-function listClause(fieldname, operator, value, fields) {
+function listClause(fieldname, operator, value, fields, scope) {
   const items = (Array.isArray(value) ? value : splitValues(value)).map(
-    (item) => literal(item, fieldname, fields),
+    (item) => literal(item, fieldname, fields)
   );
-  return `doc.${fieldname} ${operator} [${items.join(", ")}]`;
+  return `${scope}.${fieldname} ${operator} [${items.join(", ")}]`;
 }
 
 function literal(value, fieldname, fields) {
@@ -216,12 +277,14 @@ function literal(value, fieldname, fields) {
   const numeric =
     NUMERIC_FIELDTYPES.includes(field?.fieldtype) ||
     field?.fieldtype === "Check";
+  if (field?.fieldtype === "Check" && ["Yes", "No"].includes(text))
+    return text === "Yes" ? "1" : "0";
   if (numeric && text !== "" && !Number.isNaN(Number(text))) return text;
   return quote(text);
 }
 
 function quote(text) {
-  return `"${String(text).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  return JSON.stringify(String(text));
 }
 
 function splitValues(value) {
@@ -240,7 +303,7 @@ const PRESENCE = /^\(doc\.(\w+) or ""\) (==|!=) ""$/;
 const CONTAINS =
   /^"([^"]*)" (not in|in) \(doc\.(\w+) or ""\)\.lower\(\)$|^'([^']*)' (not in|in) \(doc\.(\w+) or ""\)\.lower\(\)$/;
 const MEMBERSHIP = new RegExp(
-  `^doc\\.(\\w+) (not in|in) \\[((?:${LITERAL})(?:, *(?:${LITERAL}))*)?\\]$`,
+  `^doc\\.(\\w+) (not in|in) \\[((?:${LITERAL})(?:, *(?:${LITERAL}))*)?\\]$`
 );
 const COMPARISON = new RegExp(`^doc\\.(\\w+) (==|!=|>=|<=|>|<) (${LITERAL})$`);
 
@@ -272,10 +335,9 @@ function parseContains(clause) {
 function parseMembership(clause) {
   const match = clause.match(MEMBERSHIP);
   if (!match) return null;
-  const items = String(match[3] || "")
-    .split(",")
-    .map((item) => parseLiteral(item.trim()))
-    .filter((item) => item !== "");
+  const items = (
+    String(match[3] || "").match(new RegExp(LITERAL, "g")) || []
+  ).map(parseLiteral);
   return [match[1], match[2], items];
 }
 

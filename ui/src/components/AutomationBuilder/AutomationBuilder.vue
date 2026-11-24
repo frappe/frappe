@@ -76,7 +76,7 @@
 				</div>
 			</div>
 			<div v-if="tab === 'test'" class="min-h-0 flex-1 p-4">
-				<AutomationTrialRun v-if="canTest" :automation-name="automationName" :doc="doc" />
+				<AutomationTrialRun v-if="canTest" :automation-name="doc.name" :doc="doc" />
 				<p v-else class="text-sm text-ink-gray-5">
 					{{ __("Save the flow before testing it.") }}
 				</p>
@@ -287,7 +287,7 @@ useShortcuts(root, [
 const dirty = computed(() => savedSnapshot.value !== JSON.stringify(payload()));
 
 /** A trial runs the saved flow, so unsaved edits would not be what gets tested. */
-const canTest = computed(() => Boolean(props.automationName) && !dirty.value);
+const canTest = computed(() => Boolean(doc.name) && !dirty.value);
 
 watch(flowTargets, loadTargetCapabilities, { immediate: true, deep: true });
 watch(dirty, (value) => emit("update:dirty", value), { immediate: true });
@@ -344,14 +344,33 @@ function markClean() {
 }
 
 /** Take the server's name, timestamps and step keys, so the next save is not a stale write. */
-function adoptSaved(saved) {
-	doc.name = saved.name;
-	doc.creation = saved.creation;
-	doc.owner = saved.owner;
-	doc.modified = saved.modified;
-	adoptRowKeys(doc.actions, saved.actions || []);
-	markClean();
+function adoptSaved(saved, submitted) {
+	flushHistory();
+	const metadata = {
+		name: saved.name,
+		creation: saved.creation,
+		owner: saved.owner,
+		modified: saved.modified,
+	};
+	Object.assign(doc, metadata);
+	Object.assign(submitted, metadata);
+	adoptSubmittedKeys(submitted.actions, saved.actions || []);
+	savedSnapshot.value = JSON.stringify(payload(submitted));
 	absorbHistory();
+}
+
+function adoptSubmittedKeys(actions, rows) {
+	const before = new Map(layoutSteps(actions).map(({ node }) => [node._id, { ...node }]));
+	adoptRowKeys(actions, rows);
+	const submitted = new Map(layoutSteps(actions).map(({ node }) => [node._id, node]));
+	for (const { node } of placed.value) {
+		const saved = submitted.get(node._id);
+		const previous = before.get(node._id);
+		if (!saved) continue;
+		if (node.step_key === previous.step_key) node.step_key = saved.step_key;
+		if (node._outcomeKey === previous._outcomeKey) node._outcomeKey = saved._outcomeKey;
+		node.idx = saved.idx;
+	}
 }
 
 /** Closing warns first about unsaved edits, wherever the builder is shown. */
@@ -535,15 +554,16 @@ function emptyTriggerState() {
 }
 
 async function saveAutomation() {
+	if (saving.value) return;
 	flushHistory();
 	saving.value = true;
 	clearErrors();
 	try {
 		validateBeforeSave();
-		const saved = props.automationName
-			? await call("frappe.client.save", { doc: payload() })
-			: await call("frappe.client.insert", { doc: payload() });
-		adoptSaved(saved);
+		const submitted = JSON.parse(JSON.stringify(doc));
+		const method = doc.name ? "frappe.client.save" : "frappe.client.insert";
+		const saved = await call(method, { doc: payload(submitted) });
+		adoptSaved(saved, submitted);
 		toast.success(__("Automation saved"));
 		emit("saved", saved);
 	} catch (error) {
@@ -562,18 +582,19 @@ function validateBeforeSave() {
 	throw new Error(blocking.issue);
 }
 
-function payload() {
+function payload(source = doc) {
 	return {
-		...doc,
-		title: doc.title || __("Untitled automation"),
-		filters: normalizedJsonString(doc.filters, []),
-		relationships: JSON.stringify(normalizedRelationships()),
-		actions: toRows(doc.actions).map(rowPayload),
+		...source,
+		title: source.title || __("Untitled automation"),
+		filters: normalizedJsonString(source.filters, []),
+		relationships: JSON.stringify(normalizedRelationships(source)),
+		actions: toRows(source.actions).map(rowPayload),
 	};
 }
 
-function normalizedRelationships() {
-	return Array.isArray(relationships.value) ? relationships.value : [];
+function normalizedRelationships(source) {
+	const value = parseJson(source.relationships, []);
+	return Array.isArray(value) ? value : [];
 }
 
 function normalizedJsonString(value, fallback) {

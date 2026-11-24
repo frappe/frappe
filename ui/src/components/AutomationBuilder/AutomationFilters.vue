@@ -11,6 +11,7 @@
 			:key="doctype"
 			:model-value="tree"
 			:doctype="doctype"
+			:operators-for-field="operatorsForField"
 			:max-depth="flat ? 0 : 2"
 			bordered="all"
 			@update:model-value="store"
@@ -40,6 +41,8 @@
 
 <script setup lang="ts">
 import { translate as __ } from "../../utils/translate";
+import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
+import { normalizeCheckValues } from "./conditions";
 import {
 	ConditionBuilder,
 	emptyTree,
@@ -49,6 +52,8 @@ import {
 import InfoIcon from "~icons/lucide/info";
 import { Button, Dropdown, Tooltip } from "frappe-ui";
 import { ref, watch } from "vue";
+import type { PropType } from "vue";
+import type { ConditionOperatorOption } from "../ConditionBuilder";
 
 /** The builder names its operators; frappe's filter grammar wants its own tokens. */
 const TOKENS = { equals: "=", "not equals": "!=" };
@@ -68,14 +73,21 @@ const props = defineProps({
 	// Hides the grouping controls. Conjunctions are still stored and honoured.
 	flat: { type: Boolean, default: false },
 	info: { type: String, default: "" },
+	operatorsForField: {
+		type: Function as PropType<
+			(fieldtype: string, fieldname?: string) => ConditionOperatorOption[]
+		>,
+		default: undefined,
+	},
 });
 
 const emit = defineEmits(["update:modelValue"]);
+const { meta } = useDoctypeMeta(() => props.doctype);
 
 const tree = ref(fromFrappeConditions(read(props.modelValue)));
 
 /** What this last mirrored out, so an echo of it doesn't reload the tree. */
-let mirrored = serialize(tree.value);
+let mirrored = JSON.stringify(read(props.modelValue));
 
 const addOptions = [
 	{ label: __("Add Condition"), onClick: () => addCondition() },
@@ -83,15 +95,12 @@ const addOptions = [
 ];
 
 // Selecting another step hands this the next condition, so reload the tree.
-watch(
-	() => props.modelValue,
-	(value) => {
-		const incoming = JSON.stringify(read(value));
-		if (incoming === mirrored) return;
-		tree.value = fromFrappeConditions(read(value));
-		mirrored = incoming;
-	}
-);
+watch([() => props.modelValue, meta], ([value]) => {
+	const incoming = JSON.stringify(read(value));
+	if (incoming === mirrored) return;
+	tree.value = fromFrappeConditions(read(value));
+	mirrored = incoming;
+});
 
 function addCondition() {
 	append({ fieldname: "", operator: "equals", value: "" });
@@ -107,19 +116,23 @@ function append(node) {
 
 function store(next) {
 	tree.value = next;
-	mirrored = serialize(next);
-	emit("update:modelValue", mirrored);
+	const output = serialize(next);
+	mirrored = JSON.stringify(read(output));
+	emit("update:modelValue", output);
 }
 
 function serialize(next) {
-	return JSON.stringify(toFrappeConditions(next).map(row));
+	const rows = toFrappeConditions(next).map(row);
+	return JSON.stringify(normalizeCheckValues(rows, meta.value?.fields || []));
 }
 
 function read(value) {
-	if (Array.isArray(value)) return value;
+	if (Array.isArray(value)) return normalizeCheckValues(value, meta.value?.fields || [], true);
 	try {
 		const parsed = JSON.parse(value || "[]");
-		return Array.isArray(parsed) ? parsed : [];
+		return Array.isArray(parsed)
+			? normalizeCheckValues(parsed, meta.value?.fields || [], true)
+			: [];
 	} catch {
 		return [];
 	}
