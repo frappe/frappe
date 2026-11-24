@@ -163,7 +163,6 @@ def sync_contacts_from_google_contacts(g_contact):
 
 		for name in connection.get("names"):
 			if name.get("metadata").get("primary"):
-				contacts_updated += 1
 				contact = frappe.get_doc(
 					{
 						"doctype": "Contact",
@@ -189,7 +188,14 @@ def sync_contacts_from_google_contacts(g_contact):
 						is_primary_phone=1 if phone.get("metadata").get("primary") else 0,
 					)
 
-				contact.insert(ignore_permissions=True)
+				frappe.db.savepoint("google_contact")
+				try:
+					contact.insert(ignore_permissions=True)
+				except Exception:
+					frappe.db.rollback(save_point="google_contact")
+					account.log_error(_("Google Contacts - Could not import a contact"))
+				else:
+					contacts_updated += 1
 
 	return (
 		_("{0} Google Contacts synced.").format(contacts_updated)
