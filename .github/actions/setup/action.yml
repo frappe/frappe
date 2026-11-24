@@ -272,13 +272,9 @@ runs:
         (cd sites && ../env/bin/python -c "import frappe; frappe.init(''); from frappe.bundler import make_asset_dirs, setup; setup(); make_asset_dirs()")
         # the build also installs these packages, and tests need them
         (
-          yarn --cwd apps/frappe/studio/frontend install --frozen-lockfile &
-          studio_pid=$!
-          yarn --cwd apps/frappe/flow install --frozen-lockfile &
-          flow_pid=$!
-          node apps/frappe/ui/vite/island/install-toolchain.js &
-          island_pid=$!
-          wait "$studio_pid" && wait "$flow_pid" && wait "$island_pid"
+          yarn --cwd apps/frappe/studio/frontend install --frozen-lockfile
+          yarn --cwd apps/frappe/flow install --frozen-lockfile
+          node apps/frappe/ui/vite/island/install-toolchain.js
         ) &> ${GITHUB_WORKSPACE}/build_assets.log &
         build_pid=$!
       elif [ "$BUILD_ASSETS" == "true" ]; then
