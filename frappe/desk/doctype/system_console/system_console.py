@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.model.document import Document
+from frappe.model.executable_fields import CODE_AUTHOR_ROLES
 from frappe.utils.response import json_handler
 from frappe.utils.safe_exec import read_sql, safe_exec
 
@@ -29,6 +30,7 @@ class SystemConsole(Document):
 
 	def run(self):
 		frappe.only_for(["System Manager", "Administrator"])
+		frappe.only_for(CODE_AUTHOR_ROLES)
 		try:
 			frappe.local.debug_log = []
 			if self.type == "Python":

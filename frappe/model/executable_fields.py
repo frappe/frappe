@@ -5,6 +5,8 @@ from frappe import _
 from frappe.utils import cstr
 
 CODE_AUTHOR_ROLE = "Code Author"
+# Script Managers already write Server Scripts, which run the same sandbox
+CODE_AUTHOR_ROLES = (CODE_AUTHOR_ROLE, "Script Manager")
 
 
 class CodeFieldGuard:
@@ -91,7 +93,7 @@ class CodeFieldGuard:
 
 
 def is_code_author(user=None):
-	return CODE_AUTHOR_ROLE in frappe.get_roles(user)
+	return not set(CODE_AUTHOR_ROLES).isdisjoint(frappe.get_roles(user))
 
 
 def is_changed(doc, reference, df):

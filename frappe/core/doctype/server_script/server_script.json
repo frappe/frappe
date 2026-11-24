@@ -40,6 +40,7 @@
    "reqd": 1
   },
   {
+   "executes_code": 1,
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
@@ -174,7 +175,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2026-10-23 17:25:18.812613",
+ "modified": "2026-11-24 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

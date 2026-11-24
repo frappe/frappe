@@ -69,7 +69,7 @@ frappe.ui.form.on("Auto Repeat", {
 
 	template: function (frm) {
 		// without Code Author the fields are read-only; the server fills them on save
-		if (frm.doc.template && frappe.user.has_role("Code Author")) {
+		if (frm.doc.template && frappe.user.is_code_author()) {
 			frappe.model.with_doc("Email Template", frm.doc.template, () => {
 				let email_template = frappe.get_doc("Email Template", frm.doc.template);
 				frm.set_value("subject", email_template.subject);
