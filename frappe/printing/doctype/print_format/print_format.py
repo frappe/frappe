@@ -9,6 +9,7 @@ import frappe.utils
 from frappe import _
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.document import Document
+from frappe.model.executable_fields import CodeFieldGuard
 from frappe.printing.layout import iter_fields, iter_nodes, iter_zones
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
@@ -184,6 +185,7 @@ class PrintFormat(Document):
 
 		self.validate_colors()
 		self.validate_conditions()
+		BuilderJinjaGuard(self).validate()
 		self.validate_typst_renderer()
 		self.validate_plutoprint_renderer()
 
@@ -687,3 +689,34 @@ def check_print_format_roles(print_format: "PrintFormat") -> None:
 			frappe.PermissionError,
 			title=_("Not Permitted"),
 		)
+
+
+class BuilderJinjaGuard(CodeFieldGuard):
+	"""Builder layouts are code only where they hold Jinja: HTML blocks, margin texts, global variables."""
+
+	def __init__(self, doc):
+		super().__init__(doc, fields=[doc.meta.get_field(f) for f in ("format_data", "classic_format_data")])
+
+	def is_authored(self, row, reference, df, is_new, child_doctype=None):
+		# both fields together: converting to the new builder moves the layout between them
+		saved = set().union(*(get_jinja_snippets(reference.get(f.fieldname)) for f in self.fields))
+		added = get_jinja_snippets(row.get(df.fieldname)) - saved
+		return bool(added) and super().is_authored(row, reference, df, is_new, child_doctype)
+
+
+def get_jinja_snippets(layout) -> set[str]:
+	# every string with Jinja, wherever it sits: moving or deleting a block adds none
+	snippets = set()
+	try:
+		nodes = [frappe.parse_json(layout) if isinstance(layout, str) and layout.strip() else layout]
+	except ValueError:
+		nodes = [layout]
+	while nodes:
+		node = nodes.pop()
+		if isinstance(node, dict):
+			nodes.extend(node.values())
+		elif isinstance(node, list):
+			nodes.extend(node)
+		elif isinstance(node, str) and ("{{" in node or "{%" in node):
+			snippets.add(node)
+	return snippets

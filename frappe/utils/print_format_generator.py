@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
+from frappe.model.executable_fields import CODE_AUTHOR_ROLE, CodeFieldGuard, is_code_author
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones, zone_repeats, zone_show_on
 from frappe.utils.data import cint, cstr, flt
@@ -30,6 +31,7 @@ def render_jinja_template(
 ) -> str:
 	"""Render a raw Jinja2 template string with doc context (used by the print format builder preview)."""
 	frappe.only_for("System Manager")
+	check_can_preview(doctype, template, global_variables)
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission("print")
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
@@ -49,6 +51,32 @@ def render_jinja_template(
 		# rather than the client popping the error-report dialog
 		frappe.clear_last_message()
 		frappe.throw(_("Failed to render template: {0}").format(str(e)), frappe.ValidationError)
+
+
+def check_can_preview(doctype: str, *templates: str | None):
+	"""Without Code Author, only Jinja that is already saved can be previewed."""
+	if is_code_author() or all(not t or is_saved_jinja(doctype, t) for t in templates):
+		return
+	frappe.throw(
+		_("Only a user with the {0} role can preview new Jinja").format(_(CODE_AUTHOR_ROLE)),
+		frappe.PermissionError,
+		title=_("Not Permitted"),
+	)
+
+
+def is_saved_jinja(doctype: str, template: str) -> bool:
+	# drafts don't count: save_draft skips the Code Author check
+	from frappe.printing.doctype.print_format.print_format import get_jinja_snippets
+
+	for row in frappe.get_list(
+		"Print Format", filters={"doc_type": doctype}, fields=["format_data", "classic_format_data"]
+	):
+		if template in get_jinja_snippets(row.format_data) | get_jinja_snippets(row.classic_format_data):
+			return True
+	return bool(
+		frappe.get_list("Print Format Field Template", filters={"template": template}, limit=1)
+		or frappe.get_list("Letter Head", or_filters={"content": template, "footer": template}, limit=1)
+	)
 
 
 def global_variables_context(template: str | None, doc) -> dict:
@@ -318,7 +346,7 @@ def _builder_preview_generator(
 	Shared by the HTML and PDF entry points so the checks below have one home.
 	Returns None when the document type has nothing printable to sample.
 	"""
-	from frappe.printing.doctype.print_format.print_format import printable_sample
+	from frappe.printing.doctype.print_format.print_format import BuilderJinjaGuard, printable_sample
 	from frappe.www.printview import validate_print
 
 	frappe.has_permission("Print Format", "write", throw=True)
@@ -326,6 +354,8 @@ def _builder_preview_generator(
 	pf = frappe.get_doc(frappe.parse_json(print_format))
 	if pf.doctype != "Print Format":
 		frappe.throw(_("Expected an unsaved Print Format document"))
+	CodeFieldGuard(pf).validate()
+	BuilderJinjaGuard(pf).validate()
 
 	name = name or printable_sample(doctype)
 	if not name:
