@@ -272,6 +272,14 @@ class TestKeywordRetrieval(MemoryCase):
 		doc.save()
 		self.assertEqual(self.block("Where do we bill Acme?"), "")
 
+	def test_a_guest_chat_has_no_memory_tool_and_sees_no_memories(self):
+		save_memory(self.agent.name, content=ACME, scope="agent")
+		self.assertIn("update_memory", [tool.name for tool in self.agent.client_tools()])
+
+		frappe.set_user("Guest")
+		self.assertNotIn("update_memory", [tool.name for tool in self.agent.client_tools()])
+		self.assertEqual(self.block("Where do we bill Acme?", user="Guest"), "")
+
 	def test_only_the_agents_shared_and_the_users_own_memories_are_seen(self):
 		shared = save_memory(self.agent.name, content=ACME, scope="agent")
 		own = save_memory(self.agent.name, content="Acme invoices go to Priya.", scope="user")

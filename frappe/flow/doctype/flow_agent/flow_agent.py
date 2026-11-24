@@ -194,8 +194,8 @@ class FlowAgent(Document):
 
 	def client_tools(self, session: str | None = None) -> list[Tool]:
 		"""This agent's enabled tools, bound to `session` where needed. Attachment search is left
-		out until an embedding model is set, since nothing is indexed without one, and execute
-		and Script tools while server scripts are off."""
+		out until an embedding model is set, since nothing is indexed without one, execute
+		and Script tools while server scripts are off, and memory in guest chats."""
 		from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
 			embeddings_configured,
 		)
@@ -232,7 +232,8 @@ class FlowAgent(Document):
 			elif tool_doc.name == builtin_name(ATTACHMENT_READ_SLUG):
 				resolved.append(bind_read_attachment(session))
 			elif tool_doc.name == builtin_name(MEMORY_TOOL_SLUG):
-				resolved.append(bind_update_memory(self.name, session))
+				if frappe.session.user != "Guest":
+					resolved.append(bind_update_memory(self.name, session))
 			elif tool_doc.name == builtin_name(SKILL_TOOL_SLUG):
 				resolved.append(bind_load_skill(self.name))
 			else:
