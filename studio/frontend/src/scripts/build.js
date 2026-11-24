@@ -22,6 +22,7 @@ import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import databaseAppImports from "../../vite/databaseAppImports.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
+import hostStylesheets from "../../vite/hostStylesheets.js"
 import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
@@ -367,6 +368,7 @@ async function buildWithVite(
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 			// resolves @framework/ui's own deps from studio's node_modules
 			frameworkui(),
+			hostStylesheets(),
 		],
 		resolve: {
 			alias: [
@@ -400,6 +402,7 @@ async function buildWithVite(
 		},
 		build: {
 			manifest: true,
+			cssCodeSplit: false,
 			rolldownOptions: {
 				input: entryFiles,
 				preserveEntrySignatures: "exports-only",

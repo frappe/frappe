@@ -924,7 +924,9 @@ def write_file(path: str, text: str) -> None:
 
 def get_built_css(out_dir: str) -> str:
 	assets_dir = os.path.join(out_dir, "assets")
-	css_files = [name for name in os.listdir(assets_dir) if name.endswith(".css")]
+	css_files = [
+		name for name in os.listdir(assets_dir) if name.endswith(".css") and not name.endswith(".host.css")
+	]
 	return "".join(frappe.read_file(os.path.join(assets_dir, name)) for name in css_files)
 
 

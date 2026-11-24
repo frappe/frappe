@@ -411,6 +411,9 @@ class StudioApp(WebsiteGenerator):
 				if chunk_key != entry_key and "css" in chunk_data:
 					result["stylesheets"].extend(f"{base_path}{css_file}" for css_file in chunk_data["css"])
 
+			if "style.css" in manifest:
+				result["stylesheets"].append(f"{base_path}{manifest['style.css']['file']}")
+
 			return result
 
 		except Exception as e:
