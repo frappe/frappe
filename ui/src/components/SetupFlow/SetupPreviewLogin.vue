@@ -1,9 +1,12 @@
 <template>
 	<!-- Mirrors frappe/www/login.html; keep the two in step. -->
-	<!-- Centred in the part of the preview window on screen; the frame sets the width. -->
+	<!-- Centred in the part of the preview window on screen; the frame sets both values. -->
 	<div
 		class="flex h-full justify-center bg-surface-base pt-16"
-		style="width: var(--setup-preview-visible, 100%)"
+		style="
+			width: var(--setup-preview-visible, 100%);
+			margin-inline-start: var(--setup-preview-hidden, 0px);
+		"
 	>
 		<div class="flex w-full max-w-[400px] flex-col gap-8 p-6">
 			<div class="flex flex-col items-start gap-4">

@@ -113,7 +113,10 @@
 						ref="appEl"
 						data-slot="setup-preview-app"
 						class="relative min-h-0 flex-1 overflow-hidden"
-						:style="{ '--setup-preview-visible': visibleWidth + 'px' }"
+						:style="{
+							'--setup-preview-visible': visibleWidth + 'px',
+							'--setup-preview-hidden': hiddenWidth + 'px',
+						}"
 					>
 						<slot />
 					</div>
@@ -232,6 +235,12 @@ const scale = computed(() =>
 );
 /** How much of the app is on screen, in the app's own pixels. */
 const visibleWidth = computed(() => Math.round(windowWidth.value / scale.value));
+/** How much of the app runs off the start of the window: on the `start` side the end part shows. */
+const hiddenWidth = computed(() =>
+	props.side === "start" && !props.expanded
+		? Math.max(0, props.appWidth - visibleWidth.value)
+		: 0
+);
 const drawingStyle = computed<CSSProperties>(() => {
 	const rtl = document.documentElement.dir === "rtl";
 	const fromEnd = (props.side === "start") !== rtl;
