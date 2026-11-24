@@ -117,6 +117,14 @@ class TestFlowAgentMemory(MemoryCase):
 
 
 class TestSaveMemory(MemoryCase):
+	def test_a_guest_chat_has_no_memory_tool_and_sees_no_memories(self):
+		save_memory(self.agent.name, content=ACME, scope="agent")
+		self.assertIn("update_memory", [tool.name for tool in self.agent.client_tools()])
+
+		frappe.set_user("Guest")
+		self.assertNotIn("update_memory", [tool.name for tool in self.agent.client_tools()])
+		self.assertEqual(self.block(ACME, user="Guest"), "")
+
 	def test_adds_a_memory_in_its_scope_from_the_sessions_running_run(self):
 		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
 		run = frappe.get_doc(
