@@ -221,12 +221,12 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 
-	set_code_author_hint() {
-		if (!this.label_span || !this.read_only_because_of_code_author()) return;
-		if ($(this.label_span).find(".code-author-hint").length) return;
+	set_code_author_hint(label = this.label_span) {
+		if (!label || !this.read_only_because_of_code_author()) return;
+		if ($(label).find(".code-author-hint").length) return;
 
 		const $icon = $(frappe.utils.icon("lock", "xs", "", "", "code-author-hint ml-1")).appendTo(
-			this.label_span
+			label
 		);
 		frappe.ui.tooltip?.($icon, {
 			text: __("Only a user with the Code Author role can change this field"),
