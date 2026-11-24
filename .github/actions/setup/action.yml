@@ -168,6 +168,32 @@ runs:
       end_time=$(date +%s)
       echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
 
+  - id: built-assets
+    shell: bash -e {0}
+    run: |
+      # Key the built assets on every tracked file the asset build reads
+      cd "${GITHUB_WORKSPACE}/apps/frappe"
+      hash=$({
+        git ls-files -s -- . ':!*.py' ':!*.md' ':!.github'
+        git ls-files -s -- frappe/bundler.py frappe/hooks.py frappe/commands/utils.py frappe/gettext frappe/studio
+      } | sha256sum | cut -d' ' -f1)
+      echo "key=built-assets-${{ runner.os }}-node${{ inputs.node-version }}-${NODE_ENV:-development}-${hash}" >> "$GITHUB_OUTPUT"
+
+  - name: Restore built assets
+    id: built-assets-restore
+    if: ${{ inputs.build-assets == 'true' }}
+    uses: actions/cache/restore@v4
+    with:
+      path: |
+        ${{ github.workspace }}/apps/frappe/frappe/public/dist
+        ${{ github.workspace }}/apps/frappe/frappe/public/studio
+        ${{ github.workspace }}/apps/frappe/frappe/public/flow
+        ${{ github.workspace }}/apps/frappe/frappe/public/app_builds
+        ${{ github.workspace }}/sites/assets/assets.json
+        ${{ github.workspace }}/sites/assets/assets-rtl.json
+        ${{ github.workspace }}/sites/assets/locale
+      key: ${{ steps.built-assets.outputs.key }}
+
   - name: Restore island toolchain
     id: island-toolchain-restore
     uses: actions/cache/restore@v4
@@ -210,6 +236,7 @@ runs:
     env:
       DB: ${{ inputs.db }}
       BUILD_ASSETS: ${{ inputs.build-assets }}
+      ASSETS_RESTORED: ${{ steps.built-assets-restore.outputs.cache-hit }}
       ENABLE_SERVER_SCRIPTS: ${{ inputs.enable-server-scripts }}
     run: |
       # Create Site (asset build is CPU-bound and independent of the DB, so
@@ -241,7 +268,9 @@ runs:
       fi
 
       build_pid=""
-      if [ "$BUILD_ASSETS" == "true" ]; then
+      if [ "$ASSETS_RESTORED" == "true" ]; then
+        (cd sites && ../env/bin/python -c "import frappe; frappe.init(''); from frappe.bundler import make_asset_dirs; make_asset_dirs()")
+      elif [ "$BUILD_ASSETS" == "true" ]; then
         CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
         build_pid=$!
       fi
@@ -276,6 +305,20 @@ runs:
 
       end_time=$(date +%s)
       echo -e "\033[33mCreate Site + Build Assets: $((end_time - start_time)) seconds\033[0m"
+
+  - name: Save built assets
+    if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.built-assets-restore.outputs.cache-hit != 'true' }}
+    uses: actions/cache/save@v4
+    with:
+      path: |
+        ${{ github.workspace }}/apps/frappe/frappe/public/dist
+        ${{ github.workspace }}/apps/frappe/frappe/public/studio
+        ${{ github.workspace }}/apps/frappe/frappe/public/flow
+        ${{ github.workspace }}/apps/frappe/frappe/public/app_builds
+        ${{ github.workspace }}/sites/assets/assets.json
+        ${{ github.workspace }}/sites/assets/assets-rtl.json
+        ${{ github.workspace }}/sites/assets/locale
+      key: ${{ steps.built-assets.outputs.key }}
 
   - name: Save yarn cache
     if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.yarn-cache-restore.outputs.cache-hit != 'true' }}
