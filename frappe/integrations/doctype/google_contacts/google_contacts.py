@@ -186,7 +186,7 @@ def sync_contacts_from_google_contacts(g_contact):
 				frappe.db.savepoint("google_contact")
 				try:
 					contact.insert(ignore_permissions=True)
-				except Exception:
+				except frappe.ValidationError:
 					frappe.db.rollback(save_point="google_contact")
 					account.log_error(_("Google Contacts - Could not import a contact"))
 				else:
