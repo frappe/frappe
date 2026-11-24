@@ -1149,19 +1149,16 @@ frappe.views.CommunicationComposer = class {
 			this.recipients = this.frm && this.frm.timeline.get_recipient();
 		}
 
+		let is_reply = Boolean(this.last_email);
 		if (!this.subject && this.frm) {
 			// get subject from last communication
 			const last = this.frm.timeline.get_last_email();
 
 			if (last) {
 				this.subject = last.subject;
+				is_reply = true;
 				if (!this.recipients) {
 					this.recipients = last.sender;
-				}
-
-				// prepend "Re:"
-				if (strip(this.subject.toLowerCase().split(":")[0]) != "re") {
-					this.subject = __("Re: {0}", [this.subject]);
 				}
 			}
 
@@ -1182,6 +1179,19 @@ frappe.views.CommunicationComposer = class {
 			// converting to str for int names
 			if (!cstr(this.subject).includes(identifier)) {
 				this.subject = `${this.subject} (${identifier})`;
+			}
+		}
+
+		if (is_reply && this.subject) {
+			const add_prefix = (subject) =>
+				this.forward ? __("Fw: {0}", [subject]) : __("Re: {0}", [subject]);
+			const prefix = this.forward ? /^\s*fwd?\s*:/i : /^\s*re\s*:/i;
+			const translated_prefix = add_prefix("").trim().toLowerCase();
+			if (
+				!prefix.test(this.subject) &&
+				!this.subject.trim().toLowerCase().startsWith(translated_prefix)
+			) {
+				this.subject = add_prefix(this.subject);
 			}
 		}
 
