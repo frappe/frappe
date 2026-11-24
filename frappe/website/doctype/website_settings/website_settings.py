@@ -224,8 +224,10 @@ def get_website_settings(context=None):
 		context["footer_address"] = settings.address
 
 	for k in ("navbar_template", "footer_template"):
-		if settings.get(k):
-			context[f"{k}_values"] = frappe.parse_json(settings.get(f"{k}_values") or "{}")
+		if template := settings.get(k):
+			values = frappe.parse_json(settings.get(f"{k}_values") or "{}")
+			fields = {f.fieldname for f in frappe.get_cached_doc("Web Template", template).fields}
+			context[f"{k}_values"] = {key: value for key, value in values.items() if key in fields}
 
 	if frappe.request:
 		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
