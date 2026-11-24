@@ -167,6 +167,35 @@ describe("SetupPreviewFrame", () => {
     expect(bar.className).toContain("grid-rows-[0fr]");
   });
 
+  it("tells the app how much runs off the start, so the login sits over the part on screen", async () => {
+    vi.stubGlobal("matchMedia", media(false));
+    const { default: SetupPreviewFrame } = await import("../SetupPreviewFrame.vue");
+    const side = ref<"start" | "end">("start");
+    const expanded = ref(false);
+    const el = mount(() =>
+      h(
+        SetupPreviewFrame,
+        { side: side.value, expanded: expanded.value, appWidth: 1000 },
+        { default: () => h("p", "the app") },
+      ),
+    );
+    const hidden = () =>
+      el
+        .querySelector<HTMLElement>('[data-slot="setup-preview-app"]')!
+        .style.getPropertyValue("--setup-preview-hidden");
+    // jsdom lays nothing out, so none of the app is on screen.
+    expect(hidden()).toBe("1000px");
+
+    side.value = "end";
+    await nextTick();
+    expect(hidden()).toBe("0px");
+
+    side.value = "start";
+    expanded.value = true;
+    await nextTick();
+    expect(hidden()).toBe("0px");
+  });
+
   it("shows a cursor where the host points, and none when motion is reduced", async () => {
     const { default: SetupPreviewFrame } = await import("../SetupPreviewFrame.vue");
     const frame = (reduced: boolean) => {

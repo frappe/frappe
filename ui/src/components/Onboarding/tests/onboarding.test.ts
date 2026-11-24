@@ -142,7 +142,9 @@ describe("useOnboarding", () => {
     expect(vi.mocked(call)).not.toHaveBeenCalled();
 
     onStatusLoaded({
-      frappecrm_onboarding_status: [{ name: "a_role_only_step", completed: true }],
+      frappecrm_onboarding_status: [
+        { name: "a_role_only_step", completed: true },
+      ],
     });
     const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
     expect(saved).toContainEqual({ name: "invite_team", completed: true });
@@ -245,6 +247,22 @@ describe("useOnboarding", () => {
     expect(shown.find((s) => s.name === "create_first_lead")?.completed).toBe(
       true,
     );
+  });
+
+  it("keeps a finished checklist finished when set up again", async () => {
+    const { onboarding, onStatusLoaded } = await load();
+    onboarding.setUp(steps());
+    onStatusLoaded({
+      frappecrm_onboarding_status: steps().map((s) => ({
+        name: s.name,
+        completed: true,
+      })),
+    });
+    expect(onboarding.isOnboardingStepsCompleted.value).toBe(true);
+
+    onboarding.setUp(steps());
+
+    expect(onboarding.stepsCompleted.value).toBe(onboarding.totalSteps.value);
   });
 
   it("shows exactly the steps of the latest setUp", async () => {
