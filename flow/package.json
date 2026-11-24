@@ -32,7 +32,7 @@
 	},
 	"devDependencies": {
 		"jsdom": "^27",
-		"postcss": "^8.4.49",
+		"postcss": "^8.5.23",
 		"tailwindcss": "^3.4.17"
 	},
 	"resolutions": {
