@@ -65,9 +65,6 @@ class PersonalDataDeletionRequest(Document):
 			"Name": "REDACTED",
 		}
 
-	def before_insert(self):
-		self.email = (self.email or "").strip().lower()
-
 	def autoname(self):
 		from frappe.model.naming import set_name_from_naming_options
 
@@ -298,7 +295,7 @@ class PersonalDataDeletionRequest(Document):
 
 		if filter_by_meta and filter_by_meta.fieldtype != "Link":
 			value = doc[filter_by]
-			if self.email in value:
+			if self.email_regex.search(value):
 				value = re.sub(self.email_regex, self.anon, value)
 				value = re.sub(self.full_name_regex, self.anonymization_value_map["Data"], value)
 				self.anonymize_fields_dict[filter_by] = value
@@ -314,6 +311,7 @@ class PersonalDataDeletionRequest(Document):
 			frappe.rename_doc(ref["doctype"], doc["name"], self.anon, force=True, show_alert=False)
 
 	def _anonymize_data(self, email=None, anon=None, set_data=True, commit=False):
+		self.email = self.email.strip().lower()
 		email = email or self.email
 		anon = anon or self.name
 
@@ -504,4 +502,4 @@ def get_user_values(user: str, email: str) -> tuple[str, ...]:
 
 
 def get_pattern(full_match):
-	return re.compile(rf"(?<!\.)\b{re.escape(full_match)}\b(?!\.)")
+	return re.compile(rf"(?<!\.)\b{re.escape(full_match)}\b(?!\.)", re.IGNORECASE)
