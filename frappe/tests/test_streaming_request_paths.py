@@ -4,6 +4,7 @@ import frappe
 from frappe.storage.tests import hook_value
 from frappe.tests.test_api import FrappeAPITestCase, make_request
 from frappe.tests.utils import whitelist_for_tests
+from frappe.utils import get_user_by_email
 
 METHOD = "frappe.tests.test_streaming_request_paths.inspect_request_body"
 ENDPOINT = f"/api/method/{METHOD}"
@@ -89,7 +90,7 @@ class TestStreamingRequestPaths(FrappeAPITestCase):
 			make_oauth_client,
 		)
 
-		user = "test1@example.com"
+		user = get_user_by_email("test1@example.com")
 		access_token = frappe.generate_hash()
 		client = make_oauth_client()
 		token = frappe.get_doc(

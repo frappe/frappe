@@ -7,6 +7,7 @@ from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.core.doctype.user.test_user import test_user
 from frappe.core.doctype.user.user import create_contact
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import (
 	get_user_data,
 )
@@ -22,7 +23,7 @@ class TestRequestPersonalData(IntegrationTestCase):
 		frappe.set_user("Administrator")
 
 	def test_user_data_creation(self):
-		user_data = json.loads(get_user_data("test_privacy@example.com"))
+		user_data = json.loads(get_user_data(get_user_by_email("test_privacy@example.com")))
 		contact_name = get_contact_name("test_privacy@example.com")
 		expected_data = {"Contact": frappe.get_all("Contact", {"name": contact_name}, ["*"])}
 		expected_data = json.loads(json.dumps(expected_data, default=str))
@@ -60,6 +61,7 @@ class TestRequestPersonalData(IntegrationTestCase):
 
 	def test_file_and_email_creation(self):
 		frappe.set_user("test_privacy@example.com")
+		user = get_user_by_email("test_privacy@example.com")
 		download_request = frappe.get_doc(
 			{"doctype": "Personal Data Download Request", "user": "test_privacy@example.com"}
 		)
@@ -77,10 +79,10 @@ class TestRequestPersonalData(IntegrationTestCase):
 		)
 
 		self.assertEqual(len(files), 1)
-		self.assertEqual(files[0].owner, "test_privacy@example.com")
+		self.assertEqual(files[0].owner, user)
 
 		pddr_owner = frappe.db.get_value("Personal Data Download Request", download_request.name, "owner")
-		self.assertEqual(pddr_owner, "test_privacy@example.com")
+		self.assertEqual(pddr_owner, user)
 
 		email_queue = frappe.get_all("Email Queue", fields=["message"], order_by="creation DESC", limit=1)
 		self.assertIn(frappe._("Download Your Data"), email_queue[0].message)
@@ -140,7 +142,8 @@ class TestRequestPersonalData(IntegrationTestCase):
 
 
 def create_user_if_not_exists(email, first_name=None):
-	frappe.delete_doc_if_exists("User", email)
+	if existing := get_user_by_email(email):
+		frappe.delete_doc("User", existing)
 
 	user = frappe.get_doc(
 		{

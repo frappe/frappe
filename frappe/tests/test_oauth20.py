@@ -19,6 +19,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import make_test_records
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+from frappe.utils import get_user_by_email
 from frappe.utils.data import add_to_date, get_datetime
 from frappe.utils.oauth import build_oauth_url
 
@@ -41,7 +42,7 @@ class FrappeRequestTestCase(IntegrationTestCase):
 				set_request(path="/")
 				frappe.local.cookie_manager = CookieManager()
 				frappe.local.login_manager = LoginManager()
-				frappe.local.login_manager.login_as("test@example.com")
+				frappe.local.login_manager.login_as(get_user_by_email("test@example.com"))
 				self._sid = frappe.session.sid
 
 		return self._sid
@@ -161,7 +162,7 @@ class TestOAuth20(FrappeRequestTestCase):
 			expires_in=3600,
 			scopes=self.scope,
 			status="Active",
-			user="test@example.com",
+			user=get_user_by_email("test@example.com"),
 		).insert(ignore_permissions=True)
 		return access_token, token
 
@@ -185,7 +186,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 	def test_bearer_token_rejects_disabled_owner(self):
 		access_token, _token = self._make_bearer_token()
-		frappe.db.set_value("User", "test@example.com", "enabled", 0)
+		frappe.db.set_value("User", get_user_by_email("test@example.com"), "enabled", 0)
 		request = frappe._dict()
 
 		self.assertFalse(OAuthWebRequestValidator().validate_bearer_token(access_token, ["openid"], request))
@@ -494,7 +495,7 @@ class TestOAuth20(FrappeRequestTestCase):
 			expires_in=3600,
 			scopes=self.scope,
 			status="Active",
-			user="test@example.com",
+			user=get_user_by_email("test@example.com"),
 		).insert(ignore_permissions=True)
 
 		self.assertFalse(
@@ -875,7 +876,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"expires_in": 3600,
 				"scopes": self.scope,
 				"status": "Active",
-				"user": "test@example.com",
+				"user": get_user_by_email("test@example.com"),
 			}
 		).insert(ignore_permissions=True)
 

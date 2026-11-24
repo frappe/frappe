@@ -9,13 +9,14 @@ from frappe.core.utils import find
 from frappe.desk.doctype.event.event import get_events
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects, toggle_test_mode
+from frappe.utils import get_user_by_email
 
 
 class TestEvent(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Event")
 		make_test_objects("Event", reset=True)
-		self.test_user = "test1@example.com"
+		self.test_user = get_user_by_email("test1@example.com")
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -61,7 +62,7 @@ class TestEvent(IntegrationTestCase):
 					{
 						"reference_doctype": "User",
 						"reference_docname": self.test_user,
-						"email": self.test_user,
+						"email": "test1@example.com",
 					}
 				],
 			}
@@ -168,10 +169,11 @@ class TestEvent(IntegrationTestCase):
 		from frappe.desk.form.assign_to import add
 
 		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
+		user = get_user_by_email("test@example.com")
 
 		add(
 			{
-				"assign_to": ["test@example.com"],
+				"assign_to": [user],
 				"doctype": "Event",
 				"name": ev.name,
 				"description": "Test Assignment",
@@ -180,7 +182,7 @@ class TestEvent(IntegrationTestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
+		self.assertEqual(ev._assign, json.dumps([user]))
 
 		# add another one
 		add(
@@ -194,7 +196,7 @@ class TestEvent(IntegrationTestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEqual(set(json.loads(ev._assign)), {"test@example.com", self.test_user})
+		self.assertEqual(set(json.loads(ev._assign)), {user, self.test_user})
 
 		# Remove an assignment
 		todo = frappe.get_doc(
@@ -205,7 +207,7 @@ class TestEvent(IntegrationTestCase):
 		todo.save()
 
 		ev = frappe.get_doc("Event", ev.name)
-		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
+		self.assertEqual(ev._assign, json.dumps([user]))
 
 		# cleanup
 		ev.delete()

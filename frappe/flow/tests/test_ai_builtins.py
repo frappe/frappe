@@ -31,6 +31,7 @@ from frappe.flow.utils.safe_exec import NeedsApproval
 from frappe.permissions import SYSTEM_USER_ROLE
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
+from frappe.utils import get_user_by_email
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 MODULE = "frappe.flow.tests.test_ai_builtins"
@@ -187,7 +188,8 @@ class TestDescribe(IntegrationTestCase):
 class TestFindApis(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(self.set_user("test@example.com"))
-		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		self.user = get_user_by_email("test@example.com")
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user=self.user)
 
 	def test_finds_and_describes_python_apis(self):
 		discovery.clear_cache()
@@ -214,15 +216,13 @@ class TestFindApis(IntegrationTestCase):
 			{"override_whitelisted_methods": {f"{MODULE}.get_only": [f"{MODULE}.read_only_whoami"]}}
 		):
 			found = describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)
-			self.assertEqual(
-				call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"][0], "test@example.com"
-			)
+			self.assertEqual(call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"][0], self.user)
 		self.assertEqual(found["path"], f"{MODULE}.read_only_whoami")
 		self.assertTrue(found["read_only"])
 
 	def test_runs_api_server_scripts(self):
-		frappe.get_doc("User", "test@example.com").add_roles("Script Manager")
-		self.addCleanup(frappe.clear_cache, user="test@example.com")
+		frappe.get_doc("User", self.user).add_roles("Script Manager")
+		self.addCleanup(frappe.clear_cache, user=self.user)
 		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
 		self.addCleanup(frappe.db.rollback)
 		self.enterContext(self.enable_safe_exec())
@@ -978,11 +978,11 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 
 def _user(email: str) -> str:
 	"""A user with no roles, so permission checks apply."""
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{"doctype": "User", "email": email, "first_name": "Probe", "send_welcome_email": 0}
-		).insert(ignore_permissions=True)
-	return email
+	if user := get_user_by_email(email):
+		return user
+
+	new_user = frappe.new_doc("User", email=email, first_name="Probe", send_welcome_email=0)
+	return new_user.insert(ignore_permissions=True).name
 
 
 def _todo_hook_fails(hook: str, description: str):

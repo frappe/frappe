@@ -10,6 +10,7 @@ from frappe.automation.doctype.assignment_rule.test_assignment_rule import (
 from frappe.desk.form.load import get_assignments
 from frappe.desk.listview import get_group_by_count
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestAssign(IntegrationTestCase):
@@ -20,17 +21,18 @@ class TestAssign(IntegrationTestCase):
 
 	def test_assign(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
-		if not frappe.db.exists("User", "test@example.com"):
+		if not frappe.db.exists("User", {"email": "test@example.com"}):
 			frappe.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()
 
 		self._test_basic_assign_on_document(todo)
 
 	def _test_basic_assign_on_document(self, doc):
-		added = assign(doc, "test@example.com")
+		user = get_user_by_email("test@example.com")
+		added = assign(doc, user)
 
-		self.assertTrue("test@example.com" in [d.owner for d in added])
+		self.assertTrue(user in [d.owner for d in added])
 
-		frappe.desk.form.assign_to.remove(doc.doctype, doc.name, "test@example.com")
+		frappe.desk.form.assign_to.remove(doc.doctype, doc.name, user)
 
 		# assignment is cleared
 		assignments = frappe.desk.form.assign_to.get(dict(doctype=doc.doctype, name=doc.name))
@@ -90,10 +92,10 @@ class TestAssign(IntegrationTestCase):
 
 	def test_assignment_removal(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
-		if not frappe.db.exists("User", "test@example.com"):
+		if not frappe.db.exists("User", {"email": "test@example.com"}):
 			frappe.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()
 
-		new_todo = assign(todo, "test@example.com")
+		new_todo = assign(todo, get_user_by_email("test@example.com"))
 
 		# remove assignment
 		frappe.db.set_value("ToDo", new_todo[0].name, "allocated_to", "")

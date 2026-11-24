@@ -13,6 +13,7 @@ from frappe.core.api.user_invitation import (
 )
 from frappe.core.doctype.user_invitation.user_invitation import mark_expired_invitations
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 emails = [
 	"test_user_invite1@example.com",
@@ -47,8 +48,8 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		IntegrationTestUserInvitation.delete_all_user_roles()
 		frappe.db.delete("Email Queue")
 		for user_email in emails:
-			if frappe.db.exists("User", user_email):
-				frappe.delete_doc("User", user_email)
+			if user := get_user_by_email(user_email):
+				frappe.delete_doc("User", user)
 		frappe.set_user("Administrator")
 		# some of the code under test commit internally
 		frappe.db.commit()  # nosemgrep
@@ -173,7 +174,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertSequenceEqual(res["pending_invite_emails"], [pending_invite_email])
 		self.assertSequenceEqual(res["invited_emails"], [email_to_invite])
 		self.assertEqual(len(self.get_email_names(False)), 3)
-		user = frappe.get_doc("User", invitation.email)
+		user = frappe.get_doc("User", get_user_by_email(invitation.email))
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 
@@ -196,7 +197,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertSequenceEqual(res["accepted_invite_emails"], [])
 		self.assertSequenceEqual(res["pending_invite_emails"], [])
 		self.assertSequenceEqual(res["invited_emails"], [])
-		frappe.delete_doc("User", user.email)
+		frappe.delete_doc("User", user.name)
 
 	def test_accept_invitation_api_pass_redirect(self):
 		invitation = frappe.get_doc(
@@ -215,7 +216,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(res.type, "redirect")
 		pattern = f"^{re.escape(frappe.utils.get_url(''))}/update-password\\?key=.+&redirect_to=/abc$"
 		self.assertRegex(res.location, pattern)
-		user = frappe.get_doc("User", invitation.email)
+		user = frappe.get_doc("User", get_user_by_email(invitation.email))
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 
@@ -241,7 +242,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(res.type, "redirect")
 		pattern = f"^{re.escape(frappe.utils.get_url(''))}/abc$"
 		self.assertRegex(res.location, pattern)
-		user = frappe.get_doc("User", invitation.email)
+		user = frappe.get_doc("User", get_user_by_email(invitation.email))
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 
