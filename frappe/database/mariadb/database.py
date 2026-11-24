@@ -16,7 +16,7 @@ from frappe.utils import get_table_name, get_timezone_utc_offset
 ER_STATEMENT_TIMEOUT = 1969
 
 
-def quote_index_columns(fields) -> str:
+def quote_index_columns(fields: list[str] | tuple[str, ...]) -> str:
 	return ", ".join(re.sub(r"^`?(\w+)`?", r"`\1`", field.strip()) for field in fields)
 
 
