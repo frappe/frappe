@@ -38,6 +38,7 @@ from frappe.utils import (
 	sbool,
 	split_emails,
 )
+from frappe.utils.password import encrypt
 from frappe.utils.verified_command import get_signed_params
 
 if TYPE_CHECKING:
@@ -432,7 +433,7 @@ class SendMailContext:
 		if self.queue_doc.get("email_read_tracker_url"):
 			email_read_tracker_url = self.queue_doc.email_read_tracker_url
 			params = {
-				"recipient_email": recipient_email,
+				"token": encrypt(recipient_email),
 				"reference_name": self.queue_doc.reference_name,
 				"reference_doctype": self.queue_doc.reference_doctype,
 			}
@@ -686,7 +687,7 @@ class QueueBuilder:
 		:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 		:param header: Append header in email (boolean)
 		:param with_container: Wraps email inside styled container
-		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
+		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient. It receives the recipient's address encrypted as `token`; read it with `frappe.utils.password.decrypt`.
 		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 		:param raw_html: Whether to treat email template as a complete HTML file
