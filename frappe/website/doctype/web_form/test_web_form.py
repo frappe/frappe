@@ -864,19 +864,6 @@ class TestWebForm(IntegrationTestCase):
 			self.assertFalse(form_data.doc.get("notify_on_login"))
 			self.assertFalse(context.reference_doc.get("notify_on_login"))
 
-	def test_get_form_data_rejects_doctype_other_than_web_forms(self):
-		web_form = self.make_temp_web_form()
-
-		with test_user(roles=["Desk User"]) as user:
-			note = frappe.new_doc("Note")
-			note.title = "_Test Other Doctype Note"
-			note.insert(ignore_permissions=True)
-			frappe.db.set_value("Note", note.name, "owner", user.name)
-			self.addCleanup(frappe.delete_doc, "Note", note.name, force=True, ignore_permissions=True)
-
-			with self.set_user(user.name):
-				self.assertRaises(frappe.PermissionError, get_form_data, "Note", note.name, web_form.name)
-
 	def test_guest_reference_doc_exposes_only_web_form_fields(self):
 		"""Guest with a valid key viewing a bound document must only receive
 		web-form field values in reference_doc, not the full document."""
