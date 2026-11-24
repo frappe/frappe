@@ -114,6 +114,7 @@ def sync_contacts_from_google_contacts(g_contact):
 
 	results = []
 	contacts_updated = 0
+	contacts_failed = 0
 
 	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
 	contacts = frappe._dict()
@@ -183,11 +184,14 @@ def sync_contacts_from_google_contacts(g_contact):
 						is_primary_phone=1 if phone.get("metadata").get("primary") else 0,
 					)
 
+				messages = len(frappe.message_log)
 				frappe.db.savepoint("google_contact")
 				try:
 					contact.insert(ignore_permissions=True)
 				except frappe.ValidationError:
 					frappe.db.rollback(save_point="google_contact")
+					del frappe.message_log[messages:]
+					contacts_failed += 1
 					account.log_error(_("Google Contacts - Could not import a contact"))
 				else:
 					contacts_updated += 1
@@ -195,11 +199,17 @@ def sync_contacts_from_google_contacts(g_contact):
 	if contacts.get("nextSyncToken"):
 		frappe.db.set_value("Google Contacts", account.name, "next_sync_token", contacts.get("nextSyncToken"))
 
-	return (
+	message = (
 		_("{0} Google Contacts synced.").format(contacts_updated)
 		if contacts_updated > 0
 		else _("No new Google Contacts synced.")
 	)
+	if contacts_failed:
+		message += " " + _("{0} Google Contacts could not be imported, see the Error Log.").format(
+			contacts_failed
+		)
+
+	return message
 
 
 def insert_contacts_to_google_contacts(doc, method=None):
