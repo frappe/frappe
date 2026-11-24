@@ -76,11 +76,19 @@ class TestWebPage(IntegrationTestCase):
 	def test_jinja_content_needs_code_author(self):
 		jinja_page = make_web_page(main_section_html="<p>{{ 6 * 7 }}</p>")
 		markdown_page = make_web_page(content_type="Markdown", main_section_md="plain")
+		make_web_page(dynamic_template=1, main_section_html="<p>dynamic</p>")
 
 		with test_user(roles=["Website Manager"]) as user, self.set_user(user.name):
 			static_page = make_web_page(main_section_html="<p>About</p>")
 			static_page.main_section_html = "<p>About us</p>"
 			static_page.save()
+
+			# without `{{` this only renders as Jinja on a dynamic page
+			content = "<p>{% if 1 %}x{% endif %}</p>"
+			make_web_page(main_section_html=content)
+			self.assertRaises(
+				frappe.PermissionError, make_web_page, dynamic_template=1, main_section_html=content
+			)
 
 			# the Markdown page keeps HTML in an inactive field that content_type could switch on
 			for page in (jinja_page, markdown_page):

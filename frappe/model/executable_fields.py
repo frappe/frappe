@@ -93,8 +93,15 @@ class CodeFieldGuard:
 		)
 
 	def exists_in_readable_doc(self, fieldname, value, child_doctype=None):
-		filters = [[child_doctype, fieldname, "=", value]] if child_doctype else {fieldname: value}
+		filters = [
+			[child_doctype or self.doc.doctype, fieldname, "=", value],
+			*self.get_source_filters(value, child_doctype),
+		]
 		return bool(frappe.get_list(self.doc.doctype, filters=filters, limit=1, pluck="name"))
+
+	def get_source_filters(self, value, child_doctype=None):
+		"""Extra filters for the copied value's source, e.g. that it also runs the value as code."""
+		return []
 
 
 def is_code_author(user=None):

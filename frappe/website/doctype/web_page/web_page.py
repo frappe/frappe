@@ -209,7 +209,7 @@ class WebPage(WebsiteGenerator):
 		saved = self.get_doc_before_save()
 		if self.has_jinja_content() or (saved and saved.has_jinja_content()):
 			fields = [self.meta.get_field(fieldname) for fieldname in CONTENT_FIELDS]
-			CodeFieldGuard(self, fields=fields).validate()
+			JinjaContentGuard(self, fields=fields).validate()
 
 	def has_jinja_content(self):
 		# every content field, not only the active one: switching content_type would
@@ -321,6 +321,12 @@ def get_dynamic_web_pages() -> dict[str, str]:
 	for method in get_web_pages_with_dynamic_routes:
 		pages.extend(frappe.get_attr(method)())
 	return pages
+
+
+class JinjaContentGuard(CodeFieldGuard):
+	def get_source_filters(self, value, child_doctype=None):
+		# text without Jinja markers is only rendered as Jinja on a dynamic page
+		return [] if has_jinja_markers(value) else [["Web Page", "dynamic_template", "=", 1]]
 
 
 def has_jinja_markers(content):

@@ -419,3 +419,7 @@ class ExpressionValueGuard(CodeFieldGuard):
 		if not (row.evaluate_as_expression or reference.get("evaluate_as_expression")):
 			return False
 		return super().is_authored(row, reference, df, is_new, child_doctype)
+
+	def get_source_filters(self, value, child_doctype=None):
+		# copying a plain value into an expression state would turn it into code
+		return [[child_doctype, "evaluate_as_expression", "=", 1]]

@@ -373,8 +373,17 @@ class TestWorkflow(IntegrationTestCase):
 
 		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
 			workflow = frappe.get_doc("Workflow", self.workflow.name)
-			workflow.states[0].update({"update_field": "status", "update_value": "Open"})
+			workflow.states[0].update({"update_field": "description", "update_value": "frappe.session.user"})
 			workflow.save()
+
+			copy = frappe.copy_doc(workflow)
+			copy.update({"workflow_name": frappe.generate_hash(length=10), "is_active": 0})
+			copy.insert()
+
+			copy = frappe.copy_doc(workflow)
+			copy.update({"workflow_name": frappe.generate_hash(length=10), "is_active": 0})
+			copy.states[0].evaluate_as_expression = 1
+			self.assertRaises(frappe.PermissionError, copy.insert)
 
 			for change in (
 				{"update_value": "frappe.session.user"},
