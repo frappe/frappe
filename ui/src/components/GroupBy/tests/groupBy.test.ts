@@ -352,6 +352,18 @@ describe("grouping by assignee", () => {
     ]);
   });
 
+  it("sorts time-shaped text in a group field as text", () => {
+    const rows = [
+      { slot: "10:00", _assign: '["ann@x.com"]' },
+      { slot: "9:00", _assign: '["ann@x.com"]' },
+    ];
+    const split = splitAssignees(rows, {
+      fields: ["slot", "_assign"],
+      aggregates: [],
+    });
+    expect(split.map((r) => r.slot)).toEqual(["10:00", "9:00"]);
+  });
+
   it("splits within the other group fields and sorts by the chosen column", () => {
     const rows = [
       {

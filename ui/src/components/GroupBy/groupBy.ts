@@ -352,12 +352,12 @@ function mergeInto(
   });
 }
 
-// Nulls sort first going up, as the database sorts them.
-function compareValues(a: unknown, b: unknown): number {
+// Nulls sort first going up, as the database sorts them; only aggregates can hold times.
+function compareValues(a: unknown, b: unknown, aggregate: boolean): number {
   const aEmpty = a === null || a === undefined || a === "";
   const bEmpty = b === null || b === undefined || b === "";
   if (aEmpty || bEmpty) return Number(bEmpty) - Number(aEmpty);
-  const [x, y] = [orderable(a), orderable(b)];
+  const [x, y] = aggregate ? [orderable(a), orderable(b)] : [a, b];
   if (typeof x === "number" && typeof y === "number") return x - y;
   return String(x).localeCompare(String(y));
 }
@@ -394,7 +394,7 @@ export function splitAssignees(
   const order = rowSort(groupBy);
   return result.sort((a, b) => {
     for (const { key, direction } of order) {
-      const diff = compareValues(a[key], b[key]);
+      const diff = compareValues(a[key], b[key], !groupBy.fields.includes(key));
       if (diff) return direction === "desc" ? -diff : diff;
     }
     return 0;
