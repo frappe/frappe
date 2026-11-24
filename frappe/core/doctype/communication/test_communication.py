@@ -670,10 +670,10 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 
 	def test_cc(self):
 		def test(assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False):
+			user = self.new_user(email="cc+1@test.com", thread_notify=thread_notify)
 			if set_user_as:
 				frappe.set_user(set_user_as)
 
-			user = self.new_user(email="cc+1@test.com", thread_notify=thread_notify)
 			comm = self.new_communication(recipients=["to@test.com"], cc=cc_list)
 			res = comm.get_mail_cc_with_displayname(include_sender=include_sender)
 

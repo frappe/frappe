@@ -4,14 +4,16 @@ import frappe
 from frappe.core.doctype.user.test_user import test_user
 from frappe.core.doctype.user.user import get_module_profile
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestModuleProfile(IntegrationTestCase):
 	def setUp(self):
 		frappe.delete_doc_if_exists("Module Profile", "_Test Module Profile", force=1)
 		frappe.delete_doc_if_exists("Module Profile", "_Test Module Profile 2", force=1)
-		frappe.delete_doc_if_exists("User", "test-module-user1@example.com", force=1)
-		frappe.delete_doc_if_exists("User", "test-module-user2@example.com", force=1)
+		for email in ("test-module-user1@example.com", "test-module-user2@example.com"):
+			if user := get_user_by_email(email):
+				frappe.delete_doc("User", user, force=1)
 
 	def test_make_new_module_profile(self):
 		frappe.get_doc(
@@ -205,7 +207,7 @@ class TestModuleProfile(IntegrationTestCase):
 		profile = frappe.get_doc(
 			{"doctype": "Module Profile", "module_profile_name": "_Test Module Profile"}
 		).insert()
-		frappe.get_doc(
+		user = frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": "test-module-user1@example.com",
@@ -213,7 +215,7 @@ class TestModuleProfile(IntegrationTestCase):
 				"roles": [{"role": "_Test Role 2"}],
 			}
 		).insert()
-		frappe.share.add("Module Profile", profile.name, "test-module-user1@example.com", read=1)
+		frappe.share.add("Module Profile", profile.name, user.name, read=1)
 
 		with self.set_user("test-module-user1@example.com"):
 			frappe.clear_messages()

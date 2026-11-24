@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestViewLog(IntegrationTestCase):
@@ -30,5 +31,5 @@ class TestViewLog(IntegrationTestCase):
 			fieldname=["viewed_by"],
 		)
 
-		self.assertEqual("test@example.com", a)
-		self.assertNotEqual("test1@example.com", a)
+		self.assertEqual(get_user_by_email("test@example.com"), a)
+		self.assertNotEqual(get_user_by_email("test1@example.com"), a)
