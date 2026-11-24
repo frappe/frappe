@@ -50,6 +50,9 @@ frappe.form.formatters = {
 		return frappe.form.formatters._apply_custom_formatter(value, df);
 	},
 	Autocomplete: function (value, df) {
+		if (typeof df?.options === "string" && df.options[0] === "[") {
+			df = { ...df, options: frappe.utils.parse_json(df.options) };
+		}
 		return frappe.form.formatters.Select(value, df);
 	},
 	Select: function (value, df) {
