@@ -21,6 +21,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, resolve_method, run_server_script, upload_file
 from frappe.mcp import handle as handle_mcp
+from frappe.model.executable_fields import CodeFieldGuard
 from frappe.model.utils import is_virtual_doctype
 
 PERMISSION_MAP = {
@@ -656,6 +657,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 		doc.check_permission(ptype)
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
+	CodeFieldGuard(doc).validate()
 
 	method_obj = getattr(doc, method)
 	fn = getattr(method_obj, "__func__", method_obj)
