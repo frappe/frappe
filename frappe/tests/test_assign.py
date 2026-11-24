@@ -118,6 +118,41 @@ class TestAssign(IntegrationTestCase):
 			self.assertIn(todo.name, run_filter("="))
 			self.assertNotIn(todo.name, run_filter("!="))
 
+	def test_assign_filter_matches_exact_user(self):
+		users = (
+			"ann@example.com",
+			"joann@example.com",
+			"a_b@example.com",
+			"axb@example.com",
+			"a%b@example.com",
+		)
+		user_by_todo = {}
+		for user in (*users, None):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "exact assign filter test"}).insert()
+			frappe.db.set_value("ToDo", todo.name, "_assign", frappe.as_json([user]) if user else None)
+			user_by_todo[todo.name] = user
+
+		def matched(operator, value):
+			names = frappe.get_all(
+				"ToDo",
+				filters=[["_assign", operator, value], ["name", "in", list(user_by_todo)]],
+				pluck="name",
+			)
+			return {user_by_todo[name] for name in names}
+
+		everyone = {*users, None}
+		self.assertEqual(matched("=", "Ann@example.com"), {"ann@example.com"})
+		self.assertEqual(matched("=", "a_b@example.com"), {"a_b@example.com"})
+		self.assertEqual(matched("=", "a%b@example.com"), {"a%b@example.com"})
+		self.assertEqual(matched("!=", "Ann@example.com"), everyone - {"ann@example.com"})
+		self.assertEqual(
+			matched("in", ["Ann@example.com", "a_b@example.com"]), {"ann@example.com", "a_b@example.com"}
+		)
+		self.assertEqual(
+			matched("not in", ["Ann@example.com", "a_b@example.com"]),
+			everyone - {"ann@example.com", "a_b@example.com"},
+		)
+
 
 def assign(doc, user):
 	return frappe.desk.form.assign_to.add(
