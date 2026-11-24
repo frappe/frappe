@@ -126,7 +126,8 @@ export default class ImageResize {
 	}
 
 	get_alignment() {
-		const { marginLeft, marginRight } = this.img.style;
+		const { display, marginLeft, marginRight } = this.img.style;
+		if (display !== "block") return;
 		return ALIGNMENTS.find(
 			(alignment) =>
 				(marginLeft === "auto") === (alignment.margin_left === "auto") &&
@@ -152,12 +153,15 @@ export default class ImageResize {
 	update() {
 		const img_rect = this.img.getBoundingClientRect();
 		const container_rect = this.container.getBoundingClientRect();
-		Object.assign(this.overlay.style, {
-			left: `${img_rect.left - container_rect.left + this.container.scrollLeft}px`,
-			top: `${img_rect.top - container_rect.top + this.container.scrollTop}px`,
-			width: `${img_rect.width}px`,
-			height: `${img_rect.height}px`,
-		});
+		const position = {
+			left: img_rect.left - container_rect.left + this.container.scrollLeft,
+			top: img_rect.top - container_rect.top + this.container.scrollTop,
+			width: img_rect.width,
+			height: img_rect.height,
+		};
+		for (const [name, value] of Object.entries(position)) {
+			this.overlay.style.setProperty(`--ql-image-${name}`, `${value}px`);
+		}
 
 		const alignment = this.get_alignment();
 		this.buttons.forEach((button, i) => {
