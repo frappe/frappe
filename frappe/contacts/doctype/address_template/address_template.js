@@ -3,8 +3,8 @@
 
 frappe.ui.form.on("Address Template", {
 	refresh: function (frm) {
-		if (frm.is_new() && !frm.doc.template) {
-			// set default template via js so that it is translated
+		if (frm.is_new() && !frm.doc.template && frappe.user.has_role("Code Author")) {
+			// set default template via js so that it is translated; others get it on save
 			frappe.call({
 				method: "frappe.contacts.doctype.address_template.address_template.get_default_address_template",
 				callback: function (r) {

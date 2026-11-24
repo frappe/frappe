@@ -16,6 +16,7 @@
  "fields": [
   {
    "depends_on": "eval:!doc.standard",
+   "executes_code": 1,
    "fieldname": "template",
    "fieldtype": "Code",
    "label": "Template",
@@ -54,7 +55,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-21 23:24:24.408508",
+ "modified": "2026-11-24 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
