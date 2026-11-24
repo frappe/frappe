@@ -365,14 +365,16 @@ class User(Document):
 			return previous.email
 
 	def on_update(self):  # nosemgrep: frappe-modifying-but-not-comitting
+		sync_contact = any(self.has_value_changed(field) for field in CONTACT_FIELDS)
+		old_email = self._previous_email()
+
 		# clear new password
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
 		self.__new_password = None
-		if any(self.has_value_changed(field) for field in CONTACT_FIELDS):
-			old_email = self._previous_email()
+		if sync_contact:
 			frappe.enqueue(
 				"frappe.core.doctype.user.user.create_contact",
 				user=self,
