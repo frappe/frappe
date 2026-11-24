@@ -69,7 +69,7 @@ describe("useGroupByData", () => {
       {}
     );
     const [groups, keys] = h.resources;
-    expect(groups.calls.at(-1).limit_page_length).toBe(1000);
+    expect(groups.calls.at(-1).limit_page_length).toBe(0);
     expect(keys.calls).toEqual([]);
     expect(data.hasCounts.value).toBe(false);
 

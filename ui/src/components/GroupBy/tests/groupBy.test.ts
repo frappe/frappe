@@ -332,6 +332,26 @@ describe("grouping by assignee", () => {
     ]);
   });
 
+  it("compares unpadded times as times", () => {
+    const rows = [
+      { _assign: '["ann@x.com"]', _aggregate_0: "10:00:00" },
+      { _assign: '["ann@x.com", "bob@x.com"]', _aggregate_0: "9:00:00" },
+    ];
+    const byMin = splitAssignees(rows, {
+      fields: ["_assign"],
+      aggregates: [{ function: "min", fieldname: "start_time" }],
+    });
+    expect(byMin.map((r) => r._aggregate_0)).toEqual(["9:00:00", "9:00:00"]);
+    const byMax = splitAssignees(rows, {
+      fields: ["_assign"],
+      aggregates: [{ function: "max", fieldname: "start_time" }],
+    });
+    expect(byMax).toEqual([
+      { _assign: "ann@x.com", _aggregate_0: "10:00:00" },
+      { _assign: "bob@x.com", _aggregate_0: "9:00:00" },
+    ]);
+  });
+
   it("splits within the other group fields and sorts by the chosen column", () => {
     const rows = [
       {

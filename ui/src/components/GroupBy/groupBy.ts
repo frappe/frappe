@@ -314,10 +314,20 @@ function addValues(a: unknown, b: unknown): unknown {
   return Number(a) + Number(b);
 }
 
+const TIME = /^(\d+):(\d{2})(?::(\d{2}(?:\.\d+)?))?$/;
+
+// Times come back unpadded ("9:00:00"), so compare them as seconds; dates sort as text.
+function orderable(value: unknown): number | string {
+  if (typeof value === "number") return value;
+  const time = TIME.exec(String(value));
+  if (!time) return String(value);
+  return Number(time[1]) * 3600 + Number(time[2]) * 60 + Number(time[3] ?? 0);
+}
+
 function pickValue(a: unknown, b: unknown, fn: "min" | "max"): unknown {
   if (a === null || a === undefined) return b;
   if (b === null || b === undefined) return a;
-  const [x, y] = [a as number | string, b as number | string];
+  const [x, y] = [orderable(a), orderable(b)];
   if (fn === "min") return y < x ? b : a;
   return y > x ? b : a;
 }
@@ -347,8 +357,9 @@ function compareValues(a: unknown, b: unknown): number {
   const aEmpty = a === null || a === undefined || a === "";
   const bEmpty = b === null || b === undefined || b === "";
   if (aEmpty || bEmpty) return Number(bEmpty) - Number(aEmpty);
-  if (typeof a === "number" && typeof b === "number") return a - b;
-  return String(a).localeCompare(String(b));
+  const [x, y] = [orderable(a), orderable(b)];
+  if (typeof x === "number" && typeof y === "number") return x - y;
+  return String(x).localeCompare(String(y));
 }
 
 /** Turn rows per list of assignees into sorted rows per user, a record counting under each assignee. */

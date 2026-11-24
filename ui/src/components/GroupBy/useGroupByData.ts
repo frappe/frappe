@@ -86,7 +86,8 @@ export function useGroupByData(
       doctype: toValue(doctype),
       filters: toValue(filters),
       ...serializeGroupBy(grouping()),
-      limit_page_length: splitsLocally(grouping()) ? COUNT_CAP : limit.value,
+      // Grouped by assignee, every group is needed to add up each user's values; 0 is no limit.
+      limit_page_length: splitsLocally(grouping()) ? 0 : limit.value,
     }),
   });
 
@@ -168,11 +169,8 @@ export function useGroupByData(
       ? splitGroups.value.length
       : groupKeys.data?.length ?? 0
   );
-  // Grouped by assignee, the cap is on the lists of assignees fetched.
-  const totalCapped = computed(() =>
-    splitsLocally(toValue(groupBy))
-      ? (groups.data?.length ?? 0) >= COUNT_CAP
-      : totalCount.value >= COUNT_CAP
+  const totalCapped = computed(
+    () => !splitsLocally(toValue(groupBy)) && totalCount.value >= COUNT_CAP
   );
 
   return {
