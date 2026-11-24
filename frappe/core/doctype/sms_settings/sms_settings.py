@@ -126,9 +126,14 @@ def send_via_gateway(arg):
 			args[d.parameter] = d.value
 
 	success_list = []
+	failed_list = []
 	for d in arg.get("receiver_list"):
 		args[ss.receiver_parameter] = d
-		status = send_request(ss.sms_gateway_url, args, headers, ss.use_post, use_json)
+		try:
+			status = send_request(ss.sms_gateway_url, args, headers, ss.use_post, use_json)
+		except frappe.ValidationError:
+			failed_list.append(d)
+			continue
 
 		if 200 <= status < 300:
 			success_list.append(d)
@@ -138,6 +143,9 @@ def send_via_gateway(arg):
 		create_sms_log(args, success_list)
 		if arg.get("success_msg"):
 			frappe.msgprint(_("SMS sent successfully"))
+
+	if failed_list:
+		frappe.msgprint(_("SMS could not be sent to {0}").format(", ".join(failed_list)), indicator="red")
 
 
 def get_headers(sms_settings=None):
@@ -175,7 +183,10 @@ def send_request(gateway_url, params, headers=None, use_post=False, use_json=Fal
 	except requests.RequestException as e:
 		# the exception text carries the gateway URL, which can include credentials
 		status = getattr(e.response, "status_code", None)
-		frappe.log_error(title="SMS gateway request failed", message=f"{type(e).__name__} (status {status})")
+		frappe.log_error(
+			title="SMS gateway request failed",
+			message=f"{type(e).__name__} (status {status})\n{getattr(e.response, 'text', '')[:1000]}",
+		)
 		raise frappe.ValidationError(_("SMS gateway request failed")) from None
 	return response.status_code
 
