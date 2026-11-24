@@ -2581,7 +2581,8 @@ frappe.ui.form.Form = class FrappeForm {
 		let doctype = this.doctype;
 		let docname = this.docname;
 
-		if (this.doc && !this.is_new()) {
+		const opened_doc = frappe.get_doc(doctype, docname);
+		if (opened_doc && !opened_doc.__islocal) {
 			frappe.realtime.doc_subscribe(doctype, docname);
 		}
 		frappe.realtime.off("docinfo_update");
