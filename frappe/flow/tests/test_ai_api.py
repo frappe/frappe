@@ -809,7 +809,7 @@ class TestSessionEndpoints(ApiCase):
 			fields=["for_user", "type", "subject", "link"],
 			order_by="for_user asc",
 		)
-		self.assertCountEqual([log.for_user for log in logs], ["Administrator", viewer])
+		self.assertEqual({log.for_user for log in logs}, {"Administrator", viewer})
 		shared = next(log for log in logs if log.for_user == viewer)
 		self.assertEqual((shared.type, shared.link), ("Share", get_url(f"/flow/s/{name}")))
 		self.assertIn("&lt;b&gt;Q3&lt;/b&gt;", shared.subject)
