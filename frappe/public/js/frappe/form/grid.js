@@ -1267,7 +1267,10 @@ export default class Grid {
 					this.df.data = this.get_data() || [];
 				}
 				const defaults = this.docfields.reduce((acc, d) => {
-					acc[d.fieldname] = d.default;
+					acc[d.fieldname] =
+						d.default && frappe.model.is_numeric_field(d.fieldtype)
+							? flt(d.default, null, "#,###.##")
+							: d.default;
 					return acc;
 				}, {});
 

@@ -173,7 +173,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let defaults = {};
 		for (let df of this.fields) {
 			if (df.default) {
-				defaults[df.fieldname] = df.default;
+				defaults[df.fieldname] = frappe.model.is_numeric_field(df.fieldtype)
+					? flt(df.default, null, "#,###.##")
+					: df.default;
 			}
 		}
 		let values = frappe.utils.get_query_params();

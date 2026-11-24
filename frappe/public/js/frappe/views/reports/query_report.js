@@ -2332,8 +2332,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				label: __("User Permissions"),
 				action: () =>
 					frappe.set_route("List", "User Permission", {
-						doctype: "Report",
-						name: this.report_name,
+						allow: "Report",
+						for_value: this.report_name,
 					}),
 				condition: () => frappe.user.has_role("System Manager"),
 				standard: true,

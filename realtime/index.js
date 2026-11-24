@@ -41,6 +41,7 @@ function on_connection(socket) {
 	// ESBUild "open in editor" on error
 	socket.on("open_in_editor", async (data) => {
 		const client = get_redis_subscriber();
+		client.on("error", (err) => console.warn("open_in_editor: redis error", err.message));
 		try {
 			await client.connect();
 			await client.publish("open_in_editor", JSON.stringify(data));
@@ -78,6 +79,7 @@ realtime.on("connection", on_connection);
 
 // Consume events sent from python via redis pub-sub channel.
 const subscriber = get_redis_subscriber();
+subscriber.on("error", (err) => console.warn("realtime: redis error", err.message));
 
 (async () => {
 	await subscriber.connect();

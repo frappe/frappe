@@ -97,7 +97,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			if (me.frm) {
 				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
 			} else if (me.doc) {
-				me.value = me.doc[me.df.fieldname] || "";
+				me.value = me.doc[me.df.fieldname] ?? "";
 			}
 
 			let is_fetch_from_read_only = me.read_only_because_of_fetch_from();

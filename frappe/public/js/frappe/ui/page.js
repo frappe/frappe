@@ -923,7 +923,7 @@ frappe.ui.Page = class Page {
 		};
 
 		// Add actions as menu item in Mobile View. The store keeps the flat
-		// "Group > Label" item (dedupe and remove_custom_button look it up by
+		// "Group > Label" item (dedupe and remove_inner_button look it up by
 		// that label) — the snapshot renders stamped items as a nested
 		// "Group" row with a submenu instead.
 		let menu_item_label = group ? `${group} > ${label}` : label;
@@ -968,6 +968,7 @@ frappe.ui.Page = class Page {
 	}
 
 	remove_inner_button(label, group) {
+		let menu_item_label = group ? `${group} > ${label}` : label;
 		if (typeof label === "string") {
 			label = [label];
 		}
@@ -985,6 +986,15 @@ frappe.ui.Page = class Page {
 			}
 		} else {
 			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
+		}
+
+		let $menu_item = this.is_in_group_button_dropdown(
+			this.menu,
+			"li > a.grey-link > span",
+			menu_item_label
+		);
+		if ($menu_item) {
+			$menu_item.closest("li").remove();
 		}
 	}
 
