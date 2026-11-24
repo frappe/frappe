@@ -822,9 +822,9 @@ class InboundMail(Email):
 		):
 			return communication
 
-		if frappe.local.site in self.message_id:
+		name, _, domain = self.message_id.rpartition("@")
+		if name and domain == frappe.local.site:
 			# a copy this site sent of a received mail, e.g. to an assignee who is also this inbox
-			name, _ = self.message_id.split("@", 1)
 			return Communication.find_one_by_filters(name=name, **filters)
 
 	def is_sender_same_as_receiver(self):
