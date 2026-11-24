@@ -806,7 +806,7 @@ class InboundMail(Email):
 			auto_submitted != "no"
 			or "X-Autoreply" in self.mail
 			or "X-Autorespond" in self.mail
-			or precedence in ("bulk", "junk", "list")
+			or precedence in ("bulk", "junk")
 		)
 
 	def is_exist_in_system(self):
