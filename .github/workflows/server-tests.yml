@@ -111,7 +111,10 @@ jobs:
 
       - name: Site Setup
         run: |
-          # one more site per extra worker, so the workers do not share data
+          # one more site per extra worker, copied from the first, so the workers do not share data
+          if [ "$WORKERS" -gt 1 ]; then
+            bench --site test_site backup --backup-path-db "$RUNNER_TEMP/test_site.sql.gz"
+          fi
           for worker in $(seq 2 "$WORKERS"); do
             site="test_site_$worker"
             echo "127.0.0.1 $site" | sudo tee -a /etc/hosts
@@ -119,7 +122,8 @@ jobs:
               --db-type ${{ matrix.db }} \
               --db-host 127.0.0.1 \
               --db-name "test_frappe_$worker" \
-              --db-password test_frappe
+              --db-password test_frappe \
+              --source-sql "$RUNNER_TEMP/test_site.sql.gz"
             jq -s --arg host "http://$site:8000" '.[1] + .[0] + {host_name: $host}' \
               "sites/$site/site_config.json" sites/test_site/site_config.json > site_config.json
             mv site_config.json "sites/$site/site_config.json"
