@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.flow.utils.safe_exec import get_flow_safe_globals, safe_exec
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.utils.safe_exec import ServerScriptNotEnabled
 
 SENDMAIL = 'frappe.sendmail(recipients=["someone@example.com"], attachments=attachments)'
@@ -293,14 +294,16 @@ class TestFlowSafeExec(IntegrationTestCase):
 	def _desk_user(self):
 		"""A Flow User, which Frappe also gives Desk User."""
 		email = "flow-desk-user@example.com"
-		if not frappe.db.exists("User", email):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": email,
-					"first_name": "Desk",
-					"send_welcome_email": 0,
-					"roles": [{"role": "Flow User"}],
-				}
-			).insert(ignore_permissions=True)
-		return email
+		if user := get_user_by_email(email):
+			return user
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "Desk",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Flow User"}],
+			}
+		).insert(ignore_permissions=True)
+		return user.name

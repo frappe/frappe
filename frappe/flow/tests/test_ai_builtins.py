@@ -728,7 +728,8 @@ class TestReadOnlyCalls(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.rollback()
 		self.enterContext(self.set_user("test@example.com"))
-		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		self.user = get_user_by_email("test@example.com")
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user=self.user)
 
 	def tearDown(self):
 		frappe.db.rollback()
@@ -763,7 +764,7 @@ class TestReadOnlyCalls(IntegrationTestCase):
 
 	def test_a_read_function_runs_once_and_the_database_refuses_its_writes(self):
 		result = self.run_function("read_only_whoami")
-		self.assertEqual(result["result"], ["test@example.com", "System Manager"])
+		self.assertEqual(result["result"], [self.user, "System Manager"])
 		self.assertEqual(result["title"], "Test Ai Builtins: Read Only Whoami")
 		for name, error in (
 			("read_only_that_commits_then_writes", "read-only transaction"),
@@ -776,11 +777,9 @@ class TestReadOnlyCalls(IntegrationTestCase):
 
 	def test_read_only_code_runs_without_a_card_and_stops_at_the_rest(self):
 		run = lambda code: execute(code=code, description="Look", read_only=True, ctx=self.ctx)  # noqa: E731
-		self.assertEqual(run("result = frappe.session.user"), "test@example.com")
-		self.assertEqual(run(f'result = frappe.call("{MODULE}.read_only_whoami")')[0], "test@example.com")
-		self.assertEqual(
-			run(f'result = call_api("{MODULE}.read_only_whoami")')["result"][0], "test@example.com"
-		)
+		self.assertEqual(run("result = frappe.session.user"), self.user)
+		self.assertEqual(run(f'result = frappe.call("{MODULE}.read_only_whoami")')[0], self.user)
+		self.assertEqual(run(f'result = call_api("{MODULE}.read_only_whoami")')["result"][0], self.user)
 		self.assertEqual(
 			run(f'result = run_action("", [], "{MODULE}.read_only_whoami")')["result"][1], "System Manager"
 		)
@@ -818,7 +817,7 @@ frappe.call("{MODULE}.read_only_whoami")
 create("ToDo", [{{"description": "approved code, after the read"}}])
 result = seen["result"][0]
 """
-		self.assertEqual(execute(code=code, description="Write and read", ctx=self.ctx), "test@example.com")
+		self.assertEqual(execute(code=code, description="Write and read", ctx=self.ctx), self.user)
 		self.assertEqual(frappe.db.count("ToDo", {"description": ["like", "approved code%"]}), 2)
 
 	def test_read_only_code_reaches_nothing_outside_the_database(self):
