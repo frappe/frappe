@@ -400,7 +400,7 @@ frappe.views.CommunicationComposer = class {
 				},
 				options: () =>
 					formats.map((format) => ({
-						label: format,
+						label: __(format),
 						selected:
 							!!fields.attach_document_print.get_value() &&
 							fields.select_print_format.get_value() === format,
@@ -1329,7 +1329,7 @@ frappe.views.CommunicationComposer = class {
 		const fields = this.dialog.fields_dict;
 		const lang = fields.print_language?.get_value() || "";
 		const parts = [
-			fields.select_print_format?.get_value(),
+			__(fields.select_print_format?.get_value()),
 			fields.select_letter_head?.get_value(),
 			this._language_labels?.[lang] || lang,
 		];
