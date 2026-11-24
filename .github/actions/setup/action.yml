@@ -206,20 +206,6 @@ runs:
       end_time=$(date +%s)
       echo -e "\033[33mInstall dev/test deps: $((end_time - start_time)) seconds\033[0m"
 
-  - name: Save yarn cache
-    if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.yarn-cache-restore.outputs.cache-hit != 'true' }}
-    uses: actions/cache/save@v4
-    with:
-      path: ${{ steps.yarn-cache.outputs.dir }}
-      key: ${{ steps.yarn-cache-restore.outputs.cache-primary-key }}
-
-  - name: Save island toolchain
-    if: ${{ github.ref == 'refs/heads/develop' && steps.island-toolchain-restore.outputs.cache-hit != 'true' }}
-    uses: actions/cache/save@v4
-    with:
-      path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
-      key: ${{ steps.island-toolchain-restore.outputs.cache-primary-key }}
-
   - shell: bash -e {0}
     env:
       DB: ${{ inputs.db }}
@@ -290,6 +276,20 @@ runs:
 
       end_time=$(date +%s)
       echo -e "\033[33mCreate Site + Build Assets: $((end_time - start_time)) seconds\033[0m"
+
+  - name: Save yarn cache
+    if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.yarn-cache-restore.outputs.cache-hit != 'true' }}
+    uses: actions/cache/save@v4
+    with:
+      path: ${{ steps.yarn-cache.outputs.dir }}
+      key: ${{ steps.yarn-cache-restore.outputs.cache-primary-key }}
+
+  - name: Save island toolchain
+    if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.island-toolchain-restore.outputs.cache-hit != 'true' }}
+    uses: actions/cache/save@v4
+    with:
+      path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
+      key: ${{ steps.island-toolchain-restore.outputs.cache-primary-key }}
 
   - shell: bash -e {0}
     run: |
