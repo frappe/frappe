@@ -692,7 +692,7 @@ def update_reference(docname: str, reference: str):
 def unlink_auto_repeat(doctype: str, docname: str | int):
 	docname = str(docname)
 	if not frappe.get_meta(doctype).has_field("auto_repeat"):
-		frappe.throw(_("{0} does not support Auto Repeat").format(_(doctype)))
+		frappe.throw(_("{0} does not support Auto Repeat").format(_(doctype)), title=_("Not Supported"))
 
 	frappe.has_permission(doctype, "write", docname, throw=True)
 	auto_repeat = frappe.db.get_value(doctype, docname, "auto_repeat")
@@ -705,7 +705,8 @@ def unlink_auto_repeat(doctype: str, docname: str | int):
 		frappe.throw(
 			_("This document is the reference of Auto Repeat {0}. Disable the Auto Repeat instead.").format(
 				frappe.bold(auto_repeat)
-			)
+			),
+			title=_("Cannot Unlink Auto Repeat"),
 		)
 
 	frappe.db.set_value(doctype, docname, "auto_repeat", None)
