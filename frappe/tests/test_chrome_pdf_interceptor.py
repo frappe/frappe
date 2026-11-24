@@ -1,11 +1,16 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import contextlib
 import os
+import socket
+import threading
+import time
+from concurrent.futures import Future
 from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
-from frappe.utils.pdf_generator.page import Page
+from frappe.utils.pdf_generator.page import Page, read_external_resource
 
 
 def _make_page(session):
@@ -18,9 +23,16 @@ def _make_page(session):
 	return page
 
 
+def _run_in_executor(executor, func, *args):
+	future = Future()
+	future.set_result(func(*args))
+	return future
+
+
 def _make_session(captured):
 	"""Mock CDP session that captures the Fetch.requestPaused callback and records send() calls."""
 	session = MagicMock()
+	session.loop.run_in_executor.side_effect = _run_in_executor
 
 	def fake_start_listener(event_name, callback, *args):
 		if event_name == "Fetch.requestPaused":
@@ -56,14 +68,15 @@ class TestPdfStreamHandle(UnitTestCase):
 			page.get_pdf_stream_id()
 
 
-def _fire_request(callback, request_id, url):
+def _fire_request(callback, request_id, url, **params):
 	"""Simulate Chrome firing a Fetch.requestPaused CDP event."""
 	callback(
 		future=MagicMock(),
 		response={
 			"params": {
 				"requestId": request_id,
-				"request": {"url": url},
+				"request": {"url": url, "method": "GET"},
+				**params,
 			}
 		},
 	)
@@ -100,7 +113,7 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 			patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST),
 			patch("frappe.read_file") as mock_read,
 		):
-			_fire_request(callback, "req-1", HOST)
+			_fire_request(callback, "req-1", HOST, resourceType="Document", frameId="test_frame")
 
 		self.session.send.assert_any_call(
 			"Fetch.continueRequest", {"requestId": "req-1"}, "test_session", True
@@ -151,17 +164,89 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 
 	def test_unknown_origin_url_sends_continue(self):
 		"""
-		Requests for URLs outside the site host are passed through to the network.
+		With internal URLs allowed in the common site config, requests for URLs outside
+		the site host are passed through to the network.
 		"""
 		callback = self._register()
 
-		with patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST):
+		with (
+			patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST),
+			patch("frappe.utils.pdf_generator.page.allows_internal_print_urls", return_value=True),
+		):
 			_fire_request(callback, "req-4", "https://cdn.example.com/some.js")
 
 		sent = self._sent_methods()
 		self.assertIn("Fetch.continueRequest", sent)
 		self.assertNotIn("Fetch.fulfillRequest", sent)
 		self.assertNotIn("Fetch.failRequest", sent)
+
+	def test_external_url_is_fulfilled_from_guarded_read(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		callback = self._register()
+
+		with (
+			patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST),
+			patch(
+				"frappe.utils.pdf_generator.page.read_external_resource",
+				return_value=(b"image", {"Content-Type": "image/png"}, 200),
+			),
+		):
+			_fire_request(callback, "req-8", "https://cdn.example.com/logo.png")
+
+		sent = self._sent_methods()
+		self.assertIn("Fetch.fulfillRequest", sent)
+		self.assertNotIn("Fetch.continueRequest", sent)
+
+	def test_request_address_validation_sends_fail(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		callback = self._register()
+
+		with patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST):
+			_fire_request(callback, "req-6", "http://127.0.0.1/some.js")
+
+		sent = self._sent_methods()
+		self.assertIn("Fetch.failRequest", sent)
+		self.assertNotIn("Fetch.continueRequest", sent)
+		self.assertNotIn("Fetch.fulfillRequest", sent)
+
+	def test_host_that_cannot_be_encoded_sends_fail(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		callback = self._register()
+
+		with patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST):
+			_fire_request(callback, "req-7", f"http://{'a' * 64}.example.com/logo.png")
+
+		self.assertIn("Fetch.failRequest", self._sent_methods())
+
+	def test_external_read_ends_at_its_time_limit(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		server = socket.create_server(("127.0.0.1", 0))
+		self.addCleanup(server.close)
+
+		def respond():
+			connection, _address = server.accept()
+			with connection, contextlib.suppress(OSError):
+				connection.recv(65536)
+				connection.sendall(b"HTTP/1.1 200 OK\r\nX-Item: ")
+				for _byte in range(60):
+					connection.sendall(b"a")
+					time.sleep(0.05)
+
+		threading.Thread(target=respond, daemon=True).start()
+		started = time.monotonic()
+		with (
+			patch("frappe.utils.safe_exec.validate_request_url"),
+			patch("frappe.utils.safe_exec.validate_request_address"),
+			patch("frappe.utils.pdf_generator.page.EXTERNAL_FETCH_SECONDS", 0.3),
+		):
+			resource = read_external_resource(f"http://127.0.0.1:{server.getsockname()[1]}/logo.png", 1024)
+
+		self.assertIsNone(resource)
+		self.assertLess(time.monotonic() - started, 2)
 
 
 class TestChromePDFElementHeight(UnitTestCase):
