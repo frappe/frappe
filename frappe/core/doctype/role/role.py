@@ -147,7 +147,7 @@ def get_user_info(users, field="email"):
 		"User",
 		filters=[
 			["name", "in", user_names],
-			["name", "!=", "Guest"],
+			["name", "not in", frappe.STANDARD_USERS],
 			["enabled", "=", 1],
 		],
 		pluck=field,

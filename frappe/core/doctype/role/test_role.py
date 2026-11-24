@@ -51,8 +51,7 @@ class TestUser(IntegrationTestCase):
 		for user in sys_managers:
 			self.assertIn(role, frappe.get_roles(user))
 
-		self.assertIn("Administrator", sys_managers)
-		self.assertNotIn("Guest", get_info_based_on_role("Guest", field="name"))
+		self.assertNotIn("Administrator", sys_managers)
 
 	def test_has_role_query_needs_parent_doctype(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
