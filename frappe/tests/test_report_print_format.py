@@ -5,6 +5,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.query_report import get_print_format_data, run
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.utils.print_format import download_report_pdf, render_report_jinja
 
 REPORT = "Test Jinja Print Report"
@@ -158,8 +159,9 @@ class TestDownloadReportPdf(IntegrationTestCase):
 		self.assertIn("Opening", html)
 
 	def test_prints_a_datetime_in_the_user_time_zone(self):
-		frappe.db.set_value("User", REPORT_USER, "time_zone", "UTC")
-		self.addCleanup(frappe.db.set_value, "User", REPORT_USER, "time_zone", None)
+		user = get_user_by_email(REPORT_USER)
+		frappe.db.set_value("User", user, "time_zone", "UTC")
+		self.addCleanup(frappe.db.set_value, "User", user, "time_zone", None)
 		report_run = {
 			"columns": [{"fieldname": "opened_on", "fieldtype": "Datetime"}],
 			"result": [{"opened_on": "2026-10-24 10:00:00"}],
