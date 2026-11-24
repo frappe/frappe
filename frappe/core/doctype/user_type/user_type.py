@@ -6,7 +6,7 @@ from frappe import _
 from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
 from frappe.model.document import Document
 from frappe.permissions import add_permission, add_user_permission
-from frappe.utils import get_link_to_form
+from frappe.utils import get_link_to_form, get_user_display_id
 from frappe.utils.modules import get_modules_from_app
 
 
@@ -263,15 +263,16 @@ def user_linked_with_permission_on_doctype(doc, user):
 		return True
 	else:
 		label = frappe.get_meta(doc.apply_user_permission_on).get_field(doc.user_id_field).label
+		user_display_id = frappe.bold(get_user_display_id(user))
 
 		frappe.msgprint(
 			_(
 				"To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
 			).format(
 				frappe.bold(doc.role),
-				frappe.bold(user),
+				user_display_id,
 				frappe.bold(label),
-				frappe.bold(user),
+				user_display_id,
 				frappe.bold(doc.apply_user_permission_on),
 			)
 		)
