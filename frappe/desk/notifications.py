@@ -392,17 +392,22 @@ def get_external_links(doctype, name, links, fieldname=None):
 def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters):
 	"""A filter on a fieldname that several child tables share resolves to whichever of them
 	is scanned first, so match the link in any of them and let the client route by name."""
+	names = []
 	try:
-		names = frappe.get_list(
-			doctype,
-			filters=filters,
-			or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
-			limit=100,
-			distinct=True,
-			ignore_ifnull=True,
-			order_by=None,
-			pluck="name",
-		)
+		for child_doctype in child_doctypes:
+			child_names = frappe.get_list(
+				doctype,
+				filters=filters,
+				or_filters=[[child_doctype, fieldname, "=", name]],
+				limit=100,
+				distinct=True,
+				ignore_ifnull=True,
+				order_by=None,
+				pluck="name",
+			)
+			names = unique(names + child_names)[:100]
+			if len(names) == 100:
+				break
 	except Exception as e:
 		if frappe.db.is_statement_timeout(e):
 			return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
