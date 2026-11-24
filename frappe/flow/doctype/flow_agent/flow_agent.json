@@ -180,7 +180,7 @@
   },
   {
    "default": "0",
-   "description": "Let people who are not signed in chat with this agent through Flow's guest API. Its tools run as Guest and without asking for approval, as in a trigger's chat, so give it only tools that are safe for anyone to use. Global skills are left out.",
+   "description": "Let people who are not signed in chat with this agent through Flow's guest API. Its tools run as Guest and without asking for approval, as in a trigger's chat, so give it only tools that are safe for anyone to use. Global skills and memory are left out.",
    "fieldname": "public",
    "fieldtype": "Check",
    "label": "Public"
@@ -188,7 +188,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-18 12:00:00.000000",
+ "modified": "2026-11-24 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

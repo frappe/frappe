@@ -40,8 +40,9 @@ def save_memory(
 
 
 def memory_block(agent: str, user: str, query: str) -> str:
-	"""The <memory> block for a turn: memories relevant to `query`, or "" when none."""
-	if not (query or "").strip() or not _has_memory_tool(agent):
+	"""The <memory> block for a turn: memories relevant to `query`, or "" when none. Guests get
+	none: shared memories are the managers' and every visitor is the same Guest."""
+	if user == "Guest" or not (query or "").strip() or not _has_memory_tool(agent):
 		return ""
 	try:
 		names = store.search(query, agent=agent, user=user)
