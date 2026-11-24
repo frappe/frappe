@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import smtplib
 import textwrap
-from email import message_from_bytes
+from email import message_from_bytes, message_from_string
 from unittest.mock import MagicMock, patch
 
 import frappe
@@ -173,6 +173,64 @@ class TestEmailQueue(IntegrationTestCase):
 
 		self.assertIsNone(manager_copy["Reply-To"])
 		self.assertEqual(customer_copy["Reply-To"], "manager@example.com")
+
+	def test_message_without_attachments_has_alternative_root(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		queue = frappe.sendmail(
+			recipients=["customer@example.com"],
+			cc=["manager@example.com"],
+			reply_to="support@example.com",
+			subject="No Attachments",
+			message="Test message",
+		)
+		queued = message_from_string(queue.message)
+		message = message_from_bytes(SendMailContext(queue).build_message("customer@example.com"))
+
+		self.assertEqual(
+			[part.get_content_type() for part in message.walk()],
+			["multipart/alternative", "text/plain", "text/html"],
+		)
+		self.assertEqual(len(message.get_all("Content-Type")), 1)
+		self.assertEqual(len(message.get_all("MIME-Version")), 1)
+		for header in ("From", "To", "CC", "Subject", "Reply-To", "Message-Id", "Date", "X-Frappe-Site"):
+			self.assertEqual(
+				message[header], queued[header].replace("<!--recipient-->", "customer@example.com")
+			)
+
+	def test_message_with_inline_image_has_alternative_root(self):
+		queue = frappe.sendmail(
+			recipients=["customer@example.com"],
+			subject="Inline Image",
+			message='<img embed="files/logo.png">',
+			inline_images=[{"filename": "files/logo.png", "filecontent": b"image"}],
+		)
+		message = message_from_bytes(SendMailContext(queue).build_message("customer@example.com"))
+
+		self.assertEqual(
+			[part.get_content_type() for part in message.walk()],
+			["multipart/alternative", "text/plain", "multipart/related", "text/html", "image/png"],
+		)
+
+	def test_message_with_attachment_keeps_mixed_root(self):
+		file = frappe.get_doc(doctype="File", file_name="queued.txt", content="queued", is_private=1).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(file.delete, ignore_permissions=True)
+		for attachment in ({"fname": "embedded.txt", "fcontent": "embedded"}, {"fid": file.name}):
+			with self.subTest(attachment=attachment):
+				queue = frappe.sendmail(
+					recipients=["customer@example.com"],
+					subject="Attachment",
+					message="Test message",
+					attachments=[attachment],
+				)
+				message = message_from_bytes(SendMailContext(queue).build_message("customer@example.com"))
+
+				self.assertEqual(
+					[part.get_content_type() for part in message.walk()],
+					["multipart/mixed", "multipart/alternative", "text/plain", "text/html", "text/plain"],
+				)
 
 	def test_reply_to_address_matching(self):
 		for reply_to, recipient, is_kept in (
