@@ -215,8 +215,16 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["=", "Administrator"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["like", "Admin%"]}), "Administrator")
 		self.assertNotEqual(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Guest")
-		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "Adn"]}), "Administrator")
-		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
+		self.assertEqual(
+			frappe.db.get_value("User", {"name": ["<", "Adn"]}),
+			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name < 'Adn' ORDER BY creation DESC""")[0][0],
+		)
+		self.assertEqual(
+			frappe.db.get_value("User", {"name": ["<=", "Administrator"]}),
+			frappe.db.sql(
+				"""SELECT name FROM `tabUser` WHERE name <= 'Administrator' ORDER BY creation DESC"""
+			)[0][0],
+		)
 		self.assertEqual(
 			frappe.db.get_value("User", {}, [{"MAX": "name"}], order_by=None),
 			frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0],
@@ -243,13 +251,13 @@ class TestDB(IntegrationTestCase):
 			),
 		)
 		self.assertEqual(
-			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY creation DESC""")[0][0],
-			frappe.db.get_value("User", {"name": [">", "s"]}),
+			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 'A' ORDER BY creation DESC""")[0][0],
+			frappe.db.get_value("User", {"name": [">", "A"]}),
 		)
 
 		self.assertEqual(
-			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY creation DESC""")[0][0],
-			frappe.db.get_value("User", {"name": [">=", "t"]}),
+			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 'G' ORDER BY creation DESC""")[0][0],
+			frappe.db.get_value("User", {"name": [">=", "G"]}),
 		)
 		self.assertEqual(
 			frappe.db.get_values(
