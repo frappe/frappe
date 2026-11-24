@@ -337,8 +337,8 @@ frappe.form.formatters = {
 		});
 		return html;
 	},
-	SmallText: function (value) {
-		return frappe.form.formatters.Text(value);
+	SmallText: function (value, df) {
+		return frappe.form.formatters.Text(value, df);
 	},
 	TextEditor: function (value) {
 		let formatted_value = frappe.form.formatters.Text(value);
