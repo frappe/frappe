@@ -3385,6 +3385,7 @@ class TestQuery(IntegrationTestCase):
 		)
 
 		trial_dt.insert(ignore_if_duplicate=True)
+		self.delete_doctype_on_cleanup(trial_dt)
 
 		index_exists = frappe.db.sql(
 			"""
