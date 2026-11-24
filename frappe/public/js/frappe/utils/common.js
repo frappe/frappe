@@ -31,7 +31,7 @@ frappe.avatar = function (
 	let data_attr = "";
 	if (filterable) {
 		css_class += " filterable";
-		data_attr = `data-filter="_assign,like,%${user}%"`;
+		data_attr = `data-filter="_assign,=,${user}"`;
 	}
 
 	return frappe.get_avatar(

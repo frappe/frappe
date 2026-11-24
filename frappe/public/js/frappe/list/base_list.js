@@ -1104,11 +1104,6 @@ class FilterArea {
 			operator = "is";
 			value = "not set";
 		}
-		if (fieldname === "_assign") {
-			operator = "like";
-			value = `%${value}%`;
-		}
-
 		return this.list_view.filter_area.add(this.list_view.doctype, fieldname, operator, value);
 	}
 
