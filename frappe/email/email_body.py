@@ -320,8 +320,11 @@ class EMail:
 
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):
-			sender_name, _ = email.utils.parseaddr(self.sender)
-			self.sender = format_sender((sender_name, self.email_account.name), self.email_account.email_id)
+			sender_name, sender_email = email.utils.parseaddr(self.sender)
+			account_name, account_email = self.email_account.name, self.email_account.email_id
+			if sender_name and sender_email.lower() != account_email.lower():
+				sender_name = f"{sender_name} via {account_name}"
+			self.sender = format_sender((sender_name, account_name), account_email)
 
 	def replace_sender_name(self):
 		if cint(self.email_account.always_use_account_name_as_sender_name):
