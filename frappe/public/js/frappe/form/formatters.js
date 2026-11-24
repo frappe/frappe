@@ -50,9 +50,16 @@ frappe.form.formatters = {
 		return frappe.form.formatters._apply_custom_formatter(value, df);
 	},
 	Autocomplete: function (value, df) {
-		return __(frappe.form.formatters["Data"](value, df));
+		if (typeof df?.options === "string" && df.options[0] === "[") {
+			df = { ...df, options: frappe.utils.parse_json(df.options) };
+		}
+		return frappe.form.formatters.Select(value, df);
 	},
 	Select: function (value, df) {
+		if (Array.isArray(df?.options) && !is_null(value)) {
+			const option = df.options.find((o) => o?.label && cstr(o.value) === cstr(value));
+			if (option) value = option.label;
+		}
 		return __(frappe.form.formatters["Data"](value, df));
 	},
 	Float: function (value, docfield, options, doc) {

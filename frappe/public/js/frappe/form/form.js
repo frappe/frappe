@@ -602,6 +602,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.layout?.sections.forEach((section) => (section.expanded_by_user = false));
 		frappe.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
+		if (this.comment_box && this.docname !== docname) {
+			this.comment_drafts ??= {};
+			this.comment_drafts[this.docname] = this.comment_box.get_value();
+			this.comment_box.set_value(this.comment_drafts[docname] || "");
+		}
 		this.docname = docname;
 		this.setup_docinfo_change_listener();
 	}

@@ -65,6 +65,7 @@ function get_app_handlers(app) {
 	if (fs.existsSync(abs_path)) {
 		try {
 			handler = require(file);
+			if (handler?.__esModule) handler = handler.default;
 		} catch (err) {
 			console.warn(`failed to load event handlers from ${abs_path}`);
 			console.warn(err);
