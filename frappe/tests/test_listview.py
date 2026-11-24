@@ -174,6 +174,16 @@ class TestListView(IntegrationTestCase):
 			limit_page_length=1,
 		)
 		self.assertEqual(rows, [{"job_name": "Test assignee groups", "_assign": "Guest", "_aggregate_0": 2}])
+		next_page = get_assignee_groups(
+			"MapReduce Job",
+			["_assign"],
+			"_assign",
+			[["name", "in", names]],
+			"_assign desc",
+			limit_start=1,
+			limit_page_length=1,
+		)
+		self.assertEqual(next_page, [{"_assign": "Administrator"}])
 
 	def test_assignee_groups_reject_unsafe_input(self):
 		for fields, group_by, order_by in (

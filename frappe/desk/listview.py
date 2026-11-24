@@ -47,6 +47,7 @@ def get_assignee_groups(
 	group_by: str,
 	filters: str | list | dict | None = None,
 	order_by: str | None = None,
+	limit_start: int | str = 0,
 	limit_page_length: int | str = 20,
 ) -> list[dict]:
 	"""Grouped rows like `frappe.client.get_list`, a record counting under each of its assignees."""
@@ -100,7 +101,7 @@ def get_assignee_groups(
 			frappe.throw(_("Cannot sort groups by {0}").format(part.strip()))
 		query = query.orderby(terms[key], order=Order[direction])
 	if limit := cint(limit_page_length):
-		query = query.limit(limit)
+		query = query.limit(limit).offset(cint(limit_start))
 
 	return query.run(as_dict=True)
 
