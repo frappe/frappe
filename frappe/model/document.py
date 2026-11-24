@@ -2709,6 +2709,8 @@ class Document(_DocumentBase):
 		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
 		if enqueue_after_commit is None:
 			enqueue_after_commit = True
+		if enqueue_after_commit:
+			frappe.db.after_rollback.add(self.unlock)
 
 		return enqueue(
 			"frappe.model.document.execute_action",
