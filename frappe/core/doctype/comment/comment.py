@@ -79,6 +79,15 @@ class Comment(Document):
 		update_comment_in_doc(self)
 		if not self.is_new():
 			self.notify_change("update")
+		if (previous := self.get_doc_before_save()) and previous.content != self.content:
+			notify_mentions(
+				self.reference_doctype,
+				self.reference_name,
+				self.content,
+				source_doctype=self.doctype,
+				source_name=self.name,
+				previous_content=previous.content,
+			)
 
 	def on_trash(self):
 		self.remove_comment_from_cache()

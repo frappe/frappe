@@ -461,7 +461,9 @@ def get_dynamic_link_filters(doctype, links, fieldname):
 	return {doctype_fieldname: doctype_value}
 
 
-def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_name=None):
+def notify_mentions(
+	ref_doctype, ref_name, content, source_doctype=None, source_name=None, previous_content=None
+):
 	"""Notify users mentioned in `content`.
 	`source_doctype` / `source_name` identify the record the mention was
 	written in (e.g. a Comment) when that is not the reference document
@@ -469,6 +471,9 @@ def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_
 	"""
 	if ref_doctype and ref_name and content:
 		mentions = extract_mentions(content)
+		if previous_content:
+			previous_mentions = extract_mentions(previous_content)
+			mentions = [m for m in mentions if m not in previous_mentions]
 
 		if not mentions:
 			return
