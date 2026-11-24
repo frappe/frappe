@@ -13,6 +13,7 @@ export {
   formatRating,
   getAggregateFields,
   getGroupByFields,
+  groupsByAssignee,
   parseGroupBy,
   serializeGroupBy,
   serializeGroupByTotals,

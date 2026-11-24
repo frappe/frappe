@@ -210,6 +210,28 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 		self.assertEqual(rows[0]["secret_data"], "XXXXXXXX")
 		self.assertEqual(rows[0]["public_data"], "visible_to_all")
 
+	def test_assignee_groups_mask_for_non_admin(self):
+		from frappe.desk.listview import get_assignee_groups
+
+		frappe.set_user(self.TEST_USER)
+		rows = get_assignee_groups(
+			self.dt,
+			["secret_data", "public_data", "_assign", {"MAX": "secret_data", "as": "latest"}],
+			"secret_data, public_data, _assign",
+			{"name": self.docname},
+		)
+		self.assertEqual(
+			rows,
+			[
+				{
+					"secret_data": "XXXXXXXX",
+					"public_data": "visible_to_all",
+					"_assign": None,
+					"latest": "XXXXXXXX",
+				}
+			],
+		)
+
 	def test_db_get_list_does_not_mask_for_admin(self):
 		rows = frappe.db.get_list(
 			self.dt,
