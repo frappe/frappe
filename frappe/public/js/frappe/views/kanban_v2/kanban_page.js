@@ -1202,11 +1202,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	lane_filter(field, lane) {
-		if (field === "_assign") {
-			return lane.unset
-				? [[this.doctype, "_assign", "is", "not set"]]
-				: [[this.doctype, "_assign", "like", `%${lane.value}%`]];
-		}
 		return lane.unset
 			? [[this.doctype, field, "is", "not set"]]
 			: [[this.doctype, field, "=", lane.value]];
