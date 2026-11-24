@@ -65,6 +65,9 @@ class PersonalDataDeletionRequest(Document):
 			"Name": "REDACTED",
 		}
 
+	def before_insert(self):
+		self.email = (self.email or "").strip().lower()
+
 	def autoname(self):
 		from frappe.model.naming import set_name_from_naming_options
 
