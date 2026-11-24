@@ -11,6 +11,7 @@ from frappe.desk.doctype.list_filter.list_filter import (
 )
 from frappe.tests import UnitTestCase
 from frappe.tests.utils import toggle_test_mode
+from frappe.utils import get_user_by_email
 
 LIST_FILTER_OWNER = "list_filter_owner@example.com"
 LIST_FILTER_OTHER = "list_filter_other@example.com"
@@ -56,21 +57,25 @@ class TestListFilter(UnitTestCase):
 		self.assertEqual(updated["sort_order"], "asc")
 
 	def _ensure_desk_user(self, email):
-		if not frappe.db.exists("User", email):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": email,
-					"first_name": "Test",
-					"send_welcome_email": 0,
-				}
-			).insert(ignore_permissions=True)
+		if not (name := get_user_by_email(email)):
+			name = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": "Test",
+						"send_welcome_email": 0,
+					}
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
 
-		user = frappe.get_doc("User", email)
+		user = frappe.get_doc("User", name)
 		user.roles = []
 		user.append("roles", {"role": "Desk User"})
 		user.save(ignore_permissions=True)
-		return email
+		return name
 
 	def test_non_admin_cannot_reassign_filter_to_other_user(self):
 		owner = self._ensure_desk_user(LIST_FILTER_OWNER)

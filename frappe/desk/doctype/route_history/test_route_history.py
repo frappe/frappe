@@ -9,22 +9,28 @@ from frappe.desk.doctype.route_history.route_history import (
 	deferred_insert,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 EMAIL = "route.history.tester@example.com"
 
 
 class TestRouteHistory(IntegrationTestCase):
 	def setUp(self):
-		if not frappe.db.exists("User", EMAIL):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": EMAIL,
-					"first_name": "Route History",
-					"user_type": "Website User",
-					"send_welcome_email": 0,
-				}
-			).insert()
+		if not (user := get_user_by_email(EMAIL)):
+			user = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": EMAIL,
+						"first_name": "Route History",
+						"user_type": "Website User",
+						"send_welcome_email": 0,
+					}
+				)
+				.insert()
+				.name
+			)
+		self.user = user
 		frappe.set_user(EMAIL)
 		self.addCleanup(frappe.set_user, "Administrator")
 
@@ -41,7 +47,7 @@ class TestRouteHistory(IntegrationTestCase):
 		records = self._queued_records(frappe.as_json(routes))
 
 		self.assertEqual([r["route"] for r in records], [r["route"] for r in routes])
-		self.assertEqual({r["user"] for r in records}, {EMAIL})
+		self.assertEqual({r["user"] for r in records}, {self.user})
 
 	def test_oversized_batch_keeps_latest_routes(self):
 		total = MAX_ROUTES_PER_REQUEST * 5
