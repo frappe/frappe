@@ -337,6 +337,8 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	else:
 		docs = frappe.parse_json(docs)
 		doc = frappe.get_doc(docs)
+		if not doc.is_new() or doc.meta.issingle or frappe.db.exists(doc.doctype, doc.name):
+			frappe.has_permission(doc.doctype, "read", doc.name, throw=True)
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 

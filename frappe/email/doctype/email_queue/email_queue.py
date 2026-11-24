@@ -27,6 +27,7 @@ from frappe.utils import (
 	add_days,
 	cint,
 	cstr,
+	extract_email_id,
 	get_hook_method,
 	get_string_between,
 	get_url,
@@ -349,7 +350,7 @@ class SendMailContext:
 		message = message.replace(
 			self.message_placeholder("recipient"), self.get_recipient_str(recipient_email)
 		)
-		message = self.include_attachments(message)
+		message = self.include_attachments(message, recipient_email)
 		return message
 
 	def get_tracker_str(self, recipient_email) -> str:
@@ -402,13 +403,31 @@ class SendMailContext:
 	def get_recipient_str(self, recipient_email):
 		return recipient_email if self.queue_doc.expose_recipients != "header" else ""
 
-	def include_attachments(self, message):
+	def include_attachments(self, message, recipient_email=None):
 		message_obj = self.get_message_object(message)
+
+		if self.is_only_reply_to_address(message_obj, recipient_email):
+			del message_obj["Reply-To"]
 
 		for attachment in self.attachments:
 			add_attachment(**attachment, parent=message_obj)
 
+		parts = message_obj.get_payload()
+		if (
+			message_obj.get_content_type() == "multipart/mixed"
+			and len(parts) == 1
+			and parts[0].is_multipart()
+		):
+			message_obj.replace_header("Content-Type", parts[0]["Content-Type"])
+			message_obj.set_payload(parts[0].get_payload())
+
 		return safe_encode(message_obj.as_string())
+
+	def is_only_reply_to_address(self, message_obj, recipient_email):
+		reply_to = message_obj["Reply-To"]
+		if not reply_to or len(reply_to.addresses) != 1:
+			return False
+		return reply_to.addresses[0].addr_spec.lower() == extract_email_id(recipient_email).lower()
 
 	@cached_property
 	def attachments(self) -> list[dict]:
@@ -556,6 +575,7 @@ class QueueBuilder:
 		x_priority: Literal[1, 3, 5] = 3,
 		email_headers=None,
 		redact_message_after_send=False,
+		auto_submitted=None,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -571,7 +591,7 @@ class QueueBuilder:
 		:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 		:param attachments: Attachments to be sent.
 		:param reply_to: Reply to be captured here (default inbox)
-		:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
+		:param in_reply_to: Name of the Communication this email replies to. Its Message-Id is sent as In-Reply-To.
 		:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 		:param communication: Communication link to be set in Email Queue record
 		:param queue_separately: Queue each email separately (one per recipient). When True, each TO recipient
@@ -588,6 +608,7 @@ class QueueBuilder:
 		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 		:param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
+		:param auto_submitted: Value of the `Auto-Submitted` header (RFC 3834), e.g. "auto-replied".
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -626,6 +647,7 @@ class QueueBuilder:
 		self.email_read_tracker_url = email_read_tracker_url
 		self.email_headers = email_headers
 		self.redact_message_after_send = redact_message_after_send
+		self.auto_submitted = auto_submitted
 
 	@property
 	def unsubscribe_method(self):
@@ -786,6 +808,8 @@ class QueueBuilder:
 		if self.email_headers:
 			mail.add_headers(self.email_headers)
 
+		if self.auto_submitted:
+			mail.set_header("Auto-Submitted", self.auto_submitted)
 		if self.read_receipt:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
 		if self.in_reply_to:
@@ -800,7 +824,9 @@ class QueueBuilder:
 		Sends email incase if it is requested to send now.
 		"""
 		final_recipients = self.final_recipients()
-		queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 100
+		queue_separately = (final_recipients and self.queue_separately) or (
+			len(final_recipients) > 100 and not self.is_notification
+		)
 		if not (final_recipients + self.final_cc() + self.final_bcc()):
 			return []
 

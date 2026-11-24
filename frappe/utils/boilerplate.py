@@ -334,7 +334,7 @@ authors = [
     {{ name = "{app_publisher}", email = "{app_email}"}}
 ]
 description = "{app_description}"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
@@ -355,7 +355,7 @@ packages = []
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -715,7 +715,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -880,7 +880,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           cache: pip
       - uses: pre-commit/action@v3.0.0
 
@@ -899,7 +899,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - uses: actions/checkout@v4
 

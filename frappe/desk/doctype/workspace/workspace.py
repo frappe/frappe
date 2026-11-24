@@ -67,8 +67,14 @@ class Workspace(Document):
 	def validate(self):
 		self.title = strip_html(self.title)
 
-		if self.public and not is_workspace_manager() and not disable_saving_as_public():
+		before = self.get_doc_before_save()
+		if (
+			(self.public or (before and before.public))
+			and not is_workspace_manager()
+			and not disable_saving_as_public()
+		):
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
+		self.validate_private_page_is_yours(before)
 		if self.has_value_changed("title"):
 			validate_route_conflict(self.doctype, self.title)
 		else:
@@ -87,6 +93,28 @@ class Workspace(Document):
 		for shortcut in self.get("shortcuts"):
 			if shortcut.type == "Report":
 				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
+
+	def validate_private_page_is_yours(self, before):
+		"""Only the user in `for_user` or a Workspace Manager may write a private page.
+
+		The page as stored counts as well as the page being saved, because `has_permission` can only
+		read `for_user` off the document in front of it.
+		"""
+		owners = {page.for_user for page in (self, before) if page and not page.public and page.for_user}
+		if owners <= {frappe.session.user} or is_workspace_manager():
+			return
+
+		if any(
+			frappe.flags.get(flag)
+			for flag in ("in_install", "in_migrate", "in_patch", "in_import", "in_fixtures")
+		):
+			return
+
+		frappe.throw(
+			_("You can only edit your own private workspace."),
+			frappe.PermissionError,
+			title=_("Not your workspace"),
+		)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
@@ -499,3 +527,29 @@ def get_page_list(fields, filters):
 
 def is_workspace_manager():
 	return "Workspace Manager" in frappe.get_roles()
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""Keep a private page to its owner and Workspace Managers.
+
+	A page with no owner stays open to everyone, because `get_workspaces` shows it to everyone.
+	"""
+	user = user or frappe.session.user
+	return bool(
+		doc.public
+		or not doc.for_user
+		or doc.for_user == user
+		or "Workspace Manager" in frappe.get_roles(user)
+	)
+
+
+def get_permission_query_conditions(user=None):
+	"""Keep other users' private pages out of list queries, which `has_permission` does not reach."""
+	user = user or frappe.session.user
+	if "Workspace Manager" in frappe.get_roles(user):
+		return ""
+
+	return (
+		"(`tabWorkspace`.`public` = 1 or ifnull(`tabWorkspace`.`for_user`, '') = '' "
+		f"or `tabWorkspace`.`for_user` = {frappe.db.escape(user)})"
+	)

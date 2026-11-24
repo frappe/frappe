@@ -77,7 +77,7 @@ jobs:
                 if gh api "repos/$GITHUB_REPOSITORY/issues/$pr/labels" --jq '.[].name' | grep -qx released; then
                   continue
                 fi
-                gh api "repos/$GITHUB_REPOSITORY/issues/$pr/comments" -f body="$body" > /dev/null
+                gh api "repos/$GITHUB_REPOSITORY/issues/$pr/comments" -f body="$body" > /dev/null || true
                 gh api "repos/$GITHUB_REPOSITORY/issues/$pr/labels" -f "labels[]=released" > /dev/null
                 sleep 2
               done

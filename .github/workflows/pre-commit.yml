@@ -2,25 +2,26 @@ name: Pre-commit
 
 on:
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: precommit-frappe-${{ github.event_name }}-${{ github.event.number }}
+  group: precommit-frappe-${{ github.event_name }}-${{ github.event.number || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   linter:
     name: 'precommit'
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name != 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           cache: pip
       - uses: pre-commit/action@v3.0.0

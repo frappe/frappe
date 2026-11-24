@@ -20,9 +20,9 @@ class TestTwoFactorLogin(FrappeTestCase):
 
 	def setUp(self):
 		super().setUp()
-		self.enter_context(patch("frappe.sendmail", return_value=True))
-		self.enter_context(self.freeze_time(datetime.datetime.now()))
-		self.enter_context(
+		self.enterContext(patch("frappe.sendmail", return_value=True))
+		self.enterContext(self.freeze_time(datetime.datetime.now()))
+		self.enterContext(
 			change_settings(
 				"System Settings",
 				{
@@ -121,11 +121,6 @@ class TestTwoFactorLogin(FrappeTestCase):
 			response = self.post_login({"usr": self.user, "pwd": self.password})
 			self.assert_logged_in(response)
 			self.assertFalse(tracker.login_failed_count)
-
-	def enter_context(self, context_manager):
-		# unittest.TestCase.enterContext needs Python 3.11
-		context_manager.__enter__()
-		self.addCleanup(context_manager.__exit__, None, None, None)
 
 	def start_login(self, method="Email"):
 		response = self.post_login({"usr": self.user, "pwd": self.password})

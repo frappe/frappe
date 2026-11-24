@@ -405,8 +405,13 @@ def get_desktop_page(page: str):
 	Returns:
 	        dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
+	from frappe.desk.doctype.workspace.workspace import has_permission
+
 	try:
 		workspace = Workspace(loads(page))
+		if not has_permission(workspace.doc):
+			frappe.throw(_("You do not have access to this workspace."), frappe.PermissionError)
+
 		workspace.build_workspace()
 		return {
 			"charts": workspace.charts,
