@@ -146,6 +146,14 @@ def allows_internal_print_urls() -> bool:
 	return bool(frappe.get_common_site_config(cached=True).get("allow_internal_print_urls"))
 
 
+def get_browser_context_params() -> dict:
+	params = {"disposeOnDetach": True}
+	if not allows_internal_print_urls():
+		# Fetch interception answers every request the page needs, so the browser gets no network of its own.
+		params.update(proxyServer="http://127.0.0.1:1", proxyBypassList="<-loopback>")
+	return params
+
+
 def read_external_resource(
 	url: str,
 	max_size: int,
