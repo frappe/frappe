@@ -46,8 +46,11 @@ frappe.form.formatters = {
 			return frappe.utils.get_formatted_iban(value);
 		}
 		value = value == null ? "" : value;
-
-		return frappe.form.formatters._apply_custom_formatter(value, df);
+		value = frappe.form.formatters._apply_custom_formatter(value, df);
+		if (df?.options == "Email" && value) {
+			return `<span dir="ltr">${value}</span>`;
+		}
+		return value;
 	},
 	Autocomplete: function (value, df) {
 		if (typeof df?.options === "string" && df.options[0] === "[") {

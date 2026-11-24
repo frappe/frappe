@@ -261,6 +261,9 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		if (this.doctype) {
 			this.$input.attr("data-doctype", this.doctype);
 		}
+		if (this.df.options == "Email") {
+			this.$input.attr("dir", "ltr");
+		}
 		if (this.df.input_css) {
 			this.$input.css(this.df.input_css);
 		}
