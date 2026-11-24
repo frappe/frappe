@@ -481,7 +481,7 @@ export function createPageScope(
 		return new Proxy(
 			{},
 			{
-				has: (_, name) => sources.some((source) => hasOwnName(source, name)) || name in Object.prototype,
+				has: (_, name) => sources.some((source) => hasOwnProperty(source, name)) || name in Object.prototype,
 				get: (_, name) => findValue(name, sources),
 			},
 		)
@@ -774,13 +774,20 @@ export type PageScope = ReturnType<typeof createPageScope>
 
 // Prefer the first source that owns the name; fall back to Object.prototype
 // for inherited names such as toString, as a plain object would.
-function findValue(name: string | symbol, sources: object[]) {
-	const source = sources.find((source) => hasOwnName(source, name))
-	return source ? unref((source as Record<string | symbol, any>)[name]) : Reflect.get(Object.prototype, name)
+function findValue(name: string | symbol, sources: Record<PropertyKey, any>[]) {
+	for (const source of sources) {
+		if (hasOwnProperty(source, name)) {
+			return unref(source[name])
+		}
+	}
+
+	return Reflect.get(Object.prototype, name)
 }
 
 // `in` lets Vue track names added later; the own-property check prevents inherited names
 // such as valueOf from hiding a variable with the same name.
-function hasOwnName(source: object, name: string | symbol) {
-	return name in source && Object.prototype.hasOwnProperty.call(source, name)
+function hasOwnProperty(source: object, name: string | symbol) {
+	if (!(name in source)) return false
+
+	return Object.prototype.hasOwnProperty.call(source, name)
 }
