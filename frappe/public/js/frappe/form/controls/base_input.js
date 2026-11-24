@@ -223,12 +223,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 	set_code_author_hint(label = this.label_span) {
 		if (!label || !this.read_only_because_of_code_author()) return;
-		if ($(label).find(".code-author-hint").length) return;
+		if ($(label).data("es-tooltip")) return;
 
-		const $icon = $(frappe.utils.icon("lock", "xs", "", "", "code-author-hint ml-1")).appendTo(
-			label
-		);
-		frappe.ui.tooltip?.($icon, {
+		frappe.ui.tooltip?.(label, {
 			text: __("Only a user with the Code Author role can change this field"),
 		});
 	}

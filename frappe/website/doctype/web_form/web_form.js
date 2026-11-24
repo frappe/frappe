@@ -280,7 +280,7 @@ frappe.ui.form.on("Web Form", {
 				frm.get_docfield("dynamic_filters_json"),
 				frm.doc
 			) === "Write";
-		// the table replaces this field's own label, so the lock goes on the label field above it
+		// the table replaces this field's own label, so the hint goes on the label field above it
 		frm.get_field("dynamic_filters_json").set_code_author_hint(
 			frm.get_field("dynamic_filters_label").$wrapper.find(".control-label")[0]
 		);

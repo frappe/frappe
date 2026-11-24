@@ -34,9 +34,9 @@ frappe.ui.form.on("Web Page", {
 		} else {
 			frm.events.layout(frm);
 		}
-		frm.events.lock_jinja_content(frm);
+		frm.events.mark_jinja_content(frm);
 	},
-	lock_jinja_content(frm) {
+	mark_jinja_content(frm) {
 		// same rule as WebPage.has_jinja_content: marked fields are read-only without Code Author
 		const fields = ["main_section", "main_section_md", "main_section_html"];
 		const has_jinja =
