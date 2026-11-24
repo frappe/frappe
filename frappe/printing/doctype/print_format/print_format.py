@@ -694,8 +694,9 @@ def check_print_format_roles(print_format: "PrintFormat") -> None:
 class BuilderJinjaGuard(CodeFieldGuard):
 	"""Builder layouts are code only where they hold Jinja: HTML blocks, margin texts, global variables."""
 
-	def __init__(self, doc):
-		super().__init__(doc, fields=[doc.meta.get_field(f) for f in ("format_data", "classic_format_data")])
+	def load_fields(self):
+		self.fields = [self.doc.meta.get_field(f) for f in ("format_data", "classic_format_data")]
+		self.tables = []
 
 	def is_authored(self, row, reference, df, is_new, child_doctype=None):
 		# both fields together: converting to the new builder moves the layout between them

@@ -15,21 +15,14 @@ class CodeFieldGuard:
 	def __init__(self, doc, fields=None, tables=None):
 		"""`fields`, `tables` ([(table_df, child_fields)]): check these instead of the ones marked `executes_code`."""
 		self.doc = doc
-		if fields is not None or tables is not None:
-			self.fields, self.tables = fields or [], tables or []
-			return
-
-		self.fields = doc.meta.get_executable_fields()
-		self.tables = [
-			(df, child_fields)
-			for df in doc.meta.get_table_fields()
-			if (child_fields := frappe.get_meta(df.options).get_executable_fields())
-		]
+		self.fields, self.tables = fields, tables
 
 	def validate(self):
 		if self.doc.flags.ignore_permissions or frappe.flags.in_install:
 			return
 
+		# only after the skips: during install, child DocTypes may not be synced yet
+		self.load_fields()
 		if not (self.fields or self.tables) or is_code_author():
 			return
 
@@ -41,6 +34,18 @@ class CodeFieldGuard:
 				frappe.PermissionError,
 				title=_("Not Permitted"),
 			)
+
+	def load_fields(self):
+		if self.fields is not None or self.tables is not None:
+			self.fields, self.tables = self.fields or [], self.tables or []
+			return
+
+		self.fields = self.doc.meta.get_executable_fields()
+		self.tables = [
+			(df, child_fields)
+			for df in self.doc.meta.get_table_fields()
+			if (child_fields := frappe.get_meta(df.options).get_executable_fields())
+		]
 
 	def get_changed_labels(self):
 		doc = self.doc

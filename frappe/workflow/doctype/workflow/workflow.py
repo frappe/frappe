@@ -410,10 +410,10 @@ def get_workflow_methods():
 class ExpressionValueGuard(CodeFieldGuard):
 	"""`update_value` is code only on states that evaluate it as an expression, now or when saved."""
 
-	def __init__(self, doc):
-		states_df = doc.meta.get_field("states")
+	def load_fields(self):
+		states_df = self.doc.meta.get_field("states")
 		value_df = frappe.get_meta(states_df.options).get_field("update_value")
-		super().__init__(doc, tables=[(states_df, [value_df])])
+		self.fields, self.tables = [], [(states_df, [value_df])]
 
 	def is_authored(self, row, reference, df, is_new, child_doctype=None):
 		if not (row.evaluate_as_expression or reference.get("evaluate_as_expression")):
