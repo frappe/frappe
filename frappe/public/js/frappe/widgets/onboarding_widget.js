@@ -117,6 +117,9 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	set_open_step(step) {
+		if (step !== this.open_step) {
+			this.step_elements.get(this.open_step)?.find(".onboarding-step-media").empty();
+		}
 		if (step && step !== this.open_step) {
 			// filled on opening, so a closed step loads no thumbnail and shows its current state
 			const $step = this.step_elements.get(step);

@@ -304,7 +304,10 @@ frappe.views.Calendar = class Calendar {
 	}
 
 	get_system_datetime(date) {
-		return frappe.datetime.convert_to_system_tz(date, true);
+		return frappe.datetime.convert_to_system_tz(
+			moment(date).format(frappe.defaultDatetimeFormat),
+			true
+		);
 	}
 	setup_options(defaults) {
 		var me = this;
