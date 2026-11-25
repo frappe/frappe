@@ -16,6 +16,7 @@ from frappe.twofactor import (
 	get_cached_user_pass,
 	get_default,
 	get_email_body_for_2fa,
+	get_email_subject_for_2fa,
 	get_otpsecret_for_,
 	get_verification_obj,
 	process_2fa_for_email,
@@ -279,6 +280,10 @@ class TestTwoFactor(IntegrationTestCase):
 		with self.freeze_time(datetime.datetime.now()):
 			otp = get_otp(self.user)
 			self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
+
+	def test_issuer_name_is_not_a_template(self):
+		with self.change_settings("System Settings", {"otp_issuer_name": "{{ 6 * 7 }}"}):
+			self.assertIn("{{ 6 * 7 }}", get_email_subject_for_2fa({}))
 
 
 def create_http_request():
