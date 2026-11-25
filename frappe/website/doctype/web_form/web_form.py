@@ -14,6 +14,7 @@ from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.model import child_table_fields, default_fields
+from frappe.model.document import RESERVED_KEYWORDS, Document
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission, get_allowed_docs_for_doctype, get_user_permissions
 from frappe.rate_limiter import rate_limit
@@ -150,7 +151,7 @@ class WebForm(WebsiteGenerator):
 			self.allow_delete = 0
 
 	def create_new_doctype(self):
-		doctype_name = f"webform-{self.name}"
+		doctype_name = f"webform-{self.name}"[: frappe.db.MAX_COLUMN_LENGTH - len("tab")]
 
 		if frappe.db.exists("DocType", doctype_name):
 			frappe.throw(_("DocType {0} already exists").format(doctype_name))
@@ -183,17 +184,18 @@ class WebForm(WebsiteGenerator):
 
 	def set_missing_fieldnames(self):
 		taken = {d.fieldname for d in self.web_form_fields if d.fieldname}
-		taken.update(default_fields, child_table_fields)
+		taken.update(default_fields, child_table_fields, RESERVED_KEYWORDS, dir(Document))
+		max_length = frappe.db.MAX_COLUMN_LENGTH
 
 		for d in self.web_form_fields:
 			if d.fieldname or d.fieldtype in LAYOUT_FIELDTYPES:
 				continue
 
 			base = re.sub(r"\W+", "_", cstr(d.label or d.fieldtype).lower()).strip("_")
-			fieldname, suffix = base, 1
+			fieldname, suffix = base[:max_length], 1
 			while fieldname in taken:
 				suffix += 1
-				fieldname = f"{base}_{suffix}"
+				fieldname = f"{base[: max_length - len(str(suffix)) - 1]}_{suffix}"
 
 			d.fieldname = fieldname
 			taken.add(fieldname)

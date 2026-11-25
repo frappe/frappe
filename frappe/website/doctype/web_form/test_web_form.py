@@ -1922,6 +1922,34 @@ class TestWebFormNewDocType(IntegrationTestCase):
 			self.assertTrue(meta.has_field(fieldname), fieldname)
 		self.assertEqual([df.label for df in meta.get("fields", {"fieldtype": "Tab Break"})], ["More"])
 
+	def test_new_doctype_names_fields_within_doctype_rules(self):
+		long_label = "A" * 70
+		web_form = self.new_web_form(
+			"Test Web Form Reserved Fieldnames",
+			fields=[
+				{"label": "Meta", "fieldtype": "Data"},
+				{"label": "Save", "fieldtype": "Data"},
+				{"label": long_label, "fieldtype": "Data"},
+				{"label": long_label, "fieldtype": "Data"},
+			],
+		)
+
+		max_length = frappe.db.MAX_COLUMN_LENGTH
+		fieldnames = [d.fieldname for d in web_form.web_form_fields]
+		self.assertEqual(fieldnames, ["meta_2", "save_2", "a" * max_length, "a" * (max_length - 2) + "_2"])
+
+		meta = frappe.get_meta(web_form.doc_type)
+		for fieldname in fieldnames:
+			self.assertTrue(meta.has_field(fieldname), fieldname)
+
+	def test_new_doctype_name_fits_doctype_limit_for_long_title(self):
+		web_form = self.new_web_form("Test Web Form " + "Long Title " * 6)
+		self.addCleanup(frappe.delete_doc, "DocType", web_form.doc_type, ignore_permissions=True, force=True)
+
+		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
+		self.assertEqual(len(web_form.doc_type), frappe.db.MAX_COLUMN_LENGTH - len("tab"))
+		self.assertTrue(f"webform-{web_form.name}".startswith(web_form.doc_type))
+
 	def test_created_doctype_gets_field_added_without_fieldname(self):
 		web_form = self.new_web_form("Test Web Form Builder Sync DocType")
 		doctype_name = web_form.doc_type
