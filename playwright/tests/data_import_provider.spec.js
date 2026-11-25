@@ -1,7 +1,7 @@
 import { test, expect } from "../support";
 
-const GET_IMPORT_FIELDS =
-	"**/api/method/frappe.core.doctype.data_import.data_import.get_import_fields";
+const GET_IMPORT_FIELDS = (url) =>
+	url.pathname === "/api/method/frappe.core.doctype.data_import.data_import.get_import_fields";
 
 // Contact has no import provider, so answer the form's schema request with one: the picker and
 // preview then read their fields from it, as they do for a DocType an app registers a provider for.
