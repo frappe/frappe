@@ -40,8 +40,9 @@ class StandardMessageGuard(CodeFieldGuard):
 	"""A standard notification's message is loaded from its app's template file, which is developer code."""
 
 	def is_authored(self, row, reference, df, is_new, child_doctype=None):
-		if row is self.doc and df.fieldname == "message" and row.is_standard:
-			if normalize(row.message, df) == normalize(row.get_template(), df):
+		# a new standard notification has no app file yet
+		if row is self.doc and df.fieldname == "message" and row.is_standard and not is_new:
+			if normalize(row.message, df) == normalize(get_app_template(row), df):
 				return False
 		return super().is_authored(row, reference, df, is_new, child_doctype)
 
@@ -51,10 +52,25 @@ class StandardMessageGuard(CodeFieldGuard):
 		# a duplicate of a standard notification carries the message from its app file
 		if fieldname != "message" or child_doctype:
 			return False
-		return any(
-			normalize_text(frappe.get_doc("Notification", name).get_template()) == normalize_text(value)
-			for name in frappe.get_list("Notification", filters={"is_standard": 1}, pluck="name")
+		standard = frappe.get_list(
+			"Notification",
+			filters={"is_standard": 1, "document_type": self.doc.document_type},
+			fields=["name", "module", "message_type"],
 		)
+		# built in memory: get_template only reads the app file
+		return any(
+			normalize_text(get_app_template(Notification({"doctype": "Notification", **row})))
+			== normalize_text(value)
+			for row in standard
+		)
+
+
+def get_app_template(notification):
+	try:
+		return notification.get_template()
+	except ModuleNotFoundError:
+		# a standard notification whose app is no longer installed
+		return None
 
 
 class Notification(Document):

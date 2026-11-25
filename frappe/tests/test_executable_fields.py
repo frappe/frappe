@@ -141,3 +141,13 @@ class TestExecutableFields(IntegrationTestCase):
 
 			doc.message = "{{ frappe.session.user }}"
 			self.assertRaises(frappe.PermissionError, doc.save)
+
+		# a new standard notification has no app file yet, so its message is checked as usual
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			self.assertRaises(
+				frappe.PermissionError,
+				make_notification,
+				is_standard=1,
+				module="Email",
+				message="{{ frappe.session.user }}",
+			)
