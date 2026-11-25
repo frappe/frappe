@@ -731,7 +731,10 @@ class FilterArea {
 		this.user_setting_fields =
 			frappe.get_user_settings(this.list_view.doctype)?.group_by_fields || [];
 
-		if (["assigned_to", "owner", "tags"].some((v) => this.user_setting_fields.includes(v))) {
+		if (
+			!this.list_view.meta.is_virtual &&
+			["assigned_to", "owner", "tags"].some((v) => this.user_setting_fields.includes(v))
+		) {
 			this.render_non_standard_fields_filter();
 		}
 	}
