@@ -94,6 +94,13 @@ class WebForm(WebsiteGenerator):
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
+		if not self.doc_type and not frappe.has_permission("DocType", "create"):
+			frappe.throw(
+				_("Select an existing DocType, or ask a System Manager to create this Web Form."),
+				frappe.PermissionError,
+				title=_("Not Permitted to Create DocType"),
+			)
+
 		if not self.doc_type or self.created_new_doctype:
 			self.set_missing_fieldnames()
 

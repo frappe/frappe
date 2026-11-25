@@ -13,6 +13,7 @@ frappe.listview_settings["Web Form"] = {
 
 	new_web_form_dialog() {
 		let route_edited = false;
+		let can_create_doctype = frappe.model.can_create("DocType");
 
 		let dialog = new frappe.ui.Dialog({
 			title: __("New Web Form"),
@@ -39,10 +40,13 @@ frappe.listview_settings["Web Form"] = {
 					},
 				},
 				{
-					label: __("Select DocType (optional)"),
+					label: can_create_doctype
+						? __("Select DocType (optional)")
+						: __("Select DocType"),
 					fieldname: "doc_type",
 					fieldtype: "Link",
 					options: "DocType",
+					reqd: !can_create_doctype,
 				},
 				{
 					label: __("Module"),

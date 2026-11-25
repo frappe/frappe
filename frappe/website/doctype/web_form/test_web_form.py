@@ -1782,6 +1782,15 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "already exists"):
 			self.new_web_form(title)
 
+	def test_new_doctype_needs_doctype_create_permission(self):
+		with test_user(email="_test_web_form_website_manager@example.com", roles=["Website Manager"]) as user:
+			self.assertFalse(frappe.has_permission("DocType", "create", user=user.name))
+			with self.set_user(user.name):
+				with self.assertRaisesRegex(frappe.PermissionError, "Select an existing DocType"):
+					self.new_web_form("Test Web Form No DocType Permission")
+
+		self.assertFalse(frappe.db.exists("DocType", "webform-test-web-form-no-doctype-permission"))
+
 	def test_sync_fields_to_doctype_adds_new_field_after_creation(self):
 		web_form = self.new_web_form("Test Web Form Sync DocType")
 		doctype_name = web_form.doc_type
