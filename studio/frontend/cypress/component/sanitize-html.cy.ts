@@ -1,4 +1,4 @@
-import HTMLBlock from "@/runtime/components/AppLayout/HTML.vue"
+import { HTML as HTMLBlock } from "@/runtime/components/core"
 import { sanitizeHTML } from "@/runtime/utils/helpers"
 
 describe("sanitizeHTML", () => {

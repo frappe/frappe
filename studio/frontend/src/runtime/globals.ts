@@ -71,12 +71,7 @@ import {
 	ListGroup,
 } from "frappe-ui/list"
 
-import Container from "@/runtime/components/AppLayout/Container.vue"
-import Repeater from "@/runtime/components/AppLayout/Repeater.vue"
-import HTML from "@/runtime/components/AppLayout/HTML.vue"
-import ImageView from "@/runtime/components/AppLayout/ImageView.vue"
-import TextBlock from "@/runtime/components/AppLayout/TextBlock.vue"
-import Variants from "@/runtime/components/AppLayout/Variants.vue"
+import { Container, HTML, ImageView, Repeater, TextBlock, Variants } from "@/runtime/components/core"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
