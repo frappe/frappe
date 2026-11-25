@@ -11,6 +11,14 @@
 	<!-- nested overlay nodes (sub-dialogs) are collapsed into cards instead of rendering inline -->
 	<template v-else-if="isOverlayNode"></template>
 
+	<MissingComponent
+		v-else-if="block.isStudioComponent && componentStore.isComponentMissing(block.componentName)"
+		:componentName="block.componentName"
+		:data-component-id="block.componentId"
+		:data-breakpoint="breakpoint"
+		:class="classes"
+		ref="componentRef"
+	/>
 	<StudioComponentWrapper
 		v-else-if="block.isStudioComponent"
 		:studioComponent="block"
@@ -137,6 +145,7 @@ import type { SlotScope } from "@/types"
 import type { HTML } from "@/runtime/components/core"
 import MissingComponent from "@/runtime/components/MissingComponent.vue"
 import { usePageScope } from "@/runtime/stores/codeStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 
 const props = withDefaults(
 	defineProps<{
@@ -155,6 +164,7 @@ defineOptions({
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const componentStore = useComponentStore()
 const pageScope = usePageScope()
 
 const isComponentReady = ref(false)
