@@ -178,6 +178,34 @@ describe("component scripts", () => {
 		})
 	})
 
+	it("shows a component that cannot be fetched as missing, in the preview only", () => {
+		const missingId = "cypress_missing"
+		const mountMissing = (isPreview: boolean) => {
+			;(window as any).is_preview = isPreview
+			const block = getBlockInstance({ componentName: missingId, componentId: "missing-1", isStudioComponent: true })
+			cy.mount(
+				defineComponent({
+					setup: () => () =>
+						h(StudioComponentRenderer, { studioComponent: block, evaluationContext: {}, listeners: {} }),
+				}),
+				{ global },
+			)
+		}
+		cy.intercept("POST", "**/api/method/frappe.studio.api.get_studio_component", { statusCode: 404 }).as(
+			"getComponent",
+		)
+		cy.then(() => mountMissing(true))
+		cy.wait("@getComponent")
+		cy.contains(`Component Missing: ${missingId}`)
+
+		cy.then(() => mountMissing(false))
+		cy.contains("Component Missing").should("not.exist")
+		cy.then(() => {
+			delete (window as any).is_preview
+			useComponentStore().removeCachedComponent(missingId)
+		})
+	})
+
 	it("accepts only a component definition", () => {
 		expect(() => validateComponentScript(function setup() {})).to.throw("must export an object")
 		expect(() => validateComponentScript({ props: {}, methods: {} })).to.throw('cannot use "methods"')
