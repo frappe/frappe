@@ -17,22 +17,12 @@ import {
 } from "@/runtime/utils/componentScript"
 import { isObjectEmpty } from "@/runtime/utils/helpers"
 import { getBlockInstance, getBlockObjectCopy } from "@/runtime/utils/serializer"
-import type { BlockOptions, BlockStyleMap } from "@/runtime/types"
-
-const MISSING_COMPONENT_BLOCK: BlockOptions = {
-	componentName: "HTML",
-	originalElement: "__raw_html__",
-	innerHTML: `<div style="color:#E86C13;background:#F8F8F8;display:flex;width:300px;height:150px;align-items:center;font-size:16px;justify-content:center"><p>Component Missing</p></div>`,
-	baseStyles: {
-		height: "fit-content",
-		width: "fit-content",
-	} as BlockStyleMap,
-}
 
 const useComponentStore = defineStore("componentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())
 	const componentDocMap = reactive<Map<string, StudioComponent>>(new Map())
 	const fetchingComponent = reactive<Set<string>>(new Set())
+	const missingComponents = reactive<Set<string>>(new Set())
 	// A new host remounts every instance of its component, so a host stays until its source changes.
 	// The source is the script, or the input names of a component without one.
 	const componentHosts = shallowReactive<Map<string, { host: Component; source: ComponentScript | string }>>(
@@ -76,6 +66,11 @@ const useComponentStore = defineStore("componentStore", () => {
 		return componentMap.get(componentName)
 	}
 
+	/** Whether the component could not be fetched: it does not exist, or the user cannot read it. */
+	function isComponentMissing(componentName: string) {
+		return missingComponents.has(componentName)
+	}
+
 	function getComponentDoc(componentName: string) {
 		return componentDocMap.get(componentName) as StudioComponent
 	}
@@ -89,7 +84,11 @@ const useComponentStore = defineStore("componentStore", () => {
 	}
 
 	async function loadComponent(componentName: string) {
-		if (!componentMap.has(componentName) && !fetchingComponent.has(componentName)) {
+		if (
+			!componentMap.has(componentName) &&
+			!fetchingComponent.has(componentName) &&
+			!missingComponents.has(componentName)
+		) {
 			fetchingComponent.add(componentName);
 
 			try {
@@ -102,11 +101,11 @@ const useComponentStore = defineStore("componentStore", () => {
 					name: componentName,
 					component_id: componentName,
 					component_name: componentName,
-					block: JSON.stringify(MISSING_COMPONENT_BLOCK),
 					creation: "",
 					modified: "",
 				};
 				cacheComponent(missingComponentDoc)
+				missingComponents.add(componentName)
 			} finally {
 				fetchingComponent.delete(componentName)
 			}
@@ -132,6 +131,7 @@ const useComponentStore = defineStore("componentStore", () => {
 
 	/** Cache the block tree now. The component can mount when its script has loaded. */
 	function cacheComponent(componentDoc: StudioComponent): Promise<void> {
+		missingComponents.delete(componentDoc.component_id)
 		componentDocMap.set(componentDoc.component_id, componentDoc)
 		if (componentDoc.block) {
 			componentMap.set(componentDoc.component_id, markRaw(getBlockInstance(componentDoc.block)))
@@ -142,6 +142,7 @@ const useComponentStore = defineStore("componentStore", () => {
 	function removeCachedComponent(componentName: string) {
 		componentMap.delete(componentName)
 		componentDocMap.delete(componentName)
+		missingComponents.delete(componentName)
 		componentHosts.delete(componentName)
 		componentScriptErrors.delete(componentName)
 	}
@@ -263,6 +264,7 @@ const useComponentStore = defineStore("componentStore", () => {
 		setStudioApp,
 		getComponent,
 		getComponentDoc,
+		isComponentMissing,
 		getComponentName,
 		cacheComponent,
 		removeCachedComponent,

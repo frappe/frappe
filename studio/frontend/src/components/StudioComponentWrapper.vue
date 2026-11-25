@@ -1,5 +1,12 @@
 <template>
-	<component :is="host" v-if="host && block" v-bind="propValues">
+	<MissingComponent
+		v-if="componentStore.isComponentMissing(studioComponent.componentName)"
+		class="__studio_component__"
+		:componentName="studioComponent.componentName"
+		:data-component-id="studioComponent.componentId"
+		:data-breakpoint="breakpoint"
+	/>
+	<component :is="host" v-else-if="host && block" v-bind="propValues">
 		<StudioComponent :block="block" :breakpoint="props.breakpoint" />
 	</component>
 </template>
@@ -7,6 +14,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
+import MissingComponent from "@/runtime/components/MissingComponent.vue"
 import Block from "@/runtime/utils/block"
 import useComponentStore from "@/runtime/stores/componentStore"
 import { useComponentPropValues } from "@/runtime/utils/useComponentPropValues"
