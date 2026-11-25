@@ -1,3 +1,17 @@
+// Mirrors WebsiteGenerator.scrub so the portal serves the route.
+function scrub_route(title) {
+	return title
+		.toLowerCase()
+		.replace(/[~!@#$%^&*+()<>,."'?]/g, "")
+		.replace(/[:/]/g, "-")
+		.split(/\s+/)
+		.filter(Boolean)
+		.join("-")
+		.replace(/-+/g, "-")
+		.slice(0, 140)
+		.replace(/_/g, "-");
+}
+
 frappe.listview_settings["Web Form"] = {
 	add_fields: ["title", "published"],
 	get_indicator: function (doc) {
@@ -26,7 +40,7 @@ frappe.listview_settings["Web Form"] = {
 					onchange() {
 						if (route_edited) return;
 						let title = dialog.get_value("title") || "";
-						dialog.set_value("route", title.toLowerCase().replace(/ /g, "-"));
+						dialog.set_value("route", scrub_route(title));
 					},
 				},
 				{
@@ -36,7 +50,7 @@ frappe.listview_settings["Web Form"] = {
 					onchange() {
 						let title = dialog.get_value("title") || "";
 						let route = dialog.get_value("route") || "";
-						route_edited = route !== title.toLowerCase().replace(/ /g, "-");
+						route_edited = route !== scrub_route(title);
 					},
 				},
 				{
