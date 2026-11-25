@@ -21,6 +21,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
+from frappe.model.naming import make_autoname
 from frappe.model.rename_doc import rename_doc
 from frappe.query_builder import Criterion, DocType, Order, Table
 from frappe.query_builder.functions import IfNull
@@ -216,18 +217,21 @@ class User(Document):
 		# because it is handled separately
 		self.flags.ignore_save_passwords = ["new_password"]
 
-	def before_naming(self):
-		# data import keeps the given name and skips autoname
-		if self.name and self.name not in STANDARD_USERS:
-			self.name = self.name.strip().lower()
-
 	def autoname(self):
-		"""set name as Email Address"""
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
-		else:
+		elif frappe.in_test and self._email_as_id_in_test():
 			self.email = self.email.strip().lower()
 			self.name = self.email
+		elif self.meta.autoname != "hash":
+			self.name = make_autoname("hash", self.doctype)
+
+	def _email_as_id_in_test(self) -> bool:
+		if self.flags.email_as_id:
+			return True
+		if self.flags.random_id:
+			return False
+		return email_as_user_id_in_tests()
 
 	def onload(self):
 		from frappe.utils.modules import get_blockable_module_names
@@ -256,14 +260,7 @@ class User(Document):
 		if not frappe.in_test:
 			self.password_strength_test()
 
-		if self.name not in STANDARD_USERS and not self.flags.skip_email_from_name:
-			self.email = self.name
-			self.validate_email_type(self.name)
-
-		if self.email:
-			self.email = self.email.strip().lower()
-			if self.has_value_changed("email"):
-				self.validate_email_domain(self.email)
+		self.validate_email()
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
@@ -794,10 +791,42 @@ class User(Document):
 					).format(frappe.bold(name))
 				)
 
+	def validate_email(self):
+		if not self.email:
+			return
+
+		self.email = self.email.strip().lower()
+		if not self.has_value_changed("email"):
+			return
+
+		self.validate_email_change_allowed()
+		self.reset_password_key = ""
+		self.validate_email_type(self.email)
+		self.validate_email_domain(self.email)
+		self.validate_email_is_not_another_users_id()
+
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
 
 		validate_email_address(email, True)
+
+	def validate_email_change_allowed(self):
+		if self.is_new():
+			return
+
+		if self.name == "Guest":
+			throw(_("Guest's email can't be changed."))
+
+		if self.flags.ignore_permissions or "System Manager" in frappe.get_roles():
+			return
+
+		throw(_("Only a System Manager can change a user's email."), frappe.PermissionError)
+
+	def validate_email_is_not_another_users_id(self):
+		"""An email and a user ID mean one user: users created before v17 have their email as ID."""
+		# emails are kept lowercase; an ID from before v17 may not be
+		if self.email != self.name.lower() and frappe.db.exists("User", self.email):
+			throw(_("{0} is already used by another user.").format(frappe.bold(self.email)))
 
 	def validate_email_domain(self, email):
 		"""Users other than Administrator and Guest can't get an email on the reserved `.invalid` domain."""
@@ -840,12 +869,6 @@ class User(Document):
 					ignore_permissions=True,
 					show_alert=False,
 				)
-
-		old_email = self.email
-		frappe.db.set_value("User", new_name, "email", new_name)
-		if old_email != new_name and not frappe.flags.in_personal_data_deletion:
-			self.email = new_name
-			create_contact(self, ignore_mandatory=True, old_email=old_email)
 
 		if not merge:
 			frappe.db.set_value("DefaultValue", {"parent": old_name}, "parent", new_name)
@@ -1122,6 +1145,12 @@ class User(Document):
 
 	def validate_ip_addr(self):
 		self.restrict_ip = ",".join(self.get_restricted_ip_list())
+
+
+def email_as_user_id_in_tests() -> bool:
+	"""Whether tests keep new users' email as their ID, like users created before v17: when any installed
+	app sets `email_as_user_id_in_tests` in hooks. Otherwise tests give them random IDs, like a site does."""
+	return any(frappe.get_hooks("email_as_user_id_in_tests"))
 
 
 @frappe.whitelist()
