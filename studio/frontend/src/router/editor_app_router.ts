@@ -1,5 +1,5 @@
 import { createMemoryHistory, createRouter, type RouteRecordRaw, type Router } from "vue-router"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 // The editor renders the canvas itself; this router only matches and resolves app routes.
 const NO_COMPONENT = { render: () => null }

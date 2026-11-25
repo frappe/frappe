@@ -4,7 +4,7 @@ import { fetchAppPage } from "@/runtime/utils/helpers"
 import { getBlockInstance } from "@/runtime/utils/serializer"
 import { createPageScope, type PageScope } from "@/runtime/page/pageScope"
 import useComponentStore from "@/runtime/stores/componentStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 import type Block from "@/runtime/utils/block"
 
 export type LoadedPage = {

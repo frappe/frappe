@@ -25,10 +25,10 @@ import useComponentStore from "@/runtime/stores/componentStore"
 import { loadStudioComponents } from "@/data/studioComponents"
 import { loadAppRuntime, reloadAppRuntime, unloadAppRuntime } from "@/runtime/browserRuntime/appRuntime"
 import { registerCustomComponentPaths } from "@/utils/componentSlots"
-import type { CustomVueComponentMeta } from "@/types/vue"
+import type { CustomVueComponentMeta } from "@/runtime/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 import type { PageCopy } from "@/utils/blockCopyPaste"
 import type {
 	BlockOptions,
@@ -40,7 +40,7 @@ import type {
 } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type ComponentLayers from "@/components/ComponentLayers.vue"
-import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
+import type { Variable, VariableOption } from "@/runtime/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
 

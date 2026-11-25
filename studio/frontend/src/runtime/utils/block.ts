@@ -1,4 +1,4 @@
-import type { BlockOptions, BlockStyleMap, BlockStyles, CompletionSource, Slot, SlotScope } from "@/types"
+import type { BlockOptions, BlockStyleMap, BlockStyles, CompletionSource, Slot, SlotScope } from "@/runtime/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
@@ -13,8 +13,8 @@ import { unusedOptionName, variantOptionNames } from "./variants"
 import { copyObject, getBlockCopy, getComponentBlock } from "@/runtime/utils/serializer"
 import { mergeLegacyRawStyles } from "@/runtime/patches/mergeLegacyRawStyles"
 
-import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
-import type { ComponentEvent } from "@/types/ComponentEvent"
+import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/runtime/types"
+import type { ComponentEvent } from "@/runtime/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
 

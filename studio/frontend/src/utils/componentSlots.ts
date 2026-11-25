@@ -1,7 +1,7 @@
 import components from "@/data/components"
 import { componentFolders } from "@/utils/components"
 import { reactive } from "vue"
-import type { CustomVueComponentMeta } from "@/types/vue"
+import type { CustomVueComponentMeta } from "@/runtime/types/vue"
 
 // ?raw to get raw content of a file as string
 const frappeUIModules: Record<string, string> = import.meta.glob(

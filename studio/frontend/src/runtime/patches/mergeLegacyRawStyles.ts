@@ -1,4 +1,4 @@
-import type { BlockStyleMap } from "@/types"
+import type { BlockStyleMap } from "@/runtime/types"
 import { kebabToCamelCase } from "@/runtime/utils/helpers"
 
 // rawStyles were dropped in favour of baseStyles; older blocks still carry them

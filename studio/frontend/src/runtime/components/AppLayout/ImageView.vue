@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import type { ImageViewProps } from "@/types/studio_components/ImageView"
+import type { ImageViewProps } from "@/runtime/types/studio_components/ImageView"
 
 const props = withDefaults(defineProps<ImageViewProps>(), {
 	size: "lg",

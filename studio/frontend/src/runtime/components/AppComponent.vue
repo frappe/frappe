@@ -64,9 +64,9 @@ import useComponentInstance from "@/runtime/utils/useComponentInstance"
 
 import { usePageScope } from "@/runtime/stores/codeStore"
 import { toast } from "frappe-ui"
-import type { SlotScope } from "@/types"
-import type { Field } from "@/types/ComponentEvent"
-import type { DataResult } from "@/types/Studio/StudioResource"
+import type { SlotScope } from "@/runtime/types"
+import type { Field } from "@/runtime/types/ComponentEvent"
+import type { DataResult } from "@/runtime/types/Studio/StudioResource"
 
 import StudioComponentRenderer from "@/runtime/components/StudioComponentRenderer.vue"
 import SlotScopeProvider from "@/runtime/components/SlotScopeProvider.vue"

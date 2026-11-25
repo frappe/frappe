@@ -156,7 +156,7 @@ import blockController from "@/utils/blockController"
 import { confirm } from "@/utils/helpers"
 import { isObjectEmpty } from "@/runtime/utils/helpers"
 
-import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+import type { ActionConfigurations, ComponentEvent } from "@/runtime/types/ComponentEvent"
 import Link from "@framework/ui/components/Link/Link.vue"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"

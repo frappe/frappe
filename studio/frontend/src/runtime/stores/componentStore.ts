@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import { markRaw, reactive, shallowReactive, type Component } from "vue"
 import { call } from "frappe-ui"
 import Block from "@/runtime/utils/block"
-import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponent, StudioComponentInput } from "@/runtime/types/Studio/StudioComponent"
 import { compileComponentScript } from "@/runtime/browserRuntime/appRuntime"
 import {
 	hasBuiltComponentScript,
@@ -17,7 +17,7 @@ import {
 } from "@/runtime/utils/componentScript"
 import { isObjectEmpty } from "@/runtime/utils/helpers"
 import { getBlockInstance, getBlockObjectCopy } from "@/runtime/utils/serializer"
-import type { BlockOptions, BlockStyleMap } from "@/types"
+import type { BlockOptions, BlockStyleMap } from "@/runtime/types"
 
 const MISSING_COMPONENT_BLOCK: BlockOptions = {
 	componentName: "HTML",

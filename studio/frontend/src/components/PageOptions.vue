@@ -63,7 +63,7 @@
 import { computed, ref } from "vue"
 import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import Input from "@/components/Input.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"

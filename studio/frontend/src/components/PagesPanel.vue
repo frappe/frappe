@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import useStudioStore from "@/stores/studioStore"
 import RouterScript from "@/components/RouterScript.vue"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/runtime/utils/helpers"
 import { copyEntirePage } from "@/utils/blockCopyPaste"
 import { useRouter } from "vue-router"

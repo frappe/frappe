@@ -9,7 +9,7 @@ import DataPanel from "@/components/DataPanel.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 import useStudioStore from "@/stores/studioStore"
 import { usePageScope } from "@/runtime/stores/codeStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 const APP_NAME = "cypress-data-sources"
 

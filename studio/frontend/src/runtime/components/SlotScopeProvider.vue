@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { computed, inject, provide, useAttrs, type ComputedRef } from "vue"
-import type { SlotScope } from "@/types"
+import type { SlotScope } from "@/runtime/types"
 
 // Renderless provider that pushes a scoped slot's props onto the scope stack
 // so that blocks rendered inside the slot can reference them in expressions.
