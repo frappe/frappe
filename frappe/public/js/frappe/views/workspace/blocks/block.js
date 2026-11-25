@@ -230,9 +230,10 @@ export default class Block {
 
 		this.dropdown_list.forEach((item) => {
 			if (
-				(item.label == "Expand" || item.label == "Shrink") &&
-				me.options &&
-				!me.options.allow_resize
+				((item.label == "Expand" || item.label == "Shrink") &&
+					me.options &&
+					!me.options.allow_resize) ||
+				(item.label == "Delete" && me.options && !me.options.allow_delete)
 			) {
 				return;
 			}

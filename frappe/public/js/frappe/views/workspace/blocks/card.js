@@ -16,12 +16,15 @@ export default class Card extends Block {
 		this.sections = {};
 		this.col = this.data.col ? this.data.col : "4";
 		this.allow_customization = !this.readOnly;
+		const is_generated_card = ["Custom Documents", "Custom Reports"].includes(
+			this.data.card_name
+		);
 		this.options = {
 			allow_sorting: this.allow_customization,
 			allow_create: this.allow_customization,
-			allow_delete: this.allow_customization,
+			allow_delete: this.allow_customization && !is_generated_card,
 			allow_hiding: false,
-			allow_edit: true,
+			allow_edit: !is_generated_card,
 			allow_resize: true,
 		};
 	}
