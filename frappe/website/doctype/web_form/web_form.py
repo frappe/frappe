@@ -122,7 +122,7 @@ class WebForm(WebsiteGenerator):
 
 		super().validate()
 
-		if self.is_standard and not self.module:
+		if self.is_standard and not self.module and not self.doc_type:
 			frappe.throw(
 				_("Select a Module for a standard Web Form"),
 				frappe.MandatoryError,

@@ -2278,6 +2278,18 @@ class TestWebFormNewDocType(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("DocType", "webform-test-wf-issue-8-standard"))
 
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Test WF Issue 8 Standard With DocType",
+				"doc_type": "Note",
+				"is_standard": 1,
+				"web_form_fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Web Form", web_form.name, ignore_permissions=True, force=True)
+		self.assertEqual(web_form.module, "Desk")
+
 	def enable_developer_mode(self, web_form_name):
 		import os
 		import shutil
