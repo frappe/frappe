@@ -2732,6 +2732,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				// let's remove it manually
 				this.data = this.data.filter((d) => !names.includes(d.name));
 				this.remove_list_items(names);
+				this.render_count();
 				return;
 			}
 
