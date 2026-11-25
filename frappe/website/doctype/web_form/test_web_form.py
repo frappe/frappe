@@ -2277,3 +2277,74 @@ class TestWebFormNewDocType(IntegrationTestCase):
 			self.new_web_form("Test WF Issue 8 Standard", module=None, is_standard=1)
 
 		self.assertFalse(frappe.db.exists("DocType", "webform-test-wf-issue-8-standard"))
+
+	def enable_developer_mode(self, web_form_name):
+		import os
+		import shutil
+
+		from frappe.modules import get_module_path
+
+		previous = frappe.local.conf.developer_mode
+		frappe.local.conf.developer_mode = 1
+		self.addCleanup(lambda: frappe.local.conf.update(developer_mode=previous))
+
+		module_path = get_module_path("Website")
+		for path in (
+			("web_form", frappe.scrub(web_form_name)),
+			("doctype", frappe.scrub(f"webform-{web_form_name}")),
+		):
+			self.addCleanup(shutil.rmtree, os.path.join(module_path, *path), ignore_errors=True)
+
+	def assert_doctype_exported(self, web_form):
+		import os
+
+		from frappe.modules import get_doc_path
+
+		self.assertEqual(
+			frappe.db.get_value("DocType", web_form.doc_type, ["custom", "module"]), (0, "Website")
+		)
+		path = get_doc_path("Website", "DocType", web_form.doc_type)
+		self.assertTrue(os.path.exists(os.path.join(path, frappe.scrub(web_form.doc_type) + ".json")))
+
+		path = get_doc_path("Website", "Web Form", web_form.name)
+		with open(os.path.join(path, frappe.scrub(web_form.name) + ".json")) as f:
+			self.assertEqual(json.load(f)["doc_type"], web_form.doc_type)
+
+	def test_standard_web_form_exports_created_doctype(self):
+		self.enable_developer_mode("test-wf-issue-7-standard")
+		web_form = self.new_web_form("Test WF Issue 7 Standard", is_standard=1)
+		web_form.reload()
+
+		self.assert_doctype_exported(web_form)
+
+		web_form.append(
+			"web_form_fields", {"fieldname": "last_name", "label": "Last Name", "fieldtype": "Data"}
+		)
+		web_form.save()
+		self.assertTrue(frappe.get_meta(web_form.doc_type).has_field("last_name"))
+
+		doctype = frappe.get_doc("DocType", web_form.doc_type)
+		doctype.run_method("onload")
+		self.assertEqual(doctype.get_onload().web_form_managed_fields["web_form"], web_form.name)
+
+	def test_ticking_is_standard_exports_created_doctype(self):
+		self.enable_developer_mode("test-wf-issue-7-later")
+		web_form = self.new_web_form("Test WF Issue 7 Later")
+		self.assertEqual(frappe.db.get_value("DocType", web_form.doc_type, "custom"), 1)
+
+		web_form.reload()
+		web_form.is_standard = 1
+		web_form.save()
+
+		self.assert_doctype_exported(web_form)
+
+	def test_delete_web_form_keeps_standard_doctype_outside_developer_mode(self):
+		self.enable_developer_mode("test-wf-issue-7-delete")
+		web_form = self.new_web_form("Test WF Issue 7 Delete", is_standard=1)
+		web_form.reload()
+
+		frappe.local.conf.developer_mode = 0
+		frappe.delete_doc("Web Form", web_form.name)
+		frappe.local.conf.developer_mode = 1
+
+		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))

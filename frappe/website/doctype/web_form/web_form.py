@@ -184,7 +184,7 @@ class WebForm(WebsiteGenerator):
 				"doctype": "DocType",
 				"name": doctype_name,
 				"module": self.module,
-				"custom": 1,
+				"custom": cint(not self.exports_created_doctype()),
 				"autoname": "hash",
 				"naming_rule": "Random",
 				"fields": self.get_fields_for_new_doctype(),
@@ -293,10 +293,6 @@ class WebForm(WebsiteGenerator):
 			return
 
 		if not self.doc_type or not frappe.db.exists("DocType", self.doc_type):
-			return
-
-		meta = frappe.get_meta(self.doc_type)
-		if not meta.custom:
 			return
 
 		target_doctype = frappe.get_doc("DocType", self.doc_type)
@@ -470,6 +466,7 @@ class WebForm(WebsiteGenerator):
 			if self.needs_new_doctype():
 				self.create_new_doctype(keep_web_form=True)
 			else:
+				self.make_created_doctype_standard()
 				self.sync_fields_to_doctype()
 
 		path = export_module_json(self, self.is_standard, self.module)
@@ -498,6 +495,21 @@ def get_context(context):
 """
 					)
 
+	def exports_created_doctype(self):
+		return self.is_standard and frappe.conf.developer_mode
+
+	def make_created_doctype_standard(self):
+		if not (self.created_new_doctype and self.exports_created_doctype()):
+			return
+
+		if not frappe.db.get_value("DocType", self.doc_type, "custom"):
+			return
+
+		target_doctype = frappe.get_doc("DocType", self.doc_type)
+		target_doctype.custom = 0
+		target_doctype.module = self.module
+		target_doctype.save()
+
 	def after_delete(self):
 		self.delete_created_doctype()
 
@@ -521,6 +533,10 @@ def get_context(context):
 			)
 		elif not frappe.has_permission("DocType", "delete", self.doc_type):
 			message = _("DocType {0} was kept, because you do not have permission to delete it.")
+		elif not frappe.db.get_value("DocType", self.doc_type, "custom") and not (
+			frappe.conf.developer_mode and frappe.session.user == "Administrator"
+		):
+			message = _("DocType {0} was kept, because it is a standard DocType.")
 		else:
 			frappe.delete_doc("DocType", self.doc_type)
 			return
