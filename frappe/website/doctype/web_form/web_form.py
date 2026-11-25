@@ -214,6 +214,7 @@ class WebForm(WebsiteGenerator):
 		for d in self.web_form_fields:
 			if d.fieldtype in LAYOUT_FIELDTYPES:
 				continue
+			d.label = d.label or d.fieldtype
 			if d.fieldname and d.fieldname == scrub_fieldname(d.fieldname) and d.fieldname not in taken:
 				taken.add(d.fieldname)
 			else:

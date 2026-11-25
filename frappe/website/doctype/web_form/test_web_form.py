@@ -2187,3 +2187,9 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		web_form = self.new_web_form("日本語フォーム")
 		self.assertRegex(web_form.doc_type, r"^webform-[0-9a-f]{10}$")
 		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
+
+	def test_field_without_label_gets_fieldtype_as_label(self):
+		web_form = self.new_web_form("Test WF Issue 17 Default Label", fields=[{"fieldtype": "Int"}])
+
+		self.assertEqual(web_form.web_form_fields[0].label, "Int")
+		self.assertEqual(frappe.get_meta(web_form.doc_type).get_field("int").label, "Int")
