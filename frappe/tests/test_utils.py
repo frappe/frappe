@@ -1,10 +1,12 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import http.server
 import io
 import json
 import os
 import sys
+import threading
 from datetime import UTC, date, datetime, time, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
@@ -909,6 +911,37 @@ class TestImage(IntegrationTestCase):
 			dst.write(src.read())
 		self.addCleanup(os.remove, public)
 		self.assertTrue(get_image_thumbnail_uri("/files/thumbnail_public.jpg").startswith("data:image/"))
+
+	def test_image_thumbnail_checks_the_connected_address(self):
+		hits = []
+		sample = frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg")
+		with open(sample, "rb") as f:
+			image = f.read()
+
+		class Handler(http.server.BaseHTTPRequestHandler):
+			def do_GET(self):
+				hits.append(self.path)
+				self.send_response(200)
+				self.send_header("Content-Length", str(len(image)))
+				self.end_headers()
+				self.wfile.write(image)
+
+			def log_message(self, *args):
+				pass
+
+		server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+
+		frappe.local._print_thumbnail_cache = {}
+		url = f"http://127.0.0.1:{server.server_address[1]}/img.jpg"
+		with (
+			patch("frappe.utils.data.validate_egress_url", lambda url: None),
+			patch("frappe.utils.safe_exec.validate_request_url", lambda url: None),
+		):
+			self.assertEqual(get_image_thumbnail_uri(url), url)
+		self.assertEqual(hits, [])
 
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
