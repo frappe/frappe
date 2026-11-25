@@ -1,8 +1,7 @@
 import type Block from "@/runtime/utils/block";
 import useStudioStore from "@/stores/studioStore";
 import getBlockTemplate from "@/utils/blockTemplate";
-import { pxToNumber } from "@/utils/helpers";
-import { numberToPx } from "@/runtime/utils/helpers";
+import { pxToNumber, numberToPx } from "@/utils/helpers";
 import { clamp, useEventListener } from "@vueuse/core";
 import { Ref } from "vue";
 import type { CanvasProps, CanvasHistory } from "@/types/StudioCanvas"

@@ -230,8 +230,7 @@ import {
 	type StudioFileNode,
 } from "@/data/studioFiles"
 import { checkAppScript } from "@/runtime/browserRuntime/appRuntime"
-import { confirm } from "@/utils/helpers"
-import { scrub } from "@/runtime/utils/helpers"
+import { confirm, scrub } from "@/utils/helpers"
 import { COMPONENT_SCRIPT_BOILERPLATE, PAGE_SCRIPT_BOILERPLATE } from "@/runtime/utils/constants"
 import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
 import type { ContextMenuOption } from "@/types"

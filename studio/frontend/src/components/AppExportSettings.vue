@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { FormControl, Switch, call } from "frappe-ui"
-import { scrub } from "@/runtime/utils/helpers"
+import { scrub } from "@/utils/helpers"
 import SettingItem from "@/components/SettingItem.vue"
 
 defineProps<{ appName?: string | null }>()

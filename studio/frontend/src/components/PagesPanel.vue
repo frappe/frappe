@@ -59,7 +59,7 @@
 import useStudioStore from "@/stores/studioStore"
 import RouterScript from "@/components/RouterScript.vue"
 import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
-import { isObjectEmpty } from "@/runtime/utils/helpers"
+import { isObjectEmpty } from "@/utils/helpers"
 import { copyEntirePage } from "@/utils/blockCopyPaste"
 import { useRouter } from "vue-router"
 import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
