@@ -2114,13 +2114,13 @@ class TestConcurrency(IntegrationTestCase):
 
 
 def bad_hook(*args, **kwargs):
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	frappe.db.rollback()
 
 
 def bad_nested_hook(doc, *args, **kwargs):
 	doc.run_method("before_validate")
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	frappe.db.rollback()
 
 
