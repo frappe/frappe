@@ -165,6 +165,9 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		{{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% elif df.fieldtype=="Currency" %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
+	{% elif df.options == "Email" and df.fieldtype in ("Data", "Small Text") and doc[df.fieldname] %}
+		{%- set value = doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) -%}
+		<span dir="ltr">{{ value|e if df.fieldtype == "Data" else value }}</span>
 	{% elif df.fieldtype in ("Data", "Code", "JSON") %}
 		{%- set parent = parent_doc or doc -%}
 		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
