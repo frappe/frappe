@@ -1883,12 +1883,22 @@ class TestWebFormNewDocType(IntegrationTestCase):
 	def test_sync_fields_to_doctype_rejects_incompatible_fieldtype(self):
 		web_form = self.new_web_form("Test Web Form Sync Incompatible")
 		frappe.get_doc({"doctype": web_form.doc_type, "first_name": "Faris"}).insert()
+		column_type = frappe.db.get_column_type(web_form.doc_type, "first_name")
 
 		web_form.web_form_fields[0].fieldtype = "Int"
-		with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be changed from Data to Int"):
 			web_form.save()
 
-		self.assertEqual(frappe.get_meta(web_form.doc_type).get_field("first_name").fieldtype, "Data")
+		self.assertEqual(frappe.db.get_value("DocField", {"parent": web_form.doc_type}, "fieldtype"), "Data")
+		self.assertEqual(frappe.db.get_column_type(web_form.doc_type, "first_name"), column_type)
+
+	def test_sync_fields_to_doctype_changes_fieldtype_without_records(self):
+		web_form = self.new_web_form("Test Web Form Sync Type No Records")
+
+		web_form.web_form_fields[0].fieldtype = "Int"
+		web_form.save()
+
+		self.assertEqual(frappe.get_meta(web_form.doc_type).get_field("first_name").fieldtype, "Int")
 
 	def test_new_doctype_names_fields_added_without_fieldname(self):
 		web_form = self.new_web_form(

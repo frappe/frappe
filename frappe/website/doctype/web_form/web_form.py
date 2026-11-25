@@ -11,6 +11,7 @@ from frappe import _, scrub
 from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefaultError
 from frappe.core.doctype.file.utils import remove_file_by_url
+from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.model import child_table_fields, default_fields
 from frappe.modules.utils import export_module_json, get_doc_module
@@ -278,7 +279,9 @@ class WebForm(WebsiteGenerator):
 		"""Validate all fields are present"""
 		from frappe.model import no_value_fields
 
-		self.sync_fields_to_doctype()
+		if self.created_new_doctype:
+			self.validate_fieldtype_changes()
+			return
 
 		# a new DocType is made from these fields after insert
 		if not self.doc_type:
@@ -293,6 +296,30 @@ class WebForm(WebsiteGenerator):
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
+
+	def validate_fieldtype_changes(self):
+		"""Reject a fieldtype change the existing records cannot take. The DocType saves
+		its fields before it alters the column, so this must run before the sync."""
+		if not frappe.db.exists(self.doc_type, {}):
+			return
+
+		meta = frappe.get_meta(self.doc_type)
+		for d in self.web_form_fields:
+			df = d.fieldname and meta.get_field(d.fieldname)
+			new_type = self.as_docfield(d)["fieldtype"]
+			if (
+				not df
+				or df.fieldtype == new_type
+				or CustomizeForm.allow_fieldtype_change(df.fieldtype, new_type)
+			):
+				continue
+
+			frappe.throw(
+				_(
+					"Field {0} cannot be changed from {1} to {2}, because the form already has records."
+				).format(frappe.bold(d.label or d.fieldname), df.fieldtype, new_type),
+				title=_("Field Type Change Not Allowed"),
+			)
 
 	def warn_about_empty_pages(self):
 		"""The portal skips a page with no visible fields and shows the rest of the form.
@@ -350,7 +377,11 @@ class WebForm(WebsiteGenerator):
 
 	# export
 	def on_update(self):
-		"""In developer mode, export a standard Web Form's JSON and create its .js and .py stubs."""
+		"""Sync the fields to the DocType this Web Form created. In developer mode, export
+		a standard Web Form's JSON and create its .js and .py stubs."""
+		if not frappe.flags.in_import:
+			self.sync_fields_to_doctype()
+
 		path = export_module_json(self, self.is_standard, self.module)
 
 		if path:
