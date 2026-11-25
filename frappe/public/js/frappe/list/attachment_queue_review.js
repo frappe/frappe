@@ -46,12 +46,16 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 	const $preview_header = $panes.find(".attachment-queue-review-preview-header");
 	const $preview_body = $panes.find(".attachment-queue-review-preview-body");
 
-	$preview_body.append(
-		frappe.ui.empty_state({
-			icon: "file-text",
-			title: __("Select a file to preview it"),
-		})
-	);
+	const clear_preview = () => {
+		$preview_header.addClass("hidden");
+		$preview_body.empty().append(
+			frappe.ui.empty_state({
+				icon: "file-text",
+				title: __("Select a file to preview it"),
+			})
+		);
+	};
+	clear_preview();
 
 	const show_preview = (entry) => {
 		const file_name = queued_file_name(entry.source_file);
@@ -101,6 +105,30 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 		show_preview(entry);
 	};
 
+	const remove_column = {
+		type: "actions",
+		actions: [
+			{
+				label: __("Remove"),
+				icon: "x",
+				danger: true,
+				confirm: __("Remove this file from review?"),
+				action: async (row, refresh) => {
+					await frappe.xcall("frappe.client.delete", {
+						doctype: QUEUE_DOCTYPE,
+						name: row.name,
+					});
+					if (selected?.name === row.name) {
+						selected = null;
+						dialog.disable_primary_action();
+						clear_preview();
+					}
+					refresh();
+				},
+			},
+		],
+	};
+
 	frappe
 		.require("embedded_list.bundle.js")
 		.then(() => {
@@ -136,6 +164,7 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 						label: __("Uploaded"),
 						render: (row) => comment_when(row.creation),
 					},
+					...(frappe.model.can_delete(document_type) ? [remove_column] : []),
 				],
 				on_row_click: select,
 				after_render: () => mark_selected_row(),
