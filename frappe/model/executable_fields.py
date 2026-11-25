@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe import _
-from frappe.utils import cstr
+from frappe.utils import cint, cstr
 
 CODE_AUTHOR_ROLE = "Code Author"
 # Script Managers already write Server Scripts, which run the same sandbox
@@ -90,8 +90,8 @@ class CodeFieldGuard:
 		return changed
 
 	def is_authored(self, row, reference, df, is_new, child_doctype=None):
-		# clearing a field runs nothing
-		if not is_changed(row, reference, df) or not normalize(row.get(df.fieldname), df):
+		# clearing a field or unticking a check runs nothing
+		if not is_changed(row, reference, df) or is_empty(row.get(df.fieldname), df):
 			return False
 		# a new document or row may reuse code the user can already read, e.g. after Duplicate
 		return not (
@@ -127,6 +127,12 @@ def is_code_author(user=None):
 
 def is_changed(doc, reference, df):
 	return normalize(doc.get(df.fieldname), df) != normalize(reference.get(df.fieldname), df)
+
+
+def is_empty(value, df):
+	if df.fieldtype == "Check":
+		return not cint(value)
+	return not normalize(value, df)
 
 
 def normalize(value, df):

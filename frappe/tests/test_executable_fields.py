@@ -48,6 +48,57 @@ class TestExecutableFields(IntegrationTestCase):
 			doc.condition = None
 			doc.save()
 
+	def test_unticking_a_check_is_not_authoring(self):
+		page = frappe.get_doc(
+			{
+				"doctype": "Web Page",
+				"title": frappe.generate_hash(length=10),
+				"route": frappe.generate_hash(length=10),
+				"published": 1,
+				"dynamic_template": 1,
+				"main_section": "<p>Static</p>",
+			}
+		).insert()
+
+		with test_user(roles=["System Manager", "Website Manager"]) as user, self.set_user(user.name):
+			page.reload()
+			page.dynamic_template = 0
+			page.save()
+
+			page.dynamic_template = 1
+			self.assertRaises(frappe.PermissionError, page.save)
+
+	def test_notification_cannot_set_code_field_after_alert(self):
+		template = frappe.get_doc(
+			{
+				"doctype": "Email Template",
+				"name": frappe.generate_hash(length=10),
+				"subject": "Hi",
+				"response": "Hello",
+			}
+		).insert()
+		values = {
+			"document_type": "Email Template",
+			"email_template": template.name,
+			"subject": None,
+			"message": None,
+			"condition": None,
+			"recipients": [{"receiver_by_document_field": "owner"}],
+			"set_property_after_alert": "subject",
+			"property_value": "{{ frappe.session.user }}",
+		}
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, make_notification, **values)
+
+			# a field that runs nothing stays available
+			notification = make_notification(**{**values, "set_property_after_alert": "use_html"})
+			notification.property_value = "1"
+			notification.save()
+
+		with test_user(roles=["System Manager", "Code Author"]) as user, self.set_user(user.name):
+			make_notification(**values)
+
 	def test_author_can_change_code(self):
 		for role in ("Code Author", "Script Manager"):
 			with self.subTest(role=role), test_user(roles=["System Manager", role]) as user:

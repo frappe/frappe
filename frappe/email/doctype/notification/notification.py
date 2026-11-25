@@ -15,7 +15,13 @@ from frappe.integrations.doctype.notification_webhook_url.notification_webhook_u
 	NotificationWebhookURL,
 )
 from frappe.model.document import Document
-from frappe.model.executable_fields import CodeFieldGuard, normalize, normalize_text
+from frappe.model.executable_fields import (
+	CODE_AUTHOR_ROLE,
+	CodeFieldGuard,
+	is_code_author,
+	normalize,
+	normalize_text,
+)
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import (
 	add_to_date,
@@ -270,6 +276,7 @@ class Notification(Document):
 			)
 
 		self.validate_forbidden_document_types()
+		self.validate_property_target()
 		self.validate_condition()
 		self.validate_filters()
 		self.validate_standard()
@@ -310,6 +317,24 @@ def get_context(context):
 			self.condition = None
 		elif self.condition_type == "Python":
 			self.filters = None
+
+	def validate_property_target(self):
+		# the target document is saved without permission checks
+		changed = self.is_new() or any(
+			self.has_value_changed(f) for f in ("set_property_after_alert", "property_value")
+		)
+		if not (self.set_property_after_alert and changed) or is_code_author():
+			return
+
+		df = frappe.get_meta(self.document_type).get_field(self.set_property_after_alert)
+		if df and df.executes_code:
+			frappe.throw(
+				_("Only a user with the {0} role can set {1} after the alert").format(
+					_(CODE_AUTHOR_ROLE), _(df.label)
+				),
+				frappe.PermissionError,
+				title=_("Not Permitted"),
+			)
 
 	def validate_condition(self):
 		if not self.condition:
