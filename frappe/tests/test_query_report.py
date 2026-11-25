@@ -791,12 +791,8 @@ data = columns, result
 			}
 		)
 		frappe.db.delete("Email Queue")
-<<<<<<< HEAD
-=======
 		user_email = frappe.get_cached_value("User", frappe.session.user, "email")
 		frappe.db.delete("Email Unsubscribe", {"email": user_email})
-		frappe.db.commit()
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 		export_query()
 
 		jobs = frappe.get_all("RQ Job")

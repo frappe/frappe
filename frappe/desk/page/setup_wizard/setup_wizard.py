@@ -10,12 +10,8 @@ from frappe.core.doctype.installed_applications.installed_applications import ge
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
-<<<<<<< HEAD
 from frappe.utils import cint, get_system_timezone, now, strip
-=======
-from frappe.utils import cint, now, strip
 from frappe.utils.background_jobs import defer_enqueue_after_commit
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 from frappe.utils.password import update_password
 from frappe.utils.synchronization import LockTimeoutError, filelock
 
@@ -313,11 +309,7 @@ def enable_setup_wizard_complete(app_name):
 
 def update_global_settings(args):  # nosemgrep
 	if args.language and args.language != "English":
-<<<<<<< HEAD
 		set_default_language(get_language_code(args.language))
-=======
-		set_default_language(get_language_code(args.lang))
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 	frappe.clear_cache()
 
 	update_system_settings(args)

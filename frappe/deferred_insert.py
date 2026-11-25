@@ -29,29 +29,17 @@ def save_to_db():
 	queue_keys = frappe.cache.get_keys(queue_prefix)
 	for key in queue_keys:
 		record_count = 0
-<<<<<<< HEAD
+		uncommitted_records = []
 		queue_key = get_key_name(key)
 		doctype = get_doctype_name(key)
-=======
-		uncommitted_records = []
-		queue_key = key if doctype else get_key_name(key)
-		queue_doctype = doctype or get_doctype_name(key)
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 		while frappe.cache.llen(queue_key) > 0 and record_count <= 10000:
 			records = frappe.cache.lpop(queue_key)
 			records = json.loads(records.decode("utf-8"))
 			records = [records] if isinstance(records, dict) else records
 			for index, record in enumerate(records):
 				record_count += 1
-<<<<<<< HEAD
-				insert_record(records, doctype)
-				continue
-			for record in records:
-				record_count += 1
-				insert_record(record, doctype)
-=======
 				try:
-					inserted = insert_record(record, queue_doctype)
+					inserted = insert_record(record, doctype)
 				except (frappe.QueryDeadlockError, frappe.QueryTimeoutError):
 					frappe.db.rollback()
 					records_to_retry = [*uncommitted_records, *records[index:]]
@@ -59,7 +47,6 @@ def save_to_db():
 					raise
 				if inserted:
 					uncommitted_records.append(record)
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 				if record_count % 100 == 0:
 					frappe.db.commit()
 					uncommitted_records.clear()

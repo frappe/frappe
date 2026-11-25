@@ -72,7 +72,6 @@ class TestSetupWizardUrl(UnitTestCase):
 
 
 class TestCompleteAppSetup(IntegrationTestCase):
-<<<<<<< HEAD
 	def test_a_site_without_a_region_still_gets_the_site_defaults(self):
 		# Like a Frappe Cloud v2 site: no region, so no time zone or formats saved either.
 		fields = [
@@ -136,7 +135,7 @@ class TestCompleteAppSetup(IntegrationTestCase):
 		self.assertIsNone(setup_wizard.get_prefilled_setup_args())
 		# Kept even when the login was a GET, like an email link.
 		self.assertTrue(frappe.local.flags.commit)
-=======
+
 	def test_setup_jobs_are_not_released_by_intermediate_commits(self):
 		queue = MagicMock(count=0)
 		enqueue_counts_during_setup = []
@@ -152,7 +151,6 @@ class TestCompleteAppSetup(IntegrationTestCase):
 			patch.object(setup_wizard, "get_setup_wizard_completed_apps", return_value=[]),
 			patch.object(setup_wizard, "run_setup_success"),
 			patch.object(setup_wizard, "apply_telemetry_preference"),
-			patch.object(setup_wizard, "clear_cache_after_maintenance"),
 			patch("frappe.utils.telemetry.capture"),
 		):
 			setup_wizard.process_setup_stages(stages, frappe._dict())
@@ -175,7 +173,6 @@ class TestCompleteAppSetup(IntegrationTestCase):
 			patch("frappe.utils.background_jobs.get_queue", return_value=queue),
 			patch.object(setup_wizard, "get_setup_wizard_completed_apps", return_value=[]),
 			patch.object(setup_wizard, "handle_setup_exception"),
-			patch.object(setup_wizard, "clear_cache_after_maintenance"),
 			patch.object(frappe, "log_error"),
 			patch("frappe.utils.telemetry.capture"),
 		):
@@ -214,7 +211,6 @@ class TestCompleteAppSetup(IntegrationTestCase):
 			setup_wizard.run_post_setup_complete({})
 
 		commit.assert_not_called()
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 
 	def test_needs_system_manager(self):
 		with set_user("Guest"):

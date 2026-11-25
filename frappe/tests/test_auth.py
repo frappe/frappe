@@ -2,22 +2,14 @@
 # License: MIT. See LICENSE
 import datetime
 import time
-<<<<<<< HEAD
-from unittest.mock import patch
-=======
 from unittest.mock import Mock, patch
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 
 import requests
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-<<<<<<< HEAD
-from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth
-=======
 from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth, validate_ip_address
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds, hash_sid

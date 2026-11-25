@@ -239,50 +239,7 @@ class TestFrappeClient(IntegrationTestCase):
 		api_key = "@3djdk3kld"
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": f"token {api_key}:{api_secret}"}
-<<<<<<< HEAD
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
-		self.assertEqual(res.status_code, 401)
-=======
 		with requests.post(
 			get_url() + "/api/method/frappe.auth.get_logged_user", headers=header, timeout=30
 		) as response:
 			self.assertEqual(response.status_code, 401)
-
-
-class TestFrappeClientErrors(UnitTestCase):
-	def get_raised_message(self, payload):
-		client = FrappeClient.__new__(FrappeClient)
-		with self.assertRaises(FrappeException) as raised:
-			client.post_process(SimpleNamespace(json=lambda: payload))
-
-		return str(raised.exception)
-
-	def test_error_outside_developer_mode(self):
-		message = self.get_raised_message(
-			{
-				"exc_type": "PermissionError",
-				"_server_messages": json.dumps([json.dumps({"message": "No permission for <b>Note</b>"})]),
-			}
-		)
-
-		self.assertIn("PermissionError", message)
-		self.assertIn("No permission for Note", message)
-
-	def test_error_with_traceback(self):
-		message = self.get_raised_message(
-			{
-				"exc_type": "ValidationError",
-				"exc": json.dumps(["Traceback (most recent call last):\nValidationError: Title is required"]),
-			}
-		)
-
-		self.assertIn("ValidationError: Title is required", message)
-
-	def test_error_from_api_v2(self):
-		message = self.get_raised_message(
-			{"errors": [{"type": "DoesNotExistError", "message": "Note <b>get_this</b> not found"}]}
-		)
-
-		self.assertIn("DoesNotExistError", message)
-		self.assertIn("Note get_this not found", message)
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)

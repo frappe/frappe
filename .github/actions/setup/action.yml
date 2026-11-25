@@ -175,11 +175,7 @@ runs:
   - shell: bash -e {0}
     env:
       DB: ${{ inputs.db }}
-<<<<<<< HEAD
-=======
-      BUILD_ASSETS: ${{ inputs.build-assets }}
       ENABLE_SERVER_SCRIPTS: ${{ inputs.enable-server-scripts }}
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
     run: |
       # Create Site
       start_time=$(date +%s)

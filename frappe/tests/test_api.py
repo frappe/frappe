@@ -127,13 +127,6 @@ class FrappeAPITestCase(IntegrationTestCase):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
-<<<<<<< HEAD
-		set_request(path="/")
-		frappe.local.cookie_manager = CookieManager()
-		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as("Administrator")
-		return frappe.session.sid
-=======
 		# the fake request's "localhost" host changes what get_url() returns, restore afterwards
 		with patch.object(frappe.local, "request", None, create=True):
 			set_request(path="/")
@@ -141,7 +134,6 @@ class FrappeAPITestCase(IntegrationTestCase):
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as("Administrator")
 			return frappe.session.sid
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 
 	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"json": params, **kwargs})
@@ -613,136 +605,6 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.json["message"], test_data)
 
 
-<<<<<<< HEAD
-=======
-class TestQueryMethod(FrappeAPITestCase):
-	"""QUERY (RFC 10008) is a safe method with a request body: parsed like POST,
-	but DB transactions are rolled back like GET."""
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.todo = frappe.get_doc(
-			{"doctype": "ToDo", "description": f"query method test {frappe.generate_hash()}"}
-		).insert()
-		# Publish the document before QUERY requests read it on another connection.
-		frappe.db.commit()  # nosemgrep
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.rollback()
-		frappe.delete_doc_if_exists("ToDo", cls.todo.name)
-		# The fixture was published for another connection, so persist cleanup.
-		frappe.db.commit()  # nosemgrep
-		super().tearDownClass()
-
-	def test_document_list_v1(self):
-		response = self.query(
-			self.resource("ToDo"),
-			{
-				"sid": self.sid,
-				"fields": ["name", "description"],
-				"filters": [["ToDo", "description", "=", self.todo.description]],
-			},
-		)
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(len(response.json["data"]), 1)
-		self.assertEqual(response.json["data"][0]["name"], self.todo.name)
-
-	def test_document_list_v2(self):
-		response = self.query(
-			"/api/v2/document/ToDo",
-			{
-				"sid": self.sid,
-				"fields": ["name"],
-				"filters": {"description": self.todo.description},
-			},
-		)
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(len(response.json["data"]), 1)
-		self.assertEqual(response.json["data"][0]["name"], self.todo.name)
-
-	def test_count_v2(self):
-		response = self.query(
-			"/api/v2/doctype/ToDo/count",
-			{"sid": self.sid, "filters": {"description": self.todo.description}},
-		)
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json["data"], 1)
-
-	def test_rpc_call(self):
-		response = self.query(self.method("frappe.tests.test_api.test"), {"sid": self.sid, "message": "hi"})
-		self.assertEqual(response.status_code, 200)
-
-	def test_get_only_endpoints_accept_query(self):
-		# get_boot_translations is whitelisted with methods=["GET"]
-		response = self.query(
-			self.method("frappe.translate.get_boot_translations"),
-			{"sid": self.sid, "lang": "en"},
-		)
-		self.assertEqual(response.status_code, 200)
-
-	def test_respects_allowed_methods(self):
-		method = frappe.get_attr("frappe.tests.test_api.test")
-
-		with (
-			patch.dict(frappe.allowed_http_methods_for_whitelisted_func, {method: ["POST"]}),
-			suppress_stdout(),
-		):
-			response = self.query(self.method("frappe.tests.test_api.test"), {"sid": self.sid})
-
-		self.assertEqual(response.status_code, 403)
-
-	def test_execute_doc_method_v1(self):
-		response = self.query(
-			self.resource("Website Theme", "Standard"),
-			{"sid": self.sid, "run_method": "get_apps"},
-		)
-		self.assertEqual(response.status_code, 200)
-		self.assertTrue(response.json["data"])
-
-	def test_execute_doc_method_v2(self):
-		response = self.query(
-			"/api/v2/document/Website Theme/Standard/method/get_apps",
-			{"sid": self.sid},
-		)
-		self.assertEqual(response.status_code, 200)
-		self.assertTrue(response.json["data"])
-
-	def test_run_doc_method_v2(self):
-		dns = frappe.get_doc("Document Naming Settings")
-		response = self.query(
-			"/api/v2/method/run_doc_method",
-			{
-				"sid": self.sid,
-				"document": dns.as_dict(),
-				"method": "get_transactions_and_prefixes",
-			},
-		)
-		self.assertEqual(response.status_code, 200)
-		self.assertTrue(response.json["data"])
-		self.assertGreaterEqual(len(response.json["docs"]), 1)
-
-	def test_writes_are_rolled_back(self):
-		description = f"must not persist {frappe.generate_hash()}"
-		response = self.query(
-			self.method("frappe.tests.test_api.create_todo_for_testing"),
-			{"sid": self.sid, "description": description},
-		)
-		self.assertEqual(response.status_code, 200)
-		name = response.json["message"]
-		self.assertTrue(name)
-
-		frappe.db.rollback()  # discard our own snapshot so we see the latest committed state
-		self.assertFalse(frappe.db.exists("ToDo", name))
-		self.assertFalse(frappe.db.exists("ToDo", {"description": description}))
-
-	def test_website_routes_not_served(self):
-		response = self.query("/login", {"sid": self.sid})
-		self.assertEqual(response.status_code, 404)
-
-
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 class TestReadOnlyMode(FrappeAPITestCase):
 	"""During migration if read only mode can be enabled.
 	Test if reads work well and writes are blocked"""
@@ -888,10 +750,6 @@ def generate_admin_keys():
 	from frappe.core.doctype.user.user import generate_keys
 
 	generate_keys("Administrator")
-<<<<<<< HEAD
-=======
-	# API requests authenticate on another connection and need these credentials.
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 	frappe.db.commit()  # nosemgrep
 
 

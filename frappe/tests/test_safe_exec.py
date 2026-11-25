@@ -5,11 +5,7 @@ import frappe
 import frappe.integrations.utils
 import frappe.utils.safe_exec as safe_exec_utils
 from frappe.tests import IntegrationTestCase
-<<<<<<< HEAD
 from frappe.utils.jinja import get_jenv, get_jinja_hooks, render_template
-from frappe.utils.safe_exec import SafeDoc, ServerScriptNotEnabled, get_safe_globals, safe_exec
-=======
-from frappe.utils.jinja import get_jenv, render_template
 from frappe.utils.safe_exec import (
 	SAFE_EXEC_CONFIG_KEY,
 	SafeDoc,
@@ -17,7 +13,6 @@ from frappe.utils.safe_exec import (
 	get_safe_globals,
 	safe_exec,
 )
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 
 
 class TestSafeExec(IntegrationTestCase):

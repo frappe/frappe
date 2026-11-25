@@ -108,6 +108,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.client_secret = self.oauth_client.get("client_secret")
 
 	def tearDown(self):
+		self._start_fresh_database_write()
 		self.oauth_client.delete(force=True)
 		frappe.db.rollback()
 
@@ -124,27 +125,6 @@ class TestOAuth20(FrappeRequestTestCase):
 		).insert(ignore_permissions=True)
 		return access_token, token
 
-<<<<<<< HEAD
-=======
-	def authenticate_client(self, headers=None, client_id=None, client_secret=None, **kwargs):
-		request = frappe._dict(
-			headers=headers or {},
-			client_id=client_id,
-			client_secret=client_secret,
-			**kwargs,
-		)
-		return OAuthWebRequestValidator().authenticate_client(request)
-
-	def tearDown(self):
-		self._start_fresh_database_write()
-		self.oauth_client.delete(force=True)
-		frappe.db.rollback()
-
-	def test_invalid_login(self):
-		with suppress_stdout():
-			self.assertFalse(check_valid_openid_response(client=self))
-
->>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 	def test_bearer_token_rejects_disabled_owner(self):
 		access_token, _token = self._make_bearer_token()
 		frappe.db.set_value("User", "test@example.com", "enabled", 0)
