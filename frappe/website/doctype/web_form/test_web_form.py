@@ -1791,6 +1791,14 @@ class TestWebFormNewDocType(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("DocType", "webform-test-web-form-no-doctype-permission"))
 
+	def test_invalid_web_form_does_not_leave_doctype_behind(self):
+		self.new_web_form("Test Web Form Taken Route", route="test-web-form-taken-route")
+
+		with self.assertRaises(frappe.UniqueValidationError):
+			self.new_web_form("Test Web Form Route Clash", route="test-web-form-taken-route")
+
+		self.assertFalse(frappe.db.exists("DocType", "webform-test-web-form-route-clash"))
+
 	def test_sync_fields_to_doctype_adds_new_field_after_creation(self):
 		web_form = self.new_web_form("Test Web Form Sync DocType")
 		doctype_name = web_form.doc_type

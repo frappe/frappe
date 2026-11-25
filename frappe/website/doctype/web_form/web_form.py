@@ -104,13 +104,15 @@ class WebForm(WebsiteGenerator):
 		if not self.doc_type or self.created_new_doctype:
 			self.set_missing_fieldnames()
 
-		if not self.doc_type:
-			self.create_new_doctype()
+		if not self.doc_type and not self.is_new():
+			frappe.throw(_("Select a DocType"), frappe.MandatoryError)
 
 		super().validate()
 
 		if not self.module:
-			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
+			self.module = (
+				frappe.db.get_value("DocType", self.doc_type, "module") if self.doc_type else "Custom"
+			)
 
 		in_user_env = not (
 			frappe.flags.in_install or frappe.flags.in_patch or frappe.in_test or frappe.flags.in_fixtures
@@ -133,6 +135,11 @@ class WebForm(WebsiteGenerator):
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
 
+	def after_insert(self):
+		# DocType DDL commits, so it waits until the Web Form itself is valid
+		if not self.doc_type:
+			self.create_new_doctype()
+
 	def set_access_flags(self):
 		if not (self.login_required or self.key_required):
 			self.allow_multiple = self.allow_edit = self.allow_delete = self.show_list = 0
@@ -151,7 +158,7 @@ class WebForm(WebsiteGenerator):
 			{
 				"doctype": "DocType",
 				"name": doctype_name,
-				"module": self.module or "Custom",
+				"module": self.module,
 				"custom": 1,
 				"fields": self.get_fields_for_new_doctype(),
 				"permissions": [
@@ -171,8 +178,7 @@ class WebForm(WebsiteGenerator):
 			}
 		).insert()
 
-		self.doc_type = new_doctype.name
-		self.created_new_doctype = 1
+		self.db_set({"doc_type": new_doctype.name, "created_new_doctype": 1}, update_modified=False)
 
 	def set_missing_fieldnames(self):
 		taken = {d.fieldname for d in self.web_form_fields if d.fieldname}
@@ -273,6 +279,10 @@ class WebForm(WebsiteGenerator):
 		from frappe.model import no_value_fields
 
 		self.sync_fields_to_doctype()
+
+		# a new DocType is made from these fields after insert
+		if not self.doc_type:
+			return
 
 		meta = frappe.get_meta(self.doc_type)
 		missing = [
