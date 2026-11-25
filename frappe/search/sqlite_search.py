@@ -1978,6 +1978,9 @@ def update_doc_index(doc: Document, method=None):
 	for SearchClass in search_classes:
 		search = SearchClass()
 
+		if doc.doctype not in search.doc_configs:
+			continue
+
 		if not (search.is_search_enabled() and search.index_exists()):
 			continue
 
@@ -2003,6 +2006,9 @@ def delete_doc_index(doc: Document, method=None):
 
 	for SearchClass in search_classes:
 		search = SearchClass()
+
+		if doc.doctype not in search.doc_configs:
+			continue
 
 		if not (search.is_search_enabled() and search.index_exists()):
 			continue
