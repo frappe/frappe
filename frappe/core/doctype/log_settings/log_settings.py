@@ -6,7 +6,7 @@ from typing import Protocol, runtime_checkable
 import frappe
 from frappe import _
 from frappe.model.document import Document, get_controller
-from frappe.utils import cint
+from frappe.utils import add_days, cint, now_datetime
 from frappe.utils.caching import site_cache
 
 
@@ -164,7 +164,7 @@ def clear_log_table(doctype, days=90):
 
 	try:
 		if frappe.db.db_type == "sqlite":
-			frappe.db.delete(doctype, {"creation": ("<=", cutoff)})
+			frappe.db.delete(doctype, {"creation": ("<=", add_days(now_datetime(), -cint(days)))})
 		elif frappe.db.db_type == "postgres":
 			frappe.db.sql_ddl(f'CREATE TABLE "{temporary}" (LIKE "{original}" INCLUDING ALL)')
 

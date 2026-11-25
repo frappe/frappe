@@ -418,19 +418,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			make_property_setter,
 		)
 
-<<<<<<< HEAD
-		# We can't specify the length of the index in SQLite
-		fields = [re.sub(r"\(.*?\)", "", field) for field in fields]
-=======
-		if using:
-			return
 		original_fields = fields
 		# SQLite indexes the complete value; a MariaDB prefix length is neither needed nor valid here.
 		fields = [re.sub(r"\(\d+\)$", "", field) for field in fields]
 		for field in fields:
 			if not re.fullmatch(r"\w+", field):
 				frappe.throw(f"Invalid index column: {field}")
->>>>>>> 5cd427a (fix(sqlite): make schema changes and backups safe)
 
 		table_name = get_table_name(doctype)
 		index_name = index_name or f"{table_name}_{self.get_index_name(fields)}"

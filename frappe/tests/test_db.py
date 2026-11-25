@@ -687,15 +687,7 @@ class TestDB(IntegrationTestCase):
 		# data-type should be list
 		self.assertIsInstance(note_docs, tuple)
 
-<<<<<<< HEAD
-=======
 	@unimplemented_for(db_type_is.MARIADB)
-	def test_column_metadata_queries_bind_table_name(self):
-		self.assertFalse(frappe.db.get_table_columns_description("tabUser' OR TRUE --"))
-		self.assertFalse(frappe.db.describe("User' OR TRUE --"))
-
->>>>>>> 5cd427a (fix(sqlite): make schema changes and backups safe)
-	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):
 		from frappe.database.postgres.database import modify_query
 
@@ -1879,15 +1871,6 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
 		dt = new_doctype("autoinc_dt_seq_test", autoname="autoincrement").insert(ignore_permissions=True)
-<<<<<<< HEAD
-=======
-		self.addCleanup(
-			lambda: (
-				frappe.db.exists("DocType", "autoinc_dt_seq_test")
-				and frappe.delete_doc("DocType", "autoinc_dt_seq_test", force=True, ignore_permissions=True)
-			)
-		)
->>>>>>> 5cd427a (fix(sqlite): make schema changes and backups safe)
 
 		if frappe.db.db_type == "postgres":
 			self.assertTrue(
