@@ -1071,7 +1071,12 @@ def _load_app_hooks(app_name: str | None = None):
 
 		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
 			if not key.startswith("_"):
-				append_hook(hooks, key, value)
+				try:
+					append_hook(hooks, key, value)
+				except AttributeError as e:
+					raise TypeError(
+						f"Hook {key!r} in app {app!r} has a different type than the same hook in another app"
+					) from e
 	return hooks
 
 
