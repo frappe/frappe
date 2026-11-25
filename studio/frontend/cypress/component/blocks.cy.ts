@@ -2,9 +2,9 @@ import { pinia } from "../support/component"
 
 import { setActivePinia } from "pinia"
 
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import { COMPONENTS } from "@/data/components"
-import { getBlockInstance, getBlockString } from "@/utils/serializer"
+import { getBlockInstance, getBlockString } from "@/runtime/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { canPasteStylesTo, copyBlockStyles, pasteBlockStyles } from "@/utils/styleCopyPaste"
 import type { BlockOptions } from "@/types"

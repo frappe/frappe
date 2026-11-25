@@ -1,7 +1,7 @@
 // Ported from Builder - modified to support multiple targets per host (slot overlays)
 import { useElementBounding } from "@vueuse/core"
 import { effectScope, getCurrentScope, nextTick, onScopeDispose, reactive, watch, watchEffect } from "vue"
-import { numberToPx } from "./helpers"
+import { numberToPx } from "@/runtime/utils/helpers"
 import type { CanvasProps } from "@/types/StudioCanvas"
 
 export interface Tracker {

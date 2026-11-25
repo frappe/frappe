@@ -1,5 +1,5 @@
 import type { CanvasProps } from "@/types/StudioCanvas"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 
 import { nextTick, reactive, Ref } from "vue"
 import { useCanvasHistory, type PauseId } from "@/utils/useCanvasHistory"

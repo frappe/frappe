@@ -38,6 +38,7 @@ Building or editing a Studio app or page, rather than Studio itself: read
    - Use standard API as much as possible. Studio apps should render, route, and fail like a normal Vue app. Reuse the names and shapes of the library you wrap (for example `createRouter` options, and `extendRoute` from Vue Router's file-based routing).
    - If a fix belongs in frappe-ui or framework-ui, do not patch it in Studio. Suggest or make the fix in the respective project.
 4. **Frontend Development:**
+   - `frontend/src/runtime` holds the code that renders an app: the renderer, blocks, page scope and their stores. Runtime code must not import from the rest of `src`, except `src/types`. `vite/tests/runtimeBoundary.test.mjs` fails if it does.
    - Rely on `frappe-ui` components (e.g., buttons, dialogs, inputs) instead of building them from scratch (installed at `frontend/node_modules/frappe-ui`)
    - Use Tailwind CSS for styling. Avoid writing raw CSS (`.css` files or `<style>` blocks) unless absolutely necessary. Use espresso tokens only for colors and check dark mode after every UI change.
    - Use icon classes (`<span class="lucide-name">`) instead of importing icon components.

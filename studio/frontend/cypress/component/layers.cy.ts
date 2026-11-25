@@ -5,11 +5,11 @@ import { setActivePinia } from "pinia"
 import { resourcesPlugin } from "frappe-ui"
 
 import ComponentLayers from "@/components/ComponentLayers.vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import { COMPONENTS } from "@/data/components"
-import { getBlockInstance } from "@/utils/serializer"
+import { getBlockInstance } from "@/runtime/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
-import { registerGlobalComponents } from "@/globals"
+import { registerGlobalComponents } from "@/runtime/globals"
 import type { BlockOptions } from "@/types"
 
 function container(componentId: string, children: BlockOptions[] = []) {

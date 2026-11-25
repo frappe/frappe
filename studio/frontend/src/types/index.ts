@@ -1,5 +1,5 @@
 import type { Component, FunctionalComponent } from "vue"
-import Block from "../utils/block"
+import Block from "@/runtime/utils/block"
 import type { VuePropDefault } from "@/types/vue"
 import type { Completion } from "@codemirror/autocomplete"
 

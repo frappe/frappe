@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import ArrayInput from "@/components/ArrayInput.vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import { listCell, listHeaderCell } from "@/utils/blockTemplate/familyTemplates"
 
 const props = defineProps<{ block: Block; label?: string }>()

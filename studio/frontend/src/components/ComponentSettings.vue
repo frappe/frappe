@@ -217,12 +217,12 @@ import ColorInput from "@/components/ColorInput.vue"
 import PropsEditor from "@/components/PropsEditor.vue"
 import SectionContainer from "@/components/SectionContainer.vue"
 import useComponentEditorStore from "@/stores/componentEditorStore"
-import useComponentStore from "@/stores/componentStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { confirm, isCtrlOrCmd } from "@/utils/helpers"
 import { getPropReadOnlyReason, getPropsReadOnlyReason } from "@/utils/componentScriptProps"
-import { getTypeControls } from "@/utils/componentScript"
+import { getTypeControls } from "@/runtime/utils/componentScript"
 
 const store = useStudioStore()
 const componentStore = useComponentStore()

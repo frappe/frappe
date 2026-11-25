@@ -5,7 +5,7 @@ import {
 	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
 	FRAPPE_UI_CHARTS,
 	FRAMEWORK_UI_COMPONENTS,
-} from "@/utils/constants"
+} from "@/runtime/utils/constants"
 import { COMPONENT_FAMILIES } from "@/data/componentFamilies"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
