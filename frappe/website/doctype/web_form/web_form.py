@@ -13,6 +13,7 @@ from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefaultError
 from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
+from frappe.desk.form.linked_with import get_linked_fields, get_parent_doctypes
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.model import child_table_fields, default_fields
 from frappe.model.document import RESERVED_KEYWORDS, Document
@@ -496,6 +497,10 @@ def get_context(context):
 			message = _("DocType {0} and its records were kept.")
 		elif frappe.db.exists("Web Form", {"doc_type": self.doc_type}):
 			message = _("DocType {0} was kept, because another Web Form uses it.")
+		elif linking_doctype := get_doctype_linking_to(self.doc_type):
+			message = _("DocType {0} was kept, because {1} links to it.").format(
+				frappe.bold(self.doc_type), frappe.bold(linking_doctype)
+			)
 		elif not frappe.has_permission("DocType", "delete", self.doc_type):
 			message = _("DocType {0} was kept, because you do not have permission to delete it.")
 		else:
@@ -1220,6 +1225,12 @@ def scrub_fieldname(text):
 	if fieldname[:1].isdigit():
 		fieldname = f"field_{fieldname}"
 	return fieldname[: frappe.db.MAX_COLUMN_LENGTH - 1].rstrip("_")
+
+
+def get_doctype_linking_to(doctype):
+	"""Another DocType with a Link or Table field (standard or custom) whose options is `doctype`."""
+	linking_doctypes = [*get_linked_fields(doctype), *get_parent_doctypes([doctype])[doctype]]
+	return next((dt for dt in linking_doctypes if dt != doctype), None)
 
 
 def field_signature(df):

@@ -1840,6 +1840,25 @@ class TestWebFormNewDocType(IntegrationTestCase):
 
 		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
 
+	def test_delete_web_form_keeps_created_doctype_linked_from_another_doctype(self):
+		web_form = self.new_web_form("Test WF Issue 14 Linked DocType")
+		linker = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": "Test WF Issue 14 Linker",
+				"module": "Website",
+				"custom": 1,
+				"fields": [{"fieldname": "response", "fieldtype": "Link", "options": web_form.doc_type}],
+				"permissions": [{"role": "System Manager", "read": 1}],
+			}
+		).insert()
+		self.addCleanup(frappe.db.commit)  # nosemgrep
+		self.addCleanup(frappe.delete_doc, "DocType", linker.name, ignore_permissions=True, force=True)
+		frappe.delete_doc("Web Form", web_form.name)
+
+		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
+		self.assertIn(linker.name, frappe.message_log[-1].get("message"))
+
 	def test_delete_web_form_keeps_created_doctype_without_permission(self):
 		web_form = self.new_web_form("Test Web Form Keep DocType Without Permission")
 
