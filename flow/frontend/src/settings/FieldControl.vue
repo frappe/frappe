@@ -199,7 +199,7 @@ import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
-import { searchLinks } from "./links.js";
+import { labelLinks, searchLinks } from "./links.js";
 
 // CodeMirror loads only when a code field shows
 const CodeField = defineAsyncComponent(() => import("./CodeField.vue"));
@@ -273,9 +273,24 @@ const options = computed(() => {
 		...links.value,
 		...selected
 			.filter((name) => !links.value.some((option) => option.value === name))
-			.map((name) => ({ value: name, label: name })),
+			.map((name) => ({ value: name, label: labels.value[name] ?? name })),
 	];
 });
+// picks the search results leave out are labelled once, by title; each shows its name meanwhile
+const labels = ref({});
+watch(
+	() => [searched.value, props.doc[props.field.name]],
+	async ([doctype, value]) => {
+		const selected = Array.isArray(value) ? value : value ? [value] : [];
+		const missing = selected.filter((name) => !(name in labels.value));
+		if (!doctype || !missing.length) return;
+		missing.forEach((name) => (labels.value[name] = name));
+		for (const option of await labelLinks(doctype, missing, props.doc.doctype)) {
+			labels.value[option.value] = option.label;
+		}
+	},
+	{ immediate: true }
+);
 // a read-only multi-link lists only its picks, each disabled
 const picked = computed(() =>
 	(props.doc[props.field.name] ?? []).map((name) => ({

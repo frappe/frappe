@@ -211,6 +211,19 @@ test("link and multilink search the server, keeping their options while it loads
 	);
 });
 
+test("a picked value outside the search results shows its label, not its name", async (t) => {
+	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
+		filters?.name ? [{ value: "a1b2c3", label: "Ann Smith" }] : [{ value: "tool-1" }];
+	for (const typeName of ["link", "multilink"]) {
+		const el = mount(t, FieldControl, {
+			field: { name: "user", type: typeName, label: "User", link: "User" },
+			doc: { doctype: "Flow Agent", user: typeName === "multilink" ? ["a1b2c3"] : "a1b2c3" },
+		});
+		await until(() => el.textContent.includes("Ann Smith"));
+		assert.ok(!el.textContent.includes("a1b2c3"), typeName);
+	}
+});
+
 test("a read-only multilink still opens, showing only its picks and nothing to change, by name where its records can't be read", async (t) => {
 	transport.answers["frappe.desk.search.search_link"] = () => [
 		{ value: "tool-1", label: "Tool One" },

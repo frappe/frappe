@@ -16,3 +16,15 @@ export async function searchLinks(doctype, query = "", referenceDoctype = null) 
 	});
 	return rows.map((row) => ({ value: row.value, label: row.label || row.value }));
 }
+
+// Labels for picked values, which a page of search results may leave out.
+export async function labelLinks(doctype, names, referenceDoctype = null) {
+	const rows = await call("frappe.desk.search.search_link", {
+		doctype,
+		txt: "",
+		filters: { name: ["in", names] },
+		reference_doctype: referenceDoctype,
+		page_length: names.length,
+	});
+	return rows.map((row) => ({ value: row.value, label: row.label || row.value }));
+}
