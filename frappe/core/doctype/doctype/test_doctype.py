@@ -769,6 +769,76 @@ class TestDocType(FrappeTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
+	def test_export_types_removes_boilerplate_pass(self):
+		import ast
+		import shutil
+
+		from frappe.modules import get_doc_path, make_boilerplate
+		from frappe.types.exporter import TypeExporter
+
+		for flags in ({}, {"is_virtual": 1}):
+			with self.subTest(**flags):
+				# Same steps as DocType.on_update, without a DB write
+				doctype = new_doctype(custom=0, **flags)
+				folder = get_doc_path(doctype.module, "DocType", doctype.name)
+				os.makedirs(folder)
+				self.addCleanup(shutil.rmtree, folder)
+
+				make_boilerplate("controller._py", doctype)
+				exporter = TypeExporter(doctype)
+				exporter.export_types()
+				code = exporter.controller_path.read_text()
+
+				class_def = next(node for node in ast.parse(code).body if isinstance(node, ast.ClassDef))
+				self.assertIn("# end: auto-generated types", code)
+				self.assertFalse([node for node in class_def.body if isinstance(node, ast.Pass)])
+
+				methods = [node.name for node in class_def.body if isinstance(node, ast.FunctionDef)]
+				if flags.get("is_virtual"):
+					# Virtual boilerplate methods stay below the types block
+					self.assertIn("db_insert", methods)
+					self.assertIn("get_list", methods)
+				else:
+					self.assertFalse(methods)
+					self.assertTrue(code.endswith("# end: auto-generated types\n"))
+
+	def test_export_types_lone_pass_cases(self):
+		import tempfile
+		from pathlib import Path
+
+		from frappe.types.exporter import TypeExporter
+
+		types_block = "\t# begin: auto-generated types\n\tx: int\n\t# end: auto-generated types"
+		header = "from frappe.model.document import Document\n\n\nclass LonePass(Document):\n"
+		cases = {
+			"only pass": ("\tpass\n", "\n"),
+			"pass with spaces": ("    pass  \n", "\n"),
+			"field named password": ("\tpassword = None\n", "\n\tpassword = None\n"),
+			"pass then method": (
+				"\tpass\n\n\tdef x(self):\n\t\treturn 1\n",
+				"\n\tpass\n\n\tdef x(self):\n\t\treturn 1\n",
+			),
+		}
+
+		# Skip __init__, it imports the controller of a real DocType
+		exporter = TypeExporter.__new__(TypeExporter)
+		exporter.doctype = "Lone Pass"
+		with tempfile.TemporaryDirectory() as tmp:
+			exporter.controller_path = Path(tmp) / "lone_pass.py"
+			for case, (body, expected_after_block) in cases.items():
+				with self.subTest(case):
+					exporter.controller_path.write_text(header + body)
+					exporter._replace_or_add_code(types_block)
+					expected = header + types_block + expected_after_block
+					self.assertEqual(exporter.controller_path.read_text(), expected)
+
+					# Re-export must not change the file
+					exporter._replace_or_add_code(types_block)
+					self.assertEqual(exporter.controller_path.read_text(), expected)
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_custom_field_deletion(self):
 		"""Custom child tables whose doctype doesn't exist should be auto deleted."""
