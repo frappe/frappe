@@ -342,3 +342,4 @@ frappe.patches.v17_0.set_owner_of_contacts_linked_to_users
 [post_fixture_sync]
 frappe.patches.v17_0.add_core_pdf_generators_to_option_overrides
 frappe.patches.v17_0.migrate_s3_blob_keys
+frappe.patches.v17_0.fix_cny_and_iqd_currency_symbols
