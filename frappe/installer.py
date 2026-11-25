@@ -854,8 +854,11 @@ def _update_config_file(key: str, value, config_file: str):
 	else:
 		site_config[key] = value
 
-	with open(config_file, "w") as f:
+	temp_file = f"{config_file}.{os.getpid()}.tmp"
+	with open(temp_file, "w") as f:
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
+	shutil.copymode(config_file, temp_file)
+	os.replace(temp_file, config_file)
 
 	if hasattr(frappe.local, "conf"):
 		frappe.local.conf[key] = value
