@@ -57,7 +57,6 @@
   "dock_mode",
   "list_settings_section",
   "bulk_actions",
-  "list_sidebar",
   "view_switcher",
   "form_settings_section",
   "form_sidebar",
@@ -823,12 +822,6 @@
   },
   {
    "default": "1",
-   "fieldname": "list_sidebar",
-   "fieldtype": "Check",
-   "label": "Show sidebar"
-  },
-  {
-   "default": "1",
    "fieldname": "bulk_actions",
    "fieldtype": "Check",
    "label": "Allow bulk actions",
@@ -955,7 +948,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-11-20 12:25:54.661851",
+ "modified": "2026-11-25 21:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

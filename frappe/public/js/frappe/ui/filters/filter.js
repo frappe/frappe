@@ -498,7 +498,10 @@ frappe.ui.Filter = class {
 			}
 		}
 		if (RECORD_PICKERS.includes(df.fieldtype)) {
-			df.get_data = (txt) => frappe.db.get_link_options(df.options, txt, {}, 20);
+			const link_filters = JSON.parse(df.link_filters || "[]").filter(
+				(filter) => !String(filter[3]).startsWith("eval:")
+			);
+			df.get_data = (txt) => frappe.db.get_link_options(df.options, txt, link_filters, 20);
 			df.change = () => this.on_change();
 		}
 		let f = frappe.ui.form.make_control({
