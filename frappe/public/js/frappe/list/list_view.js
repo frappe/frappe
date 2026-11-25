@@ -327,7 +327,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? this.grouped_rows.has_more
 			: this.data.length >= this.page_length;
 		if (!frappe.is_mobile() || this.loading_more || !more) return;
-		// a new query (filters, sort) on its way starts from the first page
 		if (this.get_query_key() !== this.shown_query) return;
 		this.loading_more = true;
 		this.start = this.grouped ? this.grouped_rows.next_start : this.data.length;
@@ -1416,7 +1415,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				filters: this.filter_area && this.filter_area.get(),
 				sort_by: this.sort_selector && this.sort_selector.sort_by,
 				sort_order: this.sort_selector && this.sort_selector.sort_order,
-				// a list never grouped gets no key
 				...(this.grouping || saved.grouping ? { grouping: this.grouping } : {}),
 			});
 		}
@@ -1472,7 +1470,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		const place = this.grouped && this.grouped_rows.remember_place();
-		// clear rows; loading rows stay while a newer query is on its way
 		this.$result.find(".list-row-container:not(.list-loading-row)").remove();
 		this.$result.find(".list-virtual-spacer").remove();
 		this.parent.page.main.parent().addClass("list-view");
@@ -2659,7 +2656,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				sort_order = "desc";
 			} else if (this.sort_by === sort_by) {
 				({ sort_by, sort_order } = this.get_default_sort());
-				// the default order's own column just flips
 				if (sort_by === this.sort_by && sort_order === this.sort_order) sort_order = "asc";
 			}
 			this.sort_selector.set_value(sort_by, sort_order);
@@ -3182,7 +3178,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		grouping = this.valid_grouping(grouping);
 		if (frappe.utils.deep_equal(grouping, this.grouping)) return;
 		const fields = (g) => JSON.stringify(g?.levels.map((level) => level.fieldname));
-		// the same levels opened the same way: open groups stay open
 		const keep_open =
 			Boolean(grouping && this.grouping) &&
 			fields(grouping) === fields(this.grouping) &&
@@ -3303,7 +3298,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			align: "end",
 			css_class: "group-editor-popover",
 		});
-		// the button opens the panel or, on phones, a bottom sheet
 		popover.trigger_el.removeEventListener("click", popover.ontriggerclick);
 		this.$group_button[0].addEventListener("click", (e) => {
 			e.preventDefault();

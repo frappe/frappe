@@ -435,14 +435,19 @@ export default class GroupEditor {
 	}
 
 	ranked_field() {
-		return get_ranked_field(this.opts.doctype, this.number_fields, this.grouping.totals || {});
+		return get_ranked_field(
+			this.opts.doctype,
+			this.number_fields,
+			this.grouping.totals || {},
+			this.opts.filters
+		);
 	}
 
 	/** A total in the company's currency names that currency, like the form does: "Grand Total (INR)". */
 	total_label(df) {
 		const { doctype } = this.opts;
 		const label = frappe.meta.get_translated_label(doctype, df.fieldname);
-		const source = get_total_field(doctype, df);
+		const source = get_total_field(doctype, df, this.opts.filters);
 		if (source === df) return label;
 		const doc = get_currency_doc(source, this.opts.filters);
 		return __("{0} ({1})", [label, frappe.meta.get_field_currency(source, doc)]);

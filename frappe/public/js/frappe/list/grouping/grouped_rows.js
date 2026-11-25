@@ -238,7 +238,6 @@ export default class GroupedRows {
 			return { items: items.slice(0, page_length), has_more };
 		}
 
-		// a Select field's groups come at once: in option order, the empty one last
 		const empty = items.filter((group) => group.value === "");
 		items = items.filter((group) => group.value !== "");
 		if (this.list.grouping.show_empty) {
@@ -262,7 +261,8 @@ export default class GroupedRows {
 		for (const row of rows) {
 			const group = { value: "", count: row.count, totals: this.totals_of(row) };
 			const users = JSON.parse(row._assign || "[]");
-			if (!users.length) empty.push(group);
+			// the Not assigned group lists records with no value at all ("is not set")
+			if (!row._assign) empty.push(group);
 			for (const user of users) by_user.set(user, [...(by_user.get(user) || []), group]);
 		}
 		const items = [...by_user].map(([user, groups]) => ({
@@ -422,7 +422,7 @@ export default class GroupedRows {
 	total_field(fieldname) {
 		const { doctype } = this.list;
 		const df = frappe.meta.get_docfield(doctype, fieldname);
-		return df && get_total_field(doctype, df);
+		return df && get_total_field(doctype, df, this.list.get_filters_for_args());
 	}
 
 	/** The field holding each record's currency when a total adds up amounts in many currencies. */
@@ -449,7 +449,8 @@ export default class GroupedRows {
 		return get_ranked_field(
 			this.list.doctype,
 			this.field_columns(),
-			Object.fromEntries(this.shown_totals())
+			Object.fromEntries(this.shown_totals()),
+			this.list.get_filters_for_args()
 		)?.fieldname;
 	}
 
@@ -693,7 +694,6 @@ export default class GroupedRows {
 				const $result = this.list.$result;
 				$result.find(".list-group-pending").remove();
 				const kept = this.nodes.get(empty_id);
-				// its rows drawn again keep the focus one of them had
 				const place =
 					kept?.$group?.[0].contains(document.activeElement) && this.remember_place();
 				if (kept && groups.includes(kept)) {
@@ -811,11 +811,6 @@ export default class GroupedRows {
 
 	filter_of({ fieldname, value }) {
 		const doctype = this.list.doctype;
-		if (fieldname === "_assign") {
-			return value
-				? [doctype, "_assign", "like", `%"${value}"%`]
-				: [doctype, "_assign", "in", ["", "[]"]];
-		}
 		if (value === "") return [doctype, fieldname, "is", "not set"];
 		return [doctype, fieldname, "=", value];
 	}
@@ -1290,7 +1285,6 @@ export default class GroupedRows {
 	}
 
 	render_body(node) {
-		// rows drawn again keep the focus one of them had
 		const place = node.$body[0].contains(document.activeElement) && this.remember_place();
 		node.$body.empty();
 		this.add_to_body(node, node.children || node.rows || []);
@@ -1544,7 +1538,6 @@ export default class GroupedRows {
 		if (!node.$group?.[0].isConnected) return;
 		node.$group.children(".list-group-row").attr("aria-expanded", open);
 		if (open) {
-			// opening again tries a failed load again
 			node.failed = false;
 			this.keep_first_page(node);
 			this.open_body(node);
