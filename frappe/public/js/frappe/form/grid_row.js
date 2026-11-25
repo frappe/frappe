@@ -61,6 +61,8 @@ export default class GridRow {
 				null,
 				this.grid.docfields
 			);
+		} else if (this.doc) {
+			this.docfields = this.grid.docfields.map((df) => ({ ...df }));
 		}
 	}
 
