@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import getseries, parse_naming_series, revert_series_if_last
-from frappe.utils.data import evaluate_filters, get_link_to_form
+from frappe.utils.data import cint, evaluate_filters, get_link_to_form
 
 
 class DocumentNamingRule(Document):
@@ -62,7 +62,7 @@ class DocumentNamingRule(Document):
 			self.doctype,
 			filters={
 				"document_type": self.document_type,
-				"priority": self.priority,
+				"priority": cint(self.priority),
 				"disabled": 0,
 				"name": ("!=", self.name),
 			},
