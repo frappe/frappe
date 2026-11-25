@@ -23,17 +23,21 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		if (!workflowfields.value.length) {
 			await frappe.model.with_doctype("Workflow");
-			workflowfields.value = frappe.get_meta("Workflow").fields;
+			workflowfields.value = frappe.get_meta("Workflow").fields.map((df) => ({ ...df }));
 		}
 
 		if (!statefields.value.length) {
 			await frappe.model.with_doctype("Workflow Document State");
-			statefields.value = frappe.get_meta("Workflow Document State").fields;
+			statefields.value = frappe
+				.get_meta("Workflow Document State")
+				.fields.map((df) => ({ ...df }));
 		}
 
 		if (!transitionfields.value.length) {
 			await frappe.model.with_doctype("Workflow Transition");
-			transitionfields.value = frappe.get_meta("Workflow Transition").fields;
+			transitionfields.value = frappe
+				.get_meta("Workflow Transition")
+				.fields.map((df) => ({ ...df }));
 		}
 
 		if (!workflow_doc_fields.value.length) {
