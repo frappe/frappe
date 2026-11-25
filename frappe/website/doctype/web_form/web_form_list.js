@@ -51,6 +51,10 @@ frappe.listview_settings["Web Form"] = {
 						let title = dialog.get_value("title") || "";
 						let route = dialog.get_value("route") || "";
 						route_edited = route !== scrub_route(title);
+						if (!route) {
+							route_edited = false;
+							if (title) dialog.fields_dict.title.df.onchange();
+						}
 					},
 				},
 				{
