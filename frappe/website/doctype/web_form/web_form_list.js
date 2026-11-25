@@ -97,10 +97,14 @@ frappe.listview_settings["Web Form"] = {
 			],
 			primary_action_label: __("Save"),
 			primary_action(values) {
-				return frappe.db.insert({ doctype: "Web Form", ...values }).then((doc) => {
-					dialog.hide();
-					frappe.set_route("Form", "Web Form", doc.name);
-				});
+				return frappe.db.insert({ doctype: "Web Form", ...values }).then(
+					(doc) => {
+						dialog.hide();
+						frappe.set_route("Form", "Web Form", doc.name);
+					},
+					// frappe.call already showed the server error
+					() => {}
+				);
 			},
 			secondary_action_label: __("Edit Full Form"),
 			secondary_action() {
