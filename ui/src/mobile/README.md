@@ -46,7 +46,7 @@ Takes the same data props as `NotificationPanel`, so one `useNotifications` stor
 | --------------- | ------------------- | --------------------------------------- |
 | `notifications` | `NotificationLog[]` |                                         |
 | `unreadCount`   | `number`            | Used by a tab with `count: "unread"`    |
-| `hasNextPage`   | `boolean`           | Shows "Load more"                       |
+| `hasNextPage`   | `boolean`           | Shows "Load more", also when the open tab has no rows yet |
 | `loading`       | `boolean`           | Shows the skeleton until rows arrive    |
 | `error`         | `unknown`           | Shows the error state when there are no rows |
 | `tabs`          | `NotificationTab[]` | Defaults to Unread (`unread`) and Read (`read`) |
@@ -79,6 +79,7 @@ Takes the same data props as `NotificationPanel`, so one `useNotifications` stor
 
 Each part carries a `data-slot`: `search`, `search-input`, `search-empty`, `notifications`,
 `notifications-header`, `notifications-loading`, `notifications-error`, `notifications-empty`,
+`notifications-footer`,
 `profile`, `profile-header`, `profile-group`, `profile-group-label`, `profile-row`,
 `profile-row-prefix`, `profile-row-label`, `profile-row-value`, `profile-row-divider`.
 

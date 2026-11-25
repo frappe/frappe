@@ -79,6 +79,21 @@ describe("Notifications", () => {
     expect(rows(root)[0].textContent).not.toContain("Raw");
   });
 
+  it("keeps Load more when the fetched page has nothing for the open tab", async () => {
+    const loads: number[] = [];
+    const root = await mount(Notifications, {
+      notifications: [{ name: "b", title: "Read one", read: 1, creation: "" }],
+      hasNextPage: true,
+      "onLoad-more": () => loads.push(1),
+    });
+
+    expect(rows(root)).toHaveLength(0);
+    expect(root.querySelector("[data-slot=notifications-empty]")).toBeNull();
+
+    button(root, "Load more")!.click();
+    expect(loads).toHaveLength(1);
+  });
+
   it("shows the skeleton while the first load runs, then the empty state", async () => {
     const loading = await mount(Notifications, {
       notifications: [],

@@ -106,9 +106,12 @@ const ICONS: Record<string, string> = {
 			</div>
 		</slot>
 
-		<template v-else-if="visible.length">
+		<template v-else>
 			<!-- the message is the backend's own markup: a <b> around the document title -->
-			<List class="list-gap-3 list-row-px-4 pr-3 [&_b]:font-medium [&_b]:text-ink-gray-9">
+			<List
+				v-if="visible.length"
+				class="list-gap-3 list-row-px-4 pr-3 [&_b]:font-medium [&_b]:text-ink-gray-9"
+			>
 				<ListRow
 					v-for="(item, index) in visible"
 					:key="item.name"
@@ -179,41 +182,49 @@ const ICONS: Record<string, string> = {
 				</ListRow>
 			</List>
 
-			<div v-if="hasNextPage" class="p-3 text-center">
+			<slot v-else-if="error" name="error" :error="error">
+				<p
+					data-slot="notifications-error"
+					class="py-14 text-center text-base text-ink-gray-6"
+				>
+					{{ __("Couldn't load notifications") }}
+				</p>
+			</slot>
+
+			<slot v-else-if="!loading && !hasNextPage" name="empty" :active-tab="activeTab">
+				<div
+					data-slot="notifications-empty"
+					class="mx-4 rounded-4 border border-dashed border-outline-gray-2 px-6 py-12 text-center"
+				>
+					<div
+						class="mx-auto grid size-10 place-items-center rounded-4 bg-surface-gray-2"
+					>
+						<span
+							class="lucide-bell-check size-5 text-ink-gray-5"
+							aria-hidden="true"
+						/>
+					</div>
+					<div class="mt-3 text-base-medium text-ink-gray-8">
+						{{
+							activeTab === "unread"
+								? __("You're caught up")
+								: activeTab === "read"
+								? __("No read notifications")
+								: __("No notifications to show")
+						}}
+					</div>
+					<div v-if="activeTab === 'unread'" class="mt-1 text-base text-ink-gray-5">
+						{{ __("New notifications will show up here.") }}
+					</div>
+					<div v-else-if="activeTab === 'read'" class="mt-1 text-base text-ink-gray-5">
+						{{ __("Notifications you have read collect here.") }}
+					</div>
+				</div>
+			</slot>
+
+			<div v-if="hasNextPage" data-slot="notifications-footer" class="p-3 text-center">
 				<Button :label="__('Load more')" @click="emit('load-more')" />
 			</div>
 		</template>
-
-		<slot v-else-if="error" name="error" :error="error">
-			<p data-slot="notifications-error" class="py-14 text-center text-base text-ink-gray-6">
-				{{ __("Couldn't load notifications") }}
-			</p>
-		</slot>
-
-		<slot v-else-if="!loading" name="empty" :active-tab="activeTab">
-			<div
-				data-slot="notifications-empty"
-				class="mx-4 rounded-4 border border-dashed border-outline-gray-2 px-6 py-12 text-center"
-			>
-				<div class="mx-auto grid size-10 place-items-center rounded-4 bg-surface-gray-2">
-					<span class="lucide-bell-check size-5 text-ink-gray-5" aria-hidden="true" />
-				</div>
-				<div class="mt-3 text-base-medium text-ink-gray-8">
-					{{
-						activeTab === "unread"
-							? __("You're caught up")
-							: activeTab === "read"
-							? __("No read notifications")
-							: __("No notifications to show")
-					}}
-				</div>
-				<div v-if="activeTab === 'unread'" class="mt-1 text-base text-ink-gray-5">
-					{{ __("New notifications will show up here.") }}
-				</div>
-				<div v-else-if="activeTab === 'read'" class="mt-1 text-base text-ink-gray-5">
-					{{ __("Notifications you have read collect here.") }}
-				</div>
-			</div>
-		</slot>
 	</div>
 </template>
