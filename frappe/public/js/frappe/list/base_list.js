@@ -422,13 +422,15 @@ frappe.views.BaseList = class BaseList {
 			frappe.ui.button({
 				label: __("Load More"),
 				css_class: "btn-more",
-				onclick: () => {
-					this.start = this.data.length;
-					this.page_length = this.selected_page_count;
-					this.refresh();
-				},
+				onclick: () => this.load_more(),
 			})
 		);
+	}
+
+	load_more() {
+		this.start = this.data.length;
+		this.page_length = this.selected_page_count;
+		this.refresh();
 	}
 
 	setup_resize_handler() {
@@ -583,13 +585,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	prepare_data(r) {
-		let data = r.message || {};
-
-		// extract user_info for assignments
-		Object.assign(frappe.boot.user_info, data.user_info);
-		delete data.user_info;
-
-		data = !Array.isArray(data) ? frappe.utils.dict(data.keys, data.values) : data;
+		const data = this.rows_of(r.message);
 
 		if (this.start === 0) {
 			this.data = data;
@@ -621,14 +617,28 @@ frappe.views.BaseList = class BaseList {
 		// fired when filters are added or removed
 	}
 
-	toggle_result_area() {
-		this.$result.parent(".result-container").toggle(this.data.length > 0);
-		this.$result.toggle(this.data.length > 0);
-		this.$paging_area.toggle(this.data.length > 0);
-		this.$no_result.toggle(this.data.length == 0);
+	/** The rows of a list call's response; the users they mention go to the boot's user info. */
+	rows_of(message) {
+		const data = message || {};
+		Object.assign(frappe.boot.user_info, data.user_info);
+		delete data.user_info;
+		return Array.isArray(data) ? data : frappe.utils.dict(data.keys, data.values);
+	}
 
-		if (this.data.length) {
-			const show_more = this.start + this.page_length <= this.data.length;
+	/** What the result area shows and pages through: rows here, groups in a grouped list. */
+	get_result_count() {
+		return this.data.length;
+	}
+
+	toggle_result_area() {
+		const count = this.get_result_count();
+		this.$result.parent(".result-container").toggle(count > 0);
+		this.$result.toggle(count > 0);
+		this.$paging_area.toggle(count > 0);
+		this.$no_result.toggle(count == 0);
+
+		if (count) {
+			const show_more = this.start + this.page_length <= count;
 			this.$paging_area.find(".btn-more").toggle(show_more);
 		}
 	}

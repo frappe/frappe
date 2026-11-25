@@ -15,6 +15,7 @@ export const ListFilterAPI = {
 					"sort_field",
 					"sort_order",
 					"route_signature",
+					"grouping",
 				],
 				filters: { reference_doctype: this.list_view.doctype },
 				or_filters: [
@@ -71,6 +72,16 @@ export const ListFilterAPI = {
 		}
 	},
 
+	/** Parse saved layout grouping: null when the layout doesn't group. */
+	get_layout_grouping(layout) {
+		try {
+			const grouping = JSON.parse(layout?.grouping || "null");
+			return grouping?.levels?.length ? grouping : null;
+		} catch {
+			return null;
+		}
+	},
+
 	/** Standard layouts ship with an app, so their names are translated; users' own are shown as written. */
 	get_layout_label(layout) {
 		return layout.is_standard ? __(layout.filter_name) : layout.filter_name;
@@ -98,6 +109,7 @@ export const ListFilterAPI = {
 		sort_field,
 		sort_order,
 		route_signature,
+		grouping,
 	}) {
 		return frappe.db
 			.insert({
@@ -112,6 +124,7 @@ export const ListFilterAPI = {
 				sort_field,
 				sort_order,
 				route_signature: route_signature || "",
+				grouping: grouping ? JSON.stringify(grouping) : "",
 			})
 			.then((doc) => {
 				this.filters = [...(this.filters || []), this.normalize_layout(doc)];
@@ -122,7 +135,16 @@ export const ListFilterAPI = {
 	/** Update an existing layout from the layout dialog. */
 	update_layout_from_dialog(
 		layout,
-		{ filter_name, is_global, filters, columns, sort_field, sort_order, route_signature }
+		{
+			filter_name,
+			is_global,
+			filters,
+			columns,
+			sort_field,
+			sort_order,
+			route_signature,
+			grouping,
+		}
 	) {
 		if (!layout?.name || !this.can_edit_layout(layout)) {
 			return Promise.resolve();
@@ -135,6 +157,7 @@ export const ListFilterAPI = {
 			sort_field,
 			sort_order,
 			route_signature: route_signature || "",
+			grouping: grouping ? JSON.stringify(grouping) : "",
 		};
 		if (this.can_add_global && is_global !== undefined) {
 			args.for_user = is_global ? "" : frappe.session.user;

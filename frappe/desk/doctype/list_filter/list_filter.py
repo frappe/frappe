@@ -25,6 +25,7 @@ class ListFilter(Document):
 		filter_name: DF.Data | None
 		filters: DF.LongText | None
 		for_user: DF.Link | None
+		grouping: DF.LongText | None
 		is_standard: DF.Check
 		layout_order: DF.Int
 		module: DF.Link | None
@@ -125,6 +126,9 @@ class ListFilter(Document):
 			self.sort_field, self.sort_order = _sanitize_sorting(
 				self.sort_field, self.sort_order, valid_fields
 			)
+			if self.grouping:
+				grouping = _sanitize_grouping(frappe.parse_json(self.grouping), self.reference_doctype)
+				self.grouping = json.dumps(grouping) if grouping else None
 
 		self.route_signature = compute_route_signature(self.reference_doctype, self.filters)
 
@@ -250,6 +254,45 @@ def _sanitize_sorting(sort_field, sort_order, valid_fields: set[str]) -> tuple[s
 	return sort_field, "asc" if order == "asc" else "desc"
 
 
+# the number fields the group editor offers totals for (frappe.model.numeric_fieldtypes in JS)
+GROUPING_TOTAL_FIELDTYPES = ("Currency", "Duration", "Float", "Int", "Percent")
+GROUPING_ORDERS = ("value-asc", "value-desc", "count-desc", "sum-desc")
+
+
+def _sanitize_grouping(grouping, reference_doctype: str) -> dict | None:
+	"""The grouping's known keys only, with levels on Select and Link fields and totals on number fields."""
+	if not isinstance(grouping, dict) or not isinstance(grouping.get("levels"), list):
+		return None
+	meta = frappe.get_meta(reference_doctype)
+	groupable = {df.fieldname for df in meta.fields if df.fieldtype in ("Select", "Link")}
+	groupable.update(("owner", "_assign"))
+	levels = []
+	for level in grouping["levels"]:
+		fieldname = level.get("fieldname") if isinstance(level, dict) else None
+		if not isinstance(fieldname, str) or fieldname not in groupable:
+			continue
+		if any(added["fieldname"] == fieldname for added in levels):
+			continue
+		order = level.get("order")
+		levels.append({"fieldname": fieldname, "order": order if order in GROUPING_ORDERS else "value-asc"})
+	if not levels:
+		return None
+
+	numeric = {df.fieldname for df in meta.fields if df.fieldtype in GROUPING_TOTAL_FIELDTYPES}
+	totals = grouping.get("totals")
+	return {
+		"levels": levels,
+		"open": grouping.get("open") if grouping.get("open") in ("all", "first", "none") else "none",
+		"totals": {
+			field: fn
+			for field, fn in (totals.items() if isinstance(totals, dict) else [])
+			if field in numeric and fn in ("sum", "avg")
+		},
+		"show_empty": 1 if grouping.get("show_empty") else 0,
+		"hide_grouped_columns": 1 if grouping.get("hide_grouped_columns") else 0,
+	}
+
+
 @frappe.whitelist()
 def update_list_filter(
 	name: str,
@@ -259,6 +302,7 @@ def update_list_filter(
 	columns: str | list | None = None,
 	sort_field: str | None = None,
 	sort_order: str | None = None,
+	grouping: str | None = None,
 ):
 	"""Update saved filter state with permission checks."""
 	doc = frappe.get_doc("List Filter", name)
@@ -290,6 +334,9 @@ def update_list_filter(
 
 	if sort_order is not None:
 		doc.sort_order = sort_order
+
+	if grouping is not None:
+		doc.grouping = grouping or None
 
 	doc.save(ignore_permissions=True)  # permissions checked via _can_update_list_filter above
 	return doc.as_dict()

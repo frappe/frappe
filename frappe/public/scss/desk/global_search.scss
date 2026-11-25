@@ -285,18 +285,17 @@
 				z-index: 2;
 				padding-inline: 0 !important;
 				background-color: var(--modal-bg);
-				border-radius: var(--radius-md);
-				overflow: hidden;
 				box-sizing: border-box;
 				margin-bottom: var(--margin-xs);
 
-				&:hover {
-					background-color: var(--highlight-color);
-				}
-
+				// the labels and their line start where the rows' text and lines do
 				header.level.list-row-head {
-					border-radius: var(--radius-md);
-					overflow: hidden;
+					background-color: var(--modal-bg);
+					padding-inline: var(--padding-sm);
+
+					&::after {
+						inset-inline: var(--padding-sm);
+					}
 				}
 			}
 

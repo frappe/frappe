@@ -765,7 +765,7 @@ def clear_list_layout_test_layouts():
 
 
 @whitelist_for_tests()
-def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
+def reset_list_layout_test_user_settings(doctype: str = "ToDo", clear_filters: bool = False):
 	"""Clear saved layout preference so UI tests start from Default Layout."""
 	import json
 
@@ -774,6 +774,9 @@ def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
 	settings = json.loads(get_user_settings(doctype, for_update=True) or "{}")
 	list_settings = settings.get("List") or {}
 	list_settings["active_layout_name"] = ""
+	list_settings.pop("grouping", None)
+	if clear_filters:
+		list_settings.pop("filters", None)
 	settings["List"] = list_settings
 	update_user_settings(doctype, settings)
 
@@ -788,6 +791,7 @@ def create_list_layout_test_layout(
 	columns: str | None = None,
 	sort_field: str = "modified",
 	sort_order: str = "desc",
+	grouping: str | None = None,
 ):
 	"""Insert a saved list filter for UI tests."""
 	import json
@@ -812,6 +816,7 @@ def create_list_layout_test_layout(
 			else json.dumps([{"fieldname": "status", "label": "Status"}]),
 			"sort_field": sort_field,
 			"sort_order": sort_order,
+			"grouping": grouping,
 		}
 	).insert(ignore_permissions=True)
 	return doc.name

@@ -396,7 +396,6 @@ export const list_view_virtualization = {
 		}
 		for (let i = start; i < end; i++) {
 			const doc = this.data[i];
-			doc._idx = i;
 			window_html += this.get_list_row_html(doc, { virtual: true });
 		}
 		if (bottom_spacer_height > 0) {

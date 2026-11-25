@@ -249,11 +249,13 @@ export const ListFilterMenu = {
 		let filters = [];
 		let sort_by;
 		let sort_order;
+		let grouping;
 
 		if (from_live && lv.filter_area) {
 			filters = (lv.filter_area.get() || []).map((f) => f.slice(0, 4));
 			sort_by = lv.sort_by;
 			sort_order = lv.sort_order;
+			grouping = lv.grouping;
 		} else {
 			const settings = frappe.get_user_settings(lv.doctype, lv.view_name) || {};
 			if (Array.isArray(settings.filters)) {
@@ -268,9 +270,10 @@ export const ListFilterMenu = {
 			}
 			sort_by = settings.sort_by || lv.meta?.sort_field || "creation";
 			sort_order = settings.sort_order || lv.meta?.sort_order || "desc";
+			grouping = settings.grouping;
 		}
 
-		this._default_layout_snapshot = { filters, sort_by, sort_order };
+		this._default_layout_snapshot = { filters, sort_by, sort_order, grouping };
 	},
 
 	/** Restore filters, sort, and columns from user settings (default layout). */
@@ -282,18 +285,19 @@ export const ListFilterMenu = {
 			this.capture_default_layout_state();
 		}
 
-		const { filters, sort_by, sort_order } = this._default_layout_snapshot;
+		const { filters, sort_by, sort_order, grouping } = this._default_layout_snapshot;
 
 		return this.apply_layout_state({
 			filters,
 			sort_by,
 			sort_order,
 			columns: null,
+			grouping,
 			refresh,
 		});
 	},
 
-	/** Apply filters, sort, and columns from a saved layout document. */
+	/** Apply filters, sort, columns and grouping from a saved layout document. */
 	apply_saved_layout(layout, { refresh = true } = {}) {
 		if (!layout) return Promise.resolve();
 
@@ -302,6 +306,7 @@ export const ListFilterMenu = {
 			sort_by: layout.sort_field || this.list_view.meta?.sort_field || "creation",
 			sort_order: layout.sort_order || this.list_view.meta?.sort_order || "desc",
 			columns: this.get_layout_columns(layout),
+			grouping: this.get_layout_grouping(layout),
 			refresh,
 		});
 	},
@@ -318,11 +323,12 @@ export const ListFilterMenu = {
 		}
 	},
 
-	/** Apply filters, sort, and columns without persisting anything. */
-	apply_layout_state({ filters, sort_by, sort_order, columns, refresh = true }) {
+	/** Apply filters, sort, columns and grouping without persisting anything. */
+	apply_layout_state({ filters, sort_by, sort_order, columns, grouping, refresh = true }) {
 		const lv = this.list_view;
 		this._applying_layout = true;
 		lv.last_args = null;
+		lv.use_grouping(grouping);
 		lv.sort_by = sort_by;
 		lv.sort_order = sort_order.toLowerCase();
 		lv.sort_selector?.set_value(sort_by, lv.sort_order);
@@ -406,7 +412,13 @@ export const ListFilterMenu = {
 			list_view: this.list_view,
 			layout,
 			duplicate_from,
-			on_save: () => this.setup_layout_menu({ refetch: true }),
+			on_save: () =>
+				this.setup_layout_menu({ refetch: true }).then(() => {
+					// an edit to the layout on screen shows right away
+					const active = this.get_active_layout();
+					if (layout && active?.name === layout.name)
+						return this.apply_saved_layout(active);
+				}),
 		});
 	},
 };
