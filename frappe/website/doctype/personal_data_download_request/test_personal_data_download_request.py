@@ -151,7 +151,7 @@ class TestRequestPersonalData(IntegrationTestCase):
 		self.assertEqual(len(large_files), 1)
 
 
-def create_user_if_not_exists(email, first_name=None):
+def create_user_if_not_exists(email, first_name=None, email_as_id=False):
 	if existing := get_user_by_email(email):
 		frappe.delete_doc("User", existing)
 
@@ -164,5 +164,7 @@ def create_user_if_not_exists(email, first_name=None):
 			"first_name": first_name or email.split("@", 1)[0],
 			"birth_date": frappe.utils.now_datetime(),
 		}
-	).insert(ignore_permissions=True)
+	)
+	user.flags.email_as_id = email_as_id
+	user.insert(ignore_permissions=True)
 	create_contact(user=user)
