@@ -2,11 +2,12 @@
 import { computed, watch } from "vue";
 import { Avatar, Button, Icon, TabButtons, dayjs } from "frappe-ui";
 import { List, ListCell, ListRow } from "frappe-ui/list";
+import { sanitizeHtml } from "../utils/sanitize";
 import { translate as __ } from "../utils/translate";
 import type { NotificationLog, NotificationTab } from "../components/Notifications/types";
 import type { NotificationsProps } from "./types";
 
-// `v-bind="useNotifications()"` also passes the store's functions, which are not props
+// `v-bind="useNotifications()"` also passes the store's functions, so only `class` is kept
 defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<NotificationsProps>(), {
@@ -57,7 +58,7 @@ const tabButtons = computed(() =>
 
 watch(activeTab, () => emit("tab-change", currentTab.value));
 
-const message = (n: NotificationLog) => n.title || n.subject || "";
+const message = (n: NotificationLog) => sanitizeHtml(n.title || n.subject);
 
 const target = (n: NotificationLog) =>
 	n.document_type ? `${__(n.document_type)} ${n.document_name || ""}` : "";
@@ -73,7 +74,7 @@ const ICONS: Record<string, string> = {
 </script>
 
 <template>
-	<div data-slot="notifications" class="h-full overflow-y-auto pt-4 pb-10">
+	<div data-slot="notifications" class="h-full overflow-y-auto pt-4 pb-10" :class="$attrs.class">
 		<slot
 			name="header"
 			:tabs="tabs"
@@ -138,7 +139,6 @@ const ICONS: Record<string, string> = {
 					<ListCell>
 						<div class="min-w-0 flex-1">
 							<slot name="item-label" :item="item" :index="index">
-								<!-- sanitized by the backend when the log is written -->
 								<p
 									class="truncate leading-none text-ink-gray-8"
 									:class="item.read ? 'text-lg' : 'text-lg-medium'"
@@ -190,7 +190,7 @@ const ICONS: Record<string, string> = {
 			</p>
 		</slot>
 
-		<slot v-else name="empty" :active-tab="activeTab">
+		<slot v-else-if="!loading" name="empty" :active-tab="activeTab">
 			<div
 				data-slot="notifications-empty"
 				class="mx-4 rounded-4 border border-dashed border-outline-gray-2 px-6 py-12 text-center"

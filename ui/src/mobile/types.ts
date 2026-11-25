@@ -28,7 +28,6 @@ export interface ProfileRowProps {
   value?: string;
   /** A `lucide-*` class name, or a component for an icon outside lucide. */
   icon?: string | Component;
-  disabled?: boolean;
 }
 
 /** The same data props as NotificationPanel, so `useNotifications` feeds either. */

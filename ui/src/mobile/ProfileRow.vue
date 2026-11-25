@@ -9,8 +9,7 @@ defineProps<ProfileRowProps>();
 	<button
 		type="button"
 		data-slot="profile-row"
-		:disabled="disabled"
-		class="block w-full text-left transition active:bg-surface-gray-2 disabled:opacity-50 [&:first-child_[data-slot=profile-row-divider]]:hidden"
+		class="block w-full text-left transition active:bg-surface-gray-2 [&:first-child_[data-slot=profile-row-divider]]:hidden"
 	>
 		<!-- the flex layout is on this inner wrapper, not the button: iOS Safari wraps a
 		     button's children in an anonymous box and top-aligns a flex button's rows -->
