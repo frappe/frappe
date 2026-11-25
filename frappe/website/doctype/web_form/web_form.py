@@ -15,6 +15,7 @@ from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.model import child_table_fields, default_fields
 from frappe.model.document import RESERVED_KEYWORDS, Document
+from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission, get_allowed_docs_for_doctype, get_user_permissions
 from frappe.rate_limiter import rate_limit
@@ -151,10 +152,9 @@ class WebForm(WebsiteGenerator):
 			self.allow_delete = 0
 
 	def create_new_doctype(self):
-		doctype_name = f"webform-{self.name}"[: frappe.db.MAX_COLUMN_LENGTH - len("tab")]
-
-		if frappe.db.exists("DocType", doctype_name):
-			frappe.throw(_("DocType {0} already exists").format(doctype_name))
+		# leave room for the "-N" suffix
+		base = f"webform-{self.name}"[: frappe.db.MAX_COLUMN_LENGTH - len("tab") - 4]
+		doctype_name = append_number_if_name_exists("DocType", base)
 
 		new_doctype = frappe.get_doc(
 			{
@@ -185,7 +185,7 @@ class WebForm(WebsiteGenerator):
 	def set_missing_fieldnames(self):
 		taken = {d.fieldname for d in self.web_form_fields if d.fieldname}
 		taken.update(default_fields, child_table_fields, RESERVED_KEYWORDS, dir(Document))
-		max_length = frappe.db.MAX_COLUMN_LENGTH
+		max_length = frappe.db.MAX_COLUMN_LENGTH - 1
 
 		for d in self.web_form_fields:
 			if d.fieldname or d.fieldtype in LAYOUT_FIELDTYPES:

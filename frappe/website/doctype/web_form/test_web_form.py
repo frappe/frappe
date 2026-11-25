@@ -1774,14 +1774,13 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("DocType", web_form.doc_type, "module"), "Custom")
 		self.assertEqual(web_form.module, "Custom")
 
-	def test_create_new_doctype_rejects_already_existing_doctype_name(self):
+	def test_create_new_doctype_suffixes_already_existing_doctype_name(self):
 		title = "Test Web Form Existing DocType Name"
 		web_form = self.new_web_form(title)
 		frappe.get_doc({"doctype": web_form.doc_type, "first_name": "Jane"}).insert()
 		frappe.delete_doc("Web Form", web_form.name, force=True)
 
-		with self.assertRaisesRegex(frappe.ValidationError, "already exists"):
-			self.new_web_form(title)
+		self.assertEqual(self.new_web_form(title).doc_type, f"{web_form.doc_type}-1")
 
 	def test_new_doctype_needs_doctype_create_permission(self):
 		with test_user(email="_test_web_form_website_manager@example.com", roles=["Website Manager"]) as user:
@@ -1976,7 +1975,7 @@ class TestWebFormNewDocType(IntegrationTestCase):
 			],
 		)
 
-		max_length = frappe.db.MAX_COLUMN_LENGTH
+		max_length = frappe.db.MAX_COLUMN_LENGTH - 1
 		fieldnames = [d.fieldname for d in web_form.web_form_fields]
 		self.assertEqual(fieldnames, ["meta_2", "save_2", "a" * max_length, "a" * (max_length - 2) + "_2"])
 
@@ -1989,8 +1988,16 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "DocType", web_form.doc_type, ignore_permissions=True, force=True)
 
 		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
-		self.assertEqual(len(web_form.doc_type), frappe.db.MAX_COLUMN_LENGTH - len("tab"))
 		self.assertTrue(f"webform-{web_form.name}".startswith(web_form.doc_type))
+
+	def test_new_doctype_names_differ_for_long_titles_with_same_start(self):
+		first = self.new_web_form("Test Web Form " + "Long Title " * 6 + "One")
+		second = self.new_web_form("Test Web Form " + "Long Title " * 6 + "Two")
+		for doctype in (first.doc_type, second.doc_type):
+			self.addCleanup(frappe.delete_doc, "DocType", doctype, ignore_permissions=True, force=True)
+
+		self.assertEqual(second.doc_type, f"{first.doc_type}-1")
+		self.assertLessEqual(len(second.doc_type), frappe.db.MAX_COLUMN_LENGTH - len("tab"))
 
 	def test_created_doctype_gets_field_added_without_fieldname(self):
 		web_form = self.new_web_form("Test Web Form Builder Sync DocType")
