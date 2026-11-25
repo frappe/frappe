@@ -2775,7 +2775,7 @@ class Document(_DocumentBase):
 
 		args:
 		        ignore_if_duplicate: ignore primary key collision
-		                                        at database level (postgres)
+		                                        at database level (postgres, sqlite)
 		                                        in python (mariadb)
 		"""
 		if not self.name:
@@ -2794,6 +2794,8 @@ class Document(_DocumentBase):
 			conflict_handler = "on conflict (name) do nothing"
 			if self.meta.autoname == "hash":
 				returning = "RETURNING name"
+		elif ignore_if_duplicate and frappe.db.db_type == "sqlite":
+			conflict_handler = "on conflict (name) do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
@@ -2838,6 +2840,18 @@ class Document(_DocumentBase):
 					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
+				if (
+					not ignore_if_duplicate
+					and frappe.db.db_type == "sqlite"
+					and frappe.db.exists(self.doctype, self.name)
+				):
+					frappe.msgprint(
+						_("{0} {1} already exists").format(_(self.doctype), frappe.bold(self.name)),
+						title=_("Duplicate Name"),
+						indicator="red",
+					)
+					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+
 				# unique constraint
 				self.show_unique_validation_message(e)
 

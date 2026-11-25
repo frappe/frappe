@@ -14,6 +14,8 @@ from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
 
 HTML_TAGS_PATTERN = re.compile(r"(?s)<[\s]*(script|style).*?</\1>")
+SQLITE_LEGACY_PARAMETER_LIMIT = 999
+GLOBAL_SEARCH_COLUMN_COUNT = 6
 
 
 def setup_global_search_table():
@@ -401,10 +403,27 @@ def _get_deduped_search_item_values(items):
 
 
 def sync_values(values: list):
+	from pypika import Tuple
 	from pypika.terms import Values
 
 	GlobalSearch = frappe.qb.Table("__global_search")
 	conflict_fields = ["content", "published", "title", "route"]
+
+	if frappe.db.db_type == "sqlite":
+		values = list(values)
+		# Each key uses two bound parameters. Keep batches below SQLite's legacy
+		# limit of 999 parameters while avoiding one DELETE query per search item.
+		for batch in frappe.utils.create_batch(values, 400):
+			keys = [(value[0], value[1]) for value in batch]
+			(
+				frappe.qb.from_(GlobalSearch)
+				.delete()
+				.where(Tuple(GlobalSearch.doctype, GlobalSearch.name).isin(keys))
+			).run()
+		insert_batch_size = SQLITE_LEGACY_PARAMETER_LIMIT // GLOBAL_SEARCH_COLUMN_COUNT
+		for batch in frappe.utils.create_batch(values, insert_batch_size):
+			(frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*batch)).run()
+		return
 
 	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values)
 
@@ -438,6 +457,21 @@ def sync_value(value: dict):
 	:param value: dict of { doctype, name, content, published, title, route }
 	"""
 
+	if frappe.db.db_type == "sqlite":
+		sync_values(
+			[
+				(
+					value["doctype"],
+					value["name"],
+					value["content"],
+					value["published"],
+					value["title"],
+					value["route"],
+				)
+			]
+		)
+		return
+
 	frappe.db.multisql(
 		{
 			"mariadb": """INSERT INTO `__global_search`
@@ -457,10 +491,6 @@ def sync_value(value: dict):
 				`published`=%(published)s,
 				`title`=%(title)s,
 				`route`=%(route)s
-		""",
-			"sqlite": """INSERT OR REPLACE INTO `__global_search`
-			(`doctype`, `name`, `content`, `published`, `title`, `route`)
-			VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
 		""",
 		},
 		value,
@@ -548,7 +578,7 @@ WEB_SEARCH_MAX_LIMIT = 100
 WEB_SEARCH_MAX_TEXT_LENGTH = 1000
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1
@@ -563,9 +593,11 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 	start = max(0, cint(start))
 	text = (text or "")[:WEB_SEARCH_MAX_TEXT_LENGTH]
 
+	from frappe.query_builder.custom import build_fts5_prefix_query
+
 	results = []
 	texts = list(dict.fromkeys(t for t in text.split("&") if t.strip()))[:WEB_SEARCH_MAX_SEGMENTS]
-	for text in texts:
+	for search_text in texts:
 		common_query = """ SELECT `doctype`, `name`, `content`, `title`, `route`
 			FROM `__global_search`
 			WHERE {conditions}
@@ -573,20 +605,28 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 
 		scope_condition = "`route` like %(scope)s AND " if scope else ""
 		published_condition = "`published` = 1 AND "
-		mariadb_conditions = postgres_conditions = " ".join([published_condition, scope_condition])
+		base_conditions = " ".join([published_condition, scope_condition])
+		mariadb_conditions = postgres_conditions = sqlite_conditions = base_conditions
 
 		# https://mariadb.com/kb/en/library/full-text-index-overview/#in-boolean-mode
 		mariadb_conditions += "MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)".format(
-			frappe.db.escape("+" + text + "*")
+			frappe.db.escape("+" + search_text + "*")
 		)
-		postgres_conditions += f'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({frappe.db.escape(text)})'
+		postgres_conditions += f'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({frappe.db.escape(search_text)})'
+		sqlite_conditions += "`content` MATCH %(sqlite_search_query)s"
 
-		values = {"scope": "".join([scope, "%"]) if scope else "", "limit": limit, "start": start}
+		values = {
+			"scope": "".join([scope, "%"]) if scope else "",
+			"limit": limit,
+			"start": start,
+			"sqlite_search_query": build_fts5_prefix_query(search_text),
+		}
 
 		result = frappe.db.multisql(
 			{
 				"mariadb": common_query.format(conditions=mariadb_conditions),
 				"postgres": common_query.format(conditions=postgres_conditions),
+				"sqlite": common_query.format(conditions=sqlite_conditions),
 			},
 			values=values,
 			as_dict=True,
