@@ -1752,6 +1752,11 @@ frappe.ui.form.Form = class FrappeForm {
 			return;
 		}
 
+		const [view, doctype, docname] = frappe.get_route();
+		if (view !== "Form" || doctype !== this.doctype || docname !== old) {
+			return;
+		}
+
 		frappe.re_route[frappe.router.get_sub_path()] = `${encodeURIComponent(
 			frappe.router.slug(this.doctype)
 		)}/${encodeURIComponent(name)}`;
