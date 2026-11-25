@@ -419,9 +419,7 @@ class KanbanBoardSettings {
 				this.page.board_doc = r.message;
 				frappe.ui.toast({ message: __("Board settings saved"), type: "success" });
 				this.dialog.hide();
-				// clear current_board to force a full reload
-				this.page.current_board = null;
-				this.page.load_from_route();
+				this.page.reload_board();
 			})
 			.always(() => frappe.dom.unfreeze());
 	}
