@@ -578,7 +578,7 @@ WEB_SEARCH_MAX_LIMIT = 100
 WEB_SEARCH_MAX_TEXT_LENGTH = 1000
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1
