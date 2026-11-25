@@ -2076,3 +2076,20 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "Web Form", web_form.name, ignore_permissions=True, force=True)
 
 		self.assertEqual(web_form.created_new_doctype, 0)
+
+	def test_typed_fieldnames_are_made_valid_for_the_doctype(self):
+		web_form = self.new_web_form(
+			"Test Web Form Typed Fieldnames",
+			fields=[
+				{"fieldname": "UPPER", "label": "Upper", "fieldtype": "Data"},
+				{"fieldname": "a.b", "label": "A B", "fieldtype": "Data"},
+				{"fieldname": "My Field", "label": "Mine", "fieldtype": "Data"},
+				{"label": "???", "fieldtype": "Int"},
+				{"label": "Café", "fieldtype": "Data"},
+				{"label": "Autoname", "fieldtype": "Data"},
+			],
+		)
+
+		expected = ["upper", "a_b", "my_field", "int", "cafe", "autoname_2"]
+		self.assertEqual([d.fieldname for d in web_form.web_form_fields], expected)
+		self.assertEqual([df.fieldname for df in frappe.get_meta(web_form.doc_type).fields], expected)

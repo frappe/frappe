@@ -4,6 +4,7 @@
 import json
 import os
 import re
+import unicodedata
 from typing import TYPE_CHECKING
 
 import frappe
@@ -109,7 +110,7 @@ class WebForm(WebsiteGenerator):
 		self.validate_created_doctype_unchanged()
 
 		if not self.doc_type or self.created_new_doctype:
-			self.set_missing_fieldnames()
+			self.set_fieldnames()
 
 		if not self.doc_type and not self.is_new():
 			frappe.throw(_("Select a DocType"), frappe.MandatoryError)
@@ -186,17 +187,22 @@ class WebForm(WebsiteGenerator):
 
 		self.db_set({"doc_type": new_doctype.name, "created_new_doctype": 1}, update_modified=False)
 
-	def set_missing_fieldnames(self):
-		taken = {d.fieldname for d in self.web_form_fields if d.fieldname}
-		taken.update(default_fields, child_table_fields, RESERVED_KEYWORDS, dir(Document))
-		max_length = frappe.db.MAX_COLUMN_LENGTH - 1
-
+	def set_fieldnames(self):
+		"""Give each field a unique fieldname that the DocType keeps as is."""
+		taken = {*default_fields, *child_table_fields, *RESERVED_KEYWORDS, *dir(Document), "autoname"}
+		unnamed = []
 		for d in self.web_form_fields:
-			if d.fieldname or d.fieldtype in LAYOUT_FIELDTYPES:
+			if d.fieldtype in LAYOUT_FIELDTYPES:
 				continue
+			if d.fieldname and d.fieldname == scrub_fieldname(d.fieldname) and d.fieldname not in taken:
+				taken.add(d.fieldname)
+			else:
+				unnamed.append(d)
 
-			base = re.sub(r"\W+", "_", cstr(d.label or d.fieldtype).lower()).strip("_")
-			fieldname, suffix = base[:max_length], 1
+		max_length = frappe.db.MAX_COLUMN_LENGTH - 1
+		for d in unnamed:
+			base = scrub_fieldname(d.fieldname or d.label) or scrub_fieldname(d.fieldtype)
+			fieldname, suffix = base, 1
 			while fieldname in taken:
 				suffix += 1
 				fieldname = f"{base[: max_length - len(str(suffix)) - 1]}_{suffix}"
@@ -1153,6 +1159,13 @@ def process_link_field(
 def get_web_form_module(doc):
 	if doc.is_standard:
 		return get_doc_module(doc.module, doc.doctype, doc.name)
+
+
+def scrub_fieldname(text):
+	"""Lowercase ASCII letters, digits and underscores, accents dropped, within the column name limit."""
+	text = unicodedata.normalize("NFKD", cstr(text)).encode("ascii", "ignore").decode()
+	fieldname = re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+	return fieldname[: frappe.db.MAX_COLUMN_LENGTH - 1].rstrip("_")
 
 
 def field_signature(df):
