@@ -59,7 +59,6 @@ from frappe.www.login import sanitize_redirect
 desk_properties = (
 	"search_bar",
 	"notifications",
-	"list_sidebar",
 	"bulk_actions",
 	"view_switcher",
 	"form_sidebar",
@@ -134,7 +133,6 @@ class User(Document):
 		last_name: DF.Data | None
 		last_password_reset_date: DF.Date | None
 		last_reset_password_key_generated_on: DF.Datetime | None
-		list_sidebar: DF.Check
 		location: DF.Data | None
 		login_after: DF.Int
 		login_before: DF.Int
