@@ -2178,6 +2178,48 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("DocType", "webform-test-web-form-row-size-too-large"))
 		self.assertFalse(frappe.db.table_exists("webform-test-web-form-row-size-too-large", cached=False))
 
+	def test_doctype_is_created_on_first_save_with_a_field(self):
+		web_form = self.new_web_form(
+			"Test WF Issue 19 Deferred",
+			fields=[{"fieldname": "details", "label": "Details", "fieldtype": "Section Break"}],
+		)
+		doctype_name = "webform-test-wf-issue-19-deferred"
+
+		self.assertFalse(web_form.doc_type)
+		self.assertFalse(frappe.db.exists("DocType", doctype_name))
+
+		web_form.reload()
+		web_form.append("web_form_fields", {"label": "First Name", "fieldtype": "Data"})
+		web_form.save()
+
+		self.assertEqual(web_form.doc_type, doctype_name)
+		self.assertEqual(frappe.db.get_value("Web Form", web_form.name, "created_new_doctype"), 1)
+		self.assertTrue(frappe.get_meta(doctype_name).has_field("first_name"))
+
+	def test_failed_doctype_creation_on_update_keeps_web_form(self):
+		web_form = self.new_web_form(
+			"Test WF Issue 19 Update Failure",
+			fields=[{"fieldname": "details", "label": "Details", "fieldtype": "Section Break"}],
+		)
+		web_form.reload()
+		for i in range(200):
+			web_form.append("web_form_fields", {"label": f"Field {i}", "fieldtype": "Data"})
+
+		with self.assertRaises(Exception):
+			web_form.save()
+
+		self.assertTrue(frappe.db.exists("Web Form", web_form.name))
+		self.assertFalse(frappe.db.get_value("Web Form", web_form.name, "doc_type"))
+		self.assertFalse(frappe.db.exists("DocType", "webform-test-wf-issue-19-update-failure"))
+
+	def test_web_form_without_doctype_cannot_be_published(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "Add a field"):
+			self.new_web_form(
+				"Test WF Issue 19 Publish",
+				fields=[{"fieldname": "details", "label": "Details", "fieldtype": "Section Break"}],
+				published=1,
+			)
+
 	def test_insert_does_not_sync_fields_to_the_doctype_it_just_created(self):
 		from unittest.mock import patch
 

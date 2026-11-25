@@ -114,8 +114,11 @@ class WebForm(WebsiteGenerator):
 			self.set_fieldnames()
 			self.validate_saved_fieldnames_unchanged()
 
-		if not self.doc_type and not self.is_new():
+		if not self.doc_type and (before := self.get_doc_before_save()) and before.doc_type:
 			frappe.throw(_("Select a DocType"), frappe.MandatoryError)
+
+		if self.published and not self.doc_type and not self.needs_new_doctype():
+			frappe.throw(_("Add a field before you publish this Web Form."), title=_("No Fields"))
 
 		super().validate()
 
@@ -154,8 +157,11 @@ class WebForm(WebsiteGenerator):
 
 	def after_insert(self):
 		# DocType DDL commits, so it waits until the Web Form itself is valid
-		if not self.doc_type:
+		if self.needs_new_doctype():
 			self.create_new_doctype()
+
+	def needs_new_doctype(self):
+		return not self.doc_type and any(d.fieldtype not in LAYOUT_FIELDTYPES for d in self.web_form_fields)
 
 	def set_access_flags(self):
 		if not (self.login_required or self.key_required):
@@ -165,7 +171,7 @@ class WebForm(WebsiteGenerator):
 		else:
 			self.allow_delete = 0
 
-	def create_new_doctype(self):
+	def create_new_doctype(self, keep_web_form=False):
 		# leave room for the "-N" suffix
 		ascii_name = unicodedata.normalize("NFKD", cstr(self.name)).encode("ascii", "ignore").decode()
 		slug = re.sub(r"[^\w -]+", "", ascii_name, flags=re.ASCII).strip(" -_")
@@ -201,17 +207,17 @@ class WebForm(WebsiteGenerator):
 		try:
 			new_doctype.insert()
 		except Exception:
-			self.discard_half_created_doctype(doctype_name)
+			self.discard_half_created_doctype(doctype_name, keep_web_form)
 			raise
 
 		self.db_set({"doc_type": new_doctype.name, "created_new_doctype": 1}, update_modified=False)
 
-	def discard_half_created_doctype(self, doctype_name):
+	def discard_half_created_doctype(self, doctype_name, keep_web_form=False):
 		"""Creating the table commits, so a failure after it leaves this Web Form and the DocType saved."""
 		frappe.db.rollback()
 		if frappe.db.exists("DocType", doctype_name):
 			frappe.delete_doc("DocType", doctype_name, force=True, ignore_permissions=True)
-		if frappe.db.exists("Web Form", self.name):
+		if not keep_web_form and frappe.db.exists("Web Form", self.name):
 			frappe.delete_doc("Web Form", self.name, force=True, ignore_permissions=True)
 		frappe.db.commit()  # nosemgrep
 
@@ -359,7 +365,7 @@ class WebForm(WebsiteGenerator):
 			self.validate_fieldtype_changes()
 			return
 
-		# a new DocType is made from these fields after insert
+		# a new DocType is made from these fields after save
 		if not self.doc_type:
 			return
 
@@ -461,7 +467,10 @@ class WebForm(WebsiteGenerator):
 		"""Sync the fields to the DocType this Web Form created. In developer mode, export
 		a standard Web Form's JSON and create its .js and .py stubs."""
 		if not (frappe.flags.in_import or self.flags.in_insert):
-			self.sync_fields_to_doctype()
+			if self.needs_new_doctype():
+				self.create_new_doctype(keep_web_form=True)
+			else:
+				self.sync_fields_to_doctype()
 
 		path = export_module_json(self, self.is_standard, self.module)
 
