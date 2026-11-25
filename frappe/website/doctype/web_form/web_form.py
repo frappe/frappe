@@ -410,6 +410,27 @@ def get_context(context):
 """
 					)
 
+	def after_delete(self):
+		self.delete_created_doctype()
+
+	def delete_created_doctype(self):
+		"""Delete the DocType this Web Form created, unless it has records, another Web Form
+		uses it or the user cannot delete it."""
+		if not self.created_new_doctype or not frappe.db.exists("DocType", self.doc_type):
+			return
+
+		if frappe.db.count(self.doc_type):
+			message = _("DocType {0} and its records were kept.")
+		elif frappe.db.exists("Web Form", {"doc_type": self.doc_type}):
+			message = _("DocType {0} was kept, because another Web Form uses it.")
+		elif not frappe.has_permission("DocType", "delete", self.doc_type):
+			message = _("DocType {0} was kept, because you do not have permission to delete it.")
+		else:
+			frappe.delete_doc("DocType", self.doc_type)
+			return
+
+		frappe.msgprint(message.format(frappe.bold(self.doc_type)), title=_("DocType Kept"))
+
 	def clear_cache(self):
 		frappe.cache.delete_key("bootinfo")
 		frappe.db.after_commit.add(lambda: frappe.cache.delete_key("bootinfo"))

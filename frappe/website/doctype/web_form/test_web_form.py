@@ -1777,6 +1777,7 @@ class TestWebFormNewDocType(IntegrationTestCase):
 	def test_create_new_doctype_rejects_already_existing_doctype_name(self):
 		title = "Test Web Form Existing DocType Name"
 		web_form = self.new_web_form(title)
+		frappe.get_doc({"doctype": web_form.doc_type, "first_name": "Jane"}).insert()
 		frappe.delete_doc("Web Form", web_form.name, force=True)
 
 		with self.assertRaisesRegex(frappe.ValidationError, "already exists"):
@@ -1798,6 +1799,47 @@ class TestWebFormNewDocType(IntegrationTestCase):
 			self.new_web_form("Test Web Form Route Clash", route="test-web-form-taken-route")
 
 		self.assertFalse(frappe.db.exists("DocType", "webform-test-web-form-route-clash"))
+
+	def test_delete_web_form_deletes_created_doctype_without_records(self):
+		title = "Test Web Form Delete Created DocType"
+		web_form = self.new_web_form(title)
+		frappe.delete_doc("Web Form", web_form.name)
+
+		self.assertFalse(frappe.db.exists("DocType", web_form.doc_type))
+		self.assertEqual(self.new_web_form(title).doc_type, web_form.doc_type)
+
+	def test_delete_web_form_keeps_created_doctype_with_records(self):
+		web_form = self.new_web_form("Test Web Form Keep DocType With Records")
+		record = frappe.get_doc({"doctype": web_form.doc_type, "first_name": "Jane"}).insert()
+		frappe.delete_doc("Web Form", web_form.name)
+
+		self.assertTrue(frappe.db.exists(web_form.doc_type, record.name))
+
+	def test_delete_web_form_keeps_created_doctype_used_by_another_web_form(self):
+		web_form = self.new_web_form("Test Web Form Keep Shared DocType")
+		other = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Test Web Form Shares DocType",
+				"doc_type": web_form.doc_type,
+				"module": "Website",
+				"web_form_fields": [{"fieldname": "first_name", "label": "First Name", "fieldtype": "Data"}],
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Web Form", other.name, ignore_permissions=True, force=True)
+		frappe.delete_doc("Web Form", web_form.name)
+
+		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
+
+	def test_delete_web_form_keeps_created_doctype_without_permission(self):
+		web_form = self.new_web_form("Test Web Form Keep DocType Without Permission")
+
+		with test_user(roles=["Website Manager"]) as user:
+			with self.set_user(user.name):
+				frappe.delete_doc("Web Form", web_form.name)
+
+		self.assertFalse(frappe.db.exists("Web Form", web_form.name))
+		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
 
 	def test_sync_fields_to_doctype_adds_new_field_after_creation(self):
 		web_form = self.new_web_form("Test Web Form Sync DocType")
