@@ -92,8 +92,25 @@ class TestListView(IntegrationTestCase):
 		frappe.db.set_value("ToDo", other_todo.name, "reference_type", "MapReduce Task")
 
 		data = get_group_by_count("MapReduce Job", [["name", "=", job.name]], "assigned_to")
-		full_name = frappe.db.get_value("User", "Administrator", "full_name")
-		self.assertEqual(data, [{"name": "Administrator", "count": 1, "title": full_name}])
+		full_name, email = frappe.db.get_value("User", "Administrator", ["full_name", "email"])
+		self.assertEqual(
+			data,
+			[
+				{
+					"name": "Administrator",
+					"count": 1,
+					"title": full_name,
+					"search_text": f"{full_name} {email}",
+				}
+			],
+		)
+
+	def test_owner_count_carries_search_field_values(self):
+		frappe.get_doc({"doctype": "Note", "title": "Test owner search text", "public": 1}).insert()
+
+		data = get_group_by_count("Note", [["title", "=", "Test owner search text"]], "owner")
+		full_name, email = frappe.db.get_value("User", "Administrator", ["full_name", "email"])
+		self.assertEqual(data[0].search_text, f"{full_name} {email}")
 
 	def test_assigned_to_count_leaves_out_closed_assignments(self):
 		job = frappe.get_doc(
