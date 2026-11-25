@@ -33,7 +33,7 @@ class TestAccessLog(IntegrationTestCase):
 	@classmethod
 	def _flush_deferred_access_logs(cls):
 		cls._start_fresh_database_write()
-		flush_deferred_inserts(doctype="Access Log")
+		flush_deferred_inserts()
 		# Publish records drained from Redis before polling from a fresh snapshot.
 		frappe.db.commit()  # nosemgrep
 
