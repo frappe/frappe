@@ -31,6 +31,7 @@ class RealtimeConfig:
 	redis_queue: str
 	uds: str | None = None
 	default_site: str | None = None
+	site: str | None = None
 	developer_mode: bool = False
 	webserver_port: int | None = None
 	webserver_host: str | None = None
@@ -44,7 +45,9 @@ class RealtimeConfig:
 	embedded: bool = False
 
 
-def get_config(sites_path: str | None = None, embedded: bool = False) -> RealtimeConfig:
+def get_config(
+	sites_path: str | None = None, embedded: bool = False, site: str | None = None
+) -> RealtimeConfig:
 	"""Build the realtime config from common_site_config.json."""
 	import frappe
 
@@ -60,6 +63,7 @@ def get_config(sites_path: str | None = None, embedded: bool = False) -> Realtim
 		redis_queue=conf.get("redis_queue") or DEFAULT_REDIS_QUEUE,
 		uds=conf.get("socketio_uds") or None,
 		default_site=conf.get("default_site") or None,
+		site=site,
 		developer_mode=bool(conf.get("developer_mode")),
 		webserver_port=int(webserver_port) if webserver_port else None,
 		webserver_host=conf.get("webserver_host") or None,

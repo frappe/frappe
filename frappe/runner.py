@@ -126,7 +126,6 @@ class TrafficMiddleware:
 		if config.site:
 			from frappe import app
 
-			# Each request goes to this site, whatever its Host header, as with `bench serve`.
 			app._site = config.site
 
 		from frappe.asgi import application
