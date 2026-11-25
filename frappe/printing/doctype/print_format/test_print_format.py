@@ -1391,6 +1391,15 @@ class TestPrintFormatDraft(IntegrationTestCase):
 
 
 class TestBuilderJinja(IntegrationTestCase):
+	def test_custom_format_from_standard_without_code_author(self):
+		from frappe.printing.doctype.print_format.print_format import create_custom_format
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			name = frappe.generate_hash(length=10)
+			doc = create_custom_format("ToDo", name)
+			self.assertTrue(frappe.db.exists("Print Format", name))
+			self.assertIn("print-heading", doc.format_data)
+
 	def test_builder_jinja_needs_code_author(self):
 		from frappe.utils.print_format_generator import render_jinja_template
 

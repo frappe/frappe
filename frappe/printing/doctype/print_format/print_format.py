@@ -701,7 +701,11 @@ class BuilderJinjaGuard(CodeFieldGuard):
 	def is_authored(self, row, reference, df, is_new, child_doctype=None):
 		# both fields together: converting to the new builder moves the layout between them
 		saved = set().union(*(get_jinja_snippets(reference.get(f.fieldname)) for f in self.fields))
-		added = get_jinja_snippets(row.get(df.fieldname)) - saved
+		from frappe.printing.doctype.print_format.classic_converter import DEFAULT_PRINT_HEADING
+
+		# the heading the standard layout is seeded with is developer code, not authored
+		known = saved | {DEFAULT_PRINT_HEADING}
+		added = get_jinja_snippets(row.get(df.fieldname)) - known
 		return bool(added) and super().is_authored(row, reference, df, is_new, child_doctype)
 
 
