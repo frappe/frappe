@@ -175,6 +175,8 @@ def get_command(
 		command = [db_path.as_posix()]
 		if dump:
 			command.append(".dump")
+		elif extra:
+			command.extend(extra)
 
 	else:
 		if dump:
