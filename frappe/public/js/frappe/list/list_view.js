@@ -2770,6 +2770,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 			this.toggle_result_area();
 			this.render_list();
+			this.render_count();
 		});
 	}
 
