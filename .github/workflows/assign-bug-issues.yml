@@ -20,13 +20,15 @@ jobs:
           script: |
             const assignees = ["g-sowani", "ruchiigadgil", "rameensh"];
             const issue = context.payload.issue;
-            const { data: recent } = await github.rest.issues.listForRepo({
-              ...context.repo,
-              state: "all",
-              sort: "created",
-              direction: "desc",
-              per_page: 50,
-            });
+            const since = Date.now() - 24 * 60 * 60 * 1000;
+            const recent = await github.paginate(
+              github.rest.issues.listForRepo,
+              { ...context.repo, state: "all", sort: "created", direction: "desc", per_page: 100 },
+              (response, done) => {
+                if (response.data.some((other) => Date.parse(other.created_at) <= since)) done();
+                return response.data;
+              },
+            );
             const issues = recent.filter((other) => !other.pull_request);
             let next = 0;
             for (const other of issues) {
@@ -36,7 +38,6 @@ jobs:
                 break;
               }
             }
-            const since = Date.now() - 24 * 60 * 60 * 1000;
             const pending = issues
               .filter((other) => other.state === "open" && !other.assignees.length && Date.parse(other.created_at) > since)
               .map((other) => other.number);
