@@ -1011,9 +1011,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// on every validation-error path)
 			btn && $(btn).prop("disabled", true).attr("aria-busy", "true");
 			frappe.ui.form.close_grid_form();
-			frappe.after_ajax(() =>
-				me.validate_and_save(save_action, callback, btn, on_error, resolve, reject)
-			);
+			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
 		})
 			.then(() => {
 				me.show_success_action();
