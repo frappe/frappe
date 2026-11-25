@@ -424,6 +424,8 @@ after_migrate = [
 	"frappe.flow.daemon.lifecycle.after_migrate",
 ]
 
+flow_agents = ["frappe.core.doctype.attachment_queue.extraction.flow_agents"]
+
 otp_methods = ["OTP App", "Email", "SMS"]
 
 user_data_fields = [

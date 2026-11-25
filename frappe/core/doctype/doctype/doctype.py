@@ -128,6 +128,7 @@ class DocType(Document):
 		documentation: DF.Data | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
+		enable_flow_extraction: DF.Check
 		enable_upload_first_workflow: DF.Check
 		engine: DF.Literal["InnoDB", "MyISAM"]
 		fields: DF.Table[DocField]

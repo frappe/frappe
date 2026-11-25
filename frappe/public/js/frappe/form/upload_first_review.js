@@ -65,12 +65,215 @@ frappe.ui.form.upload_first_review.open = function (frm, entry) {
 	// such as having closed the file
 	const running = frm.upload_first_review;
 	if (!running || running.docname !== frm.docname || running.entry.name !== entry.name) {
+		if (running) stop_waiting(running);
 		frm.upload_first_review = { entry, file_url, docname: frm.docname, closed: false };
 	}
 
 	open_pane(frm);
 	keep_open_across_refreshes(frm);
+	fill_from_file(frm);
 };
+
+/**
+ * Put the values Flow read out of the file into the form. Read back from the entry rather
+ * than carried on it, since the reading may have finished after the queue was listed.
+ */
+function fill_from_file(frm) {
+	const review = frm.upload_first_review;
+	if (!review || review.filled) return;
+
+	frappe.db
+		.get_value(QUEUE_DOCTYPE, review.entry.name, [
+			"extraction_status",
+			"extracted_values",
+			"skipped_values",
+			"extraction_error",
+		])
+		.then(({ message }) => {
+			if (!message || frm.upload_first_review !== review || review.closed) return;
+			// the form is shared by every document of its DocType
+			if (frm.docname !== review.docname) return;
+
+			if (message.extraction_status === "Started") return wait_for_file(frm);
+			stop_waiting(review);
+			if (message.extraction_status === "Completed") {
+				apply_values(frm, extracted_values(message.extracted_values));
+				return report_skipped(frm, extracted_values(message.skipped_values));
+			}
+
+			// never read, or read and failed: either way, read it now
+			read_file(frm, message.extraction_error);
+		});
+}
+
+/**
+ * Have Flow read the file, or say why it could not. Opening the review is the moment to
+ * read a file that was never offered to Flow, and to try again after a failed read, whose
+ * cause usually lies outside the file. Read once per review, so a file Flow cannot read
+ * reports that instead of being sent again on every render.
+ */
+function read_file(frm, error) {
+	const review = frm.upload_first_review;
+	if (review.requested) return report_failure(frm, error);
+	review.requested = true;
+
+	frappe
+		.xcall("frappe.core.doctype.attachment_queue.extraction.read_now", {
+			entry: review.entry.name,
+		})
+		.then((status) => {
+			if (frm.upload_first_review !== review || review.closed) return;
+			if (status === "Started") return wait_for_file(frm);
+			// the DocType does not ask for extraction, so the form is filled in by hand
+			if (!status) return;
+			fill_from_file(frm);
+		})
+		.catch(() => report_failure(frm, error));
+}
+
+/**
+ * Say that the file could not be read, and why. The form is filled in by hand from here,
+ * so an empty form with no explanation reads as the review being broken.
+ */
+function report_failure(frm, error) {
+	const review = frm.upload_first_review;
+	// reported once per document, so a render does not put the message back
+	if (review.reported) return;
+	review.reported = true;
+
+	frappe.msgprint({
+		title: __("Could Not Read This File"),
+		message: [
+			frappe.utils.escape_html(error || __("Flow did not say why.")),
+			__("Fill in {0} from the file yourself.", [__(frm.doctype)]),
+		].join("<br><br>"),
+		indicator: "orange",
+	});
+}
+
+function extracted_values(raw) {
+	if (!raw) return {};
+	if (typeof raw !== "string") return raw;
+	try {
+		return JSON.parse(raw);
+	} catch (e) {
+		// the form is still usable by hand, so a bad value is logged and skipped
+		console.error("Attachment Queue: could not read the extracted values", e);
+		return {};
+	}
+}
+
+/**
+ * The reading is still running, so wait for it instead of leaving the form empty. Every
+ * change to the DocType's queue reads the entry back, until it is no longer being read.
+ */
+function wait_for_file(frm) {
+	const review = frm.upload_first_review;
+	if (review.waiting) return;
+
+	const document_type = review.entry.document_type;
+	review.waiting = (data) => {
+		if (data?.document_type === document_type) fill_from_file(frm);
+	};
+	frappe.realtime.doctype_subscribe(document_type);
+	frappe.realtime.on("attachment_queue_update", review.waiting);
+
+	frappe.show_alert({
+		message: __("Reading {0}. The form fills in once it is read.", [
+			queued_file_name(review.entry.source_file),
+		]),
+		indicator: "blue",
+	});
+}
+
+function stop_waiting(review) {
+	if (!review.waiting) return;
+	frappe.realtime.off("attachment_queue_update", review.waiting);
+	frappe.realtime.doctype_unsubscribe(review.entry.document_type);
+	review.waiting = null;
+}
+
+/**
+ * Fill in the fields the file states, leaving alone any the reader has already answered.
+ * A field still holding the value every new document starts with is not an answer.
+ * Only an unsaved document is filled: once saved, its values are the reader's.
+ */
+function apply_values(frm, values) {
+	if (!frm.doc.__islocal) return;
+
+	const filled = {};
+	for (const [fieldname, value] of Object.entries(values)) {
+		const field = frm.get_field(fieldname);
+		if (!field) continue;
+		const current = frm.doc[fieldname];
+		if (!current || current == frappe.model.get_default_value(field.df, frm.doc)) {
+			filled[fieldname] = value;
+		}
+	}
+
+	const fieldnames = Object.keys(filled);
+	if (!fieldnames.length) return;
+
+	// filled once, so a later render cannot put a value back over an edit
+	frm.upload_first_review.filled = true;
+
+	frm.set_value(filled).then(() => {
+		fieldnames.forEach((fieldname) => mark_filled(frm, fieldname));
+		frappe.show_alert({
+			message: __("{0} fields filled in from the file. Check them before saving.", [
+				fieldnames.length,
+			]),
+			indicator: "blue",
+		});
+	});
+}
+
+/**
+ * List what the file stated that the document could not hold. Only the reader can act on
+ * these — a supplier the file names but the site has no record of is theirs to create —
+ * so dropping them silently leaves the form looking half read for no visible reason.
+ */
+function report_skipped(frm, skipped) {
+	const review = frm.upload_first_review;
+	const fieldnames = Object.keys(skipped || {});
+	// its own flag: a read that failed and then succeeded still has these to report
+	if (!fieldnames.length || review.listed) return;
+	review.listed = true;
+
+	const rows = fieldnames
+		.map((fieldname) => {
+			const { label, value, reason } = skipped[fieldname];
+			return `<tr>
+				<td>${frappe.utils.escape_html(label || fieldname)}</td>
+				<td>${frappe.utils.escape_html(value)}</td>
+				<td class="text-muted">${frappe.utils.escape_html(reason)}</td>
+			</tr>`;
+		})
+		.join("");
+
+	frappe.msgprint({
+		title: __("Left Out of the Form"),
+		message: `<p>${__("The file states these, but {0} cannot hold them as written.", [
+			__(frm.doctype),
+		])}</p>
+			<table class="table table-bordered">
+				<thead><tr>
+					<th>${__("Field")}</th><th>${__("In the file")}</th><th>${__("Why")}</th>
+				</tr></thead>
+				<tbody>${rows}</tbody>
+			</table>`,
+		indicator: "orange",
+	});
+}
+
+/** Show which fields came from the file, until the reader edits them. */
+function mark_filled(frm, fieldname) {
+	const field = frm.get_field(fieldname);
+	if (!field || !field.$wrapper) return;
+
+	field.$wrapper.addClass("filled-from-file");
+	field.$wrapper.one("change input", () => field.$wrapper.removeClass("filled-from-file"));
+}
 
 function open_pane(frm) {
 	const review = frm.upload_first_review;
@@ -126,7 +329,10 @@ function keep_open_across_refreshes(frm) {
 /** Close the split screen and leave the form as it would be without a review. */
 function end_review(frm) {
 	const review = frm.upload_first_review;
-	if (review) review.closed = true;
+	if (review) {
+		review.closed = true;
+		stop_waiting(review);
+	}
 
 	$(document).off("form-refresh.upload_first_review");
 	$(document).off("keydown.upload_first_review");

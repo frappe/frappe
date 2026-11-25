@@ -8,7 +8,14 @@
   "source_file",
   "document_type",
   "column_break_document",
-  "created_document"
+  "created_document",
+  "section_break_extraction",
+  "extraction_status",
+  "extraction_run",
+  "column_break_extraction",
+  "extraction_error",
+  "extracted_values",
+  "skipped_values"
  ],
  "fields": [
   {
@@ -40,11 +47,58 @@
    "label": "Created Document",
    "options": "document_type",
    "read_only": 1
+  },
+  {
+   "depends_on": "extraction_status",
+   "fieldname": "section_break_extraction",
+   "fieldtype": "Section Break",
+   "label": "Extraction"
+  },
+  {
+   "description": "Started as soon as the file is uploaded; Completed once Flow has read it.",
+   "fieldname": "extraction_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Extraction Status",
+   "options": "\nStarted\nCompleted\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extraction_run",
+   "fieldtype": "Link",
+   "label": "Extraction Run",
+   "options": "Flow Run",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_extraction",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.extraction_status == \"Failed\"",
+   "fieldname": "extraction_error",
+   "fieldtype": "Small Text",
+   "label": "Extraction Error",
+   "read_only": 1
+  },
+  {
+   "description": "The field values Flow read out of the file, keyed by fieldname.",
+   "fieldname": "extracted_values",
+   "fieldtype": "JSON",
+   "label": "Extracted Values",
+   "read_only": 1
+  },
+  {
+   "description": "Values the file stated that the document could not hold, and why.",
+   "fieldname": "skipped_values",
+   "fieldtype": "JSON",
+   "label": "Skipped Values",
+   "read_only": 1
   }
  ],
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-02 16:13:01.879424",
+ "modified": "2026-11-04 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Attachment Queue",
