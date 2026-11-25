@@ -18,7 +18,8 @@ class CodeFieldGuard:
 		self.fields, self.tables = fields, tables
 
 	def validate(self):
-		if self.doc.flags.ignore_permissions or frappe.flags.in_install:
+		# a restore re-inserts the snapshot saved when the document was deleted
+		if self.doc.flags.ignore_permissions or self.doc.flags.from_restore or frappe.flags.in_install:
 			return
 
 		# only after the skips: during install, child DocTypes may not be synced yet
@@ -85,7 +86,8 @@ class CodeFieldGuard:
 		return changed
 
 	def is_authored(self, row, reference, df, is_new, child_doctype=None):
-		if not is_changed(row, reference, df):
+		# clearing a field runs nothing
+		if not is_changed(row, reference, df) or not normalize(row.get(df.fieldname), df):
 			return False
 		# a new document or row may reuse code the user can already read, e.g. after Duplicate
 		return not (

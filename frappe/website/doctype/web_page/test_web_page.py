@@ -90,6 +90,14 @@ class TestWebPage(IntegrationTestCase):
 				frappe.PermissionError, make_web_page, dynamic_template=1, main_section_html=content
 			)
 
+			# Markdown renders escaped braces as `{{`
+			self.assertRaises(
+				frappe.PermissionError,
+				make_web_page,
+				content_type="Markdown",
+				main_section_md=r"\{\{ frappe.session.user \}\}",
+			)
+
 			# the Markdown page keeps HTML in an inactive field that content_type could switch on
 			for page in (jinja_page, markdown_page):
 				with self.subTest(page=page.content_type):

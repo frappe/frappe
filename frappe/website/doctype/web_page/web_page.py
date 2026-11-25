@@ -8,7 +8,7 @@ from jinja2.exceptions import TemplateSyntaxError
 import frappe
 from frappe import _
 from frappe.model.executable_fields import CodeFieldGuard
-from frappe.utils import get_datetime, now, quoted, strip_html
+from frappe.utils import get_datetime, md_to_html, now, quoted, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.utils.jinja import render_template
 from frappe.utils.safe_exec import safe_exec
@@ -213,8 +213,10 @@ class WebPage(WebsiteGenerator):
 
 	def has_jinja_content(self):
 		# every content field, not only the active one: switching content_type would
-		# otherwise activate Jinja stored in a field that was inactive when it was saved
-		return self.dynamic_template or any(has_jinja_markers(self.get(f)) for f in CONTENT_FIELDS)
+		# otherwise activate Jinja stored in a field that was inactive when it was saved.
+		# Markdown also as rendered: escaped braces become `{{`
+		contents = [self.get(f) for f in CONTENT_FIELDS] + [md_to_html(self.main_section_md or "")]
+		return self.dynamic_template or any(has_jinja_markers(content) for content in contents)
 
 	def validate_dates(self):
 		if (

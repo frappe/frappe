@@ -4,6 +4,7 @@ import json
 
 import frappe
 from frappe.api import v2
+from frappe.core.doctype.deleted_document.deleted_document import restore
 from frappe.core.doctype.user.test_user import test_user
 from frappe.handler import run_doc_method
 from frappe.tests import IntegrationTestCase
@@ -40,6 +41,10 @@ class TestExecutableFields(IntegrationTestCase):
 
 			doc.condition = "doc.status == 'Closed'"
 			self.assertRaises(frappe.PermissionError, doc.save)
+
+			doc.reload()
+			doc.condition = None
+			doc.save()
 
 	def test_author_can_change_code(self):
 		for role in ("Code Author", "Script Manager"):
@@ -84,3 +89,20 @@ class TestExecutableFields(IntegrationTestCase):
 				lambda: v2.run_doc_method("preview_message", edited, {"preview_document": todo.name}),
 			):
 				self.assertRaises(frappe.PermissionError, call)
+
+	def test_restore_deleted_document(self):
+		# code no other document holds, so the restore can't pass as a copy
+		tag = frappe.generate_hash(length=10)
+		notification = make_notification(
+			subject=f"{tag} {{{{ doc.name }}}}",
+			message=f"{tag} {{{{ doc.description }}}}",
+			condition=f"doc.description == '{tag}'",
+			recipients=[{"receiver_by_document_field": "owner", "cc": f"{{{{ doc.owner }}}} {tag}"}],
+		)
+		notification.delete()
+		deleted = frappe.db.get_value(
+			"Deleted Document", {"deleted_doctype": "Notification", "deleted_name": notification.name}
+		)
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			restore(deleted, alert=False)
+		self.assertTrue(frappe.db.exists("Notification", notification.name))
