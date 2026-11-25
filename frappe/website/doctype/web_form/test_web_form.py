@@ -2163,3 +2163,12 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		import_doc(web_form.as_dict(convert_dates_to_str=True))
 
 		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
+
+	def test_non_ascii_title_creates_doctype(self):
+		web_form = self.new_web_form("Test WF Issue 13 Café Signup")
+		self.assertEqual(web_form.doc_type, "webform-test-wf-issue-13-cafe-signup")
+		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
+
+		web_form = self.new_web_form("日本語フォーム")
+		self.assertRegex(web_form.doc_type, r"^webform-[0-9a-f]{10}$")
+		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))

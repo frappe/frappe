@@ -159,7 +159,10 @@ class WebForm(WebsiteGenerator):
 
 	def create_new_doctype(self):
 		# leave room for the "-N" suffix
-		base = f"webform-{self.name}"[: frappe.db.MAX_COLUMN_LENGTH - len("tab") - 4]
+		ascii_name = unicodedata.normalize("NFKD", cstr(self.name)).encode("ascii", "ignore").decode()
+		slug = re.sub(r"[^\w -]+", "", ascii_name, flags=re.ASCII).strip(" -_")
+		slug = slug or frappe.generate_hash(length=10)
+		base = f"webform-{slug}"[: frappe.db.MAX_COLUMN_LENGTH - len("tab") - 4]
 		doctype_name = append_number_if_name_exists("DocType", base)
 
 		new_doctype = frappe.get_doc(
