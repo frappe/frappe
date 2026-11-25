@@ -2499,6 +2499,15 @@ frappe.ui.form.Form = class FrappeForm {
 				return;
 			}
 
+			const dynamic_link = fields.find(
+				(df) => df.fieldname === fieldname && df.fieldtype === "Dynamic Link"
+			);
+			if (dynamic_link) {
+				new_doc[dynamic_link.options] = this.doctype;
+				new_doc[fieldname] = this.doc.name;
+				return;
+			}
+
 			// link is not on the parent, look for it in a mandatory child table
 			fields
 				.filter((df) => df.fieldtype === "Table" && df.options && df.reqd)
