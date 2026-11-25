@@ -140,6 +140,7 @@
   {
    "fieldname": "email",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Email",
    "no_copy": 1,
    "oldfieldname": "email",

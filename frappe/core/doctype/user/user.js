@@ -417,7 +417,7 @@ frappe.ui.form.on("User", {
 							})
 							.then(() => window.location.reload());
 					},
-					__("Impersonate as {0}", [frm.doc.name]),
+					__("Impersonate as {0}", [frm.doc.full_name]),
 					__("Confirm")
 				);
 			});
