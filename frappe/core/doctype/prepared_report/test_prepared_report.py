@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import json
 import time
+import unittest
 from contextlib import contextmanager
 
 import frappe
@@ -83,6 +84,10 @@ class TestPreparedReport(IntegrationTestCase):
 		frappe.set_user("test1@example.com")
 		self.assertRaises(frappe.PermissionError, delete_prepared_reports, [{"name": doc.name}])
 
+	@unittest.skipIf(
+		frappe.conf.db_type == "sqlite",
+		"This test needs a database sleep function, which SQLite does not provide.",
+	)
 	def test_start_status_and_kill_jobs(self):
 		if frappe.db.db_type == "postgres":
 			query = "select pg_sleep(5)"

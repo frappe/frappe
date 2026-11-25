@@ -11,6 +11,7 @@ from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
 from frappe.utils import cint, get_system_timezone, now, strip
+from frappe.utils.background_jobs import defer_enqueue_after_commit
 from frappe.utils.password import update_password
 from frappe.utils.synchronization import LockTimeoutError, filelock
 
@@ -214,6 +215,11 @@ def initialize_system_settings_and_user(
 
 
 def process_setup_stages(stages, user_input, is_background_task=False):
+	with defer_enqueue_after_commit() as deferred_jobs:
+		return _process_setup_stages(stages, user_input, is_background_task, deferred_jobs)
+
+
+def _process_setup_stages(stages, user_input, is_background_task, deferred_jobs):
 	from frappe.utils.telemetry import capture
 
 	setup_wizard_completed_apps = get_setup_wizard_completed_apps()
@@ -245,6 +251,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 				else:
 					enable_setup_wizard_complete("frappe")
 	except Exception:
+		deferred_jobs.cancel()
 		handle_setup_exception(user_input)
 		message = current_task.get("fail_msg") if current_task else _("We couldn't finish setting things up")
 		capture(
@@ -307,7 +314,7 @@ def update_global_settings(args):  # nosemgrep
 
 	update_system_settings(args)
 	create_or_update_user(args)
-	frappe.enqueue(set_timezone, timezone=args.get("timezone"))
+	frappe.enqueue(set_timezone, timezone=args.get("timezone"), enqueue_after_commit=True)
 
 
 def apply_telemetry_preference(telemetry_enabled):
@@ -318,7 +325,6 @@ def apply_telemetry_preference(telemetry_enabled):
 
 def run_post_setup_complete(args):  # nosemgrep
 	disable_future_access()
-	frappe.db.commit()
 	frappe.clear_cache()
 	# HACK: due to race condition sometimes old doc stays in cache.
 	# Remove this when we have reliable cache reset for docs

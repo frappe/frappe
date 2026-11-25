@@ -412,12 +412,13 @@ class CookieManager:
 		max_age=None,
 		deduplicate=False,
 	):
-		if not secure and hasattr(frappe.local, "request"):
-			secure = frappe.local.request.scheme == "https"
+		request = getattr(frappe.local, "request", None)
+		if not secure and request is not None:
+			secure = request.scheme == "https"
 		if (
 			deduplicate
 			and not (expires or max_age)
-			and (request := getattr(frappe.local, "request", None))
+			and request is not None
 			and unquote(request.cookies.get(key, "")) == value
 		):
 			return
@@ -476,9 +477,8 @@ def validate_ip_address(user):
 	Certain methods called from our socketio backend need direct access, and so the IP is not
 	checked for those
 	"""
-	if hasattr(frappe.local, "request") and frappe.local.request.path.startswith(
-		"/api/method/frappe.realtime."
-	):
+	request = getattr(frappe.local, "request", None)
+	if request is not None and request.path.startswith("/api/method/frappe.realtime."):
 		return True
 
 	try:

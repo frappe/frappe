@@ -4,8 +4,10 @@ from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 MARIADB_TIME_PATTERN = re.compile(
-	r"(?P<sign>[+-]?)(?P<hours>\d+):(?P<minutes>[0-5]\d):(?P<seconds>[0-5]\d)(?:\.(?P<fraction>\d+))?"
+	r"(?P<sign>[+-]?)(?P<hours>\d+):(?P<minutes>[0-5]\d)"
+	r"(?::(?P<seconds>[0-5]?\d)(?:\.(?P<fraction>\d+))?)?"
 )
+MARIADB_DATE_PATTERN = re.compile(r"(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})")
 
 MARIADB_DATE_FORMAT_TOKENS = {
 	"%a": "%a",
@@ -28,7 +30,16 @@ MARIADB_DATE_FORMAT_TOKENS = {
 
 def convert_sqlite_date(value: bytes) -> date:
 	"""Convert a stored SQLite DATE to the value returned by MariaDB drivers."""
-	return date.fromisoformat(value.decode().split(" ", 1)[0])
+	date_text = value.decode().split(" ", 1)[0]
+	try:
+		return date.fromisoformat(date_text)
+	except ValueError:
+		# MariaDB accepts and normalizes non-zero-padded date parts. Older ERPNext data and
+		# fixtures may therefore contain values such as ``2000-1-1``. Constructing ``date``
+		# still provides strict range validation and rejects malformed or impossible dates.
+		if not (match := MARIADB_DATE_PATTERN.fullmatch(date_text)):
+			raise
+		return date(int(match["year"]), int(match["month"]), int(match["day"]))
 
 
 def parse_mariadb_time_duration(value) -> timedelta:
@@ -54,7 +65,7 @@ def parse_mariadb_time_duration(value) -> timedelta:
 	duration = timedelta(
 		hours=int(match["hours"]),
 		minutes=int(match["minutes"]),
-		seconds=int(match["seconds"]),
+		seconds=int(match["seconds"] or 0),
 		microseconds=int(fraction or 0),
 	)
 	return -duration if match["sign"] == "-" else duration

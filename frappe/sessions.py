@@ -255,8 +255,10 @@ class Session:
 		session_end: str | None = None,
 		audit_user: str | None = None,
 	):
+		request = getattr(frappe.local, "request", None)
 		self.sid = cstr(
-			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
+			frappe.form_dict.pop("sid", None)
+			or unquote(request.cookies.get("sid", "Guest") if request is not None else "Guest")
 		)
 		self.user = user
 		self.user_type = user_type
