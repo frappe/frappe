@@ -860,21 +860,25 @@ class TestDocType(IntegrationTestCase):
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
-	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_export_types_removes_boilerplate_pass(self):
 		import ast
+		import shutil
 
+		from frappe.modules import get_doc_path, make_boilerplate
 		from frappe.types.exporter import TypeExporter
 
 		for flags in ({}, {"is_virtual": 1}):
 			with self.subTest(**flags):
-				doctype = new_doctype(custom=0, **flags).insert()
-				try:
-					code = TypeExporter(doctype).controller_path.read_text()
-				finally:
-					doctype.delete()
-					# Persist the delete past the test rollback
-					frappe.db.commit()  # nosemgrep
+				# Same steps as DocType.on_update, without a DB write
+				doctype = new_doctype(custom=0, **flags)
+				folder = get_doc_path(doctype.module, "DocType", doctype.name)
+				os.makedirs(folder)
+				self.addCleanup(shutil.rmtree, folder)
+
+				make_boilerplate("controller._py", doctype)
+				exporter = TypeExporter(doctype)
+				exporter.export_types()
+				code = exporter.controller_path.read_text()
 
 				class_def = next(node for node in ast.parse(code).body if isinstance(node, ast.ClassDef))
 				self.assertIn("# end: auto-generated types", code)
