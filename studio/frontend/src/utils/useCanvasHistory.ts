@@ -1,6 +1,6 @@
 import { ref, Ref } from "vue";
 import Block from "@/runtime/utils/block";
-import { generateId } from "@/runtime/utils/helpers";
+import { generateId } from "@/utils/helpers";
 import { getBlockString, getBlockInstance } from "@/runtime/utils/serializer"
 import { debounceFilter, pausableFilter, watchIgnorable } from "@vueuse/core";
 

@@ -199,8 +199,7 @@ import SettingsDialog from "@/components/Settings/SettingsDialog.vue"
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
-import { openAppInDesk, openPageInDesk } from "@/utils/helpers"
-import { isObjectEmpty } from "@/runtime/utils/helpers"
+import { openAppInDesk, openPageInDesk, isObjectEmpty } from "@/utils/helpers"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

@@ -108,7 +108,7 @@ import FormInputLabel from "@/components/FormInputLabel.vue"
 import MultiLinkInput from "@/components/MultiLinkInput.vue"
 import MultiSelectInput from "@/components/MultiSelectInput.vue"
 import type { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
-import { isObjectEmpty } from "@/runtime/utils/helpers"
+import { isObjectEmpty } from "@/utils/helpers"
 import type { Filters } from "@/runtime/types/Studio/StudioResource"
 
 const typeCheck = ["Check"]

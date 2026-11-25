@@ -1,5 +1,5 @@
 import { HTML as HTMLBlock } from "@/runtime/components/core"
-import { sanitizeHTML } from "@/runtime/utils/helpers"
+import { sanitizeHTML } from "@/utils/helpers"
 
 describe("sanitizeHTML", () => {
 	it("removes executable markup before rendering an HTML block", () => {

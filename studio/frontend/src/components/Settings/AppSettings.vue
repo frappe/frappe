@@ -101,7 +101,7 @@ import Input from "@/components/Input.vue"
 import AppRenameDialog from "@/components/Settings/AppRenameDialog.vue"
 import ExportAppDialog from "@/components/ExportAppDialog.vue"
 import useStudioStore from "@/stores/studioStore"
-import { scrub } from "@/runtime/utils/helpers"
+import { scrub } from "@/utils/helpers"
 import defaultFavicon from "/favicon.png"
 
 type FileDoc = { file_url: string }

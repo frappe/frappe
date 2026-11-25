@@ -229,8 +229,7 @@ import Grid from "@/components/Grid.vue"
 
 import type { DocTypeField, SelectOption } from "@/types"
 import type { ResourceType, Resource } from "@/runtime/types/Studio/StudioResource"
-import { getParamsArray } from "@/utils/helpers"
-import { isObjectEmpty } from "@/runtime/utils/helpers"
+import { getParamsArray, isObjectEmpty } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 

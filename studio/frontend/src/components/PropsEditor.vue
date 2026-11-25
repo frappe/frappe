@@ -132,7 +132,7 @@ import Block from "@/runtime/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"
 import ArrayInput from "@/components/ArrayInput.vue"
-import { isObjectEmpty } from "@/runtime/utils/helpers"
+import { isObjectEmpty } from "@/utils/helpers"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/completions/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
