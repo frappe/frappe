@@ -1381,13 +1381,18 @@ class Document(_DocumentBase):
 
 	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
-		self.modified = now()
-		self.modified_by = frappe.session.user
+		keep = self.flags.keep_user_and_timestamp
+		if not (keep and self.modified):
+			self.modified = now()
+			self.modified_by = frappe.session.user
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
 		if self.is_new() and not (
-			frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate
+			frappe.flags.in_install
+			or frappe.flags.in_patch
+			or frappe.flags.in_migrate
+			or (keep and self.creation)
 		):
 			self.creation = self.modified
 			self.owner = self.modified_by
@@ -2709,6 +2714,8 @@ class Document(_DocumentBase):
 		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
 		if enqueue_after_commit is None:
 			enqueue_after_commit = True
+		if enqueue_after_commit:
+			frappe.db.after_rollback.add(self.unlock)
 
 		return enqueue(
 			"frappe.model.document.execute_action",
@@ -2817,7 +2824,10 @@ class Document(_DocumentBase):
 
 		from frappe.deferred_insert import deferred_insert
 
+		creation, owner = self.creation, self.owner
 		self.set_user_and_timestamp()
+		self.creation = creation or self.modified
+		self.owner = owner or self.modified_by
 
 		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 		deferred_insert(doctype=self.doctype, records=doc)
