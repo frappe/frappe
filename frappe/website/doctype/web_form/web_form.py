@@ -104,6 +104,10 @@ class WebForm(WebsiteGenerator):
 				title=_("Not Permitted to Create DocType"),
 			)
 
+		if self.is_new() and not frappe.flags.in_import:
+			self.created_new_doctype = 0
+		self.validate_created_doctype_unchanged()
+
 		if not self.doc_type or self.created_new_doctype:
 			self.set_missing_fieldnames()
 
@@ -199,6 +203,17 @@ class WebForm(WebsiteGenerator):
 
 			d.fieldname = fieldname
 			taken.add(fieldname)
+
+	def validate_created_doctype_unchanged(self):
+		if not self.created_new_doctype or not self.has_value_changed("doc_type"):
+			return
+
+		frappe.throw(
+			_("This Web Form created DocType {0}, so its DocType cannot be changed.").format(
+				frappe.bold(self.get_doc_before_save().doc_type)
+			),
+			title=_("DocType Cannot Be Changed"),
+		)
 
 	def get_fields_for_new_doctype(self):
 		return [self.as_docfield(d) for d in self.web_form_fields]

@@ -2054,3 +2054,25 @@ class TestWebFormNewDocType(IntegrationTestCase):
 			web_form.insert()
 
 		self.assertFalse(frappe.get_meta(custom_doctype.name).has_field("not_on_doctype"))
+
+	def test_created_doctype_cannot_be_switched(self):
+		web_form = self.new_web_form("Test Web Form Switch Created DocType")
+		web_form.doc_type = "Note"
+
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be changed"):
+			web_form.save()
+
+	def test_created_new_doctype_is_not_taken_from_input(self):
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Test Web Form Preset Created Flag",
+				"module": "Website",
+				"doc_type": "Note",
+				"created_new_doctype": 1,
+				"web_form_fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Web Form", web_form.name, ignore_permissions=True, force=True)
+
+		self.assertEqual(web_form.created_new_doctype, 0)
