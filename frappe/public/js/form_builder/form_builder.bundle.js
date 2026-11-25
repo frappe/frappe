@@ -37,7 +37,6 @@ class FormBuilder {
 		// host's standing read-only answer, unlike `read_only` below, which tracks the preview toggle
 		this.force_read_only = force_read_only || false;
 		this.read_only = false;
-		// web forms: the picker offers fieldtypes, since the form designs its own doctype
 		this.creates_fields = creates_fields || false;
 
 		this.init();

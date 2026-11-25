@@ -97,7 +97,6 @@ class WebForm(WebsiteGenerator):
 		if not self.doc_type or self.created_new_doctype:
 			self.set_missing_fieldnames()
 
-		# no DocType picked, so the form makes its own
 		if not self.doc_type:
 			self.create_new_doctype()
 
@@ -136,8 +135,6 @@ class WebForm(WebsiteGenerator):
 			self.allow_delete = 0
 
 	def create_new_doctype(self):
-		"""Create the target DocType from this Web Form's fields instead of
-		requiring the user to pick an existing DocType."""
 		doctype_name = f"webform-{self.name}"
 
 		if frappe.db.exists("DocType", doctype_name):
@@ -171,8 +168,6 @@ class WebForm(WebsiteGenerator):
 		self.created_new_doctype = 1
 
 	def set_missing_fieldnames(self):
-		"""Name each field after its label. The form builder adds a field from a fieldtype,
-		so the field has no name until the first save."""
 		taken = {d.fieldname for d in self.web_form_fields if d.fieldname}
 		taken.update(default_fields, child_table_fields)
 
@@ -190,12 +185,9 @@ class WebForm(WebsiteGenerator):
 			taken.add(fieldname)
 
 	def get_fields_for_new_doctype(self):
-		"""Map Web Form Field rows to DocField dicts for `create_new_doctype`."""
 		return [self.as_docfield(d) for d in self.web_form_fields]
 
 	def as_docfield(self, web_form_field):
-		"""Map a single Web Form Field row to a DocField dict."""
-		# a DocType calls a page a tab
 		fieldtype = web_form_field.fieldtype.replace("Page Break", "Tab Break")
 		return {
 			"fieldname": web_form_field.fieldname,
@@ -208,10 +200,8 @@ class WebForm(WebsiteGenerator):
 		}
 
 	def sync_fields_to_doctype(self):
-		"""Make the target DocType's fields match the Web Form's: add, update, remove
-		and reorder. Fields added to the DocType from Desk are kept at the end.
-		Only applies to a DocType that this very Web Form created on the fly - any
-		other DocType (even a Custom one picked manually) keeps the original strict behaviour."""
+		"""Make the target DocType's fields match the Web Form's, deleting fields removed from the form.
+		Fields added to the DocType from Desk are kept at the end."""
 		if not self.created_new_doctype:
 			return
 
@@ -225,7 +215,6 @@ class WebForm(WebsiteGenerator):
 		target_doctype = frappe.get_doc("DocType", self.doc_type)
 		before = [field_signature(df) for df in target_doctype.fields]
 
-		# breaks have no fieldname to match on, so they are rebuilt from the Web Form
 		docfields = {
 			df.fieldname: df for df in target_doctype.fields if df.fieldtype not in DOCTYPE_BREAK_FIELDTYPES
 		}
@@ -250,7 +239,6 @@ class WebForm(WebsiteGenerator):
 		target_doctype.save()
 
 	def get_removed_fieldnames(self):
-		"""Fieldnames removed from the Web Form in this save."""
 		before = self.get_doc_before_save()
 		if not before:
 			return set()
@@ -274,8 +262,7 @@ class WebForm(WebsiteGenerator):
 				)
 
 	def validate_fields(self):
-		"""Validate all fields are present, creating any missing ones on a
-		Custom target DocType instead of failing."""
+		"""Validate all fields are present"""
 		from frappe.model import no_value_fields
 
 		self.sync_fields_to_doctype()

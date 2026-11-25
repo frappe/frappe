@@ -12,7 +12,6 @@ frappe.listview_settings["Web Form"] = {
 	},
 
 	new_web_form_dialog() {
-		// a route typed by hand stops following the title
 		let route_edited = false;
 
 		let dialog = new frappe.ui.Dialog({

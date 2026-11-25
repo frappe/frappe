@@ -35,7 +35,6 @@ export const useStore = defineStore("form-builder-store", () => {
 	let is_source_field = ref(null);
 	// set by the web form host, which owns the page limit and its message
 	let validate_page_limit = ref(null);
-	// set by the web form host, when the form designs its own doctype
 	let creates_fields = ref(false);
 	let preview = ref(false);
 	let drag = ref(false);

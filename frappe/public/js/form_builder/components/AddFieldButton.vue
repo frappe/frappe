@@ -63,7 +63,6 @@ const selected = computed(() => {
 
 const show = ref(false);
 const autocomplete_value = ref("");
-// a Web Form on an existing doctype offers that doctype's fields, every other builder offers fieldtypes
 const picks_source_fields = computed(() => store.is_web_form && !store.creates_fields);
 const fields = computed(() => {
 	if (picks_source_fields.value) return unplaced_source_fields();
@@ -161,7 +160,6 @@ function placed_fieldnames() {
 	return fieldnames;
 }
 
-// Page Break is a page of the builder, not a field
 function web_form_fieldtypes() {
 	return frappe.meta
 		.get_docfield("Web Form Field", "fieldtype")

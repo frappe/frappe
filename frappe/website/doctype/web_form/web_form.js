@@ -65,12 +65,6 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	toggle_new_doctype_fields(frm) {
-		// "Field Name" stays freely editable (existing fields shown as
-		// suggestions) while a DocType is still being designed: during
-		// initial creation, and afterwards only for the DocType this very
-		// Web Form created, so new fields can keep being added from here.
-		// Any other DocType (even one that's Custom) keeps the original
-		// pick-from-existing-fields behaviour.
 		let editable = designs_own_doctype(frm);
 		frm.fields_dict.web_form_fields.grid.update_docfield_property(
 			"fieldname",
@@ -92,7 +86,6 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	add_publish_button(frm) {
-		// the sidebar's own link is hidden on the builder tab
 		if (frm.doc.published && !frm.is_new()) {
 			frm.add_custom_button(__("See on Website"), () =>
 				window.open(`/${frm.doc.route}`, "_blank", "noopener")
@@ -435,9 +428,6 @@ frappe.ui.form.on("Web Form Field", {
 		}
 	},
 	label: function (frm, doctype, name) {
-		// Auto-suggest a fieldname while designing a DocType's fields (new,
-		// or the DocType this Web Form itself created, being extended),
-		// same as how "Field Name" is derived from "Label" on the DocType form.
 		if (!designs_own_doctype(frm)) return;
 
 		let doc = frappe.get_doc(doctype, name);
@@ -902,7 +892,6 @@ function is_builder_read_only(frm) {
 	return (frm.doc.is_standard && !frappe.boot.developer_mode) || !frm.has_perm("write");
 }
 
-// such a form adds fields of its own, every other one picks from its doctype
 function designs_own_doctype(frm) {
 	return Boolean(!frm.doc.doc_type || frm.doc.created_new_doctype);
 }

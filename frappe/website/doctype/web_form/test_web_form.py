@@ -1697,8 +1697,6 @@ class TestWebForm(IntegrationTestCase):
 
 
 class TestWebFormNewDocType(IntegrationTestCase):
-	"""Tests for creating a DocType on the fly from a Web Form."""
-
 	def setUp(self):
 		frappe.set_user("Administrator")
 
@@ -1779,7 +1777,6 @@ class TestWebFormNewDocType(IntegrationTestCase):
 	def test_create_new_doctype_rejects_already_existing_doctype_name(self):
 		title = "Test Web Form Existing DocType Name"
 		web_form = self.new_web_form(title)
-		# the DocType outlives its Web Form
 		frappe.delete_doc("Web Form", web_form.name, force=True)
 
 		with self.assertRaisesRegex(frappe.ValidationError, "already exists"):
