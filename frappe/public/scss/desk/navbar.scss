@@ -139,6 +139,10 @@
 		ul[hidden] {
 			display: block !important;
 		}
+
+		li:not([aria-selected="true"]) .awesomebar-enter-hint {
+			display: none;
+		}
 	}
 
 	.modal-divider {
