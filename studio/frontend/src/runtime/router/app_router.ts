@@ -7,7 +7,7 @@ import {
 } from "vue-router"
 import { toast } from "frappe-ui"
 import AppPage from "@/runtime/pages/AppPage.vue"
-import { loadPage, discardPage } from "@/runtime/page/pageLoader"
+import { loadPage, discardPage } from "@/runtime/pages/pageLoader"
 import NotFound from "@/runtime/pages/NotFound.vue"
 
 export type RouterConfig = {
