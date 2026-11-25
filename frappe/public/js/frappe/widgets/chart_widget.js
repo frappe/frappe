@@ -692,7 +692,7 @@ export default class ChartWidget extends Widget {
 				heatmap_year: args && args.heatmap_year ? args.heatmap_year : null,
 			};
 		}
-		return frappe.xcall(method, args, undefined, {
+		return frappe.xcall(method, args, "QUERY", {
 			silent: true,
 			error: (err) => this.show_error(err),
 		});
@@ -1074,7 +1074,7 @@ export default class ChartWidget extends Widget {
 						const method =
 							"frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config";
 						return frappe
-							.xcall(method, { name: this.chart_doc.source })
+							.xcall(method, { name: this.chart_doc.source }, "GET")
 							.then((config) => {
 								frappe.dom.eval(config);
 								this.settings =

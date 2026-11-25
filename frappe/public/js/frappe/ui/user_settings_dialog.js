@@ -69,7 +69,10 @@ frappe.ui.user_settings = {
 
 async function _load_user_data() {
 	if (!frappe.all_timezones) {
-		const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
+		const { message } = await frappe.call({
+			method: "frappe.core.doctype.user.user.get_timezones",
+			type: "GET",
+		});
 		frappe.all_timezones = message?.timezones || [];
 	}
 

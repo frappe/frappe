@@ -35,8 +35,12 @@ export default class WebFormList {
 		let filter_area = $(".web-list-filters");
 
 		frappe
-			.call("frappe.website.doctype.web_form.web_form.get_web_form_filters", {
-				web_form_name: this.web_form_name,
+			.call({
+				method: "frappe.website.doctype.web_form.web_form.get_web_form_filters",
+				args: {
+					web_form_name: this.web_form_name,
+				},
+				type: "GET",
 			})
 			.then((response) => {
 				let fields = response.message;

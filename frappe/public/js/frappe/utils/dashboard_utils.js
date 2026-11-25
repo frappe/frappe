@@ -70,7 +70,7 @@ frappe.dashboard_utils = {
 		if (chart.chart_type === "Custom" && chart.source) {
 			const method =
 				"frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config";
-			return frappe.xcall(method, { name: chart.source }).then((config) => {
+			return frappe.xcall(method, { name: chart.source }, "GET").then((config) => {
 				frappe.dom.eval(config);
 				return frappe.dashboards.chart_sources[chart.source].filters;
 			});

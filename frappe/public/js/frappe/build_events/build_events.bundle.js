@@ -25,17 +25,22 @@ frappe.realtime.on("build_event", (data) => {
 			}
 		}
 		// update assets json
-		frappe.call("frappe.sessions.get_boot_assets_json").then((r) => {
-			if (r.message) {
-				frappe.boot.assets_json = r.message;
+		frappe
+			.call({
+				method: "frappe.sessions.get_boot_assets_json",
+				type: "GET",
+			})
+			.then((r) => {
+				if (r.message) {
+					frappe.boot.assets_json = r.message;
 
-				if (frappe.hot_update) {
-					frappe.hot_update.forEach((callback) => {
-						callback();
-					});
+					if (frappe.hot_update) {
+						frappe.hot_update.forEach((callback) => {
+							callback();
+						});
+					}
 				}
-			}
-		});
+			});
 		show_build_success(data);
 	} else if (data.error) {
 		show_build_error(data);

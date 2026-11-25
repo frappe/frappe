@@ -37,6 +37,7 @@ $.extend(frappe.model.user_settings, {
 		if (frappe.session.user === "Guest") return Promise.resolve();
 		return frappe.call({
 			method: "frappe.model.utils.user_settings.save",
+			type: "QUERY",
 			args: {
 				doctype: doctype,
 				user_settings: user_settings,

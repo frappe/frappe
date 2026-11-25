@@ -158,7 +158,7 @@ test.describe("Control Link", () => {
 			el.dispatchEvent(new Event("change", { bubbles: true }));
 			el.dispatchEvent(new FocusEvent("blur"));
 		});
-		await page.evaluate(() => frappe.xcall("ping"));
+		await page.evaluate(() => frappe.xcall("ping", undefined, "GET"));
 
 		expect(validated).toBe(false);
 		await expect(input).toHaveValue("invalid value");

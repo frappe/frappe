@@ -5,6 +5,7 @@ function show_configure_search_fields_dialog(doctype, frm) {
 	frappe.call({
 		method: "frappe.desk.doctype.global_search_settings.global_search_settings.get_global_search_field_options",
 		args: { doctype },
+		type: "GET",
 		callback(r) {
 			const options = r.message || [];
 

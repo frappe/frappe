@@ -41,11 +41,13 @@ frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
 		frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
 			freeze: true,
+			type: "GET",
 			callback: function (r) {
 				frappe.setup.data.lang = r.message;
 				frappe.call({
 					method: "frappe.desk.page.setup_wizard.setup_wizard.load_user_details",
 					freeze: true,
+					type: "GET",
 					callback: function (r) {
 						frappe.setup.data.full_name = r.message.full_name;
 						frappe.setup.data.email = r.message.email;
@@ -709,6 +711,7 @@ frappe.setup.utils = {
 	load_regional_data: function (slide, callback) {
 		frappe.call({
 			method: "frappe.geo.country_info.get_country_timezone_info",
+			type: "GET",
 			callback: function (data) {
 				frappe.setup.data.regional_data = data.message;
 				callback(slide);
@@ -720,6 +723,7 @@ frappe.setup.utils = {
 		frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.load_user_details",
 			freeze: true,
+			type: "GET",
 			callback: function (r) {
 				frappe.setup.data.full_name = r.message.full_name;
 				frappe.setup.data.email = r.message.email;

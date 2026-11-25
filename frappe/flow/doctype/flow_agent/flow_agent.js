@@ -3,9 +3,10 @@
 
 frappe.ui.form.on("Flow Agent", {
 	async refresh(frm) {
-		const { message } = await frappe.call(
-			"frappe.flow.doctype.flow_tool.flow_tool.unavailable_tools"
-		);
+		const { message } = await frappe.call({
+			method: "frappe.flow.doctype.flow_tool.flow_tool.unavailable_tools",
+			type: "GET",
+		});
 		frm.unavailable_tools = message;
 		show_unavailable_tools(frm);
 	},
