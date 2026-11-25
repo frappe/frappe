@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.model.naming import getseries, parse_naming_series, revert_series_if_last
+from frappe.model.naming import getseries, parse_naming_series
 from frappe.utils.data import cint, evaluate_filters, get_link_to_form
 
 
@@ -104,20 +104,3 @@ class DocumentNamingRule(Document):
 
 		prefix = parse_naming_series(self.prefix, doc=doc)
 		doc.name = prefix + getseries(prefix, self.prefix_digits)
-
-	def revert(self, doc):
-		if "#" in self.prefix:
-			return
-
-		prefix = parse_naming_series(self.prefix, doc=doc)
-		suffix = doc.name[len(prefix) :]
-		if (
-			not suffix.isascii()
-			or not suffix.isdigit()
-			or suffix != str(int(suffix)).zfill(self.prefix_digits)
-		):
-			return
-		if "." not in self.prefix and not doc.name.startswith(prefix):
-			return
-
-		revert_series_if_last(f"{self.prefix}.{'#' * self.prefix_digits}", doc.name, doc)
