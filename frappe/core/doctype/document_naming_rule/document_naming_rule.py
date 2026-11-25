@@ -85,7 +85,8 @@ class DocumentNamingRule(Document):
 				frappe.throw(
 					_("Document Naming Rule {0} already has the same priority and conditions").format(
 						get_link_to_form(self.doctype, name)
-					)
+					),
+					title=_("Duplicate Naming Rule"),
 				)
 
 	def apply(self, doc):
