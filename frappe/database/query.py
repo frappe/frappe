@@ -282,12 +282,8 @@ class Engine:
 			self.doctype = table
 			self.table = qb.DocType(table)
 
-<<<<<<< HEAD
-=======
-		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
 		self.parent_doctype = parent_doctype if parent_doctype and frappe.is_table(self.doctype) else None
 
->>>>>>> 1774c44 (fix(query): use parent doctype permissions only for child tables)
 		if frappe.flags.get("ignore_user_permissions_for_doctype") == self.doctype:
 			self.ignore_user_permissions = True
 
