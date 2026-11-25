@@ -98,6 +98,10 @@ class CodeFieldGuard:
 		)
 
 	def exists_in_readable_doc(self, fieldname, value, child_doctype=None):
+		# the lookup matches stored values, not a JSON value sent already parsed
+		if isinstance(value, list | dict):
+			return False
+
 		source = child_doctype or self.doc.doctype
 		filters = [[source, fieldname, "=", value], *self.get_source_filters(fieldname, value, child_doctype)]
 		# SQL equality ignores case and trailing spaces under MariaDB collations, Python does not;
@@ -109,7 +113,7 @@ class CodeFieldGuard:
 			distinct=True,
 			as_list=True,
 		)
-		return any(row[0] == value for row in rows)
+		return any(normalize_text(row[0]) == normalize_text(value) for row in rows)
 
 	def get_source_filters(self, fieldname, value, child_doctype=None):
 		"""Extra filters for the copied value's source, e.g. that it also runs the value as code."""
@@ -128,5 +132,9 @@ def normalize(value, df):
 	if df.fieldtype == "JSON" and value not in (None, ""):
 		# APIs may send a JSON field parsed, the database holds it as text
 		return frappe.parse_json(value)
+	return normalize_text(value)
+
+
+def normalize_text(value):
 	# code editors and APIs differ in line endings, trailing whitespace and None vs ""
 	return cstr(value).replace("\r\n", "\n").strip()

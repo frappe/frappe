@@ -59,9 +59,19 @@ class TestExecutableFields(IntegrationTestCase):
 	def test_copy_allowance(self):
 		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
 			make_notification()
+			make_notification(condition=f"{self.notification.condition}  ")
 			for condition in ("doc.status == 'Closed'", "doc.status == 'OPEN'"):
 				with self.subTest(condition=condition):
 					self.assertRaises(frappe.PermissionError, make_notification, condition=condition)
+
+			# a JSON value sent already parsed is refused cleanly, not with a query error
+			web_form = {
+				"doctype": "Web Form",
+				"title": frappe.generate_hash(length=10),
+				"doc_type": "ToDo",
+				"dynamic_filters_json": [["ToDo", "owner", "=", "frappe.session.user"]],
+			}
+			self.assertRaises(frappe.PermissionError, frappe.get_doc(web_form).insert)
 
 	def test_child_rows(self):
 		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
@@ -120,6 +130,10 @@ class TestExecutableFields(IntegrationTestCase):
 			test_user(roles=["System Manager"]) as user,
 			self.set_user(user.name),
 		):
+			# duplicating it, as the standard notification error suggests, while the database
+			# still holds an older message than the app file
+			make_notification(message=app_file)
+
 			doc = frappe.get_doc("Notification", self.notification.name)
 			doc.run_method("onload")
 			doc.enabled = 0

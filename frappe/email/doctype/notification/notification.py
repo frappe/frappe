@@ -15,7 +15,7 @@ from frappe.integrations.doctype.notification_webhook_url.notification_webhook_u
 	NotificationWebhookURL,
 )
 from frappe.model.document import Document
-from frappe.model.executable_fields import CodeFieldGuard, normalize
+from frappe.model.executable_fields import CodeFieldGuard, normalize, normalize_text
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import (
 	add_to_date,
@@ -44,6 +44,17 @@ class StandardMessageGuard(CodeFieldGuard):
 			if normalize(row.message, df) == normalize(row.get_template(), df):
 				return False
 		return super().is_authored(row, reference, df, is_new, child_doctype)
+
+	def exists_in_readable_doc(self, fieldname, value, child_doctype=None):
+		if super().exists_in_readable_doc(fieldname, value, child_doctype):
+			return True
+		# a duplicate of a standard notification carries the message from its app file
+		if fieldname != "message" or child_doctype:
+			return False
+		return any(
+			normalize_text(frappe.get_doc("Notification", name).get_template()) == normalize_text(value)
+			for name in frappe.get_list("Notification", filters={"is_standard": 1}, pluck="name")
+		)
 
 
 class Notification(Document):
