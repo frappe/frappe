@@ -15,6 +15,7 @@ from frappe.integrations.doctype.notification_webhook_url.notification_webhook_u
 	NotificationWebhookURL,
 )
 from frappe.model.document import Document
+from frappe.model.executable_fields import CodeFieldGuard, normalize
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import (
 	add_to_date,
@@ -35,7 +36,19 @@ FORBIDDEN_DOCUMENT_TYPES = frozenset(("Email Queue",))
 DATE_BASED_EVENTS = frozenset(("Days Before", "Days After"))
 
 
+class StandardMessageGuard(CodeFieldGuard):
+	"""A standard notification's message is loaded from its app's template file, which is developer code."""
+
+	def is_authored(self, row, reference, df, is_new, child_doctype=None):
+		if row is self.doc and df.fieldname == "message" and row.is_standard:
+			if normalize(row.message, df) == normalize(row.get_template(), df):
+				return False
+		return super().is_authored(row, reference, df, is_new, child_doctype)
+
+
 class Notification(Document):
+	code_field_guard = StandardMessageGuard
+
 	_DOCTYPE_NAME = "Notification"
 
 	# begin: auto-generated types

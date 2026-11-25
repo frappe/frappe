@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
-from frappe.model.executable_fields import CODE_AUTHOR_ROLE, CodeFieldGuard, is_code_author
+from frappe.model.executable_fields import CODE_AUTHOR_ROLE, is_code_author
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones, zone_repeats, zone_show_on
 from frappe.utils.data import cint, cstr, flt
@@ -354,7 +354,7 @@ def _builder_preview_generator(
 	pf = frappe.get_doc(frappe.parse_json(print_format))
 	if pf.doctype != "Print Format":
 		frappe.throw(_("Expected an unsaved Print Format document"))
-	CodeFieldGuard(pf).validate()
+	pf.code_field_guard(pf).validate()
 	BuilderJinjaGuard(pf).validate()
 
 	name = name or printable_sample(doctype)

@@ -16,7 +16,6 @@ from frappe import _, is_whitelisted, ping
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.model.executable_fields import CodeFieldGuard
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
@@ -374,7 +373,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 		# methods like previews evaluate unsaved code fields
-		CodeFieldGuard(doc).validate()
+		doc.code_field_guard(doc).validate()
 
 	if not doc:
 		frappe.throw_permission_error()

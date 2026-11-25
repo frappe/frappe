@@ -1,11 +1,13 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.api import v2
 from frappe.core.doctype.deleted_document.deleted_document import restore
 from frappe.core.doctype.user.test_user import test_user
+from frappe.email.doctype.notification.notification import Notification
 from frappe.handler import run_doc_method
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
@@ -106,3 +108,22 @@ class TestExecutableFields(IntegrationTestCase):
 		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
 			restore(deleted, alert=False)
 		self.assertTrue(frappe.db.exists("Notification", notification.name))
+
+	def test_standard_notification_message_from_app_file(self):
+		frappe.db.set_value("Notification", self.notification.name, {"is_standard": 1, "module": "Email"})
+		app_file = "From the app {{ doc.name }}"
+
+		with (
+			patch.object(Notification, "get_template", return_value=app_file),
+			# saving a standard notification exports it to files in developer mode
+			patch("frappe.email.doctype.notification.notification.export_module_json", return_value=None),
+			test_user(roles=["System Manager"]) as user,
+			self.set_user(user.name),
+		):
+			doc = frappe.get_doc("Notification", self.notification.name)
+			doc.run_method("onload")
+			doc.enabled = 0
+			doc.save()
+
+			doc.message = "{{ frappe.session.user }}"
+			self.assertRaises(frappe.PermissionError, doc.save)
