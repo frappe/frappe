@@ -340,6 +340,7 @@ def _builder_preview_generator(
 	name: str | None = None,
 	letterhead: str | None = None,
 	settings: str | dict | None = None,
+	from_conversion: bool = False,
 ) -> "PrintFormatGenerator | None":
 	"""Permission gate and generator for the builder's unsaved-format previews.
 
@@ -354,6 +355,7 @@ def _builder_preview_generator(
 	pf = frappe.get_doc(frappe.parse_json(print_format))
 	if pf.doctype != "Print Format":
 		frappe.throw(_("Expected an unsaved Print Format document"))
+	pf.flags.from_conversion = from_conversion
 	pf.code_field_guard(pf).validate()
 	BuilderJinjaGuard(pf).validate()
 
@@ -401,6 +403,10 @@ def download_builder_preview_pdf(
 	a page, so the builder's paged preview asks Chromium instead of guessing.
 	"""
 	generator = _builder_preview_generator(print_format, doctype, name, letterhead, settings)
+	respond_with_preview_pdf(generator)
+
+
+def respond_with_preview_pdf(generator):
 	if not generator:
 		frappe.throw(_("No document available to preview"))
 

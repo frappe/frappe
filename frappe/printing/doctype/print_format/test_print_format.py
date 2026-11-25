@@ -1411,6 +1411,7 @@ class TestBuilderJinja(IntegrationTestCase):
 
 	def test_converted_print_designer_copy_without_code_author(self):
 		from frappe.printing.doctype.print_format.print_designer_converter import converted_values
+		from frappe.utils.print_format_generator import _builder_preview_generator
 
 		image = {
 			"type": "image",
@@ -1430,7 +1431,14 @@ class TestBuilderJinja(IntegrationTestCase):
 			{"doctype": "Print Format", "name": frappe.generate_hash(length=10), "doc_type": "ToDo", **values}
 		)
 
+		preview = source.as_dict()
+		preview.update(values, name=None)
+		frappe.get_doc({"doctype": "ToDo", "description": "converted preview"}).insert()
+
 		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, _builder_preview_generator, preview, "ToDo")
+			self.assertTrue(_builder_preview_generator(preview, "ToDo", from_conversion=True))
+
 			self.assertRaises(frappe.PermissionError, copy.insert)
 			copy.flags.from_conversion = True
 			copy.insert()
