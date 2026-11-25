@@ -47,18 +47,20 @@ frappe.ui.form.on("Server Script", {
 	},
 
 	check_safe_exec(frm) {
-		frappe.xcall("frappe.core.doctype.server_script.server_script.enabled").then((enabled) => {
-			if (enabled === false) {
-				let docs_link =
-					"https://frappeframework.com/docs/user/en/desk/scripting/server-script";
-				let docs = `<a href=${docs_link}>${__("Official Documentation")}</a>`;
+		frappe
+			.xcall("frappe.core.doctype.server_script.server_script.enabled", undefined, "GET")
+			.then((enabled) => {
+				if (enabled === false) {
+					let docs_link =
+						"https://frappeframework.com/docs/user/en/desk/scripting/server-script";
+					let docs = `<a href=${docs_link}>${__("Official Documentation")}</a>`;
 
-				frm.dashboard.clear_comment();
-				let msg = __("Server Scripts feature is not available on this site.") + " ";
-				msg += __("To enable server scripts, read the {0}.", [docs]);
-				frm.dashboard.add_comment(msg, "yellow", true);
-			}
-		});
+					frm.dashboard.clear_comment();
+					let msg = __("Server Scripts feature is not available on this site.") + " ";
+					msg += __("To enable server scripts, read the {0}.", [docs]);
+					frm.dashboard.add_comment(msg, "yellow", true);
+				}
+			});
 	},
 
 	allow_guest(frm) {

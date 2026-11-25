@@ -232,7 +232,8 @@ class FlowAgent(Document):
 			elif tool_doc.name == builtin_name(ATTACHMENT_READ_SLUG):
 				resolved.append(bind_read_attachment(session))
 			elif tool_doc.name == builtin_name(MEMORY_TOOL_SLUG):
-				resolved.append(bind_update_memory(self.name, session))
+				if frappe.session.user != "Guest":
+					resolved.append(bind_update_memory(self.name, session))
 			elif tool_doc.name == builtin_name(SKILL_TOOL_SLUG):
 				resolved.append(bind_load_skill(self.name))
 			else:

@@ -46,13 +46,23 @@ frappe.form.formatters = {
 			return frappe.utils.get_formatted_iban(value);
 		}
 		value = value == null ? "" : value;
-
-		return frappe.form.formatters._apply_custom_formatter(value, df);
+		value = frappe.form.formatters._apply_custom_formatter(value, df);
+		if (df?.options == "Email" && value) {
+			return `<span dir="ltr">${value}</span>`;
+		}
+		return value;
 	},
 	Autocomplete: function (value, df) {
-		return __(frappe.form.formatters["Data"](value, df));
+		if (typeof df?.options === "string" && df.options[0] === "[") {
+			df = { ...df, options: frappe.utils.parse_json(df.options) };
+		}
+		return frappe.form.formatters.Select(value, df);
 	},
 	Select: function (value, df) {
+		if (Array.isArray(df?.options) && !is_null(value)) {
+			const option = df.options.find((o) => o?.label && cstr(o.value) === cstr(value));
+			if (option) value = option.label;
+		}
 		return __(frappe.form.formatters["Data"](value, df));
 	},
 	Float: function (value, docfield, options, doc) {
@@ -65,7 +75,7 @@ frappe.form.formatters = {
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			null;
-		if (docfield.options && docfield.options.trim()) {
+		if (docfield.options && docfield.options.trim() && !docfield.is_virtual) {
 			// options points to a currency field, but expects precision of float!
 			docfield.precision = precision;
 			return frappe.form.formatters.Currency(value, docfield, options, doc);
@@ -327,8 +337,8 @@ frappe.form.formatters = {
 		});
 		return html;
 	},
-	SmallText: function (value) {
-		return frappe.form.formatters.Text(value);
+	SmallText: function (value, df) {
+		return frappe.form.formatters.Text(value, df);
 	},
 	TextEditor: function (value) {
 		let formatted_value = frappe.form.formatters.Text(value);

@@ -83,3 +83,7 @@ input.driver-highlighted-element {
 	transform-box: border-box !important;
 	will-change: unset !important;
 }
+
+body:has(#driver-page-overlay) .air-datepicker {
+	--adp-z-index: 100005;
+}

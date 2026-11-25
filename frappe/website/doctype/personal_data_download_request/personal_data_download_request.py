@@ -37,7 +37,7 @@ class PersonalDataDownloadRequest(Document):
 	def insert(self, *args, **kwargs):
 		requested = self.user
 		user = requested and (get_user_by_email(requested) or frappe.db.get_value("User", requested))
-		if not user:
+		if not user or user in frappe.STANDARD_USERS:
 			self.name = frappe.generate_hash(length=10)
 			self.set_user_and_timestamp()
 			self.user_name = ""

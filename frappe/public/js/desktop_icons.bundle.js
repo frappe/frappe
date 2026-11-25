@@ -750,11 +750,11 @@ class DesktopIcon {
 			if (this.icon_route) {
 				this.icon.attr("href", this.icon_route);
 			} else {
-				this.icon.on("click", function (event) {
+				this.icon.on("click", () => {
 					frappe.msgprint(
-						__(
-							"Icon is not correctly configured please check the workspace sidebar to it"
-						)
+						__("{0} has no page to open.", [
+							frappe.utils.escape_html(__(this.icon_title)),
+						])
 					);
 				});
 			}

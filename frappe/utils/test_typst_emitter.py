@@ -147,6 +147,40 @@ class TestTypstGate(IntegrationTestCase):
 		# no File document registered for this path -> refused even if it existed on disk
 		self.assertIsNone(emitter._read_site_file("/private/files/unregistered.png"))
 
+	def test_private_file_read_matches_the_exact_file_url(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst Case {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout_with()),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "x"}).insert(ignore_permissions=True)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		emitter = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name)))
+		file = frappe.get_doc(doctype="File", file_name="typst_case.txt", content="x", is_private=1).insert()
+		self.addCleanup(file.delete)
+
+		with self.set_user("test@example.com"):
+			variant = frappe.new_doc("File")
+			variant.update(
+				{
+					"file_name": "Typst_Case.txt",
+					"file_url": file.file_url.replace("typst_case", "Typst_Case"),
+					"is_private": 1,
+				}
+			)
+			variant.set_new_name()
+			variant.db_insert()
+			self.addCleanup(frappe.delete_doc, "File", variant.name, force=True, ignore_permissions=True)
+			self.assertIsNone(emitter._read_site_file(file.file_url))
+
 	def test_typst_block_qualifies_and_emits_verbatim(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 		from frappe.utils.typst_emitter import TypstEmitter, has_typst_blocks
@@ -745,6 +779,33 @@ class TestTypstRender(IntegrationTestCase):
 			'Page #context counter(page).display("1"); of #context counter(page).final().first();', source
 		)
 
+	def test_last_page_footer_prints_on_the_last_page_only(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		footer = {"fieldtype": "Static Text", "text": "Authorised Signatory"}
+		pf = self.make(
+			layout_with(
+				*[{"fieldtype": "Static Text", "text": "Delivery line"}] * 120,
+				footer={"columns": [{"label": "", "fields": [footer]}], "show_on": "last_page"},
+			),
+			pdf_generator="Typst",
+		)
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			pdf = PrintFormatGenerator(pf, todo).render_typst_pdf()
+
+		texts = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
+		self.assertGreater(len(texts), 1)
+		self.assertNotIn("Authorised Signatory", "".join(texts[:-1]))
+		self.assertIn("Authorised Signatory", texts[-1])
+
 	def test_field_alignment_matches_html(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 		from frappe.utils.typst_emitter import TypstEmitter
@@ -848,6 +909,32 @@ class TestTypstRender(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		pdf = PrintFormatGenerator(pf, todo).render_pdf()
+		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_image_in_object_storage_prints(self):
+		from io import BytesIO
+
+		from PIL import Image
+		from pypdf import PdfReader
+
+		from frappe.storage import fake
+		from frappe.storage.tests import storage_v2
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		png = BytesIO()
+		Image.new("RGB", (40, 20), "navy").save(png, "PNG")
+		with storage_v2(), fake():
+			logo = frappe.get_doc(
+				{"doctype": "File", "file_name": "logo.png", "content": png.getvalue()}
+			).insert()
+			self.addCleanup(logo.delete)
+			pf = self.make(layout_with({"fieldtype": "Image", "custom": 1, "image_url": logo.file_url}))
+			pf.pdf_generator = "Typst"
+			todo = self.make_todo()
+			self.addCleanup(frappe.set_user, "Administrator")
+			frappe.set_user("test@example.com")
+			pdf = PrintFormatGenerator(pf, todo).render_pdf()
 		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
 
 	@unittest.skipUnless(has_typst(), "typst not installed")

@@ -1178,16 +1178,17 @@ export default class GridRow {
 		let field_change_function = df.change;
 
 		if (!field.df.change) {
-			field.df.change = (e) => {
-				this.refresh_dependency();
+			field.df.change = function (e) {
+				const grid_row = this.grid_row || this.layout?.grid_row || me;
+				grid_row.refresh_dependency();
 				// trigger onchange with current grid row field as "this"
 				if (field_onchange_function) {
-					field_onchange_function.apply(field, [e]);
+					field_onchange_function.apply(this, [e]);
 				} else if (field_change_function) {
-					field_change_function.apply(field, [e]);
+					field_change_function.apply(this, [e]);
 				}
 
-				me.refresh_field(field.df.fieldname);
+				grid_row.refresh_field(this.df.fieldname);
 			};
 		}
 
@@ -1654,6 +1655,9 @@ export default class GridRow {
 			field.df[property] = value;
 			field.refresh();
 		};
+
+		const df = this.docfields?.find((d) => d.fieldname === fieldname);
+		if (df) df[property] = value;
 
 		if (this.grid_form) {
 			set_property(this.grid_form.fields_dict[fieldname]);

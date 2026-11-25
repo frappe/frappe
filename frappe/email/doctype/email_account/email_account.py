@@ -722,7 +722,7 @@ class EmailAccount(Document):
 				# then do not send notifications for the same email.
 				if communication and mail.flags.is_new_communication:
 					# notify all participants of this thread
-					if self.enable_auto_reply:
+					if self.enable_auto_reply and not mail.is_auto_submitted():
 						self.send_auto_reply(communication, mail)
 
 					communication.send_email(is_inbound_mail_communcation=True)
@@ -878,8 +878,9 @@ class EmailAccount(Document):
 				or frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype=communication.reference_doctype,
 				reference_name=communication.reference_name,
-				in_reply_to=email.mail.get("Message-Id"),  # send back the Message-Id as In-Reply-To
+				in_reply_to=communication.name,
 				unsubscribe_message=unsubscribe_message,
+				auto_submitted="auto-replied",
 			)
 
 	def get_unreplied_notification_emails(self):
@@ -966,6 +967,7 @@ def get_append_to(
 	page_len: int | None = None,
 	filters: list | dict | str | None = None,
 ):
+	frappe.has_permission("Email Account", "read", throw=True)
 	txt = txt if txt else ""
 
 	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
@@ -976,7 +978,7 @@ def get_append_to(
 	# Set Email Append To DocTypes set via Customize Form
 	email_append_to_list.extend(
 		dt.doc_type
-		for dt in frappe.get_list(
+		for dt in frappe.get_all(
 			"Property Setter",
 			filters={"property": "email_append_to", "value": 1},
 			fields=["doc_type"],

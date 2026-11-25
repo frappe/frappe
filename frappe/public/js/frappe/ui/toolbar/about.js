@@ -89,6 +89,7 @@ frappe.ui.misc.about = function () {
 		if (!frappe.versions) {
 			frappe.call({
 				method: "frappe.utils.change_log.get_versions",
+				type: "GET",
 				callback: function (r) {
 					show_versions(r.message);
 				},

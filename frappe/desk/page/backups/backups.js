@@ -41,5 +41,11 @@ frappe.pages["backups"].on_page_load = function (wrapper) {
 		}
 	});
 
-	$(frappe.render_template("backups")).appendTo(page.body.addClass("no-border"));
+	page.body.addClass("no-border");
+};
+
+frappe.pages["backups"].on_page_show = function (wrapper) {
+	frappe.call("frappe.desk.page.backups.backups.get_backup_files").then((r) => {
+		wrapper.page.body.html(frappe.render_template("backups", { files: r.message }));
+	});
 };

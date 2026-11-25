@@ -14,7 +14,7 @@ from frappe import _, bold, is_whitelisted
 from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model import get_permitted_fields
-from frappe.model.db_query import get_order_by
+from frappe.model.qb_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, sbool, unique
 from frappe.utils.caching import http_cache
@@ -205,6 +205,7 @@ def search_widget(
 		filters = {}
 
 	if query:  # Query = custom search query i.e. python function
+		query = frappe.override_whitelisted_method(query)
 		meta = frappe.get_meta(doctype)
 		# For translated doctypes, pass empty txt, no offset and a large page_length so the custom
 		# query returns all records without SQL-level text filtering or paging; Python-level
@@ -564,17 +565,22 @@ def scrub_custom_query(query, key, txt):
 
 
 def relevance_sorter(key, query, as_dict):
-	value = _(key.name if as_dict else key[0])
-	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
+	name = cstr(key.name if as_dict else key[0])
+	value = _(name)
+	return (not any(text.casefold().startswith(query.casefold()) for text in (name, value)), value)
 
 
 def filter_translated(values: list, txt: str, get_values: Callable[[Any], list]) -> list:
-	"""Return rows where a translated value from `get_values(row)` contains txt as `LIKE %txt%` would match it."""
+	"""Return rows where a value from `get_values(row)` or its translation contains txt as `LIKE %txt%` would."""
 	if not txt:
 		return values
 
 	return [
-		row for row in values if any(like_contains(_(cstr(value)) or "", txt) for value in get_values(row))
+		row
+		for row in values
+		if any(
+			like_contains(text, txt) for value in get_values(row) for text in (cstr(value), _(cstr(value)))
+		)
 	]
 
 
@@ -603,9 +609,10 @@ def find_like_part(value: str, part: str, start: int) -> int:
 
 
 def get_translated_relevance(name: str, txt: str) -> float:
-	"""Position of txt in the translated name, like the SQL `_relevance` (no match ranks last)."""
-	position = _(cstr(name)).casefold().find(txt.replace("%", "").casefold())
-	return math.inf if position < 0 else position
+	"""Position of txt in the name or its translation, like the SQL `_relevance` (no match ranks last)."""
+	txt = txt.replace("%", "").casefold()
+	positions = (text.casefold().find(txt) for text in (cstr(name), _(cstr(name))))
+	return min((position for position in positions if position >= 0), default=math.inf)
 
 
 MAX_MENTIONS_PAGE_LENGTH = 20

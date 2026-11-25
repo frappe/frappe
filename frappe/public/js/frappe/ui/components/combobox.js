@@ -1282,6 +1282,7 @@ frappe.ui.Combobox = class Combobox {
 			label.appendChild(description);
 		}
 		el.appendChild(label);
+		el.title = [option.label, option.description].filter(Boolean).join("\n");
 		if (row.option) this.mark_row(el, selected);
 
 		// keep focus in the search box on mousedown

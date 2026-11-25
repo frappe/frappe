@@ -1381,13 +1381,18 @@ class Document(_DocumentBase):
 
 	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
-		self.modified = now()
-		self.modified_by = frappe.session.user
+		keep = self.flags.keep_user_and_timestamp
+		if not (keep and self.modified):
+			self.modified = now()
+			self.modified_by = frappe.session.user
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
 		if self.is_new() and not (
-			frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate
+			frappe.flags.in_install
+			or frappe.flags.in_patch
+			or frappe.flags.in_migrate
+			or (keep and self.creation)
 		):
 			self.creation = self.modified
 			self.owner = self.modified_by
@@ -1764,9 +1769,9 @@ class Document(_DocumentBase):
 		original_modified = get_datetime(self._original_modified) if self._original_modified else None
 		if previous_modified != original_modified:
 			frappe.msgprint(
-				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
-				+ (f" ({previous.modified}, {self.modified}). ")
-				+ _("Please refresh to get the latest document."),
+				_(
+					"Error: {0} ({1}) has been modified after you have opened it. Please refresh to get the latest document."
+				).format(self.name, self.doctype),
 				raise_exception=frappe.TimestampMismatchError,
 			)
 
@@ -1803,7 +1808,7 @@ class Document(_DocumentBase):
 						frappe.DocstatusTransitionError,
 					)
 				self._action = "submit"
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif to_docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
@@ -1814,10 +1819,10 @@ class Document(_DocumentBase):
 		elif from_docstatus == DocStatus.SUBMITTED:
 			if to_docstatus.is_submitted():
 				self._action = "update_after_submit"
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif to_docstatus.is_cancelled():
 				self._action = "cancel"
-				self.check_permission("cancel")
+				self._check_transition_permission("cancel")
 			elif to_docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
@@ -1827,6 +1832,11 @@ class Document(_DocumentBase):
 
 		elif from_docstatus == DocStatus.CANCELLED:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
+
+	def _check_transition_permission(self, permtype):
+		self.check_permission(permtype)
+		if (doc_before_save := self.get_doc_before_save()) and not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, permtype, doc_before_save, throw=True)
 
 	def set_parent_in_children(self):
 		"""Updates `parent` and `parenttype` property in all children."""
@@ -2177,7 +2187,8 @@ class Document(_DocumentBase):
 		if not self.docstatus.is_draft():
 			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
 
-		self.check_permission("write")
+		if not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, "write", self.name, throw=True)
 
 		self.run_method("before_discard")
 		self.db_set("docstatus", DocStatus.CANCELLED)
@@ -2187,6 +2198,8 @@ class Document(_DocumentBase):
 	@frappe.whitelist()
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
+		if not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		return self._rename(name=name, merge=merge, force=force)
 
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
@@ -2571,7 +2584,7 @@ class Document(_DocumentBase):
 			{
 				"doctype": "Comment",
 				"comment_type": comment_type,
-				"comment_email": comment_email or frappe.utils.get_email_address(),
+				"comment_email": comment_email,
 				"comment_by": comment_by,
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
@@ -2701,6 +2714,8 @@ class Document(_DocumentBase):
 		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
 		if enqueue_after_commit is None:
 			enqueue_after_commit = True
+		if enqueue_after_commit:
+			frappe.db.after_rollback.add(self.unlock)
 
 		return enqueue(
 			"frappe.model.document.execute_action",
@@ -2809,7 +2824,10 @@ class Document(_DocumentBase):
 
 		from frappe.deferred_insert import deferred_insert
 
+		creation, owner = self.creation, self.owner
 		self.set_user_and_timestamp()
+		self.creation = creation or self.modified
+		self.owner = owner or self.modified_by
 
 		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 		deferred_insert(doctype=self.doctype, records=doc)

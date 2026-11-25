@@ -12,15 +12,17 @@ from frappe.core.doctype.user_permission.user_permission import (
 from frappe.permissions import add_permission, has_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
+from frappe.utils import get_user_by_email
 
 
 class TestUserPermission(IntegrationTestCase):
 	def setUp(self):
-		test_users = (
+		test_emails = (
 			"test_bulk_creation_update@example.com",
 			"test_user_perm1@example.com",
 			"nested_doc_user@example.com",
 		)
+		test_users = frappe.get_all("User", {"email": ("in", test_emails)}, pluck="name")
 		frappe.db.delete("User Permission", {"user": ("in", test_users)})
 		frappe.delete_doc_if_exists("DocType", "Person")
 		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabPerson`")
@@ -284,7 +286,7 @@ class TestUserPermission(IntegrationTestCase):
 		self.assertEqual(new_doc.doc, "ToDo")
 
 		frappe.set_user("Administrator")
-		remove_applicable(["Assignment Rule"], "new_doc_test@example.com", "DocType", "ToDo")
+		remove_applicable(["Assignment Rule"], user.name, "DocType", "ToDo")
 
 	def test_user_perm_on_new_doc_with_user_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *user* default value"""
@@ -333,7 +335,7 @@ class TestUserPermission(IntegrationTestCase):
 
 		frappe.set_user("Administrator")
 		clear_session_defaults()
-		remove_applicable(["Assignment Rule"], "user_default_test@example.com", "DocType", "ToDo")
+		remove_applicable(["Assignment Rule"], user.name, "DocType", "ToDo")
 
 	def test_user_permission_for_deleted_doctype(self):
 		user = create_user("test_user_perm1@example.com")
@@ -359,8 +361,8 @@ def create_person_tree_doctype():
 
 def create_user(email, *roles):
 	"""create user with role system manager"""
-	if frappe.db.exists("User", email):
-		return frappe.get_doc("User", email)
+	if user := get_user_by_email(email):
+		return frappe.get_doc("User", user)
 
 	user = frappe.new_doc("User")
 	user.email = email

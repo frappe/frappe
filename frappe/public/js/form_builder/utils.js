@@ -97,7 +97,11 @@ export function create_layout(fields) {
 }
 
 export async function load_doctype_model(doctype) {
-	await frappe.call("frappe.desk.form.load.getdoctype", { doctype });
+	await frappe.call({
+		method: "frappe.desk.form.load.getdoctype",
+		args: { doctype },
+		type: "GET",
+	});
 }
 
 export async function get_table_columns(df, child_doctype) {

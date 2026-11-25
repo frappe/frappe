@@ -10,7 +10,7 @@
 		"
 	>
 		<div class="divide-y divide-outline-gray-1">
-			<SettingsRow :title="__('Signed in as')" :description="user.name">
+			<SettingsRow :title="__('Signed in as')" :description="user.email || user.name">
 				<span class="flex items-center gap-2 text-base text-ink-gray-8">
 					<Avatar :image="user.user_image" :label="user.full_name" size="sm" />
 					{{ user.full_name }}

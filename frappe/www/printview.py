@@ -10,6 +10,11 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
+from frappe.deprecation_dumpster import (
+	set_title_values_for_link_and_dynamic_link_fields,
+	set_title_values_for_table_and_multiselect_fields,
+)
+from frappe.desk.link_title import get_doc_link_titles
 from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
@@ -64,7 +69,10 @@ def get_context(context) -> PrintContext:
 	if frappe.form_dict.doc:
 		doc = frappe.form_dict.doc
 	else:
-		doc = frappe.get_lazy_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+		doctype = frappe.form_dict.doctype
+		if frappe.db.exists("DocType", doctype, True) != doctype:
+			raise frappe.DoesNotExistError(doctype="DocType")
+		doc = frappe.get_lazy_doc(doctype, frappe.form_dict.name)
 
 	settings = frappe.parse_json(frappe.form_dict.settings)
 
@@ -100,8 +108,11 @@ def get_context(context) -> PrintContext:
 	if standalone:
 		validate_print_permission(doc)
 
+		from frappe.printing.layout import has_page_specific_zone
 		from frappe.utils.print_format_generator import get_html
 
+		context["print_from_pdf"] = has_page_specific_zone(getattr(print_format, "format_data", None))
+		context["open_pdf"] = context["print_from_pdf"] and cint(frappe.form_dict.trigger_print)
 		body = get_html(
 			doctype=frappe.form_dict.doctype,
 			name=frappe.form_dict.name,
@@ -110,9 +121,10 @@ def get_context(context) -> PrintContext:
 			letterhead=letterhead,
 			no_letterhead=frappe.form_dict.no_letterhead,
 			style=frappe.form_dict.style,
-			trigger_print=cint(frappe.form_dict.trigger_print),
+			trigger_print=cint(frappe.form_dict.trigger_print) and not context["print_from_pdf"],
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
 			settings=settings,
+			print_filename=context["print_filename"],
 		)
 	else:
 		body = get_rendered_template(
@@ -317,46 +329,7 @@ def set_link_titles(doc: "Document") -> None:
 	if not doc.get("__link_titles"):
 		setattr(doc, "__link_titles", {})
 
-	meta = frappe.get_meta(doc.doctype)
-	set_title_values_for_link_and_dynamic_link_fields(meta, doc)
-	set_title_values_for_table_and_multiselect_fields(meta, doc)
-
-
-def set_title_values_for_link_and_dynamic_link_fields(
-	meta: "Meta", doc: "Document", parent_doc: "Document" | None = None
-) -> None:
-	if parent_doc and not parent_doc.get("__link_titles"):
-		setattr(parent_doc, "__link_titles", {})
-	elif doc and not doc.get("__link_titles"):
-		setattr(doc, "__link_titles", {})
-
-	for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
-		if not doc.get(field.fieldname):
-			continue
-
-		# If link field, then get doctype from options
-		# If dynamic link field, then get doctype from dependent field
-		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
-
-		meta = frappe.get_meta(doctype)
-		if not meta or not meta.title_field or not meta.show_title_field_in_link:
-			continue
-
-		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
-		if parent_doc:
-			parent_doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
-		elif doc:
-			doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
-
-
-def set_title_values_for_table_and_multiselect_fields(meta: "Meta", doc: "Document") -> None:
-	for field in meta.get_table_fields(include_computed=True):
-		if not doc.get(field.fieldname):
-			continue
-
-		_meta = frappe.get_meta(field.options)
-		for value in doc.get(field.fieldname):
-			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)
+	doc.__link_titles.update(get_doc_link_titles(doc))
 
 
 def convert_markdown(doc: "Document") -> None:

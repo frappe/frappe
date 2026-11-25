@@ -284,6 +284,9 @@ test.describe("Kanban Board", () => {
 		await expect(page.locator(".kanban .add-card")).toHaveCount(2);
 		await expect(page.locator(".kanban .column-options")).toHaveCount(0);
 
-		await admin.call("frappe.client.delete", { doctype: "User", name: not_system_manager });
+		await admin.call("frappe.client.delete", {
+			doctype: "User",
+			name: await admin.user_id(not_system_manager),
+		});
 	});
 });

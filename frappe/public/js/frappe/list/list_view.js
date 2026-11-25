@@ -245,7 +245,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					valid_fields.includes(f[1]) ||
 					(table_doctypes.includes(f[0]) && frappe.meta.has_field(f[0], f[1]))
 			)
-			.uniqBy((f) => `${f[0]}.${f[1]}`);
+			.uniqBy(JSON.stringify);
 	}
 
 	setup_page() {
@@ -1299,6 +1299,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			".list-row-head .list-col-resize-handle",
 			(e) => {
 				e.preventDefault();
+				if (this.list_view_settings?.disable_scrolling) {
+					frappe.show_alert({
+						message: __(
+							"Column width cannot be saved because Disable Scrolling is enabled in List Settings"
+						),
+						indicator: "orange",
+					});
+					return;
+				}
 				const $col = $(e.target).closest(".list-row-col");
 				fieldname = $col.attr("data-fieldname");
 				if (!fieldname || fieldname === "undefined") return;
@@ -2225,7 +2234,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					label: fullname,
 					image,
 					css_class: "filterable",
-					attrs: { "data-filter": `_assign,like,%${user}%` },
+					attrs: { "data-filter": `_assign,=,${user}` },
 				};
 			});
 			assigned_to = `<div class="list-assignments d-flex align-items-center">
@@ -2913,12 +2922,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			$this.toggleClass("liked");
 
 			if ($this.hasClass("liked")) {
-				this.filter_area.add(
-					this.doctype,
-					"_liked_by",
-					"like",
-					"%" + frappe.session.user + "%"
-				);
+				this.filter_area.add(this.doctype, "_liked_by", "=", frappe.session.user);
 			} else {
 				this.filter_area.remove("_liked_by");
 			}
@@ -4198,9 +4202,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 				} else if (Array.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
-				} else if (["_assign", "_liked_by"].includes(field)) {
-					// stored as a JSON array, so an exact match can never hit
-					filters.push([doctype, field, "like", `%${value}%`]);
 				} else {
 					filters.push([doctype, field, "=", value]);
 				}

@@ -6,13 +6,13 @@
 
 {% block navbar %}
 	{% if not hide_navbar %}
-        {% include "templates/includes/navbar/navbar.html" %}
+		{{ super() }}
 	{% endif %}
 {% endblock %}
 
 {% block footer %}
 	{% if not hide_footer %}
-        {% include "templates/includes/footer/footer.html" %}
+		{{ super() }}
 	{% endif %}
 {% endblock %}
 

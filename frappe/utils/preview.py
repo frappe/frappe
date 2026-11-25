@@ -103,6 +103,7 @@ def capture_screenshot(
 	register the browser so Chromium isn't torn down mid-use, and reset the
 	singleton on crash so the next request gets a fresh instance."""
 	from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
+	from frappe.utils.chromium.page import get_browser_context_params
 	from frappe.utils.pdf import get_host_url
 
 	image_format = get_image_format(format)
@@ -114,7 +115,8 @@ def capture_screenshot(
 				generator._set_devtools_url()
 			session = CDPSocketClient(generator._devtools_url)
 			session.connect()
-			context, error = session.send("Target.createBrowserContext", {"disposeOnDetach": True})
+			params = get_browser_context_params() if html is not None else {"disposeOnDetach": True}
+			context, error = session.send("Target.createBrowserContext", params)
 			if error:
 				raise RuntimeError(f"Error creating browser context: {error}")
 

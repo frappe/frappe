@@ -14,7 +14,7 @@ from frappe.app_state import (
 	is_disabled_app_filtering_active,
 	is_module_disabled,
 )
-from frappe.model.db_query import DatabaseQuery
+from frappe.model.qb_query import DatabaseQuery
 from frappe.tests import IntegrationTestCase
 
 MAINTENANCE_FLAGS = (

@@ -23,10 +23,12 @@ const update_page_no = (clone, i, no_of_pages, print_designer) => {
 		replaceText(clone, "date", dateObj.toLocaleDateString());
 		replaceText(clone, "isodate", dateObj.toISOString());
 		replaceText(clone, "time", dateObj.toLocaleTimeString());
+		const hidden_on_this_page = [i == 1 ? ".hidden-first-page" : ".visible-first-page"];
 		if (i != no_of_pages) {
-			for (const element of clone.querySelectorAll(".visible-last-page")) {
-				element.style.visibility = "hidden";
-			}
+			hidden_on_this_page.push(".visible-last-page");
+		}
+		for (const element of clone.querySelectorAll(hidden_on_this_page.join(","))) {
+			element.style.visibility = "hidden";
 		}
 	}
 };

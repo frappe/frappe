@@ -18,6 +18,7 @@ frappe.ui.form.on("DuckDB Sync", {
 				args: {
 					docname: frm.doc.name,
 				},
+				type: "GET",
 				callback: function (r) {
 					if (r.message) {
 						frm.add_custom_button(__("Sync Data"), function () {

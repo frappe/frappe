@@ -149,6 +149,7 @@ class ChromiumManager:
 					"--enable-features=NetworkServiceInProcess2",
 					"--disable-field-trial-config",
 					"--disable-background-networking",
+					"--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
 					"--disable-background-timer-throttling",
 					"--disable-backgrounding-occluded-windows",
 					"--disable-back-forward-cache",

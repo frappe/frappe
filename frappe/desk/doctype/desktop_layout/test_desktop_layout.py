@@ -7,6 +7,7 @@ import frappe
 from frappe.desk.doctype.desktop_layout.desktop_layout import save_layout
 from frappe.desk.doctype.workspace.workspace import triage_module
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 USER = "test-desktop-layout@example.com"
 
@@ -14,7 +15,7 @@ USER = "test-desktop-layout@example.com"
 class IntegrationTestDesktopLayout(IntegrationTestCase):
 	def setUp(self):
 		super().setUp()
-		if not frappe.db.exists("User", USER):
+		if not get_user_by_email(USER):
 			frappe.get_doc(
 				{
 					"doctype": "User",

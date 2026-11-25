@@ -396,7 +396,7 @@ export const FIELD_PLUCK_KEYS = [
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
 	(key) => key !== "table_cell_padding" && key !== "table_radius"
 );
-export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation"];
+export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation", "show_on"];
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections

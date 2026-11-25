@@ -66,15 +66,20 @@ def generate_and_cache_results(args, function, cache_key, chart):
 			raise
 
 	if not frappe.flags.read_only:
-		with suppress(frappe.QueryDeadlockError):
-			frappe.db.set_value(
-				"Dashboard Chart",
-				args.chart_name,
-				"last_synced_on",
-				frappe.utils.now(),
-				update_modified=False,
-			)
+		frappe.enqueue(
+			"frappe.utils.dashboard.update_last_synced_on",
+			queue="short",
+			chart_name=args.chart_name,
+			synced_on=frappe.utils.now(),
+			job_id=f"chart-last-synced:{frappe.local.site}:{args.chart_name}",
+			deduplicate=True,
+		)
 	return results
+
+
+def update_last_synced_on(chart_name: str, synced_on: str):
+	with suppress(frappe.QueryDeadlockError):
+		frappe.db.set_value("Dashboard Chart", chart_name, "last_synced_on", synced_on, update_modified=False)
 
 
 def get_dashboards_with_link(docname, doctype):

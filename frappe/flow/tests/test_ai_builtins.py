@@ -31,6 +31,7 @@ from frappe.flow.utils.safe_exec import NeedsApproval
 from frappe.permissions import SYSTEM_USER_ROLE
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
+from frappe.utils import get_user_by_email
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 MODULE = "frappe.flow.tests.test_ai_builtins"
@@ -187,7 +188,8 @@ class TestDescribe(IntegrationTestCase):
 class TestFindApis(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(self.set_user("test@example.com"))
-		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		self.user = get_user_by_email("test@example.com")
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user=self.user)
 
 	def test_finds_and_describes_python_apis(self):
 		discovery.clear_cache()
@@ -214,15 +216,13 @@ class TestFindApis(IntegrationTestCase):
 			{"override_whitelisted_methods": {f"{MODULE}.get_only": [f"{MODULE}.read_only_whoami"]}}
 		):
 			found = describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)
-			self.assertEqual(
-				call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"][0], "test@example.com"
-			)
+			self.assertEqual(call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"][0], self.user)
 		self.assertEqual(found["path"], f"{MODULE}.read_only_whoami")
 		self.assertTrue(found["read_only"])
 
 	def test_runs_api_server_scripts(self):
-		frappe.get_doc("User", "test@example.com").add_roles("Script Manager")
-		self.addCleanup(frappe.clear_cache, user="test@example.com")
+		frappe.get_doc("User", self.user).add_roles("Script Manager")
+		self.addCleanup(frappe.clear_cache, user=self.user)
 		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
 		self.addCleanup(frappe.db.rollback)
 		self.enterContext(self.enable_safe_exec())
@@ -488,7 +488,7 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 """,
 		)
 		self.enterContext(self.set_user("test@example.com"))
-		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		ctx = ToolContext(session_id="test", agent="Test Agent", user=frappe.session.user)
 		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=ctx)
 		self.assertEqual(result["row_count"], 25)
 
@@ -597,7 +597,7 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 			json=json.dumps({"filters": {"description": "query report probe"}}),
 		)
 		self.enterContext(self.set_user("test@example.com"))
-		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		ctx = ToolContext(session_id="test", agent="Test Agent", user=frappe.session.user)
 
 		# saved filters replace the defaults, as in Desk
 		with (
@@ -640,7 +640,7 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 class TestSearchDocs(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(self.set_user("test@example.com"))
-		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user=frappe.session.user)
 
 	def search(self, status: int, hits: list[dict] | None = None) -> dict:
 		"""What search_docs returns when docs.frappe.io answers `status` with `hits`."""
@@ -728,7 +728,8 @@ class TestReadOnlyCalls(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.rollback()
 		self.enterContext(self.set_user("test@example.com"))
-		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		self.user = get_user_by_email("test@example.com")
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user=self.user)
 
 	def tearDown(self):
 		frappe.db.rollback()
@@ -763,7 +764,7 @@ class TestReadOnlyCalls(IntegrationTestCase):
 
 	def test_a_read_function_runs_once_and_the_database_refuses_its_writes(self):
 		result = self.run_function("read_only_whoami")
-		self.assertEqual(result["result"], ["test@example.com", "System Manager"])
+		self.assertEqual(result["result"], [self.user, "System Manager"])
 		self.assertEqual(result["title"], "Test Ai Builtins: Read Only Whoami")
 		for name, error in (
 			("read_only_that_commits_then_writes", "read-only transaction"),
@@ -776,11 +777,9 @@ class TestReadOnlyCalls(IntegrationTestCase):
 
 	def test_read_only_code_runs_without_a_card_and_stops_at_the_rest(self):
 		run = lambda code: execute(code=code, description="Look", read_only=True, ctx=self.ctx)  # noqa: E731
-		self.assertEqual(run("result = frappe.session.user"), "test@example.com")
-		self.assertEqual(run(f'result = frappe.call("{MODULE}.read_only_whoami")')[0], "test@example.com")
-		self.assertEqual(
-			run(f'result = call_api("{MODULE}.read_only_whoami")')["result"][0], "test@example.com"
-		)
+		self.assertEqual(run("result = frappe.session.user"), self.user)
+		self.assertEqual(run(f'result = frappe.call("{MODULE}.read_only_whoami")')[0], self.user)
+		self.assertEqual(run(f'result = call_api("{MODULE}.read_only_whoami")')["result"][0], self.user)
 		self.assertEqual(
 			run(f'result = run_action("", [], "{MODULE}.read_only_whoami")')["result"][1], "System Manager"
 		)
@@ -818,7 +817,7 @@ frappe.call("{MODULE}.read_only_whoami")
 create("ToDo", [{{"description": "approved code, after the read"}}])
 result = seen["result"][0]
 """
-		self.assertEqual(execute(code=code, description="Write and read", ctx=self.ctx), "test@example.com")
+		self.assertEqual(execute(code=code, description="Write and read", ctx=self.ctx), self.user)
 		self.assertEqual(frappe.db.count("ToDo", {"description": ["like", "approved code%"]}), 2)
 
 	def test_read_only_code_reaches_nothing_outside_the_database(self):
@@ -978,11 +977,11 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 
 def _user(email: str) -> str:
 	"""A user with no roles, so permission checks apply."""
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{"doctype": "User", "email": email, "first_name": "Probe", "send_welcome_email": 0}
-		).insert(ignore_permissions=True)
-	return email
+	if user := get_user_by_email(email):
+		return user
+
+	new_user = frappe.new_doc("User", email=email, first_name="Probe", send_welcome_email=0)
+	return new_user.insert(ignore_permissions=True).name
 
 
 def _todo_hook_fails(hook: str, description: str):

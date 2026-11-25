@@ -156,7 +156,7 @@ class TestAddress(IntegrationTestCase):
 				user=user.name,
 				links=[{"link_doctype": "User", "link_name": "Guest"}],
 			)
-			second_contact.add_email(user.email.upper(), is_primary=True)
+			second_contact.add_email(user.email, is_primary=True)
 			second_contact.insert()
 			frappe.get_doc(
 				doctype="Contact",
@@ -184,13 +184,13 @@ class TestAddress(IntegrationTestCase):
 				self.assertFalse(frappe.has_website_permission(other))
 
 	def test_guest_gets_nothing_from_a_contact_linked_to_guest(self):
-		contact = frappe.get_doc(
+		frappe.get_doc(
 			doctype="Contact",
 			first_name="_Test Guest Contact",
+			user="Guest",
 			email_ids=[{"email_id": frappe.db.get_value("User", "Guest", "email"), "is_primary": 1}],
 			links=[{"link_doctype": "User", "link_name": "test1@example.com"}],
 		).insert()
-		self.assertEqual(contact.user, "Guest")
 		address = frappe.get_doc(
 			doctype="Address",
 			address_line1="1",

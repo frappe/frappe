@@ -133,3 +133,5 @@ export default class Tab {
 		});
 	}
 }
+
+frappe.ui.form.Tab = Tab;

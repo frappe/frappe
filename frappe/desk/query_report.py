@@ -94,6 +94,7 @@ def get_permitted_report_print_format(print_format: str) -> frappe._dict:
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_print_format_data(print_format: str):
 	pf = get_permitted_report_print_format(print_format)
 
@@ -220,6 +221,7 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_script(report_name: str):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
@@ -895,8 +897,9 @@ def add_total_row(
 		if isinstance(total_row[col_idx], Decimal):
 			total_row[col_idx] = float(total_row[col_idx])
 
+	row_count = len([row for row in result if not (is_tree and row.get(parent_field))]) or 1
 	for col_idx in has_percent:
-		total_row[col_idx] = flt(total_row[col_idx]) / len(result)
+		total_row[col_idx] = flt(total_row[col_idx]) / row_count
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], str):
@@ -915,6 +918,7 @@ def add_total_row(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_data_for_custom_field(doctype: str, field: str, names: str | list[str] | None = None):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
@@ -1257,8 +1261,6 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 		if field.get("fieldname") in filters and field.get("fieldtype") == "Link":
 			linked_doctype = field.get("options")
 			if not has_permission(
-				doctype=linked_doctype, ptype="read", doc=filters[field.get("fieldname")], user=user
-			) and not has_permission(
 				doctype=linked_doctype, ptype="select", doc=filters[field.get("fieldname")], user=user
 			):
 				frappe.throw(

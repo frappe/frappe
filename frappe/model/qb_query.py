@@ -386,3 +386,18 @@ class DatabaseQuery:
 
 		# Use frappe.call to filter kwargs and call controller
 		return frappe.call(controller.get_list, args=kwargs, **kwargs)
+
+
+def get_order_by(doctype, meta) -> str:
+	"""Return the default `order by` clause of a DocType, from its sort settings."""
+	if meta.sort_field and "," in meta.sort_field:
+		# multiple sort given in doctype definition, e.g. `idx desc, creation desc`
+		return ", ".join(
+			f"{f_split[0].strip()} {f_split[1].strip()}"
+			for f in meta.sort_field.split(",")
+			if (f_split := f.split(maxsplit=2))
+		)
+
+	sort_field = meta.sort_field or "creation"
+	sort_order = (meta.sort_field and meta.sort_order) or "desc"
+	return f"{sort_field} {sort_order}"

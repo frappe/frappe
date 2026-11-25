@@ -8,21 +8,27 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_enabled_for_feature,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 FEATURE_FIELD = "enable_email_event_reminders"
 
 
 class TestNotificationSettings(IntegrationTestCase):
 	def setUp(self):
-		self.user = "test_notification_feature@example.com"
-		if not frappe.db.exists("User", self.user):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": self.user,
-					"first_name": "Notification Feature",
-				}
-			).insert(ignore_permissions=True)
+		email = "test_notification_feature@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": "Notification Feature",
+					}
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
+		self.user = user
 
 		settings = frappe.get_doc("Notification Settings", self.user)
 		settings.enable_email_notifications = 1

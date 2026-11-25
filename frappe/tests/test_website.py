@@ -3,7 +3,7 @@ from unittest.mock import patch
 import frappe
 from frappe import get_hooks
 from frappe.tests import IntegrationTestCase
-from frappe.utils import set_request
+from frappe.utils import get_user_by_email, set_request
 from frappe.utils.logging import ensure_log_table, get_log_db
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.serve import get_response, get_response_content
@@ -64,10 +64,11 @@ class TestWebsite(IntegrationTestCase):
 	def test_home_page(self):
 		frappe.set_user("Administrator")
 		# test home page via role
-		user = frappe.get_doc(
-			doctype="User", email="test-user-for-home-page@example.com", first_name="test"
-		).insert(ignore_if_duplicate=True)
-		user.reload()
+		email = "test-user-for-home-page@example.com"
+		if name := get_user_by_email(email):
+			user = frappe.get_doc("User", name)
+		else:
+			user = frappe.get_doc(doctype="User", email=email, first_name="test").insert()
 
 		role = frappe.get_doc(doctype="Role", role_name="home-page-test", desk_access=0).insert(
 			ignore_if_duplicate=True

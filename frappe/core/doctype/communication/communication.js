@@ -265,7 +265,7 @@ frappe.ui.form.on("Communication", {
 	reply: function (frm) {
 		var args = frm.events.get_mail_args(frm);
 		$.extend(args, {
-			subject: __("Re: {0}", [frm.doc.subject]),
+			subject: frm.doc.subject,
 			recipients: frm.doc.sender,
 			is_a_reply: true,
 		});
@@ -276,10 +276,19 @@ frappe.ui.form.on("Communication", {
 	reply_all: function (frm) {
 		var args = frm.events.get_mail_args(frm);
 		$.extend(args, {
-			subject: __("Res: {0}", [frm.doc.subject]),
+			subject: frm.doc.subject,
 			recipients: frm.doc.sender,
-			cc: frm.doc.cc,
+			cc: frappe.utils
+				.split_emails([frm.doc.recipients, frm.doc.cc].filter(Boolean).join(","))
+				.filter(
+					(email) =>
+						![frappe.session.user_email, args.sender].includes(
+							frappe.utils.extract_email(email)
+						)
+				)
+				.join(", "),
 			is_a_reply: true,
+			reply_all: true,
 		});
 		new frappe.views.CommunicationComposer(args);
 	},
@@ -288,7 +297,7 @@ frappe.ui.form.on("Communication", {
 		var args = frm.events.get_mail_args(frm);
 		$.extend(args, {
 			forward: true,
-			subject: __("Fw: {0}", [frm.doc.subject]),
+			subject: frm.doc.subject,
 			is_a_reply: true,
 		});
 

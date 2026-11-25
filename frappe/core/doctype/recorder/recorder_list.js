@@ -37,6 +37,7 @@ frappe.listview_settings["Recorder"] = {
 		listview.page.add_menu_item(__("Export"), () => {
 			frappe.call({
 				method: "frappe.recorder.export_data",
+				type: "GET",
 				callback: function (r) {
 					const data = r.message;
 					const filename = `${data[0]["uuid"]}..${data[data.length - 1]["uuid"]}.json`;
@@ -77,7 +78,7 @@ frappe.listview_settings["Recorder"] = {
 	},
 
 	fetch_recorder_status(listview) {
-		return frappe.xcall("frappe.recorder.status").then((status) => {
+		return frappe.xcall("frappe.recorder.status", undefined, "GET").then((status) => {
 			listview.enabled = Boolean(status);
 		});
 	},

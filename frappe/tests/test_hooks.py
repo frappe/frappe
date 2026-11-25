@@ -8,6 +8,7 @@ from frappe.desk.doctype.todo.todo import ToDo
 from frappe.model.document import _accepts_method_argument
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.utils import get_user_by_email
 
 
 class TestHooks(IntegrationTestCase):
@@ -59,7 +60,7 @@ class TestHooks(IntegrationTestCase):
 		frappe.client_cache.delete_value("app_hooks")
 
 		# Init User and Address
-		username = "test@example.com"
+		username = get_user_by_email("test@example.com")
 		user = frappe.get_doc("User", username)
 		user.add_roles("System Manager")
 		address = frappe.new_doc("Address")
@@ -284,7 +285,7 @@ class TestAPIHooks(FrappeAPITestCase):
 				headers={"Authorization": "Bearer set_test_example_user"},
 			)
 			# Test!
-			self.assertTrue(response.json.get("message") == "test@example.com")
+			self.assertTrue(response.json.get("message") == get_user_by_email("test@example.com"))
 
 
 def custom_has_permission(doc, ptype, user):

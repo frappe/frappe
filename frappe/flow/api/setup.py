@@ -189,7 +189,7 @@ def add_site_provider() -> bool:
 		response = requests.get(
 			f"{key['gateway_url'].rstrip('/')}/openai/v1/models",
 			headers={"Authorization": f"Bearer {key['api_key']}"},
-			timeout=5,
+			timeout=10,
 		)
 		response.raise_for_status()
 		listed = GROVE_MODEL in [row["id"] for row in response.json()["data"]]

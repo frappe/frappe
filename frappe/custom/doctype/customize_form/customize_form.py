@@ -18,6 +18,7 @@ from frappe.core.doctype.doctype.doctype import (
 	check_email_append_to,
 	get_fields_not_allowed_in_list_view,
 	validate_autoincrement_autoname,
+	validate_decimal_length,
 	validate_fields_for_doctype,
 	validate_series,
 )
@@ -343,6 +344,7 @@ class CustomizeForm(Document):
 				self.make_property_setter(prop, self.get(prop), prop_type)
 
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
+		validate_decimal_length(df, meta_df[0])
 		for prop, prop_type in docfield_properties.items():
 			if prop != "idx" and (df.get(prop) or "") != (meta_df[0].get(prop) or ""):
 				if not self.allow_property_change(prop, meta_df, df, meta):
@@ -508,6 +510,9 @@ class CustomizeForm(Document):
 		for prop in docfield_properties:
 			d.set(prop, df.get(prop))
 
+		if df.fieldname and df.fieldname.startswith("custom_"):
+			d.fieldname = "".join(c for c in df.fieldname if c.isalnum() or c == "_")
+
 		if i != 0:
 			d.insert_after = self.fields[i - 1].fieldname
 		d.idx = i
@@ -526,6 +531,7 @@ class CustomizeForm(Document):
 			return
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
+		validate_decimal_length(df, custom_field)
 		changed = False
 		for prop in docfield_properties:
 			if df.get(prop) != custom_field.get(prop):
@@ -561,15 +567,15 @@ class CustomizeForm(Document):
 				frappe.delete_doc("Custom Field", df.name)
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None):
-		delete_property_setter(self.doc_type, prop, fieldname, row_name)
+		if not apply_on:
+			apply_on = "DocField" if fieldname else "DocType"
+
+		delete_property_setter(self.doc_type, prop, fieldname, row_name, apply_on)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
 
 		if property_value == value:
 			return
-
-		if not apply_on:
-			apply_on = "DocField" if fieldname else "DocType"
 
 		# create a new property setter
 		frappe.make_property_setter(

@@ -270,6 +270,24 @@ class TestPdf(IntegrationTestCase):
 				self.assertNotIn("Grand Total", "".join(texts[:-1]))
 				self.assertIn("Grand Total", texts[-1])
 
+	def test_footer_first_page_classes_pick_their_pages(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		html = (
+			"<p>row</p>" * 120 + '<div id="footer-html"><p class="visible-first-page">Cover Note</p>'
+			'<p class="hidden-first-page">Continued</p>'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		for pdf_generator in ("chrome", "PlutoPrint"):
+			with self.subTest(pdf_generator=pdf_generator):
+				pdf = pdfgen.get_pdf(html, pdf_generator=pdf_generator)
+				first, *later = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
+				self.assertTrue(later)
+				self.assertIn("Cover Note", first)
+				self.assertNotIn("Continued", first)
+				self.assertNotIn("Cover Note", "".join(later))
+				self.assertIn("Continued", later[0])
+
 	def test_pdf_renders_while_another_render_has_a_tab_open(self):
 		from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
 		from frappe.utils.pdf import get_host_url
@@ -330,6 +348,7 @@ class TestPdf(IntegrationTestCase):
 		import threading
 		import time
 		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+		from unittest.mock import patch
 
 		class SlowImageHandler(BaseHTTPRequestHandler):
 			def do_GET(self):
@@ -346,11 +365,29 @@ class TestPdf(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 
-		pdf = pdfgen.get_pdf(
-			f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
-			+ "<p>row</p>" * 10
-		)
+		with patch("frappe.utils.chromium.page.allows_internal_print_urls", return_value=True):
+			pdf = pdfgen.get_pdf(
+				f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
+				+ "<p>row</p>" * 10
+			)
 		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
+
+	def test_pdf_browser_has_no_network_of_its_own(self):
+		import socket
+		from unittest.mock import patch
+
+		server = socket.create_server(("127.0.0.1", 0))
+		server.settimeout(1)
+		self.addCleanup(server.close)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with patch("frappe.utils.chromium.page.allows_internal_print_urls", return_value=False):
+			pdfgen.get_pdf(
+				f'<script>new WebSocket("ws://127.0.0.1:{server.getsockname()[1]}")</script><p>row</p>'
+			)
+		with self.assertRaises(TimeoutError):
+			server.accept()
 
 	def test_bulk_pdf_with_password_keeps_every_document(self):
 		import json

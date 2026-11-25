@@ -1,4 +1,4 @@
-import { test, expect, TEST_USER } from "../support";
+import { test, expect } from "../support";
 import doctype_with_child_table from "../fixtures/doctype_with_child_table";
 import doctype_with_link_and_child_table from "../fixtures/doctype_with_link_and_child_table";
 import child_table_doctype from "../fixtures/child_table_doctype";
@@ -10,7 +10,7 @@ const child_table_doctype_name = child_table_doctype.name;
 const doctype_with_link_name = doctype_with_link_and_child_table.name;
 
 test.describe("Dashboard links", () => {
-	test.beforeAll(async ({ admin }) => {
+	test.beforeAll(async ({ admin, test_user_id }) => {
 		await admin.insert_doc("DocType", child_table_doctype, true);
 		await admin.insert_doc("DocType", child_table_doctype_1, true);
 		await admin.insert_doc("DocType", doctype_with_child_table, true);
@@ -28,7 +28,7 @@ test.describe("Dashboard links", () => {
 			["name"],
 			[
 				["first_name", "=", "Admin"],
-				["user", "=", TEST_USER],
+				["user", "=", test_user_id],
 			]
 		);
 		for (const contact of stale_contacts.data) {
@@ -45,13 +45,14 @@ test.describe("Dashboard links", () => {
 	test("Adding a new contact, checking for the counter on the dashboard and deleting the created contact", async ({
 		page,
 		desk,
+		test_user_id,
 	}) => {
 		const contact_link = page.locator('.page-container:visible [data-doctype="Contact"]');
 
 		await page.goto("/desk/contact");
 		await desk.clear_filters();
 
-		await page.goto(`/desk/user/${TEST_USER}`);
+		await page.goto(`/desk/user/${test_user_id}`);
 
 		await desk.select_form_tab("Connections");
 		await expect(contact_link.filter({ hasText: "Contact" }).first()).toBeVisible();
@@ -68,7 +69,7 @@ test.describe("Dashboard links", () => {
 		);
 		await page.getByRole("button", { name: "Save", exact: true }).click();
 		expect((await saved).status()).toBe(200);
-		await page.goto(`/desk/user/${TEST_USER}`);
+		await page.goto(`/desk/user/${test_user_id}`);
 
 		await desk.select_form_tab("Connections");
 		await expect(page.locator('[data-doctype="Contact"] > .count:visible')).toContainText("2");
@@ -89,8 +90,8 @@ test.describe("Dashboard links", () => {
 		await expect(contact_link.filter({ hasText: "Contact" }).first()).toBeAttached();
 	});
 
-	test("Report link in dashboard", async ({ page, desk }) => {
-		await page.goto(`/desk/user/${TEST_USER}`);
+	test("Report link in dashboard", async ({ page, desk, test_user_id }) => {
+		await page.goto(`/desk/user/${test_user_id}`);
 		await desk.select_form_tab("Connections");
 		await expect(
 			page.locator('.document-link[data-doctype="Contact"]').getByText("Contact").first()

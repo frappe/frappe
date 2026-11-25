@@ -88,8 +88,10 @@ class Browser:
 		self.create_browser_context()
 
 	def create_browser_context(self):
+		from frappe.utils.chromium.page import get_browser_context_params
+
 		# create browser context
-		result, error = self.session.send("Target.createBrowserContext", {"disposeOnDetach": True})
+		result, error = self.session.send("Target.createBrowserContext", get_browser_context_params())
 		if error:
 			raise RuntimeError(f"Error creating browser context: {error}")
 		self.browser_context_id = result["browserContextId"]
@@ -162,6 +164,8 @@ class Browser:
 			"page_info_frompage",
 			"page_info_topage",
 			"visible-last-page",
+			"visible-first-page",
+			"hidden-first-page",
 		]
 
 		# Loop through the classes to check

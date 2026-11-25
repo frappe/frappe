@@ -921,6 +921,9 @@ Object.assign(frappe.utils, {
 
 		return email_list;
 	},
+	extract_email: function (address) {
+		return address.match(/<([^>]+)>\s*$/)?.[1].trim() || address.trim();
+	},
 	supportsES6: (function () {
 		try {
 			new Function("(a = 0) => a");
@@ -1126,6 +1129,14 @@ Object.assign(frappe.utils, {
 
 	deep_equal(a, b) {
 		return deep_equal(a, b);
+	},
+
+	sort_by_order(values, order) {
+		const position = (value) => {
+			const index = order.indexOf(value);
+			return index === -1 ? order.length : index;
+		};
+		return [...values].sort((a, b) => position(a) - position(b));
 	},
 
 	file_name_ellipsis(filename, length) {
@@ -1644,7 +1655,7 @@ Object.assign(frappe.utils, {
 				let doctype_slug = frappe.router.slug(item.doctype);
 
 				if (frappe.model.is_single(item.doctype)) {
-					route = `${doctype_slug}/${item.doctype}`;
+					route = doctype_slug;
 				} else {
 					switch (item.doc_view) {
 						case "List":
@@ -2025,11 +2036,8 @@ Object.assign(frappe.utils, {
 		return this.cleanup_filters(filters);
 	},
 	cleanup_filters(filters) {
-		if (filters.length && filters[0].length == 5) {
-			filters.pop();
-			return filters;
-		}
-		return filters;
+		if (!Array.isArray(filters)) return filters;
+		return filters.map((filter) => (filter.length == 5 ? filter.slice(0, 4) : filter));
 	},
 	get_filter_from_json(filter_json, doctype) {
 		// convert json to filter array

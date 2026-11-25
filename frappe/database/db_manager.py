@@ -82,9 +82,9 @@ class DbManager:
 		# leave the file's bytes on stdout for the next stage.
 		pv = which("pv")
 		if pv and sys.stderr.isatty() and not verbose:
-			command.extend([pv, "-s", str(os.path.getsize(source)), source, "2>/dev/tty", "|"])
+			command.extend([pv, "-s", str(os.path.getsize(source)), shlex.quote(source), "2>/dev/tty", "|"])
 		else:
-			command.extend(["cat", source, "|"])
+			command.extend(["cat", shlex.quote(source), "|"])
 
 		# Decompression stage: if the backup is gzipped, pipe through gunzip.
 		if source.endswith(".gz"):

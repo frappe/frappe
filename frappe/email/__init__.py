@@ -183,6 +183,7 @@ def sendmail(
 	add_css=True,
 	redact_message_after_send=False,
 	wrapper=None,
+	auto_submitted=None,
 ) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -201,7 +202,7 @@ def sendmail(
 	    :param attachments: List of attachments.
 	    :param reply_to: Reply-To Email Address.
 	    :param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
-	    :param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
+	    :param in_reply_to: Name of the Communication this email replies to. Its Message-Id is sent as In-Reply-To.
 	    :param send_after: Send after the given datetime.
 	    :param expose_recipients: Controls recipient visibility. "header" shows all TO recipients in the To header.
 	"footer" adds "This email was sent to..." text in footer. None (default) hides TO recipients from each other.
@@ -217,6 +218,7 @@ def sendmail(
 	    :param raw_html: Whether to treat email template as a complete HTML file
 	    :param add_css: Whether to add CSS from hooks/email_css to the email template
 	    :param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
+	    :param auto_submitted: Value of the `Auto-Submitted` header (RFC 3834), e.g. "auto-replied".
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -293,6 +295,7 @@ def sendmail(
 		add_css=add_css,
 		redact_message_after_send=redact_message_after_send,
 		wrapper=wrapper,
+		auto_submitted=auto_submitted,
 	)
 
 	# build email queue and send the email if send_now is True.

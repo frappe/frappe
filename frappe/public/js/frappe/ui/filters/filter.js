@@ -731,8 +731,7 @@ frappe.ui.filter_utils = {
 	get_default_condition(df) {
 		const meta = frappe.get_meta(df.parent);
 		if (["_assign", "_liked_by"].includes(df.fieldname)) {
-			// stored as a JSON array, so an exact match can never hit
-			return "like";
+			return "=";
 		} else if (df.fieldtype == "Data" && !meta?.is_large_table) {
 			return "like";
 		} else if (df.fieldtype == "Date" || df.fieldtype == "Datetime") {

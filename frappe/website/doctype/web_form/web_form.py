@@ -468,6 +468,9 @@ def get_context(context):
 			if field.fieldtype == "Select" and field.options:
 				messages.extend(field.options.split("\n"))
 
+		for field in context.web_form_doc.get("web_form_fields", []):
+			messages.extend(df.get("label") for df in field.get("fields") or [])
+
 		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
 		if any(field.fieldtype == "Table" for field in self.web_form_fields):
 			messages.extend(
@@ -1242,6 +1245,9 @@ def get_form_data(
 ):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
+
+	if doctype != web_form.doc_type:
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)

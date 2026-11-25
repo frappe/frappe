@@ -552,6 +552,7 @@ frappe.search.utils = {
 			frappe.call({
 				method: "frappe.utils.global_search.search",
 				args: args,
+				type: "QUERY",
 				callback: function (r) {
 					if (r.message) {
 						resolve(get_results_sets(r.message));

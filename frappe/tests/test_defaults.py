@@ -69,8 +69,7 @@ class TestDefaults(IntegrationTestCase):
 		frappe.set_user(old_user)
 
 	def test_user_permission_defaults(self):
-		user = "user_default_test@example.com"
-		create_user(user, "Website Manager")
+		user = create_user("user_default_test@example.com", "Website Manager").name
 
 		with self.set_user(user):
 			set_global_default("country", "United States")

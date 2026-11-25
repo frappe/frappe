@@ -13,6 +13,7 @@ from frappe.desk.doctype.sidebar.test_sidebar import (
 	system_write,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 USER = "test-derived-home@example.com"
 ROLE = "Test Derived Home Role"
@@ -51,8 +52,9 @@ class DerivedHomeTestCase(IntegrationTestCase):
 			self.as_user("Administrator")
 
 	def make_user(self, roles: list[str]) -> str:
-		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
-		frappe.get_doc(
+		if user := get_user_by_email(USER):
+			frappe.delete_doc("User", user, force=True)
+		user = frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": USER,
@@ -61,8 +63,8 @@ class DerivedHomeTestCase(IntegrationTestCase):
 				"roles": [{"role": role} for role in roles],
 			}
 		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "User", USER, force=True, ignore_missing=True)
-		return USER
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
+		return user.name
 
 	def make_role(self, name: str = ROLE) -> str:
 		if not frappe.db.exists("Role", name):

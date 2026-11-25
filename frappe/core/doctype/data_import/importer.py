@@ -291,6 +291,7 @@ class Importer:
 					)
 					continue
 
+				frappe.clear_messages()
 				start = timeit.default_timer()
 				try:
 					doc, import_action = self.process_doc(doc)

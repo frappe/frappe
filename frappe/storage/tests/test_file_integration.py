@@ -14,7 +14,7 @@ from frappe.storage.memory_driver import fake
 from frappe.storage.tests import file_permissions_enforced, storage_v2, unique_bytes, unique_png
 from frappe.storage.tests.test_gc_backfill import backdate
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, get_files_path, now_datetime
+from frappe.utils import add_to_date, get_files_path, get_user_by_email, now_datetime
 
 WEAK_USER = "storage-v2-weak-user@example.com"
 
@@ -39,7 +39,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 		)
 
 	def make_weak_user(self):
-		if not frappe.db.exists("User", WEAK_USER):
+		if not get_user_by_email(WEAK_USER):
 			frappe.get_doc(
 				doctype="User", email=WEAK_USER, first_name="Storage Weak", send_welcome_email=0
 			).insert(ignore_permissions=True)
@@ -334,7 +334,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 		buffer = io.BytesIO()
 		Image.effect_noise((1200, 900), 100).convert("RGB").save(buffer, format="JPEG", quality=100)
 		with storage_v2(), fake():
-			user = frappe.get_doc("User", "test@example.com")
+			user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 			file = self.make_file(
 				buffer.getvalue(),
 				"optimize.jpg",

@@ -363,12 +363,20 @@ class AutoRepeat(Document):
 		if not (anchor and new_doc.meta.get_field("to_date")):
 			return
 
-		# the reference document is period 0, the document scheduled n steps after `start_date` is period n
-		schedule_date = getdate(self.next_schedule_date)
+		# the reference document is period 0, the document scheduled n steps after it is period n.
+		# `update_doc` sets the required Date fields (e.g. posting date) to the schedule date.
+		reference_date = next(
+			(
+				reference_doc.get(df.fieldname)
+				for df in reference_doc.meta.fields
+				if df.fieldtype == "Date" and df.reqd
+			),
+			self.start_date,
+		)
 		if mcount := month_map.get(self.frequency):
-			n = (month_diff(schedule_date, self.start_date) - 1) // mcount
+			n = (month_diff(self.next_schedule_date, reference_date) - 1) // mcount
 		else:
-			n = date_diff(schedule_date, self.start_date) // day_map[self.frequency]
+			n = round(date_diff(self.next_schedule_date, reference_date) / day_map[self.frequency])
 
 		from_date, to_date = get_auto_repeat_period(anchor, self.frequency, n)
 		new_doc.set("from_date", from_date)
@@ -686,6 +694,31 @@ def update_reference(docname: str, reference: str):
 	frappe.has_permission(doc.reference_doctype, "write", str(reference), throw=True)
 	doc.db_set("reference_document", str(reference))
 	return "success"  # backward compatbility
+
+
+@frappe.whitelist(methods=["POST"])
+def unlink_auto_repeat(doctype: str, docname: str | int):
+	docname = str(docname)
+	if not frappe.get_meta(doctype).has_field("auto_repeat"):
+		frappe.throw(_("{0} does not support Auto Repeat").format(_(doctype)), title=_("Not Supported"))
+
+	frappe.has_permission(doctype, "write", docname, throw=True)
+	auto_repeat = frappe.db.get_value(doctype, docname, "auto_repeat")
+	if not auto_repeat:
+		return
+
+	if frappe.db.exists(
+		"Auto Repeat", {"name": auto_repeat, "reference_doctype": doctype, "reference_document": docname}
+	):
+		frappe.throw(
+			_("This document is the reference of Auto Repeat {0}. Disable the Auto Repeat instead.").format(
+				frappe.bold(auto_repeat)
+			),
+			title=_("Cannot Unlink Auto Repeat"),
+		)
+
+	frappe.db.set_value(doctype, docname, "auto_repeat", None)
+	frappe.get_doc(doctype, docname).notify_update()
 
 
 @frappe.whitelist(methods=["POST"])

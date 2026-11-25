@@ -20,7 +20,7 @@ import filetype
 import frappe
 from frappe import _
 from frappe.printing.fieldtypes import MERGE_IMAGE_FIELDTYPES, is_image_column
-from frappe.printing.layout import iter_nodes
+from frappe.printing.layout import iter_nodes, zone_repeats, zone_show_on
 from frappe.translate import get_parent_language
 from frappe.utils.html_utils import unescape_html
 from frappe.utils.jinja_globals import is_rtl
@@ -56,6 +56,12 @@ def pt(px, default=0.0) -> float:
 BLOCKER_FIELDTYPES = {
 	"HTML": "HTML block",
 	"Field Template": "Field Template block",
+}
+
+ZONE_PAGE_CONDITIONS = {
+	"first_page": "counter(page).get().first() == 1",
+	"last_page": "counter(page).get().first() == counter(page).final().first()",
+	"after_first_page": "counter(page).get().first() > 1",
 }
 
 PAGE_NUMBER_POSITIONS = {
@@ -548,6 +554,10 @@ def _text_value(html_ish: str) -> str:
 	return re.sub(r"^[^\S\u2002\u2003]+", "", unescape_html(value).rstrip())
 
 
+def _ltr_email(value: str, df) -> str:
+	return f"\u2066{value}\u2069" if value and df and df.get("options") == "Email" else value
+
+
 class TypstEmitter:
 	def __init__(self, generator):
 		self.generator = generator
@@ -650,13 +660,13 @@ class TypstEmitter:
 		header/footer slots (repeated on every page, like Chromium's repeating
 		frame) and the margins grow by their measured heights."""
 		self.prepare()
-		in_page_header = bool(repeat_header_footer and self.header_src)
-		in_page_footer = bool(repeat_header_footer and self.footer_src)
+		in_page_header = bool(zone_repeats(self.layout, "header", repeat_header_footer) and self.header_src)
+		in_page_footer = bool(zone_repeats(self.layout, "footer", repeat_header_footer) and self.footer_src)
 		lines = [
 			f"#set document(title: {q(f'{self.doc.doctype}: {self.doc.name}')})",
 			self._page_setup(
-				header_zone=self.header_src if in_page_header else None,
-				footer_zone=self.footer_src if in_page_footer else None,
+				header_zone=self._on_its_pages("header", self.header_src) if in_page_header else None,
+				footer_zone=self._on_its_pages("footer", self.footer_src) if in_page_footer else None,
 				header_height_pt=header_height_pt,
 				footer_height_pt=footer_height_pt,
 			),
@@ -669,6 +679,10 @@ class TypstEmitter:
 		if self.footer_src and not in_page_footer:
 			lines.append(self.footer_src)
 		return "\n".join(line for line in lines if line), self.assets
+
+	def _on_its_pages(self, kind: str, source: str) -> str:
+		condition = ZONE_PAGE_CONDITIONS.get(zone_show_on(self.layout, kind))
+		return f"#context if {condition} [{source}]" if condition else source
 
 	def _page_setup(self, header_zone=None, footer_zone=None, header_height_pt=0, footer_height_pt=0) -> str:
 		pf = self.print_format
@@ -1040,7 +1054,7 @@ class TypstEmitter:
 
 	def _formatted_value(self, df):
 		if df.get("fieldtype") == "Linked Field" or df.get("_value") is not None:
-			return _text_value(df.get("_value") or "")
+			return _ltr_email(_text_value(df.get("_value") or ""), df)
 		fieldname = df.get("fieldname")
 		if not fieldname:
 			return ""
@@ -1052,7 +1066,7 @@ class TypstEmitter:
 			return _("Yes") if frappe.utils.cint(value) else _("No")
 		if df.get("fieldtype") == "Attach":
 			return frappe.utils.cstr(value).rsplit("/", 1)[-1]
-		return _text_value(self.doc.get_formatted(fieldname))
+		return _ltr_email(_text_value(self.doc.get_formatted(fieldname)), df)
 
 	def _label_color(self, df=None) -> str:
 		return (
@@ -1131,6 +1145,9 @@ class TypstEmitter:
 	def _read_site_file(self, src: str) -> bytes | None:
 		import base64
 		import os
+		from urllib.parse import parse_qs, unquote, urlsplit
+
+		from frappe.core.doctype.file.utils import find_file_by_url
 
 		if src.startswith("data:"):
 			try:
@@ -1139,12 +1156,14 @@ class TypstEmitter:
 				return None
 		if src.startswith(("http://", "https://")):
 			return None
-		src = src.split("?", 1)[0]
+		url = urlsplit(src)
+		src, fid = unquote(url.path), parse_qs(url.query).get("fid", [None])[0]
+		if "\0" in src:
+			return None
 		if src.startswith("/private/files/"):
 			# private files are permission-gated through the File doctype — the
 			# browser path enforces this over HTTP, so the direct read must too
-			file_names = frappe.get_all("File", filters={"file_url": src}, pluck="name")
-			if not any(frappe.has_permission("File", doc=name, ptype="read") for name in file_names):
+			if frappe.session.user == "Guest" or not find_file_by_url(src):
 				return None
 			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
@@ -1172,7 +1191,12 @@ class TypstEmitter:
 			with open(path, "rb") as f:
 				return f.read()
 		except OSError:
-			return None
+			if src.startswith("/assets/"):
+				return None
+			from frappe.utils.chromium.page import read_blob_for_url, read_file_for_url
+
+			stored = read_blob_for_url(src[1:], fid) or read_file_for_url(src[1:], fid)
+			return base64.b64decode(stored[0]) if stored else None
 
 	@staticmethod
 	def _dimension(width) -> str | None:
@@ -1289,7 +1313,8 @@ class TypstEmitter:
 					if not isinstance(tok, dict):
 						continue
 					if tok.get("t") == "f":
-						parts.append(_text_value(row.get_formatted(tok.get("v"))))
+						value = _text_value(row.get_formatted(tok.get("v")))
+						parts.append(_ltr_email(value, row.meta.get_field(tok.get("v"))))
 					else:
 						parts.append(str(tok.get("v") or ""))
 				text = "".join(parts)
@@ -1418,6 +1443,7 @@ class TypstEmitter:
 				value = _text_value("" if raw is None else str(raw))
 				if not value.strip():
 					continue
+				value = _ltr_email(value, row.meta.get_field(fieldname))
 				label = ""
 				if mf.get("show_label"):
 					doctype = row.get("doctype")
@@ -1460,7 +1486,9 @@ class TypstEmitter:
 			if not name:
 				return ""
 			return f'#box(width: 100%, height: 75pt)[#image("{name}", width: 100%, height: 100%, fit: "contain")]'
-		return f"#text({q(_text_value(format_field_value(row, col)))})"
+		email_df = col if col.get("options") else getattr(row, "meta", None) and row.meta.get_field(fieldname)
+		value = _ltr_email(_text_value(format_field_value(row, col)), email_df)
+		return f"#text({q(value)})"
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:
 		size = pt(frappe.utils.cint(col.get("image_size")), 40)

@@ -80,6 +80,9 @@ class PersonalDataDeletionRequest(Document):
 		set_name_from_naming_options(autoname, self)
 		frappe.utils.validate_email_address(self.email, throw=True)
 
+	def before_validate(self):
+		self.email = self.email.strip().lower()
+
 	def after_insert(self):
 		self.send_verification_mail()
 
@@ -295,7 +298,7 @@ class PersonalDataDeletionRequest(Document):
 
 		if filter_by_meta and filter_by_meta.fieldtype != "Link":
 			value = doc[filter_by]
-			if self.email in value:
+			if self.email_regex.search(value):
 				value = re.sub(self.email_regex, self.anon, value)
 				value = re.sub(self.full_name_regex, self.anonymization_value_map["Data"], value)
 				self.anonymize_fields_dict[filter_by] = value
@@ -501,4 +504,4 @@ def get_user_values(user: str, email: str) -> tuple[str, ...]:
 
 
 def get_pattern(full_match):
-	return re.compile(rf"(?<!\.)\b{re.escape(full_match)}\b(?!\.)")
+	return re.compile(rf"(?<!\.)\b{re.escape(full_match)}\b(?!\.)", re.IGNORECASE)

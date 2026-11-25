@@ -302,8 +302,8 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 
 		const args = { app: this.app.app_name };
 		const [layer, base] = await Promise.all([
-			frappe.xcall(this.layer_config.read, args),
-			frappe.xcall("frappe.desk.doctype.dock.dock.get_app_dock_layer", args),
+			frappe.xcall(this.layer_config.read, args, "GET"),
+			frappe.xcall("frappe.desk.doctype.dock.dock.get_app_dock_layer", args, "GET"),
 		]);
 
 		this.layer_rows = layer;

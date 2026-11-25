@@ -13,7 +13,8 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import create_dashboard_chart, get
 from frappe.tests import IntegrationTestCase
-from frappe.utils import formatdate, get_first_day, get_last_day, getdate, now_datetime
+from frappe.utils import formatdate, get_first_day, get_last_day, get_user_by_email, getdate, now_datetime
+from frappe.utils.dashboard import update_last_synced_on
 from frappe.utils.dateutils import get_period, get_period_ending
 from frappe.utils.logging import connection_for
 
@@ -59,6 +60,29 @@ class TestDashboardChart(IntegrationTestCase):
 		self.assertEqual(get_period_ending("2019-04-10", "Quarterly"), getdate("2019-06-30"))
 		self.assertEqual(get_period_ending("2019-06-30", "Quarterly"), getdate("2019-06-30"))
 		self.assertEqual(get_period_ending("2019-10-01", "Quarterly"), getdate("2019-12-31"))
+
+	def test_refresh_enqueues_last_synced_on(self):
+		chart = frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name="Test Last Synced Chart",
+			chart_type="Count",
+			document_type="DocType",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="{}",
+			timeseries=1,
+		).insert()
+
+		with patch("frappe.enqueue") as enqueue:
+			get(chart_name=chart.name, refresh=1)
+
+		enqueue.assert_called_once()
+		self.assertEqual(enqueue.call_args.kwargs["chart_name"], chart.name)
+
+		synced_on = "2024-01-02 03:04:05"
+		update_last_synced_on(chart.name, synced_on)
+		self.assertEqual(str(frappe.db.get_value("Dashboard Chart", chart.name, "last_synced_on")), synced_on)
 
 	def test_dashboard_chart(self):
 		if frappe.db.exists("Dashboard Chart", "Test Dashboard Chart"):
@@ -210,9 +234,13 @@ class TestDashboardChart(IntegrationTestCase):
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
 
 	def test_group_by_chart_labels_empty_values(self):
-		user = "chart-empty-label@example.com"
-		if not frappe.db.exists("User", user):
-			frappe.get_doc(doctype="User", email=user, first_name="Chart", send_welcome_email=0).insert()
+		email = "chart-empty-label@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(doctype="User", email=email, first_name="Chart", send_welcome_email=0)
+				.insert()
+				.name
+			)
 
 		chart = {
 			"name": "Test Group By Empty Label",
@@ -426,8 +454,11 @@ class TestDashboardChart(IntegrationTestCase):
 				raise frappe.QueryDeadlockError
 			return set_value(doctype, *args, **kwargs)
 
-		with patch.object(frappe.db, "set_value", side_effect=deadlock_on_chart_write):
+		with patch("frappe.enqueue"):
 			result = get(chart_name=chart_name, refresh=1)
+
+		with patch.object(frappe.db, "set_value", side_effect=deadlock_on_chart_write):
+			update_last_synced_on(chart_name, now_datetime())
 
 		self.assertTrue(result.get("labels"))
 		self.assertIsNone(frappe.db.get_value("Dashboard Chart", chart_name, "last_synced_on"))

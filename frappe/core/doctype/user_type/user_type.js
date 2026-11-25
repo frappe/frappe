@@ -62,6 +62,7 @@ frappe.ui.form.on("User Type", {
 				args: {
 					parent: frm.doc.apply_user_permission_on,
 				},
+				type: "GET",
 				callback: function (r) {
 					set_field_options("user_id_field", [""].concat(r.message));
 				},

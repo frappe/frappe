@@ -602,6 +602,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.layout?.sections.forEach((section) => (section.expanded_by_user = false));
 		frappe.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
+		if (this.comment_box && this.docname !== docname) {
+			this.comment_drafts ??= {};
+			this.comment_drafts[this.docname] = this.comment_box.get_value();
+			this.comment_box.set_value(this.comment_drafts[docname] || "");
+		}
 		this.docname = docname;
 		this.setup_docinfo_change_listener();
 	}
@@ -1615,7 +1620,11 @@ frappe.ui.form.Form = class FrappeForm {
 		// trigger link fields which have default values set
 		if (this.is_new() && this.doc.__run_link_triggers) {
 			$.each(this.fields_dict, function (fieldname, field) {
-				if (field.df.fieldtype == "Link" && this.doc[fieldname]) {
+				if (
+					["Link", "Dynamic Link"].includes(field.df.fieldtype) &&
+					this.doc[fieldname] &&
+					field.get_options()
+				) {
 					// triggers add fetch, sets value in model and runs triggers
 					field.set_value(this.doc[fieldname], true);
 				}
@@ -1740,6 +1749,11 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		if (this.meta.in_dialog || !this.in_form) {
+			return;
+		}
+
+		const [view, doctype, docname] = frappe.get_route();
+		if (view !== "Form" || doctype !== this.doctype || docname !== old) {
 			return;
 		}
 
@@ -1962,25 +1976,7 @@ frappe.ui.form.Form = class FrappeForm {
 	// Remove specific custom button by button Label
 	remove_custom_button(label, group) {
 		this.page.remove_inner_button(label, group);
-
-		// Remove actions from menu
 		delete this.custom_buttons[label];
-		let menu_item_label = group ? `${group} > ${label}` : label;
-		let $btn = this.page.is_in_group_button_dropdown(
-			this.page.menu,
-			"li > a.grey-link > span",
-			menu_item_label
-		);
-
-		if ($btn) {
-			let $linkBody = $btn.parent().parent();
-			if ($linkBody) {
-				// If last button, remove divider too
-				let $divider = $linkBody.next(".dropdown-divider");
-				if ($divider) $divider.remove();
-				$linkBody.remove();
-			}
-		}
 	}
 
 	scroll_to_element() {
@@ -1997,7 +1993,7 @@ frappe.ui.form.Form = class FrappeForm {
 			const id = decodeURIComponent(window.location.hash.substring(1));
 			const element = id && document.getElementById(id);
 			if (element) {
-				frappe.utils.scroll_to(element, true, 200, null, null, true);
+				frappe.utils.scroll_to(element, true, 200, $(".main-section"), null, true);
 			} else if (id) {
 				this.scroll_to_field(id) && history.replaceState(null, null, " ");
 			}
@@ -2508,6 +2504,15 @@ frappe.ui.form.Form = class FrappeForm {
 				return;
 			}
 
+			const dynamic_link = fields.find(
+				(df) => df.fieldname === fieldname && df.fieldtype === "Dynamic Link"
+			);
+			if (dynamic_link) {
+				new_doc[dynamic_link.options] = this.doctype;
+				new_doc[fieldname] = this.doc.name;
+				return;
+			}
+
 			// link is not on the parent, look for it in a mandatory child table
 			fields
 				.filter((df) => df.fieldtype === "Table" && df.options && df.reqd)
@@ -2590,7 +2595,8 @@ frappe.ui.form.Form = class FrappeForm {
 		let doctype = this.doctype;
 		let docname = this.docname;
 
-		if (this.doc && !this.is_new()) {
+		const opened_doc = frappe.get_doc(doctype, docname);
+		if (opened_doc && !opened_doc.__islocal) {
 			frappe.realtime.doc_subscribe(doctype, docname);
 		}
 		frappe.realtime.off("docinfo_update");

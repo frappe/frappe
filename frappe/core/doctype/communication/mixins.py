@@ -317,6 +317,9 @@ class CommunicationEmailMixin:
 		)
 		bcc = self.get_mail_bcc_with_displayname(is_inbound_mail_communcation=is_inbound_mail_communcation)
 
+		if is_inbound_mail_communcation:
+			recipients, cc = cc, []
+
 		if not (recipients or cc or bcc):
 			return {}
 
@@ -350,7 +353,9 @@ class CommunicationEmailMixin:
 			"reference_doctype": self.reference_doctype,
 			"reference_name": self.reference_name,
 			"attachments": final_attachments,
-			"message_id": self.message_id,
+			"message_id": f"{self.name}@{frappe.local.site}"
+			if is_inbound_mail_communcation
+			else self.message_id,
 			"unsubscribe_message": self.get_unsubscribe_message(),
 			"delayed": True,
 			"communication": self.name,

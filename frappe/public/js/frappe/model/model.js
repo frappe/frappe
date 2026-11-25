@@ -532,6 +532,7 @@ $.extend(frappe.model, {
 					fieldname: fieldname,
 					filters: filters,
 				},
+				type: "QUERY",
 				callback: function (r) {
 					if (!r.exc) {
 						callback(r.message);

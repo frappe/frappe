@@ -19,7 +19,7 @@ from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import cint, get_test_client, get_url
+from frappe.utils import cint, get_test_client, get_url, get_user_by_email
 
 try:
 	_site = frappe.local.site
@@ -173,6 +173,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		user = frappe.get_doc(
 			{"doctype": "User", "email": cls.TEST_USER, "first_name": "Test User", "send_welcome_email": 0}
 		).insert(ignore_permissions=True)
+		cls.user = user.name
 
 		for _ in range(20):
 			doc = frappe.get_doc(
@@ -192,7 +193,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		frappe.db.commit()  # nosemgrep
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
-		frappe.delete_doc_if_exists("User", cls.TEST_USER)
+		frappe.delete_doc_if_exists("User", cls.user)
 		frappe.db.commit()  # nosemgrep
 
 	@requires_test_service(TestService.WEB_SERVER)
@@ -357,15 +358,20 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 		from frappe.core.doctype.user.user import generate_keys
 
 		frappe.set_user("Administrator")
-		self.user = "api.writeresponse@example.com"
-		if not frappe.db.exists("User", self.user):
-			frappe.get_doc(
-				doctype="User",
-				email=self.user,
-				first_name="API Write Response",
-				roles=[{"role": "Desk User"}],
-				send_welcome_email=0,
-			).insert()
+		email = "api.writeresponse@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="API Write Response",
+					roles=[{"role": "Desk User"}],
+					send_welcome_email=0,
+				)
+				.insert()
+				.name
+			)
+		self.user = user
 		keys = generate_keys(self.user)
 		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
 

@@ -192,7 +192,9 @@ class Event(Document):
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject
 		communication.communication_date = self.starts_on
-		communication.sender = get_email_address(self.owner)
+		communication.sender = (
+			self.owner if self.owner in frappe.STANDARD_USERS else get_email_address(self.owner)
+		)
 		communication.sender_full_name = get_fullname(self.owner)
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
@@ -279,15 +281,16 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 		return
 
 	user = caller if is_caller else attendee
+	user_email = get_email_address(user) or user
 	for participant in event_doc.event_participants:
-		if _is_participant(participant, user):
+		if _is_participant(participant, user, user_email):
 			frappe.db.set_value("Event Participants", participant.name, "attending", status)
 			return
 
 	frappe.throw(_("Attendee not found in this event."))
 
 
-def _is_participant(participant, user: str) -> bool:
+def _is_participant(participant, user: str, user_email: str) -> bool:
 	"""Whether the Event Participants row references the user or has their email.
 
 	`user` can also be an email that isn't a user's.
@@ -295,8 +298,7 @@ def _is_participant(participant, user: str) -> bool:
 	if participant.reference_doctype == "User" and participant.reference_docname == user:
 		return True
 
-	email = get_email_address(user) or user
-	return bool(participant.email and participant.email.lower() == email.lower())
+	return bool(participant.email and participant.email.lower() == user_email.lower())
 
 
 def _participant_condition(user: str) -> str:
@@ -324,8 +326,9 @@ def has_permission(doc, ptype=None, user=None):
 	if doc.event_type == "Public" or doc.owner == user:
 		return True
 
+	user_email = get_email_address(user) or user
 	for participant in doc.event_participants:
-		if _is_participant(participant, user):
+		if _is_participant(participant, user, user_email):
 			if ptype in ["write", "create", "delete"]:
 				return False
 			return True

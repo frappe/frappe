@@ -56,7 +56,7 @@ def _trigger(agent_name: str, **overrides: Any) -> dict:
 
 
 def _user(email: str, *roles: str) -> str:
-	frappe.get_doc(
+	user = frappe.get_doc(
 		{
 			"doctype": "User",
 			"email": email,
@@ -65,7 +65,7 @@ def _user(email: str, *roles: str) -> str:
 			"roles": [{"role": role} for role in roles],
 		}
 	).insert(ignore_permissions=True)
-	return email
+	return user.name
 
 
 class _Bag:
@@ -502,7 +502,7 @@ class TestShippedTriggers(IntegrationTestCase):
 	def setUp(self):
 		self.model = frappe.get_doc(_model()).insert()
 		Agent(name="Researcher", model=self.model.name, instructions="Research.").sync()
-		_user(RUNNER, FLOW_USER_ROLE)
+		self.runner = _user(RUNNER, FLOW_USER_ROLE)
 		self.started = frappe.utils.now()
 
 	def tearDown(self):
@@ -540,11 +540,11 @@ class TestShippedTriggers(IntegrationTestCase):
 		doc = frappe.get_doc("Flow Trigger", "frappe/Research new todo")
 		self.assertEqual(
 			(doc.agent, doc.app, doc.is_system_generated, doc.enabled, doc.run_as, doc.doc_event),
-			("frappe/Researcher", "frappe", 1, 1, RUNNER, "after_insert"),
+			("frappe/Researcher", "frappe", 1, 1, self.runner, "after_insert"),
 		)
 
 		# switching off works even once its user is gone
-		frappe.db.set_value("User", RUNNER, "enabled", 0)
+		frappe.db.set_value("User", self.runner, "enabled", 0)
 		doc.enabled = 0
 		doc.save()
 		for field, value in (("run_as", None), ("prompt_template", "Mine now.")):

@@ -654,15 +654,6 @@ def get_site_name(hostname):
 	return hostname.split(":", 1)[0]
 
 
-def get_disk_usage():
-	"""get disk usage of files folder"""
-	files_path = get_files_path()
-	if not os.path.exists(files_path):
-		return 0
-	_err, out = execute_in_shell(f"du -hsm {files_path}")
-	return cint(out.split("\n")[-2].split("\t")[0])
-
-
 def touch_file(path):
 	with open(path, "a"):
 		os.utime(path, None)
@@ -1076,13 +1067,13 @@ def get_bench_relative_path(file_path):
 	else:
 		base_path = "."
 
-	file_path = os.path.join(base_path, file_path)
+	full_path = os.path.join(base_path, file_path)
 
-	if not os.path.exists(file_path):
-		print(f"Invalid path {file_path[3:]}")
+	if not os.path.exists(full_path):
+		print(f"Invalid path {file_path}")
 		sys.exit(1)
 
-	return os.path.abspath(file_path)
+	return os.path.abspath(full_path)
 
 
 def groupby_metric(iterable: dict[str, list], key: str):

@@ -4,6 +4,7 @@ test.describe("Email Composer", () => {
 	const test_user = "test_email_composer@example.com";
 
 	test.beforeAll(async ({ admin }) => {
+		if (await admin.user_id(test_user)) return;
 		await admin.insert_doc(
 			"User",
 			{
@@ -16,8 +17,11 @@ test.describe("Email Composer", () => {
 		);
 	});
 
-	test("picks print language from the document, not the system language", async ({ page }) => {
-		await page.goto(`/desk/user/${test_user}`);
+	test("picks print language from the document, not the system language", async ({
+		page,
+		api,
+	}) => {
+		await page.goto(`/desk/user/${await api.user_id(test_user)}`);
 		await expect.poll(() => page.evaluate(() => window.cur_frm?.doc?.language)).toBe("de");
 
 		await page.evaluate(() => {

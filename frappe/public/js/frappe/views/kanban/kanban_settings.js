@@ -187,7 +187,7 @@ export default class KanbanSettings {
 			],
 		});
 		dialog.set_primary_action(__("Save"), (values) => {
-			this.fields = values.fields || [];
+			this.fields = frappe.utils.sort_by_order(values.fields || [], this.fields);
 			this.dialog.set_value("fields", JSON.stringify(this.fields));
 			this.refresh();
 			dialog.hide();

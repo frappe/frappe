@@ -8,9 +8,11 @@ vi.mock("frappe-ui", async () => {
   const { reactive } = await import("vue");
   return {
     createResource: (options: {
+      url: string;
       makeParams: () => Record<string, unknown>;
     }) => {
       const resource = reactive({
+        url: options.url,
         data: null as unknown,
         loading: false,
         calls: [] as Record<string, unknown>[],
@@ -60,6 +62,38 @@ describe("useGroupByData", () => {
         limit_page_length: 1000,
       },
     ]);
+  });
+
+  it("sends a grouping by assignee to the endpoint that splits assignees", () => {
+    const data = useGroupByData(
+      "Sales Order",
+      { fields: ["_assign"], aggregates: [{ function: "count" }] },
+      {},
+    );
+    const [fieldGroups, fieldKeys, , groups, keys] = h.resources;
+    expect(groups.url).toBe("frappe.desk.listview.get_assignee_groups");
+    expect(keys.url).toBe("frappe.desk.listview.get_assignee_groups");
+    expect(fieldGroups.calls).toEqual([]);
+    expect(fieldKeys.calls).toEqual([]);
+    expect(groups.calls).toEqual([
+      {
+        doctype: "Sales Order",
+        filters: {},
+        fields: ["_assign", { COUNT: "name", as: "_aggregate_0" }],
+        group_by: "_assign",
+        order_by: "_aggregate_0 desc, _assign asc",
+        limit_page_length: 20,
+      },
+    ]);
+    expect(keys.calls.at(-1).limit_page_length).toBe(1000);
+
+    groups.data = [{ _assign: "ann@example.com", _aggregate_0: 3 }];
+    keys.data = [{ _assign: "ann@example.com" }, { _assign: null }];
+    expect(data.rows.value).toEqual(groups.data);
+    expect(data.totalCount.value).toBe(2);
+
+    data.loadMore();
+    expect(groups.calls.at(-1).limit_page_length).toBe(40);
   });
 
   it("fetches nothing for an ungrouped list", () => {
@@ -116,7 +150,7 @@ describe("useGroupByData", () => {
     const data = useGroupByData(
       "Sales Order",
       { ...BY_STATUS, showTotals: true },
-      { docstatus: 1 }
+      { docstatus: 1 },
     );
     const totals = h.resources[2];
     expect(totals.calls).toEqual([

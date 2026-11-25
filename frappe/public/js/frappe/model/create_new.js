@@ -100,7 +100,8 @@ $.extend(frappe.model, {
 			let v = frappe.model.get_default_value(f, doc, parent_doc);
 			if (v) {
 				if (["Int", "Check"].includes(f.fieldtype)) v = cint(v);
-				else if (["Currency", "Float"].includes(f.fieldtype)) v = flt(v);
+				else if (["Currency", "Float", "Percent"].includes(f.fieldtype))
+					v = flt(v, null, "#,###.##");
 
 				doc[f.fieldname] = v;
 				updated.push(f.fieldname);
@@ -296,7 +297,12 @@ $.extend(frappe.model, {
 				if (frappe.model.table_fields.includes(df.fieldtype)) {
 					for (let i = 0, j = value.length; i < j; i++) {
 						let d = value[i];
-						frappe.model.copy_doc(d, from_amend, newdoc, df.fieldname);
+						frappe.model.copy_doc(
+							{ ...d, doctype: df.options },
+							from_amend,
+							newdoc,
+							df.fieldname
+						);
 					}
 				} else {
 					newdoc[key] = doc[key];

@@ -14,6 +14,7 @@ $font-family-sans-serif: "{{ google_font }}", "InterVariable", "Inter", -apple-s
 {% endif -%}
 
 {% if primary_color %}$primary: {{ frappe.db.get_value('Color', primary_color, 'color') }};{% endif -%}
+{% if light_color %}$light: {{ frappe.db.get_value('Color', light_color, 'color') }};{% endif -%}
 {% if dark_color %}$dark: {{ frappe.db.get_value('Color', dark_color, 'color') }};{% endif -%}
 {% if text_color %}$body-text-color: {{ frappe.db.get_value('Color', text_color, 'color') }};{% endif -%}
 {% if background_color %}$body-bg: {{ frappe.db.get_value('Color', background_color, 'color') }};{% endif -%}
@@ -36,6 +37,12 @@ body {
 }
 {%- endif %}
 
+{% if primary_color %}
+.btn.btn-primary {
+	color: color-yiq($primary);
+}
+{% endif -%}
+
 // Custom Theme
 {{ custom_scss or '' }}
 
@@ -43,6 +50,7 @@ body {
 	{% if primary_color %}
 	--primary: #{$primary};
 	--primary-color: #{$primary};
+	--btn-primary: #{$primary};
 	{% endif -%}
 	{% if background_color %}
 	--bg-color: #{$body-bg};
@@ -59,4 +67,3 @@ body {
 	--radius-full: 0px;
 	{% endif -%}
 }
-

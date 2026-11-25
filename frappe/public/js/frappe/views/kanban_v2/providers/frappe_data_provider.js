@@ -50,9 +50,13 @@ export class FrappeDataProvider {
 		if (!missing.size) return;
 
 		const info =
-			(await frappe.xcall("frappe.desk.form.load.get_user_info_for_viewers", {
-				users: [...missing],
-			})) || {};
+			(await frappe.xcall(
+				"frappe.desk.form.load.get_user_info_for_viewers",
+				{
+					users: [...missing],
+				},
+				"QUERY"
+			)) || {};
 		// cache unknown ids as themselves so they are not fetched again
 		missing.forEach((user) => {
 			if (!info[user]) info[user] = { fullname: user, name: user, email: user };

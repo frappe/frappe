@@ -21,7 +21,9 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
-from frappe.query_builder import Criterion, DocType, Table
+from frappe.model.rename_doc import rename_doc
+from frappe.query_builder import Criterion, DocType, Order, Table
+from frappe.query_builder.functions import IfNull
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions, hash_sid
 from frappe.twofactor import should_run_2fa
@@ -68,6 +70,9 @@ desk_properties = (
 	"show_my_space",
 	"dock_mode",
 )
+
+
+CONTACT_FIELDS = ("first_name", "last_name", "gender", "phone", "mobile_no", "email")
 
 
 class User(Document):
@@ -354,21 +359,30 @@ class User(Document):
 		if self.user_image and len(self.user_image) > 2000:
 			frappe.throw(_("Not a valid User Image."))
 
-	def on_update(self):
+	def _previous_email(self) -> str | None:
+		previous = self.get_doc_before_save()
+		if previous and previous.email != self.email:
+			return previous.email
+
+	def on_update(self):  # nosemgrep: frappe-modifying-but-not-comitting
+		sync_contact = any(self.has_value_changed(field) for field in CONTACT_FIELDS)
+		old_email = self._previous_email()
+
 		# clear new password
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
-		now = frappe.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
 		self.__new_password = None
-		frappe.enqueue(
-			"frappe.core.doctype.user.user.create_contact",
-			user=self,
-			ignore_mandatory=True,
-			now=now,
-			enqueue_after_commit=True,
-		)
+		if sync_contact:
+			frappe.enqueue(
+				"frappe.core.doctype.user.user.create_contact",
+				user=self,
+				ignore_mandatory=True,
+				old_email=old_email,
+				now=frappe.in_test or frappe.flags.in_install or bool(old_email),
+				enqueue_after_commit=True,
+			)
 
 		# Set user selected timezone
 		if self.time_zone:
@@ -812,7 +826,26 @@ class User(Document):
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
+		for token_cache, connected_app in frappe.get_all(
+			"Token Cache", filters={"user": new_name}, fields=["name", "connected_app"], as_list=True
+		):
+			new_token_cache = f"{connected_app}-{new_name}"
+			if token_cache != new_token_cache:
+				rename_doc(
+					"Token Cache",
+					token_cache,
+					new_token_cache,
+					merge=frappe.db.exists("Token Cache", new_token_cache) == new_token_cache,
+					force=True,
+					ignore_permissions=True,
+					show_alert=False,
+				)
+
+		old_email = self.email
 		frappe.db.set_value("User", new_name, "email", new_name)
+		if old_email != new_name and not frappe.flags.in_personal_data_deletion:
+			self.email = new_name
+			create_contact(self, ignore_mandatory=True, old_email=old_email)
 
 		if not merge:
 			frappe.db.set_value("DefaultValue", {"parent": old_name}, "parent", new_name)
@@ -1427,15 +1460,12 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 
 def needs_password_setup(user: str | None = None) -> bool:
 	"""Whether the user was given a session without ever having a password, like a Frappe Cloud
-	site owner, and so cannot get back in once it ends. False for users who sign in without one."""
-	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
-
+	site owner. Asked on every site, Frappe Cloud v2 and email login links included: apps such as
+	the mobile ones sign in with a password. False where a password cannot be used to sign in."""
 	user = user or frappe.session.user
 	if user in STANDARD_USERS or has_password(user):
 		return False
-	if is_v2_site() or frappe.get_system_settings("disable_user_pass_login"):
-		return False
-	if frappe.get_system_settings("login_with_email_link"):
+	if frappe.get_system_settings("disable_user_pass_login"):
 		return False
 	if frappe.db.get_single_value("LDAP Settings", "enabled"):
 		return False
@@ -1685,69 +1715,118 @@ def get_module_profile(module_profile: str):
 	return module_profile.get("block_modules")
 
 
-def create_contact(user, ignore_links=False, ignore_mandatory=False):
-	from frappe.contacts.doctype.contact.contact import get_contact_name
-
+def create_contact(user, ignore_links=False, ignore_mandatory=False, old_email=None):
 	if user.name in ["Administrator", "Guest"]:
 		return
 
-	contact_name = get_contact_name(user.email)
+	contact_name = get_user_contact(user, old_email)
 	if not contact_name:
-		with savepoint(catch=frappe.DuplicateEntryError):
-			contact = frappe.get_doc(
-				{
-					"doctype": "Contact",
-					"first_name": user.first_name,
-					"last_name": user.last_name,
-					"user": user.name,
-					"gender": user.gender,
-				}
-			)
+		contact = frappe.new_doc(
+			"Contact",
+			first_name=user.first_name,
+			last_name=user.last_name,
+			user=user.name,
+			gender=user.gender,
+		)
 
-			if user.email:
-				contact.add_email(user.email, is_primary=True)
+		if user.email:
+			contact.add_email(user.email, is_primary=True)
 
-			if user.phone:
-				contact.add_phone(user.phone, is_primary_phone=True)
+		if user.phone:
+			contact.add_phone(user.phone, is_primary_phone=True)
 
-			if user.mobile_no:
-				contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
-
-			contact.insert(
-				ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
-			)
+		if user.mobile_no:
+			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
 	else:
-		try:
-			contact = frappe.get_doc("Contact", contact_name)
-			contact.first_name = user.first_name
-			contact.last_name = user.last_name
-			contact.gender = user.gender
+		contact = frappe.get_doc("Contact", contact_name)
+		contact.first_name = user.first_name
+		contact.last_name = user.last_name
+		contact.gender = user.gender
+		contact.user = user.name
 
-			# Add mobile number if phone does not exists in contact
-			if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
-				# Set primary phone if there is no primary phone number
-				contact.add_phone(
-					user.phone,
-					is_primary_phone=not any(
-						new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
-					),
-				)
+		emails = {(row.email_id or "").lower() for row in contact.email_ids}
+		if user.email and old_email and (contact.email_id or "").lower() == old_email:
+			for row in contact.email_ids:
+				row.is_primary = (row.email_id or "").lower() == user.email
+			if user.email not in emails:
+				contact.add_email(user.email, is_primary=True)
+		elif user.email and user.email not in emails:
+			contact.add_email(user.email)
 
-			# Add mobile number if mobile does not exists in contact
-			if user.mobile_no and not any(
-				new_contact.phone == user.mobile_no for new_contact in contact.phone_nos
-			):
-				# Set primary mobile if there is no primary mobile number
-				contact.add_phone(
-					user.mobile_no,
-					is_primary_mobile_no=not any(
-						new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
-					),
-				)
+		# Add mobile number if phone does not exists in contact
+		if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
+			# Set primary phone if there is no primary phone number
+			contact.add_phone(
+				user.phone,
+				is_primary_phone=not any(
+					new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
+				),
+			)
 
-			contact.save(ignore_permissions=True)
-		except frappe.TimestampMismatchError:
-			raise frappe.RetryBackgroundJobError
+		# Add mobile number if mobile does not exists in contact
+		if user.mobile_no and not any(
+			new_contact.phone == user.mobile_no for new_contact in contact.phone_nos
+		):
+			# Set primary mobile if there is no primary mobile number
+			contact.add_phone(
+				user.mobile_no,
+				is_primary_mobile_no=not any(
+					new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
+				),
+			)
+
+	contact.flags.ignore_permissions = True
+	contact.flags.ignore_links = ignore_links
+	contact.flags.ignore_mandatory = ignore_mandatory
+	is_new = contact.is_new()
+	try:
+		with savepoint(catch=frappe.DuplicateEntryError if is_new else ()):
+			contact.save()
+			if is_new:
+				contact.db_set("owner", "Administrator", update_modified=False)
+	except frappe.TimestampMismatchError:
+		raise frappe.RetryBackgroundJobError
+
+
+def get_user_contact(user: User, old_email: str | None = None) -> str | None:
+	"""Return the user's own Contact: one linked to them that has their current or previous email,
+	else an unlinked one that has their email, preferably as primary.
+
+	Contacts that another user owns and can read only as their owner are skipped; the previous email
+	counts as the user's own, as a renamed user's contacts keep their old name as owner for a while."""
+	from frappe.contacts.doctype.contact.contact import reads_contacts_only_as_owner
+
+	contact = DocType("Contact")
+	query = frappe.qb.from_(contact).select(
+		contact.name, contact.owner, contact.user, contact.email_id, contact.creation
+	)
+	if user.email:
+		contact_email = DocType("Contact Email")
+		query = (
+			query.join(contact_email)
+			.on((contact_email.parent == contact.name) & (contact_email.parenttype == "Contact"))
+			.where(contact_email.email_id.isin([user.email, old_email or user.email]))
+			.where(
+				(contact.user == user.name)
+				| ((IfNull(contact.user, "") == "") & (contact_email.email_id == user.email))
+			)
+		)
+	else:
+		query = query.where(contact.user == user.name)
+
+	candidates = query.distinct().orderby(contact.creation, order=Order.desc).run(as_dict=True)
+
+	users_emails = {user.email, old_email} - {None}
+
+	def rank(candidate):
+		is_linked = candidate.user == user.name
+		has_users_email_as_primary = candidate.email_id in users_emails
+		return is_linked, has_users_email_as_primary
+
+	candidates.sort(key=rank, reverse=True)
+	for candidate in candidates:
+		if candidate.owner in (user.name, old_email) or not reads_contacts_only_as_owner(candidate.owner):
+			return candidate.name
 
 
 def get_restricted_ip_list(user):
@@ -1801,7 +1880,9 @@ def impersonate(user: str, reason: str):
 			"doctype": "Activity Log",
 			"user": user,
 			"status": "Success",
-			"subject": _("User {0} impersonated as {1}").format(impersonator, get_fullname(user)),
+			"subject": _("User {0} impersonated as {1}").format(
+				get_user_display_id(frappe.session.user), get_user_display_id(user)
+			),
 			"operation": "Impersonate",
 		}
 	).insert(ignore_permissions=True, ignore_links=True)
@@ -1820,7 +1901,7 @@ def impersonate(user: str, reason: str):
 		user_email = frappe.db.get_value("User", user, "email")
 		email_message = _(
 			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
-		).format(escape_html(get_user_display_id(frappe.session.user)), escape_html(reason))
+		).format(escape_html(impersonator), escape_html(reason))
 
 		frappe.sendmail(
 			recipients=[user_email],

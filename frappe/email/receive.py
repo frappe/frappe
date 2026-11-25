@@ -798,6 +798,17 @@ class InboundMail(Email):
 		isnotification = self.mail.get("isnotification")
 		return isnotification and ("notification" in isnotification)
 
+	def is_auto_submitted(self):
+		"""Return True for automatic mails, such as out-of-office replies and bounces (RFC 3834)."""
+		auto_submitted = str(self.mail.get("Auto-Submitted") or "no").strip().lower()
+		precedence = str(self.mail.get("Precedence") or "").strip().lower()
+		return (
+			auto_submitted != "no"
+			or "X-Autoreply" in self.mail
+			or "X-Autorespond" in self.mail
+			or precedence in ("bulk", "junk")
+		)
+
 	def is_exist_in_system(self):
 		"""Check if this email already exists in the system(as communication document)."""
 		from frappe.core.doctype.communication.communication import Communication
@@ -805,12 +816,16 @@ class InboundMail(Email):
 		if not self.message_id:
 			return
 
-		return Communication.find_one_by_filters(
-			message_id=self.message_id,
-			email_account=self.email_account.name,
-			sent_or_received="Received",
-			order_by="creation DESC",
-		)
+		filters = {"email_account": self.email_account.name, "sent_or_received": "Received"}
+		if communication := Communication.find_one_by_filters(
+			message_id=self.message_id, order_by="creation DESC", **filters
+		):
+			return communication
+
+		name, _, domain = self.message_id.rpartition("@")
+		if name and domain == frappe.local.site:
+			# a copy this site sent of a received mail, e.g. to an assignee who is also this inbox
+			return Communication.find_one_by_filters(name=name, **filters)
 
 	def is_sender_same_as_receiver(self):
 		return self.from_email == self.email_account.email_id

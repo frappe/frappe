@@ -24,6 +24,15 @@ class TestContact(IntegrationTestCase):
 
 		self.assertEqual(contact.email_id, "test4@example.com")
 
+	def test_contact_with_administrators_email_is_not_linked_to_it(self):
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		contact = frappe.get_doc(
+			doctype="Contact",
+			first_name="_Test Admin Mail",
+			email_ids=[{"email_id": admin_email, "is_primary": 1}],
+		).insert()
+		self.assertFalse(contact.user)
+
 	def test_check_default_phone_and_mobile(self):
 		phones = [
 			{"phone": "+91 0000000010", "is_primary_phone": 0, "is_primary_mobile_no": 0},
