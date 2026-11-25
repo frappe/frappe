@@ -3,7 +3,7 @@ import type { ComponentProp, ComponentProps } from "@/types"
 import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
-import { isObjectEmpty } from "@/utils/helpers"
+import { isObjectEmpty } from "@/runtime/utils/helpers"
 import type { ConcreteComponent } from "vue"
 
 interface ComponentTypes {

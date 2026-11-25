@@ -5,13 +5,13 @@ import { studioComponents } from "@/data/studioComponents"
 import useStudioStore from "@/stores/studioStore"
 import { confirm } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
-import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
-import Block from "@/utils/block"
+import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/runtime/utils/serializer"
+import Block from "@/runtime/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "frappe-ui"
 import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
 import { setScriptProp } from "@/utils/componentScriptProps"
-import useComponentStore from "@/stores/componentStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)

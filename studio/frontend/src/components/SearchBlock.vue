@@ -153,14 +153,14 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type Block from "@/utils/block"
+import type Block from "@/runtime/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { watchDebounced } from "@vueuse/core"
 import { Popover, TextInput, Checkbox, Button } from "frappe-ui"
 import { computed, nextTick, onMounted, Ref, ref } from "vue"
 import { toast } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
-import { jsToJson } from "@/utils/serializer"
+import { jsToJson } from "@/runtime/utils/serializer"
 
 const canvasStore = useCanvasStore()
 

@@ -6,7 +6,7 @@ import { createMemoryHistory, createRouter } from "vue-router"
 // @ts-ignore
 import { FrappeUIProvider, resourcesPlugin } from "frappe-ui"
 
-import "@/setupFrappeUIResource"
+import "@/runtime/setupFrappeUIResource"
 import SettingsDialog from "@/components/Settings/SettingsDialog.vue"
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"

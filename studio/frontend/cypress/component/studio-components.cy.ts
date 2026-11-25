@@ -5,12 +5,12 @@ import { createMemoryHistory, createRouter } from "vue-router"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
 
-import "@/setupFrappeUIResource"
-import AppPage from "@/pages/AppPage.vue"
-import { registerGlobalComponents } from "@/globals"
-import { loadPage } from "@/page/pageLoader"
-import { loadAppRuntime } from "@/browserRuntime/appRuntime"
-import useComponentStore from "@/stores/componentStore"
+import "@/runtime/setupFrappeUIResource"
+import AppPage from "@/runtime/pages/AppPage.vue"
+import { registerGlobalComponents } from "@/runtime/globals"
+import { loadPage } from "@/runtime/page/pageLoader"
+import { loadAppRuntime } from "@/runtime/browserRuntime/appRuntime"
+import useComponentStore from "@/runtime/stores/componentStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import getBlockTemplate from "@/utils/blockTemplate"
 

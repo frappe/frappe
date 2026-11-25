@@ -1,8 +1,8 @@
 import fs from "node:fs"
 import path from "node:path"
 import { babelParse } from "vue/compiler-sfc"
-import { IMPORTABLE_MODULES } from "../src/browserRuntime/importableModuleNames.js"
-import { moduleSyntaxErrors } from "../src/browserRuntime/moduleSyntaxErrors.js"
+import { IMPORTABLE_MODULES } from "../src/runtime/browserRuntime/importableModuleNames.js"
+import { moduleSyntaxErrors } from "../src/runtime/browserRuntime/moduleSyntaxErrors.js"
 
 const CSS_PREFIX = "\0studio-database-css:"
 

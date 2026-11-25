@@ -1,5 +1,5 @@
 // Ported from Builder, modified later
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import { getLayoutDirection } from "@/utils/dropGeometry"
 import type { FrappeUIComponent } from "@/types"
 

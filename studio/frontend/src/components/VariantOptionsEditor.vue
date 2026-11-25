@@ -75,16 +75,16 @@ import { computed, nextTick, ref } from "vue"
 import { Dropdown, Radio, RadioGroup, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import { variantOption } from "@/utils/blockTemplate/familyTemplates"
-import { getBlockCopy } from "@/utils/serializer"
+import { getBlockCopy } from "@/runtime/utils/serializer"
 import {
 	getEditorVariantChoice,
 	setEditorVariantChoice,
 	slug,
 	unusedOptionName,
 	variantOptionNames,
-} from "@/utils/variants"
+} from "@/runtime/utils/variants"
 import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 import { useDragReorder } from "@/utils/useDragReorder"
 

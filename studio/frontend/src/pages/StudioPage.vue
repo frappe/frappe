@@ -213,17 +213,18 @@ import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
 import PasteConflictDialog from "@/components/PasteConflictDialog.vue"
 import StudioCommandPalette from "@/components/CommandPalette/StudioCommandPalette.vue"
-import PageScriptHost from "@/components/PageScriptHost.vue"
+import PageScriptHost from "@/runtime/components/PageScriptHost.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import blockController from "@/utils/blockController"
-import { usePageScope } from "@/stores/codeStore"
+import { usePageScope } from "@/runtime/stores/codeStore"
 import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
-import { getBlockCopy, getRootBlock } from "@/utils/serializer"
+import { getBlockCopy, getBlockInstance } from "@/runtime/utils/serializer"
+import getBlockTemplate from "@/utils/blockTemplate"
 import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/completions/useStudioCompletions"
 import { toast } from "frappe-ui"
 
@@ -326,7 +327,7 @@ async function setPage() {
 	if (pageID === "new") {
 		await studioPages.insert
 			.submit({
-				draft_blocks: [getRootBlock()],
+				draft_blocks: [getBlockInstance(getBlockTemplate("body"))],
 				studio_app: appID,
 			})
 			.then(async (data: StudioPage) => {

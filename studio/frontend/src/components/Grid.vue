@@ -98,7 +98,7 @@ import { FormControl, Checkbox, Button } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import Link from "@framework/ui/components/Link/Link.vue"
-import { generateId } from "@/utils/helpers"
+import { generateId } from "@/runtime/utils/helpers"
 import FormInputLabel from "@/components/FormInputLabel.vue"
 import Code from "@/components/Code.vue"
 import type { GridColumn, GridRow } from "@/types/doctype"

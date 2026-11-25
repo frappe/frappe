@@ -101,7 +101,8 @@ import {
 	isValidCSSPropertyName,
 	normalizeCSSPropertyName,
 } from "@/utils/cssMetadata"
-import { isTargetEditable, kebabToCamelCase, toTitleCase } from "@/utils/helpers"
+import { isTargetEditable, toTitleCase } from "@/utils/helpers"
+import { kebabToCamelCase } from "@/runtime/utils/helpers"
 import { getStylePropertiesWithoutControls } from "@/utils/stylePropertiesWithoutControls"
 import type { ContextMenuOption, StyleValue } from "@/types"
 
