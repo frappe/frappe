@@ -60,9 +60,11 @@ class NotificationLog(Document):
 			self.app = _resolve_app_for_doctype(self.document_type)
 
 	def after_insert(self):
+		from frappe.email.doctype.email_account.email_account import EmailAccount
+
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
-		if is_email_notifications_enabled_for_type(self.for_user, self.type):
+		if is_email_notifications_enabled_for_type(self.for_user, self.type) and EmailAccount.find_outgoing():
 			try:
 				send_notification_email(self)
 			except frappe.OutgoingEmailError:
