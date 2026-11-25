@@ -55,7 +55,7 @@ class DocumentNamingRule(Document):
 				)
 
 	def validate_duplicate(self):
-		if self.disabled:
+		if self.disabled or frappe.flags.in_fixtures:
 			return
 
 		candidates = frappe.get_all(
