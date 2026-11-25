@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import frappe
 from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.database import savepoint
+from frappe.database import get_db, savepoint
 from frappe.database.database import get_query_execution_timeout
 from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifiers
 from frappe.query_builder import Field
