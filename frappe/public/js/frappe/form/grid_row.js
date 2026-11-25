@@ -1389,7 +1389,7 @@ export default class GridRow {
 		// hide other
 		var open_row = this.get_open_form();
 
-		if (show === undefined) show = !open_row;
+		if (show === undefined) show = open_row !== this;
 
 		// call blur
 		document.activeElement && document.activeElement.blur();
