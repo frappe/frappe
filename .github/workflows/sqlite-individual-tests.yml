@@ -1,0 +1,109 @@
+name: SQLite Individual
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: sqlite-individual-tests-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  SHARD_COUNT: 4
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      tests: ${{ steps.set-tests.outputs.tests }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: set-tests
+        run: |
+          tests=$(find . -path '*/doctype/*/test_*.py' | xargs grep -l 'def test_' | awk '{
+              gsub(/^\.\//, "", $0)
+              gsub(/\.py$/, "", $0)
+              gsub(/\//, ".", $0)
+              print
+          }' | sort | jq -R . | jq -sc .)
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+      - id: set-matrix
+        run: |
+          matrix=$(jq -nc --argjson count "$SHARD_COUNT" '{"include": [range(1; $count + 1) | {"shard": .}]}')
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # This profile deliberately has no web server. The setup action exports to avoid deadlock failures
+    env:
+      NODE_ENV: production
+      ALL_TESTS: ${{ needs.discover.outputs.tests }}
+      SHARD_INDEX: ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+    name: Integration
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: "3.14"
+          node-version: 24
+          db: sqlite
+          db-root-password: db_root
+          disable-web: true
+          disable-socketio: true
+          # SQLite permits only one writer. Tests run serially in this job, hence disabling workers that can write queued setup jobs.
+          disable-workers: true
+      - name: Run Tests
+        shell: bash
+        run: |
+          echo "$ALL_TESTS" | jq -r --argjson shard "$SHARD_INDEX" --argjson total "$SHARD_COUNT" \
+            '[to_entries[] | select(.key % $total == ($shard - 1)) | .value] | .[]' > shard_tests.txt
+
+          status=0
+          while IFS= read -r test; do
+            echo "Running $test"
+            bench --site test_site run-tests --app frappe --module "$test" || status=1
+          done < shard_tests.txt
+
+          exit "$status"
+
+  http-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Run the HTTP contract separately with required service(s)
+    env:
+      NODE_ENV: production
+    name: SQLite HTTP integration
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: "3.14"
+          node-version: 24
+          db: sqlite
+          db-root-password: db_root
+          disable-socketio: true
+          disable-workers: true
+      - name: Wait for web server
+        shell: bash
+        run: |
+          if ! curl --fail --silent --show-error \
+            --retry 30 --retry-delay 1 --retry-connrefused \
+            http://test_site:8000/api/method/ping > /dev/null; then
+            echo "Frappe web server did not become ready"
+            cat "$GITHUB_WORKSPACE/bench_start.log"
+            exit 1
+          fi
+      - name: Run HTTP-dependent SQLite tests
+        shell: bash
+        run: |
+          bench --site test_site run-tests --app frappe --test-service web-server
