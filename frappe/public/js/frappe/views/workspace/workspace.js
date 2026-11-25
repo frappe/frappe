@@ -724,7 +724,7 @@ frappe.views.Workspace = class Workspace {
 						},
 						// A manager sees private workspaces owned by other users, and the owner
 						// column is what tells them apart, since the titles will not
-						{ label: __("Owner"), fieldname: "for_user" },
+						{ label: __("Owner"), fieldname: "owner_display_id" },
 					],
 				}).refresh();
 			},

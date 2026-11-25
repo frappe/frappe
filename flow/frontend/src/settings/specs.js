@@ -708,9 +708,19 @@ export const SPECS = {
 		label: __("Memories"),
 		singular: __("memory"),
 		titleField: "content",
-		listFields: ["name", "content", "agent", "scope", "user", "status", "source"],
+		listFields: [
+			"name",
+			"content",
+			"agent",
+			"scope",
+			"user",
+			"user.email as user_email",
+			"status",
+			"source",
+		],
+		searchFields: ["name", "content", "agent", "scope", "user", "user.email", "status", "source"],
 		subtitle: (doc) =>
-			[doc.agent, doc.scope === "User" ? doc.user : __("shared"), doc.status]
+			[doc.agent, doc.scope === "User" ? doc.user_email || doc.user : __("shared"), doc.status]
 				.filter(Boolean)
 				.join(" · "),
 		orderBy: "modified desc",

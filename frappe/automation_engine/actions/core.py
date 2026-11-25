@@ -14,7 +14,7 @@ from frappe.automation_engine.actions.base import (
 	render_context,
 	render_value,
 )
-from frappe.utils import cint, flt, validate_email_address
+from frappe.utils import cint, flt, get_user_display_id, validate_email_address
 
 NUMERIC_FIELDTYPES = ("Int", "Float", "Currency", "Percent")
 HTTP_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE")
@@ -367,7 +367,7 @@ class AssignToUser(AutomationAction):
 				"description": render_value(params.get("description"), doc, context) or doc.doctype,
 			}
 		)
-		return _("Assigned to {0}").format(", ".join(users))
+		return _("Assigned to {0}").format(", ".join(get_user_display_id(user) for user in users))
 
 
 class CallWebhook(AutomationAction):
