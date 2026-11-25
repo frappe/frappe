@@ -92,6 +92,13 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	add_publish_button(frm) {
+		// the sidebar's own link is hidden on the builder tab
+		if (frm.doc.published && !frm.is_new()) {
+			frm.add_custom_button(__("See on Website"), () =>
+				window.open(`/${frm.doc.route}`, "_blank", "noopener")
+			);
+		}
+
 		frm.add_custom_button(frm.doc.published ? __("Unpublish") : __("Publish"), () => {
 			frm.set_value("published", !frm.doc.published);
 			frm.save();

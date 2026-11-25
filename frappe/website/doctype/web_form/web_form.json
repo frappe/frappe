@@ -7,6 +7,8 @@
  "documentation": "https://docs.frappe.io/framework/user/en/web-form",
  "engine": "InnoDB",
  "field_order": [
+  "form_builder_tab",
+  "form_builder",
   "form_tab",
   "title",
   "route",
@@ -19,8 +21,6 @@
   "created_new_doctype",
   "section_break_1",
   "introduction_text",
-  "form_builder_tab",
-  "form_builder",
   "settings_tab",
   "access_control_section",
   "key_required",
@@ -325,7 +325,8 @@
   {
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
-   "label": "Details"
+   "label": "Details",
+   "show_dashboard": 1
   },
   {
    "fieldname": "section_break_1",
@@ -494,7 +495,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-10-13 12:00:00.000000",
+ "modified": "2026-11-25 14:57:17.318837",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
