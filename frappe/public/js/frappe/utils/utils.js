@@ -1131,6 +1131,14 @@ Object.assign(frappe.utils, {
 		return deep_equal(a, b);
 	},
 
+	sort_by_order(values, order) {
+		const position = (value) => {
+			const index = order.indexOf(value);
+			return index === -1 ? order.length : index;
+		};
+		return [...values].sort((a, b) => position(a) - position(b));
+	},
+
 	file_name_ellipsis(filename, length) {
 		let first_part_length = (length * 2) / 3;
 		let last_part_length = length - first_part_length;
