@@ -129,6 +129,20 @@ class TestDocumentNamingRule(IntegrationTestCase):
 		self.assertRegex(todo.name, r"^test-yearly-\d{4}-00001$")
 		self.assertEqual(self.series_current(todo.name[:-5]), 1)
 
+	def test_deleting_the_last_document_reverts_the_counter(self):
+		self.make_rule("test-revert-")
+		self.addCleanup(self.drop_series, "test-revert-")
+		names = [frappe.get_doc(doctype="ToDo", description="revert").insert().name for _ in range(3)]
+
+		frappe.delete_doc("ToDo", names[1])
+		self.assertEqual(self.series_current("test-revert-"), 3)
+
+		frappe.delete_doc("ToDo", names[2])
+		self.assertEqual(self.series_current("test-revert-"), 2)
+
+		frappe.delete_doc("ToDo", names[0])
+		self.assertEqual(self.series_current("test-revert-"), 2)
+
 	def test_patch_seeds_series_from_existing_names(self):
 		naming_rule = frappe.get_doc(
 			doctype="Document Naming Rule",

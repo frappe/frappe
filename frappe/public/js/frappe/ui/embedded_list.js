@@ -317,7 +317,16 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			// Route-based link: the delegated handler navigates and stops
 			// propagation itself, so no inline onclick (which would prevent the
 			// event from reaching that handler).
-			return `<td${align}><a href="#" data-route-link="${col_idx}">${text}</a></td>`;
+			const href = col.route
+				? frappe.utils.escape_html(
+						frappe.router.make_url(
+							frappe.router.convert_from_standard_route(
+								col.route(row).filter((part) => !$.isPlainObject(part))
+							)
+						)
+				  )
+				: "#";
+			return `<td${align}><a href="${href}" data-route-link="${col_idx}">${text}</a></td>`;
 		}
 
 		return `<td${td_class()}${col_attr}>${frappe.utils.escape_html(raw ?? "")}</td>`;
@@ -393,8 +402,9 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 		// Route-based links
 		this.$wrapper.on("click.embedded_list", "a[data-route-link]", (e) => {
-			e.preventDefault();
 			e.stopPropagation();
+			if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+			e.preventDefault();
 			const col = this.columns[parseInt($(e.currentTarget).attr("data-route-link"), 10)];
 			if (col && col.route) frappe.set_route(...col.route(this.row_for(e)));
 		});
