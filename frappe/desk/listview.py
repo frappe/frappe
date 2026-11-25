@@ -13,7 +13,7 @@ from frappe.query_builder import Field, Order
 from frappe.query_builder.functions import Avg, Count, Max, Min, Sum
 from frappe.query_builder.terms import SubQuery
 from frappe.query_builder.utils import DocType
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 
 
 @frappe.whitelist()
@@ -151,10 +151,12 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 			ignore_permissions=False,
 		)
 
+		user_meta = frappe.get_meta("User")
+		search_fields = [User[fieldname] for fieldname in _get_search_fields(user_meta)]
 		query = (
 			frappe.qb.from_(ToDo)
 			.from_(User)
-			.select(ToDo.allocated_to.as_("name"), count)
+			.select(ToDo.allocated_to.as_("name"), count, *search_fields)
 			.where(
 				ToDo.status.notin(("Cancelled", "Closed"))
 				& (ToDo.allocated_to == User.name)
@@ -162,16 +164,20 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 				& (ToDo.reference_type == doctype)
 				& (ToDo.reference_name.isin(SubQuery(filtered_records)))
 			)
-			.groupby(ToDo.allocated_to)
+			.groupby(ToDo.allocated_to, *search_fields)
 			.orderby(count, order=Order.desc)
 			.limit(50)
 		)
-		user_meta = frappe.get_meta("User")
 		if user_meta.show_title_field_in_link:
 			title = User[user_meta.get_title_field()]
 			query = query.select(title.as_("title")).groupby(title)
 
-		return query.run(as_dict=True)
+		data = query.run(as_dict=True)
+		for item in data:
+			values = [item.pop(column.name) for column in search_fields]
+			item.search_text = " ".join(cstr(value) for value in values if value)
+
+		return data
 
 	meta = frappe.get_meta(doctype)
 
@@ -210,17 +216,40 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 	else:
 		link_doctype = None
 
-	if link_doctype and (link_meta := frappe.get_meta(link_doctype)).show_title_field_in_link:
-		title_field = link_meta.get_title_field()
-		titles = dict(
-			frappe.get_all(
-				link_doctype,
-				filters={"name": ("in", [item.name for item in data])},
-				fields=["name", title_field],
-				as_list=True,
-			)
+	if not link_doctype:
+		return data
+
+	link_meta = frappe.get_meta(link_doctype)
+	title_field = link_meta.get_title_field() if link_meta.show_title_field_in_link else None
+	search_fields = _get_search_fields(link_meta)
+	if not (title_field or search_fields):
+		return data
+
+	fields = {"name", *search_fields}
+	if title_field:
+		fields.add(title_field)
+	rows = {
+		row.name: row
+		for row in frappe.get_all(
+			link_doctype, filters={"name": ("in", [item.name for item in data])}, fields=list(fields)
 		)
-		for item in data:
-			item.title = titles.get(item.name)
+	}
+	for item in data:
+		row = rows.get(item.name) or {}
+		if title_field:
+			item.title = row.get(title_field)
+		item.search_text = " ".join(cstr(row.get(f)) for f in search_fields if row.get(f))
 
 	return data
+
+
+def _get_search_fields(meta) -> list[str]:
+	"""Search fields of `meta` the user may select, sent so quick filters match on them."""
+	if not frappe.has_permission(meta.name, "select"):
+		return []
+
+	return [
+		fieldname
+		for fieldname in meta.get_search_fields()
+		if (df := meta.get_field(fieldname)) and not df.is_virtual and not df.permlevel
+	]

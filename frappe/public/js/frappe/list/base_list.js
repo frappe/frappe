@@ -1016,7 +1016,9 @@ class FilterArea {
 			: "";
 		return `<div class="group-by-item ${applied ? "selected" : ""}" data-value="${value}">
 			<a class="dropdown-item flex justify-between" href="#" onclick="return false;">
-				<span class="group-by-value ellipsis" data-name="${field.name}">
+				<span class="group-by-value ellipsis" data-search="${frappe.utils.escape_html(
+					[field.name, field.search_text].filter(Boolean).join(" ")
+				)}">
 					${applied_html}
 					${label}
 				</span>
@@ -1127,7 +1129,7 @@ class FilterArea {
 	}
 
 	setup_search($dropdown) {
-		frappe.utils.setup_search($dropdown, ".group-by-item", ".group-by-value", "data-name");
+		frappe.utils.setup_search($dropdown, ".group-by-item", ".group-by-value", "data-search");
 	}
 
 	set_empty_state($dropdown) {
