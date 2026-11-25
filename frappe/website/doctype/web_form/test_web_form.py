@@ -2105,3 +2105,30 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		web_form.append("web_form_fields", {"fieldname": "given_name", "label": "Given", "fieldtype": "Data"})
 		web_form.save()
 		self.assertTrue(frappe.get_meta(web_form.doc_type).has_field("given_name"))
+
+	def test_failed_doctype_creation_leaves_nothing_behind(self):
+		title = "Test Web Form Row Size Too Large"
+		fields = [{"label": f"Field {i}", "fieldtype": "Data"} for i in range(200)]
+
+		with self.assertRaises(Exception):
+			self.new_web_form(title, fields=fields)
+
+		self.assertFalse(frappe.db.exists("Web Form", {"title": title}))
+		self.assertFalse(frappe.db.exists("DocType", "webform-test-web-form-row-size-too-large"))
+		self.assertFalse(frappe.db.table_exists("webform-test-web-form-row-size-too-large", cached=False))
+
+	def test_insert_does_not_sync_fields_to_the_doctype_it_just_created(self):
+		from unittest.mock import patch
+
+		from frappe.website.doctype.web_form.web_form import WebForm
+
+		with patch.object(WebForm, "sync_fields_to_doctype") as sync:
+			web_form = self.new_web_form("Test Web Form No Sync On Insert")
+
+		sync.assert_not_called()
+		web_form.reload()
+		web_form.append(
+			"web_form_fields", {"fieldname": "last_name", "label": "Last Name", "fieldtype": "Data"}
+		)
+		web_form.save()
+		self.assertTrue(frappe.get_meta(web_form.doc_type).has_field("last_name"))

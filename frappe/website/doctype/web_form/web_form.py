@@ -184,9 +184,23 @@ class WebForm(WebsiteGenerator):
 					}
 				],
 			}
-		).insert()
+		)
+		try:
+			new_doctype.insert()
+		except Exception:
+			self.discard_half_created_doctype(doctype_name)
+			raise
 
 		self.db_set({"doc_type": new_doctype.name, "created_new_doctype": 1}, update_modified=False)
+
+	def discard_half_created_doctype(self, doctype_name):
+		"""Creating the table commits, so a failure after it leaves this Web Form and the DocType saved."""
+		frappe.db.rollback()
+		if frappe.db.exists("DocType", doctype_name):
+			frappe.delete_doc("DocType", doctype_name, force=True, ignore_permissions=True)
+		if frappe.db.exists("Web Form", self.name):
+			frappe.delete_doc("Web Form", self.name, force=True, ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
 
 	def set_fieldnames(self):
 		"""Give each field a unique fieldname that the DocType keeps as is."""
@@ -418,7 +432,7 @@ class WebForm(WebsiteGenerator):
 	def on_update(self):
 		"""Sync the fields to the DocType this Web Form created. In developer mode, export
 		a standard Web Form's JSON and create its .js and .py stubs."""
-		if not frappe.flags.in_import:
+		if not (frappe.flags.in_import or self.flags.in_insert):
 			self.sync_fields_to_doctype()
 
 		path = export_module_json(self, self.is_standard, self.module)
