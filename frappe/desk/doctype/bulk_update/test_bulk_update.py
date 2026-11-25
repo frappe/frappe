@@ -7,6 +7,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.bulk_update.bulk_update import submit_cancel_or_update_docs
 from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
 
 class TestBulkUpdate(IntegrationTestCase):
@@ -27,6 +28,7 @@ class TestBulkUpdate(IntegrationTestCase):
 				break
 			time.sleep(0.2)
 
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_bulk_submit_in_background(self):
 		unsubmitted = frappe.get_all(self.doctype, {"docstatus": 0}, limit=5, pluck="name")
 		failed = submit_cancel_or_update_docs(self.doctype, unsubmitted, action="submit")
@@ -48,6 +50,7 @@ class TestBulkUpdate(IntegrationTestCase):
 		submit_cancel_or_update_docs(self.doctype, submitted, action="cancel")
 		self.wait_for_assertion(lambda: check_docstatus(submitted, 2))
 
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_bulk_update_parent_fields(self):
 		docnames = frappe.get_all(self.doctype, {"docstatus": 0}, limit=5, pluck="name")
 		failed = submit_cancel_or_update_docs(
@@ -67,6 +70,7 @@ class TestBulkUpdate(IntegrationTestCase):
 
 		self.wait_for_assertion(lambda: check_field_values(docnames_bg, "_Test Background"))
 
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_bulk_update_child_fields(self):
 		doctype_doc = frappe.get_doc("DocType", self.doctype)
 		doctype_doc.append(
