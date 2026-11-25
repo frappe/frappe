@@ -2145,3 +2145,11 @@ class TestWebFormNewDocType(IntegrationTestCase):
 			web_form.save()
 
 		self.assertEqual(frappe.get_meta(web_form.doc_type).get_field("notes").fieldtype, "Small Text")
+
+	def test_reimport_keeps_created_doctype(self):
+		from frappe.modules.import_file import import_doc
+
+		web_form = self.new_web_form("Test Web Form Reimport")
+		import_doc(web_form.as_dict(convert_dates_to_str=True))
+
+		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))

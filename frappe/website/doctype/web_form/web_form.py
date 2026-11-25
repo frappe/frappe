@@ -471,8 +471,12 @@ def get_context(context):
 
 	def delete_created_doctype(self):
 		"""Delete the DocType this Web Form created, unless it has records, another Web Form
-		uses it or the user cannot delete it."""
-		if not self.created_new_doctype or not frappe.db.exists("DocType", self.doc_type):
+		uses it or the user cannot delete it. An import deletes and re-inserts, so it keeps the DocType."""
+		if (
+			frappe.flags.in_import
+			or not self.created_new_doctype
+			or not frappe.db.exists("DocType", self.doc_type)
+		):
 			return
 
 		if frappe.db.count(self.doc_type):
