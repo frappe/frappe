@@ -4,7 +4,6 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.model.document import Document
-from frappe.utils import cint
 
 
 class Domain(Document):
@@ -31,11 +30,6 @@ class Domain(Document):
 		self.setup_roles()
 		self.setup_properties()
 		self.set_values()
-
-		if not cint(frappe.defaults.get_defaults().setup_complete):
-			# if setup not complete, setup desktop etc.
-			self.setup_sidebar_items()
-			self.set_default_portal_role()
 
 		if self.data.custom_fields:
 			create_custom_fields(self.data.custom_fields)
@@ -96,13 +90,6 @@ class Domain(Document):
 	def get_domain_data(self, module):
 		return frappe.get_attr(frappe.get_hooks("domains")[self.name] + ".data")
 
-	def set_default_portal_role(self):
-		"""Set default portal role based on domain"""
-		if self.data.get("default_portal_role"):
-			frappe.db.set_single_value(
-				"Portal Settings", "default_role", self.data.get("default_portal_role")
-			)
-
 	def setup_properties(self):
 		if self.data.properties:
 			for args in self.data.properties:
@@ -116,25 +103,3 @@ class Domain(Document):
 				doc = frappe.get_doc(args[0], args[1] or args[0])
 				doc.set(args[2], args[3])
 				doc.save()
-
-	def setup_sidebar_items(self):
-		"""Enable / disable sidebar items"""
-		if self.data.allow_sidebar_items:
-			# disable all
-			frappe.db.sql("update `tabPortal Menu Item` set enabled=0")
-
-			# enable
-			frappe.db.sql(
-				"""update `tabPortal Menu Item` set enabled=1
-				where route in ({})""".format(", ".join(f'"{d}"' for d in self.data.allow_sidebar_items))
-			)
-
-		if self.data.remove_sidebar_items:
-			# disable all
-			frappe.db.sql("update `tabPortal Menu Item` set enabled=1")
-
-			# enable
-			frappe.db.sql(
-				"""update `tabPortal Menu Item` set enabled=0
-				where route in ({})""".format(", ".join(f'"{d}"' for d in self.data.remove_sidebar_items))
-			)

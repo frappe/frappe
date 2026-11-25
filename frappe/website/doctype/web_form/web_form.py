@@ -1234,6 +1234,208 @@ def get_web_form_list(
 	)
 
 
+@frappe.whitelist()
+def get_list_data(
+	doctype: str,
+	txt: str | None = None,
+	limit_start: int = 0,
+	fields: list | None = None,
+	cmd: str | None = None,
+	limit: int = 20,
+	web_form_name: str | None = None,
+	**kwargs,
+):
+	"""Return the rows of a Web Form's list view."""
+	from frappe.model.document import get_controller
+
+	limit_start = cint(limit_start)
+
+	if frappe.is_table(doctype):
+		frappe.throw(_("Child DocTypes are not allowed"), title=_("Invalid DocType"))
+
+	if not txt and frappe.form_dict.search:
+		txt = frappe.form_dict.search
+		del frappe.form_dict["search"]
+
+	controller = get_controller(doctype)
+	meta = frappe.get_meta(doctype)
+
+	filters = prepare_filters(doctype, controller, kwargs)
+	list_context = get_list_context(frappe._dict(), doctype, web_form_name)
+
+	if list_context.filters:
+		filters.update(list_context.filters)
+
+	if web_form_name:
+		dynamic_filters = get_dynamic_filters(web_form_name)
+		if dynamic_filters:
+			filters.update(dynamic_filters)
+
+	_get_list = list_context.get_list or get_list
+
+	kwargs = dict(
+		doctype=doctype,
+		txt=txt,
+		filters=filters,
+		limit_start=limit_start,
+		limit_page_length=limit,
+		order_by=list_context.order_by or "creation desc",
+	)
+
+	# allow guest if flag is set
+	if not list_context.get_list and (list_context.allow_guest or meta.allow_guest_to_view):
+		kwargs["ignore_permissions"] = True
+
+	return _get_list(**kwargs)
+
+
+def prepare_filters(doctype, controller, kwargs):
+	for key in kwargs.keys():
+		try:
+			kwargs[key] = json.loads(kwargs[key])
+		except ValueError:
+			pass
+	filters = frappe._dict(kwargs)
+	meta = frappe.get_meta(doctype)
+
+	if hasattr(controller, "website") and controller.website.get("condition_field"):
+		filters[controller.website["condition_field"]] = 1
+	elif meta.is_published_field:
+		filters[meta.is_published_field] = 1
+
+	# filter the filters to include valid fields only
+	from frappe.model.meta import DEFAULT_FIELD_LABELS
+
+	for fieldname in list(filters.keys()):
+		# add a check for default fields, as they are not present in meta.fields
+		if not meta.has_field(fieldname) and fieldname not in DEFAULT_FIELD_LABELS.keys():
+			del filters[fieldname]
+
+	return filters
+
+
+def get_list_context(context, doctype, web_form_name=None):
+	from frappe.modules import load_doctype_module
+
+	list_context = context or frappe._dict()
+	meta = frappe.get_meta(doctype)
+
+	def update_context_from_module(module, list_context):
+		# call the user defined method `get_list_context`
+		# from the python module
+		if hasattr(module, "get_list_context"):
+			out = frappe._dict(module.get_list_context(list_context) or {})
+			if out:
+				list_context = out
+		return list_context
+
+	# get context from the doctype module
+	if not meta.custom:
+		# custom doctypes don't have modules
+		module = load_doctype_module(doctype)
+		list_context = update_context_from_module(module, list_context)
+
+	# get context for custom webform
+	if meta.custom and web_form_name:
+		webform_list_contexts = frappe.get_hooks("webform_list_context")
+		if webform_list_contexts and not frappe.get_doc("Module Def", meta.module).custom:
+			out = frappe._dict(frappe.get_attr(webform_list_contexts[0])(meta.module) or {})
+			if out:
+				list_context = out
+
+	# get context from web form module
+	if web_form_name:
+		web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+		list_context = update_context_from_module(get_web_form_module(web_form), list_context)
+
+	return list_context
+
+
+def get_list(
+	doctype,
+	txt,
+	filters,
+	limit_start,
+	limit_page_length=20,
+	ignore_permissions=False,
+	fields=None,
+	order_by=None,
+	or_filters=None,
+):
+	meta = frappe.get_meta(doctype)
+	if not filters:
+		filters = []
+
+	distinct = False
+	if not fields:
+		fields = "*"
+		distinct = True
+
+	if or_filters is None:
+		or_filters = []
+
+	if txt:
+		if meta.search_fields:
+			or_filters.extend(
+				[doctype, f, "like", "%" + txt + "%"]
+				for f in meta.get_search_fields()
+				if f == "name"
+				or meta.get_field(f).fieldtype
+				in ("Autocomplete", "Data", "Text", "Small Text", "Text Editor")
+			)
+		else:
+			if isinstance(filters, dict):
+				filters["name"] = ("like", "%" + txt + "%")
+			else:
+				filters.append([doctype, "name", "like", "%" + txt + "%"])
+
+	return frappe.get_list(
+		doctype,
+		fields=fields,
+		filters=filters,
+		or_filters=or_filters,
+		limit_start=limit_start,
+		limit_page_length=limit_page_length,
+		ignore_permissions=ignore_permissions,
+		order_by=order_by,
+		distinct=distinct,
+	)
+
+
+def get_dynamic_filters(web_form_name):
+	"""Evaluate dynamic filter expressions from Web Form.
+	Uses same safe_eval + get_workflow_safe_globals pattern as Workflow."""
+	from frappe.model.workflow import get_workflow_safe_globals
+
+	web_form = frappe.get_cached_doc("Web Form", web_form_name)
+
+	if not web_form.dynamic_filters_json:
+		return None
+
+	dynamic_filters = json.loads(web_form.dynamic_filters_json)
+	if not dynamic_filters:
+		return None
+
+	safe_globals = get_workflow_safe_globals()
+	safe_globals["frappe"]["defaults"] = frappe._dict(
+		get_user_default=frappe.defaults.get_user_default,
+		get_global_default=frappe.defaults.get_global_default,
+	)
+
+	evaluated = {}
+	for f in dynamic_filters:
+		try:
+			value = frappe.safe_eval(f[3], safe_globals)
+			evaluated[f[1]] = [f[2], value]
+		except Exception as e:
+			frappe.throw(
+				_("Invalid expression in Web Form Dynamic Filter for {0}: {1}").format(f[1], e),
+				title=_("Dynamic Filter Error"),
+			)
+
+	return evaluated
+
+
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(key="web_form_name", limit=30, seconds=60)
 @frappe.read_only()
