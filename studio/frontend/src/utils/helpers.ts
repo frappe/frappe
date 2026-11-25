@@ -4,7 +4,7 @@ import { toast } from "frappe-ui"
 import { isObjectEmpty } from "@/runtime/utils/helpers"
 import type { ObjectLiteral, SelectOption, HashString, RGBString } from "@/types"
 import type { StudioApp } from "@/types/Studio/StudioApp"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 type BlockInfo = {
 	blockId: string

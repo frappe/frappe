@@ -20,10 +20,10 @@ import type {
 	DocumentListResource,
 	APIResource,
 	DataResult,
-} from "@/types/Studio/StudioResource"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
-import type { ExpressionEvaluationContext } from "@/types"
+} from "@/runtime/types/Studio/StudioResource"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
+import type { Variable } from "@/runtime/types/Studio/StudioPageVariable"
+import type { ExpressionEvaluationContext } from "@/runtime/types"
 import type { Ref } from "vue"
 import type { Router, RouteLocationNormalized } from "vue-router"
 

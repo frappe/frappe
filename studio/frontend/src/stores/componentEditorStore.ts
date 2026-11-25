@@ -9,7 +9,7 @@ import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/runti
 import Block from "@/runtime/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "frappe-ui"
-import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponent, StudioComponentInput } from "@/runtime/types/Studio/StudioComponent"
 import { setScriptProp } from "@/utils/componentScriptProps"
 import useComponentStore from "@/runtime/stores/componentStore"
 

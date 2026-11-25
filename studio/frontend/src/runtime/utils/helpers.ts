@@ -2,8 +2,8 @@ import { Ref, toRaw } from "vue"
 import { createResource } from "frappe-ui"
 import DOMPurify from "dompurify"
 
-import type { StyleValue } from "@/types"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
+import type { StyleValue } from "@/runtime/types"
+import type { Variable } from "@/runtime/types/Studio/StudioPageVariable"
 
 function isEditor() {
 	return window.location.pathname.startsWith("/studio/")

@@ -8,11 +8,10 @@ import { parse } from "vue/compiler-sfc"
 
 const src = fileURLToPath(new URL("../../src/", import.meta.url))
 const runtime = path.join(src, "runtime")
-const allowed = [runtime, path.join(src, "types")]
 
 // The renderer and the desk island are built from src/runtime. An import from the rest of src
 // would ship editor code to every user of a Studio app.
-test("runtime code imports nothing from src outside src/runtime and src/types", () => {
+test("runtime code imports nothing from src outside src/runtime", () => {
 	const imports = fs
 		.readdirSync(runtime, { recursive: true })
 		.filter((file) => /\.(ts|js|mjs|vue)$/.test(file) && !file.endsWith(".d.ts"))
@@ -20,7 +19,7 @@ test("runtime code imports nothing from src outside src/runtime and src/types", 
 	assert.ok(imports.length, "found no imports in src/runtime")
 
 	const outside = imports.filter(
-		({ target }) => isInside(src, target) && !allowed.some((dir) => isInside(dir, target)),
+		({ target }) => isInside(src, target) && !isInside(runtime, target),
 	)
 	assert.deepEqual(
 		outside.map(({ file, specifier }) => `${path.relative(src, file)} imports ${specifier}`),

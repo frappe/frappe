@@ -4,7 +4,7 @@ import { useRouter } from "vue-router"
 
 import useCodeStore from "@/runtime/stores/codeStore"
 
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 const useAppStore = defineStore("appStore", () => {
 	const activePage = ref<StudioPage | null>(null)

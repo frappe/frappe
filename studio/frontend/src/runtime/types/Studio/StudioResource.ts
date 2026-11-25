@@ -1,4 +1,4 @@
-import type { Operators } from "@/types"
+import type { Operators } from "@/runtime/types"
 export type ResourceType = "API Resource" | "Document List" | "Document"
 export type Filters = Record<string, [Operators, any] | string | number | boolean | null>
 

@@ -5,9 +5,9 @@ import { nextTick } from "vue"
 
 import "@/runtime/setupFrappeUIResource"
 import { usePageScope } from "@/runtime/stores/codeStore"
-import type { Resource } from "@/types/Studio/StudioResource"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
+import type { Resource } from "@/runtime/types/Studio/StudioResource"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
+import type { Variable } from "@/runtime/types/Studio/StudioPageVariable"
 
 // Assertions only rely on the Administrator and Guest users every site has
 const page = { name: "page-1" } as StudioPage

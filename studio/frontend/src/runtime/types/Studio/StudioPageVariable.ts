@@ -1,4 +1,4 @@
-import { SelectOption } from "@/types"
+import { SelectOption } from "@/runtime/types"
 
 export type Variable = {
 	name: string

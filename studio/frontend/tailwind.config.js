@@ -17,7 +17,7 @@ const exportedAppContent = findStudioAppFolders(appsDir).flatMap((folder) => [
 export default {
 	presets: [frappeUIPreset],
 	// TextBlock sets its size via a dynamic `:class="[fontSize]"` binding
-	// Sync with `fontSize` union in src/types/studio_components/TextBlock.ts.
+	// Sync with `fontSize` union in src/runtime/types/studio_components/TextBlock.ts.
 	safelist: [
 		"text-2xs",
 		"text-xs",

@@ -211,7 +211,7 @@
 import { ref, computed } from "vue"
 import { Combobox, Dropdown, ErrorMessage, Popover, FormControl, Button, Switch, dialog, toast } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
-import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponentInput } from "@/runtime/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import PropsEditor from "@/components/PropsEditor.vue"

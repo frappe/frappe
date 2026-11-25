@@ -1,4 +1,4 @@
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import type { StudioComponent } from "@/runtime/types/Studio/StudioComponent"
 
 export interface StudioPage {
 	creation: string

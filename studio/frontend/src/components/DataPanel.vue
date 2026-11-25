@@ -152,8 +152,8 @@ import { getAutocompleteValues, getParamsObj, confirm, copyToClipboard } from "@
 import { isObjectEmpty } from "@/runtime/utils/helpers"
 import { studioPageResources } from "@/runtime/data/studioResources"
 import { studioVariables } from "@/runtime/data/studioVariables"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
-import type { Resource } from "@/types/Studio/StudioResource"
+import type { Variable } from "@/runtime/types/Studio/StudioPageVariable"
+import type { Resource } from "@/runtime/types/Studio/StudioResource"
 import { toast } from "frappe-ui"
 import { copyDataSource } from "@/utils/blockCopyPaste"
 

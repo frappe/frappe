@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import type { HTMLProps } from "@/types/studio_components/HTML"
+import type { HTMLProps } from "@/runtime/types/studio_components/HTML"
 import { isEditor } from "@/runtime/utils/helpers"
 import { sanitizeHTML } from "@/runtime/utils/helpers"
 

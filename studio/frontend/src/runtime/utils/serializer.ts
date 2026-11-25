@@ -2,7 +2,7 @@ import { reactive } from "vue"
 import Block from "./block"
 import { deepCloneObject } from "@/runtime/utils/helpers"
 
-import type { ObjectLiteral, BlockOptions } from "@/types"
+import type { ObjectLiteral, BlockOptions } from "@/runtime/types"
 
 /**
  * Serialization and Deserialization utilities for Blocks and Objects

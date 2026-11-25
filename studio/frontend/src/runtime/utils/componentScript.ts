@@ -9,7 +9,7 @@ import {
 	type Component,
 	type SetupContext,
 } from "vue"
-import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponent, StudioComponentInput } from "@/runtime/types/Studio/StudioComponent"
 
 /** A component script's default export: a Vue component definition without a template. */
 export interface ComponentScript {
