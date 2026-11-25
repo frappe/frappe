@@ -110,7 +110,8 @@ class DocumentNamingRule(Document):
 			return
 
 		prefix = parse_naming_series(self.prefix, doc=doc)
-		if len(doc.name) != len(prefix) + self.prefix_digits or not doc.name[len(prefix) :].isdigit():
+		suffix = doc.name[len(prefix) :]
+		if not suffix.isdigit() or suffix != str(int(suffix)).zfill(self.prefix_digits):
 			return
 		if "." not in self.prefix and not doc.name.startswith(prefix):
 			return
