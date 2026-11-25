@@ -1206,9 +1206,11 @@ def get_web_form_module(doc):
 
 
 def scrub_fieldname(text):
-	"""Lowercase ASCII letters, digits and underscores, accents dropped, within the column name limit."""
+	"""Lowercase ASCII letters, digits and underscores, accents dropped, never digit-first, within the column name limit."""
 	text = unicodedata.normalize("NFKD", cstr(text)).encode("ascii", "ignore").decode()
 	fieldname = re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+	if fieldname[:1].isdigit():
+		fieldname = f"field_{fieldname}"
 	return fieldname[: frappe.db.MAX_COLUMN_LENGTH - 1].rstrip("_")
 
 

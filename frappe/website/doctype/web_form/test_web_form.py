@@ -2104,6 +2104,21 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.assertEqual([d.fieldname for d in web_form.web_form_fields], expected)
 		self.assertEqual([df.fieldname for df in frappe.get_meta(web_form.doc_type).fields], expected)
 
+	def test_digit_first_fieldnames_get_a_prefix(self):
+		web_form = self.new_web_form(
+			"Test WF Issue 16 Digit Fieldnames",
+			fields=[
+				{"label": "1st Choice", "fieldtype": "Data"},
+				{"label": "2", "fieldtype": "Data"},
+				{"fieldname": "3", "label": "Three", "fieldtype": "Data"},
+				{"label": "9" * 70, "fieldtype": "Data"},
+			],
+		)
+
+		expected = ["field_1st_choice", "field_2", "field_3", f"field_{'9' * 57}"]
+		self.assertEqual([d.fieldname for d in web_form.web_form_fields], expected)
+		self.assertEqual([df.fieldname for df in frappe.get_meta(web_form.doc_type).fields], expected)
+
 	def test_saved_fieldname_cannot_be_changed(self):
 		web_form = self.new_web_form("Test Web Form Rename Fieldname")
 		web_form.web_form_fields[0].fieldname = "given_name"
