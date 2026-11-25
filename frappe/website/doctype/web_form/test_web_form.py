@@ -2132,3 +2132,16 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		)
 		web_form.save()
 		self.assertTrue(frappe.get_meta(web_form.doc_type).has_field("last_name"))
+
+	def test_fieldtype_change_rejects_values_too_long_for_new_type(self):
+		web_form = self.new_web_form(
+			"Test Web Form Shrink Fieldtype",
+			fields=[{"fieldname": "notes", "label": "Notes", "fieldtype": "Small Text"}],
+		)
+		frappe.get_doc({"doctype": web_form.doc_type, "notes": "x" * 500}).insert()
+		web_form.web_form_fields[0].fieldtype = "Data"
+
+		with self.assertRaisesRegex(frappe.ValidationError, "too long"):
+			web_form.save()
+
+		self.assertEqual(frappe.get_meta(web_form.doc_type).get_field("notes").fieldtype, "Small Text")

@@ -357,14 +357,19 @@ class WebForm(WebsiteGenerator):
 			return
 
 		meta = frappe.get_meta(self.doc_type)
+		customize_form = frappe.get_doc({"doctype": "Customize Form", "doc_type": self.doc_type})
 		for d in self.web_form_fields:
 			df = d.fieldname and meta.get_field(d.fieldname)
 			new_type = self.as_docfield(d)["fieldtype"]
-			if (
-				not df
-				or df.fieldtype == new_type
-				or CustomizeForm.allow_fieldtype_change(df.fieldtype, new_type)
-			):
+			if not df or df.fieldtype == new_type:
+				continue
+
+			if CustomizeForm.allow_fieldtype_change(df.fieldtype, new_type):
+				old_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
+				new_length = cint(frappe.db.type_map.get(new_type)[1])
+				if new_length and (not old_length or old_length > new_length):
+					new_df = frappe._dict(df.as_dict(), fieldtype=new_type, label=d.label or d.fieldname)
+					customize_form.validate_fieldtype_length(new_df)
 				continue
 
 			frappe.throw(
