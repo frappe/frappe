@@ -73,35 +73,60 @@ class Base:
 			throw(_("Invalid DocType: {0}").format(doctype))
 
 
-<<<<<<< HEAD
-=======
-class RecursiveCTEMixin:
-	"""Adds `WITH RECURSIVE` support to a pypika query builder. Pass `recursive=True` to
-	`frappe.qb.with_(subquery, name, recursive=True)` and reference the CTE inside its own recursive
-	term via `pypika.Table(name)`. Renders `WITH RECURSIVE` on postgres, mariadb (10.2+) and sqlite;
-	a non-recursive builder is byte-for-byte unchanged (`recursive` defaults to False)."""
+class MariaDB(Base, MySQLQuery):
+	Field = terms.Field
 
-	def __init__(self, *args, recursive: bool = False, **kwargs):
-		super().__init__(*args, **kwargs)
-		self._recursive_cte = recursive
+	_BuilderClasss = MySQLQueryBuilder
 
-	def _with_sql(self, **kwargs) -> str:
-		keyword = "WITH RECURSIVE " if getattr(self, "_recursive_cte", False) else "WITH "
-		return keyword + ",".join(
-			clause.name + " AS (" + clause.get_sql(subquery=False, with_alias=False, **kwargs) + ") "
-			for clause in self._with
-		)
+	@classmethod
+	def _builder(cls, *args, **kwargs) -> "MySQLQueryBuilder":
+		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
+
+	@classmethod
+	def from_(cls, table, *args, **kwargs):
+		if isinstance(table, str):
+			table = cls.DocType(table)
+		return super().from_(table, *args, **kwargs)
 
 
-class RecursiveMySQLQueryBuilder(RecursiveCTEMixin, MySQLQueryBuilder):
-	pass
+class Postgres(Base, PostgreSQLQuery):
+	field_translation = types.MappingProxyType({"table_name": "relname", "table_rows": "n_tup_ins"})
+	schema_translation = types.MappingProxyType({"tables": "pg_stat_all_tables"})
+	# TODO: Find a better way to do this
+	# These are interdependent query changes that need fixing. These
+	# translations happen in the same query. But there is no check to see if
+	# the Fields are changed only when a particular `information_schema` schema
+	# is used. Replacing them is not straightforward because the "from_"
+	# function can not see the arguments passed to the "select" function as
+	# they are two different objects. The quick fix used here is to replace the
+	# Field names in the "Field" function.
+
+	_BuilderClasss = PostgreSQLQueryBuilder
+
+	@classmethod
+	def _builder(cls, *args, **kwargs) -> "PostgreSQLQueryBuilder":
+		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
+
+	@classmethod
+	def Field(cls, field_name, *args, **kwargs):
+		if field_name in cls.field_translation:
+			field_name = cls.field_translation[field_name]
+		return terms.Field(field_name, *args, **kwargs)
+
+	@classmethod
+	def from_(cls, table, *args, **kwargs):
+		if isinstance(table, Table):
+			if table._schema:
+				if table._schema._name == "information_schema":
+					table = cls.schema_translation.get(table._table_name) or table
+
+		elif isinstance(table, str):
+			table = cls.DocType(table)
+
+		return super().from_(table, *args, **kwargs)
 
 
-class RecursivePostgreSQLQueryBuilder(RecursiveCTEMixin, PostgreSQLQueryBuilder):
-	pass
-
-
-class RecursiveSQLLiteQueryBuilder(RecursiveCTEMixin, SQLLiteQueryBuilder):
+class FrappeSQLiteQueryBuilder(SQLLiteQueryBuilder):
 	def __init__(self, *args, **kwargs):
 		# SQLite rejects parentheses around the individual SELECT statements in a compound query.
 		kwargs["wrap_set_operation_queries"] = False
@@ -222,68 +247,14 @@ class RecursiveSQLLiteQueryBuilder(RecursiveCTEMixin, SQLLiteQueryBuilder):
 		return query + self._on_conflict_sql(**kwargs) + self._on_conflict_action_sql(**kwargs)
 
 
->>>>>>> ed88b6a (fix(sqlite): support query builder and search)
-class MariaDB(Base, MySQLQuery):
-	Field = terms.Field
-
-	_BuilderClasss = MySQLQueryBuilder
-
-	@classmethod
-	def _builder(cls, *args, **kwargs) -> "MySQLQueryBuilder":
-		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
-
-	@classmethod
-	def from_(cls, table, *args, **kwargs):
-		if isinstance(table, str):
-			table = cls.DocType(table)
-		return super().from_(table, *args, **kwargs)
-
-
-class Postgres(Base, PostgreSQLQuery):
-	field_translation = types.MappingProxyType({"table_name": "relname", "table_rows": "n_tup_ins"})
-	schema_translation = types.MappingProxyType({"tables": "pg_stat_all_tables"})
-	# TODO: Find a better way to do this
-	# These are interdependent query changes that need fixing. These
-	# translations happen in the same query. But there is no check to see if
-	# the Fields are changed only when a particular `information_schema` schema
-	# is used. Replacing them is not straightforward because the "from_"
-	# function can not see the arguments passed to the "select" function as
-	# they are two different objects. The quick fix used here is to replace the
-	# Field names in the "Field" function.
-
-	_BuilderClasss = PostgreSQLQueryBuilder
-
-	@classmethod
-	def _builder(cls, *args, **kwargs) -> "PostgreSQLQueryBuilder":
-		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
-
-	@classmethod
-	def Field(cls, field_name, *args, **kwargs):
-		if field_name in cls.field_translation:
-			field_name = cls.field_translation[field_name]
-		return terms.Field(field_name, *args, **kwargs)
-
-	@classmethod
-	def from_(cls, table, *args, **kwargs):
-		if isinstance(table, Table):
-			if table._schema:
-				if table._schema._name == "information_schema":
-					table = cls.schema_translation.get(table._table_name) or table
-
-		elif isinstance(table, str):
-			table = cls.DocType(table)
-
-		return super().from_(table, *args, **kwargs)
-
-
 class SQLite(Base, SQLLiteQuery):
 	Field = terms.Field
 
-	_BuilderClasss = SQLLiteQueryBuilder
+	_BuilderClasss = FrappeSQLiteQueryBuilder
 
 	@classmethod
-	def _builder(cls, *args, **kwargs) -> "SQLLiteQueryBuilder":
-		return super()._builder(*args, wrapper_cls=SQLiteParameterizedValueWrapper, **kwargs)
+	def _builder(cls, *args, **kwargs) -> "FrappeSQLiteQueryBuilder":
+		return FrappeSQLiteQueryBuilder(*args, wrapper_cls=SQLiteParameterizedValueWrapper, **kwargs)
 
 	@classmethod
 	def from_(cls, table, *args, **kwargs):

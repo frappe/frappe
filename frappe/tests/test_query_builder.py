@@ -14,23 +14,16 @@ from frappe.query_builder.functions import (
 	Coalesce,
 	CombineDatetime,
 	Date,
-<<<<<<< HEAD
-=======
-	DateDiff,
 	DateFormat,
->>>>>>> ed88b6a (fix(sqlite): support query builder and search)
 	GroupConcat,
 	JSONContains,
 	JSONExtract,
 	JSONValue,
 	Match,
-<<<<<<< HEAD
-=======
 	Month,
 	MonthName,
 	Now,
 	Quarter,
->>>>>>> ed88b6a (fix(sqlite): support query builder and search)
 	Round,
 	Timestamp,
 	Truncate,
@@ -519,7 +512,6 @@ class TestCustomFunctionsSQLite(IntegrationTestCase):
 			negative,
 			formatted,
 			verbose_format,
-			days,
 			month_name,
 			month,
 			quarter,
@@ -531,7 +523,6 @@ class TestCustomFunctionsSQLite(IntegrationTestCase):
 			CombineDatetime("2024-02-03", "-01:00:00"),
 			DateFormat("2024-02-03 04:05:06", "%m-%Y"),
 			DateFormat("2024-02-03 04:05:06", "%M %e, %Y %r"),
-			DateDiff("2024-01-10 01:00:00", "2024-01-01 23:00:00"),
 			MonthName("2024-02-03"),
 			Month("2024-02-03"),
 			Quarter("2024-05-03"),
@@ -544,7 +535,6 @@ class TestCustomFunctionsSQLite(IntegrationTestCase):
 		self.assertEqual(negative, "2024-02-02 23:00:00")
 		self.assertEqual(formatted, "02-2024")
 		self.assertEqual(verbose_format, "February 3, 2024 04:05:06 AM")
-		self.assertEqual(days, 9)
 		self.assertEqual(month_name, "February")
 		self.assertEqual((month, quarter, year), (2, 2, 2024))
 		self.assertTrue(all(isinstance(value, int) for value in (month, quarter, year)))

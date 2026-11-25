@@ -197,16 +197,6 @@ class ConstantColumn(Term):
 		)
 
 
-<<<<<<< HEAD
-class MonthName(Function):
-	def __init__(self, field, alias=None):
-		super().__init__("MONTHNAME", field, alias=alias)
-=======
-# MariaDB, PostgreSQL, and SQLite expose different functions for these date parts.
-def _is_postgres() -> bool:
-	return getattr(frappe.conf, "db_type", None) == "postgres"
-
-
 def _is_sqlite() -> bool:
 	return getattr(frappe.conf, "db_type", None) == "sqlite"
 
@@ -237,11 +227,11 @@ class _IntegerDatePart:
 	"""Return numeric date parts as integers on every database."""
 
 	def get_sql(self, **kwargs):
-		if not (self._postgres or self._sqlite):
+		if not self._sqlite:
 			return super().get_sql(**kwargs)
 		with_alias = kwargs.pop("with_alias", False)
 		date_part_sql = super().get_sql(**kwargs)
-		if self._sqlite and self._date_part == "quarter":
+		if self._date_part == "quarter":
 			sql = f"CAST((CAST({date_part_sql} AS INTEGER) + 2) / 3 AS INTEGER)"
 		else:
 			sql = f"CAST({date_part_sql} AS INTEGER)"
@@ -253,13 +243,10 @@ class _IntegerDatePart:
 class MonthName(Function):
 	def __init__(self, field, alias=None):
 		self._sqlite = _is_sqlite()
-		if _is_postgres():
-			super().__init__("to_char", field, "FMMonth", alias=alias)
-		elif self._sqlite:
+		if self._sqlite:
 			super().__init__("STRFTIME", field, alias=alias)
 		else:
 			super().__init__("MONTHNAME", field, alias=alias)
->>>>>>> ed88b6a (fix(sqlite): support query builder and search)
 
 	def get_function_sql(self, **kwargs):
 		if not self._sqlite:
@@ -267,30 +254,12 @@ class MonthName(Function):
 		field_sql = self.args[0].get_sql(with_alias=False, subquery=True, **kwargs)
 		return f"CASE STRFTIME('%m', {field_sql}) {SQLITE_MONTH_NAME_CASES} END"
 
-<<<<<<< HEAD
-class Quarter(Function):
-	def __init__(self, field, alias=None):
-		super().__init__("QUARTER", field, alias=alias)
-
-
-class Month(Function):
-	def __init__(self, field, alias=None):
-		super().__init__("MONTH", field, alias=alias)
-
-
-class Year(Function):
-	def __init__(self, field, alias=None):
-		super().__init__("YEAR", field, alias=alias)
-=======
 
 class Quarter(_IntegerDatePart, Function):
 	def __init__(self, field, alias=None):
-		self._postgres = _is_postgres()
 		self._sqlite = _is_sqlite()
 		self._date_part = "quarter"
-		if self._postgres:
-			super().__init__("date_part", "quarter", field, alias=alias)
-		elif self._sqlite:
+		if self._sqlite:
 			super().__init__("STRFTIME", "%m", field, alias=alias)
 		else:
 			super().__init__("QUARTER", field, alias=alias)
@@ -298,12 +267,9 @@ class Quarter(_IntegerDatePart, Function):
 
 class Month(_IntegerDatePart, Function):
 	def __init__(self, field, alias=None):
-		self._postgres = _is_postgres()
 		self._sqlite = _is_sqlite()
 		self._date_part = "month"
-		if self._postgres:
-			super().__init__("date_part", "month", field, alias=alias)
-		elif self._sqlite:
+		if self._sqlite:
 			super().__init__("STRFTIME", "%m", field, alias=alias)
 		else:
 			super().__init__("MONTH", field, alias=alias)
@@ -311,13 +277,9 @@ class Month(_IntegerDatePart, Function):
 
 class Year(_IntegerDatePart, Function):
 	def __init__(self, field, alias=None):
-		self._postgres = _is_postgres()
 		self._sqlite = _is_sqlite()
 		self._date_part = "year"
-		if self._postgres:
-			super().__init__("date_part", "year", field, alias=alias)
-		elif self._sqlite:
+		if self._sqlite:
 			super().__init__("STRFTIME", "%Y", field, alias=alias)
 		else:
 			super().__init__("YEAR", field, alias=alias)
->>>>>>> ed88b6a (fix(sqlite): support query builder and search)

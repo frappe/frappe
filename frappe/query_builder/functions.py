@@ -3,15 +3,11 @@ from datetime import time
 from enum import Enum
 
 from pypika.functions import *
-<<<<<<< HEAD
-from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function, Term
-=======
 from pypika.functions import Coalesce as PypikaCoalesce
 from pypika.functions import Now as PypikaNow
-from pypika.terms import ArithmeticExpression, CustomFunction, Function, Term
+from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function, Term
 from pypika.terms import Interval as PypikaInterval
 from pypika.utils import format_alias_sql
->>>>>>> ed88b6a (fix(sqlite): support query builder and search)
 
 import frappe
 from frappe.query_builder.custom import (
@@ -134,36 +130,6 @@ class Truncate(Function):
 		super().__init__("TRUNCATE", term, decimal, **kwargs)
 
 
-<<<<<<< HEAD
-GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
-=======
-class Abs(Function):
-	# pypika ships Abs as an AggregateFunction, which makes get_list/get_value treat a scalar
-	# ABS(...) select field as an aggregate query. On postgres that forces the default ORDER BY
-	# to be wrapped in MAX(), turning the statement into an implicit aggregate and breaking the
-	# (non-grouped) ABS column. ABS is scalar, so define it as a plain Function.
-	def __init__(self, term, alias=None):
-		super().__init__("ABS", term, alias=alias)
-
-
-class CurDate(Term):
-	"""SQL standard ``CURRENT_DATE`` keyword.
-
-	pypika ships CurDate as a Function, so it renders ``CURRENT_DATE()``. Postgres rejects the
-	parentheses — CURRENT_DATE is a reserved keyword there, not a function — while MariaDB accepts
-	the bare keyword too. Render it without parentheses so the same query builder works on both.
-	"""
-
-	def __init__(self, alias=None):
-		super().__init__(alias=alias)
-
-	def get_sql(self, **kwargs):
-		with_alias = kwargs.pop("with_alias", False)
-		if with_alias:
-			return format_alias_sql("CURRENT_DATE", self.alias, **kwargs)
-		return "CURRENT_DATE"
-
-
 GroupConcat = ImportMapper(
 	{
 		db_type_is.MARIADB: GROUP_CONCAT,
@@ -171,7 +137,6 @@ GroupConcat = ImportMapper(
 		db_type_is.SQLITE: SQLITE_GROUP_CONCAT,
 	}
 )
->>>>>>> ed88b6a (fix(sqlite): support query builder and search)
 
 Match = ImportMapper(
 	{
@@ -305,46 +270,6 @@ UnixTimestamp = ImportMapper(
 )
 
 
-<<<<<<< HEAD
-=======
-class _PostgresDateDiff(ArithmeticExpression):
-	"""Postgres subtracts two dates to get an integer number of days, which matches
-	MariaDB's DATEDIFF(date1, date2). Both operands are cast to date: subtracting
-	timestamps would yield an interval that carries the time of day, so a Datetime
-	field would return a timedelta where MariaDB returns whole days."""
-
-	def __init__(self, date1, date2, alias=None):
-		super().__init__(
-			operator=Arithmetic.sub,
-			left=Cast(date1, "date"),
-			right=Cast(date2, "date"),
-			alias=alias,
-		)
-
-
-class _SQLiteDateDiff(Function):
-	"""Return the difference between calendar dates, ignoring their times of day."""
-
-	def __init__(self, date1, date2, alias=None):
-		super().__init__("DATEDIFF", date1, date2, alias=alias)
-
-	def get_function_sql(self, **kwargs):
-		date1_sql, date2_sql = (
-			argument.get_sql(with_alias=False, subquery=True, **kwargs) for argument in self.args
-		)
-		return f"CAST(JULIANDAY(DATE({date1_sql})) - JULIANDAY(DATE({date2_sql})) AS INTEGER)"
-
-
-DateDiff = ImportMapper(
-	{
-		db_type_is.MARIADB: CustomFunction("DATEDIFF", ["date1", "date2"]),
-		db_type_is.POSTGRES: _PostgresDateDiff,
-		db_type_is.SQLITE: _SQLiteDateDiff,
-	}
-)
-
-
->>>>>>> ed88b6a (fix(sqlite): support query builder and search)
 class _MariaDBJSONExtract(Function):
 	def __init__(self, field, path, **kwargs):
 		super().__init__("JSON_EXTRACT", field, path, **kwargs)
