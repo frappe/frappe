@@ -1636,6 +1636,8 @@ def in_words(integer: int, in_million=True) -> str:
 		ret = num2words(integer, lang="en")
 	except OverflowError:
 		ret = num2words(integer, lang="en")
+	if locale and locale.startswith("es"):
+		ret = re.sub(r"\b(veinti)?uno(?= mil| bill)", lambda m: "veintiún" if m.group(1) else "un", ret)
 	return ret.replace("-", " ")
 
 
