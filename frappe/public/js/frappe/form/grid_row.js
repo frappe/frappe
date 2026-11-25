@@ -740,7 +740,7 @@ export default class GridRow {
 
 			// background color for cell
 			if (this.doc) {
-				if (df.reqd && !txt) {
+				if (df.reqd && !txt && !df.hidden_due_to_dependency) {
 					column.addClass("error");
 				}
 				if (column.is_invalid) {
@@ -1525,6 +1525,9 @@ export default class GridRow {
 	// Static cells clip to a single line, so building the full rich-text HTML per cell
 	// is wasted work — show stripped text instead, like the list view does.
 	_format_static_value(value, df, doc) {
+		if (df?.hidden_due_to_dependency) {
+			return "";
+		}
 		const RICH_TEXT_FIELDTYPES = ["Text Editor", "HTML Editor", "Markdown Editor"];
 		if (df && RICH_TEXT_FIELDTYPES.includes(df.fieldtype)) {
 			return strip_html(cstr(value));
@@ -1542,6 +1545,7 @@ export default class GridRow {
 
 		// format values if no frm
 		if (df && this.doc) {
+			this.set_dependant_property(df);
 			txt = this._format_static_value(this.doc[fieldname], df, this.doc);
 		}
 
@@ -1554,7 +1558,10 @@ export default class GridRow {
 		if (column) {
 			column.static_area.html(txt || "");
 			if (df && df.reqd) {
-				column.toggleClass("error", !!(txt === null || txt === ""));
+				column.toggleClass(
+					"error",
+					!df.hidden_due_to_dependency && (txt === null || txt === "")
+				);
 			}
 		}
 
