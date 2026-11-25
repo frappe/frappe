@@ -33,6 +33,10 @@ class WebhookGuard(CodeFieldGuard):
 			return False
 		return super().is_authored(row, reference, df, is_new, child_doctype)
 
+	def get_source_filters(self, fieldname, value, child_doctype=None):
+		# a static URL was never run as code, so it is no approved source for a dynamic one
+		return [["Webhook", "is_dynamic_url", "=", 1]] if fieldname == "request_url" else []
+
 
 class Webhook(Document):
 	code_field_guard = WebhookGuard

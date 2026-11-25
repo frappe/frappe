@@ -134,6 +134,7 @@ class TestExecutableFields(IntegrationTestCase):
 			webhook.is_dynamic_url = 1
 			self.assertRaises(frappe.PermissionError, webhook.save)
 
+			# a static URL is no source for a dynamic copy, even next to another dynamic webhook
 			webhook.reload()
 			dynamic = {
 				**values,
@@ -145,6 +146,12 @@ class TestExecutableFields(IntegrationTestCase):
 
 		with test_user(roles=["System Manager", "Code Author"]) as user, self.set_user(user.name):
 			webhook = frappe.get_doc(dynamic).insert()
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			static_url = {"request_url": "https://example.com/{{ frappe.session.user }}"}
+			self.assertTrue(frappe.db.exists("Webhook", {"request_url": static_url["request_url"]}))
+			copy = {**dynamic, **static_url, "name": frappe.generate_hash(length=10)}
+			self.assertRaises(frappe.PermissionError, frappe.get_doc(copy).insert)
 
 		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
 			webhook.is_dynamic_url = 0
