@@ -881,12 +881,6 @@ def delete_contact(user):
 
 
 class TestNeedsPasswordSetup(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		# With login links on, a user without a password can already get back in.
-		cls.enterClassContext(cls.change_settings("System Settings", login_with_email_link=0))
-
 	def setUp(self):
 		self.user = frappe.get_doc(
 			{
@@ -988,14 +982,18 @@ class TestNeedsPasswordSetup(IntegrationTestCase):
 		self.assertFalse(needs_password_setup("Guest"))
 
 	@IntegrationTestCase.change_settings("System Settings", login_with_email_link=1)
-	def test_not_when_email_login_links_are_on(self):
-		self.assertFalse(needs_password_setup(self.user.name))
+	def test_also_when_email_login_links_are_on(self):
+		self.assertTrue(needs_password_setup(self.user.name))
 
-	def test_not_on_frappe_cloud_v2(self):
+	def test_also_on_frappe_cloud_v2(self):
 		with patch.dict(
 			frappe.conf, {"pilot_endpoint": "https://pilot.example.com", "pilot_auth_token": "t"}
 		):
-			self.assertFalse(needs_password_setup(self.user.name))
+			self.assertTrue(needs_password_setup(self.user.name))
+
+	@IntegrationTestCase.change_settings("System Settings", disable_user_pass_login=1)
+	def test_not_when_password_login_is_off(self):
+		self.assertFalse(needs_password_setup(self.user.name))
 
 	def test_not_for_social_login_users(self):
 		self.user.append("social_logins", {"provider": "google", "userid": "1234"})
