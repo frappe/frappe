@@ -283,7 +283,9 @@ class AutoRepeat(Document):
 						self.send_notification(new_doc)
 				else:
 					self.send_notification(new_docs)
-		except Exception:
+		except Exception as e:
+			if frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e):
+				raise
 			error_log = self.log_error(
 				_("Auto repeat failed. Please enable auto repeat after fixing the issues.")
 			)
