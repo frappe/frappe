@@ -358,7 +358,7 @@ frappe.views.Workspace = class Workspace {
 
 			parse_content(current_page);
 
-			this.content = current_page.content;
+			this.content = current_page.content && [...current_page.content];
 			this.content && this.add_custom_cards_in_content();
 			this.content && this.add_hidden_notice_in_content(current_page);
 			this.add_mount_notice(current_page);
