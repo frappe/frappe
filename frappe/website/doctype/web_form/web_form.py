@@ -118,6 +118,13 @@ class WebForm(WebsiteGenerator):
 
 		super().validate()
 
+		if self.is_standard and not self.module:
+			frappe.throw(
+				_("Select a Module for a standard Web Form"),
+				frappe.MandatoryError,
+				title=_("Module Required"),
+			)
+
 		if not self.module:
 			self.module = (
 				frappe.db.get_value("DocType", self.doc_type, "module") if self.doc_type else "Custom"

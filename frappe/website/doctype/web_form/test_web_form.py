@@ -2193,3 +2193,9 @@ class TestWebFormNewDocType(IntegrationTestCase):
 
 		self.assertEqual(web_form.web_form_fields[0].label, "Int")
 		self.assertEqual(frappe.get_meta(web_form.doc_type).get_field("int").label, "Int")
+
+	def test_standard_web_form_needs_module(self):
+		with self.assertRaisesRegex(frappe.MandatoryError, "Select a Module"):
+			self.new_web_form("Test WF Issue 8 Standard", module=None, is_standard=1)
+
+		self.assertFalse(frappe.db.exists("DocType", "webform-test-wf-issue-8-standard"))
