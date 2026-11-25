@@ -74,6 +74,7 @@ export function useNotifications(
         doctype: "User",
         filters: { name: ["in", missing] },
         fields: ["name", "user_image", "full_name"],
+        limit_page_length: missing.length,
       })) as Array<{ name: string; user_image?: string; full_name?: string }>;
       for (const u of users) {
         if (u.user_image) userImages.value[u.name] = u.user_image;
