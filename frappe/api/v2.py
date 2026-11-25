@@ -24,6 +24,7 @@ from frappe.mcp import handle as handle_mcp
 PERMISSION_MAP = {
 	"GET": "read",
 	"POST": "write",
+	"QUERY": "read",
 }
 
 
@@ -309,12 +310,12 @@ url_rules = [
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",
-		methods=["GET", "POST"],
+		methods=["GET", "POST", "QUERY"],
 		endpoint=lambda: frappe.call(run_doc_method, **frappe.form_dict),
 	),
 	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
 	# Document level APIs
-	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
+	Rule("/document/<doctype>", methods=["GET", "QUERY"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
 	Rule("/document/<doctype>/<path:name>/copy", methods=["GET"], endpoint=copy_doc),
@@ -322,10 +323,10 @@ url_rules = [
 	Rule("/document/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
 	Rule(
 		"/document/<doctype>/<path:name>/method/<method>/",
-		methods=["GET", "POST"],
+		methods=["GET", "POST", "QUERY"],
 		endpoint=execute_doc_method,
 	),
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
-	Rule("/doctype/<doctype>/count", methods=["GET"], endpoint=count),
+	Rule("/doctype/<doctype>/count", methods=["GET", "QUERY"], endpoint=count),
 ]
