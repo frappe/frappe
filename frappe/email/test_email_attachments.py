@@ -6,11 +6,8 @@ import requests
 import frappe
 from frappe.email.receive import InboundMail
 from frappe.tests import IntegrationTestCase
-<<<<<<< HEAD
 from frappe.tests.test_pdf import pdf_with_document_level_js
-=======
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
->>>>>>> 7252658 (test: annotate tests with service requirements)
 from frappe.utils import get_url
 
 if TYPE_CHECKING:

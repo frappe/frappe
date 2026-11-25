@@ -31,13 +31,8 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
-<<<<<<< HEAD
-from frappe.utils import get_url, today
-=======
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_url
-from frappe.utils.data import orjson_dumps
->>>>>>> 7252658 (test: annotate tests with service requirements)
+from frappe.utils import get_url, today
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user

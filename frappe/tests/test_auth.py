@@ -144,7 +144,6 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
-<<<<<<< HEAD
 	def test_forced_password_reset_does_not_leak_reset_key(self):
 		from frappe.auth import LoginManager
 		from frappe.utils import add_days, set_request, today
@@ -251,9 +250,7 @@ class TestAuth(IntegrationTestCase):
 			frappe.db.set_value("Role", "System Manager", "home_page", "todo")
 			self.assertEqual(home_page_after_login(), "todo")
 
-=======
 	@requires_test_service(TestService.WEB_SERVER)
->>>>>>> 7252658 (test: annotate tests with service requirements)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
 

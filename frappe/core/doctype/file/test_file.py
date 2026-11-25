@@ -23,12 +23,8 @@ from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension, get_web_image
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
-<<<<<<< HEAD
 from frappe.tests import IntegrationTestCase, UnitTestCase
-=======
-from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
->>>>>>> 7252658 (test: annotate tests with service requirements)
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
