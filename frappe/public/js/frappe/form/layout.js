@@ -1,6 +1,6 @@
-import Section from "./section.js";
-import Tab from "./tab.js";
-import Column from "./column.js";
+import "./section.js";
+import "./tab.js";
+import "./column.js";
 
 frappe.ui.form.Layout = class Layout {
 	constructor(opts) {
@@ -347,7 +347,7 @@ frappe.ui.form.Layout = class Layout {
 			df.fieldtype = "Section Break";
 		}
 
-		this.section = new Section(
+		this.section = new frappe.ui.form.Section(
 			this.current_tab ? this.current_tab.wrapper : this.page,
 			df,
 			this.card_layout,
@@ -372,7 +372,7 @@ frappe.ui.form.Layout = class Layout {
 			df.fieldtype = "Column Break";
 		}
 
-		this.column = new Column(this.section, df);
+		this.column = new frappe.ui.form.Column(this.section, df);
 		if (df && df.fieldname) {
 			this.fields_list.push(this.column);
 		}
@@ -380,7 +380,13 @@ frappe.ui.form.Layout = class Layout {
 
 	make_tab(df) {
 		this.section = null;
-		let tab = new Tab(this, df, this.frm, this.tab_link_container, this.tabs_content);
+		let tab = new frappe.ui.form.Tab(
+			this,
+			df,
+			this.frm,
+			this.tab_link_container,
+			this.tabs_content
+		);
 		this.current_tab = tab;
 		this.make_section({ fieldtype: "Section Break" });
 		this.tabs.push(tab);

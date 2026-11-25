@@ -69,3 +69,5 @@ export default class Column {
 		this.resize_all_columns();
 	}
 }
+
+frappe.ui.form.Column = Column;
