@@ -101,7 +101,10 @@ class TypeExporter:
 	@staticmethod
 	def _join_code(head: str, types_block: str, tail: str) -> str:
 		tail = tail.lstrip("\n")
-		return head + types_block + ("\n\n" + tail if tail else "\n")
+		if not tail:
+			return head + types_block + "\n"
+		# Top-level code after the class needs two blank lines
+		return head + types_block + ("\n\n" if tail[0] in " \t" else "\n\n\n") + tail
 
 	def _generate_code(self):
 		for field in self.doc.fields:

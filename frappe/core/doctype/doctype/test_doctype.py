@@ -880,7 +880,8 @@ class TestDocType(IntegrationTestCase):
 					code = TypeExporter(doctype).controller_path.read_text()
 				finally:
 					doctype.delete()
-					frappe.db.commit()
+					# Persist the delete past the test rollback
+					frappe.db.commit()  # nosemgrep
 
 				class_def = next(node for node in ast.parse(code).body if isinstance(node, ast.ClassDef))
 				self.assertEqual(class_def.bases[0].id, base_class)
@@ -905,29 +906,32 @@ class TestDocType(IntegrationTestCase):
 		types_block = "\t# begin: auto-generated types\n\tx: int\n\t# end: auto-generated types"
 		header = "from frappe.model.document import Document\n\n\nclass LonePass(Document):\n"
 		cases = {
-			"only pass": ("\tpass\n", ""),
-			"pass without newline": ("\tpass", ""),
-			"pass with spaces": ("    pass  \n", ""),
+			"only pass": ("\tpass\n", "\n"),
+			"pass without newline": ("\tpass", "\n"),
+			"pass with spaces": ("    pass  \n", "\n"),
 			"pass then top-level code": (
 				"\tpass\n\n\ndef helper():\n\treturn 1\n",
-				"def helper():\n\treturn 1\n",
+				"\n\n\ndef helper():\n\treturn 1\n",
 			),
-			"field named password": ("\tpassword = None\n", "\tpassword = None\n"),
-			"pass inside method": ("\tdef validate(self):\n\t\tpass\n", "\tdef validate(self):\n\t\tpass\n"),
+			"field named password": ("\tpassword = None\n", "\n\n\tpassword = None\n"),
+			"pass inside method": (
+				"\tdef validate(self):\n\t\tpass\n",
+				"\n\n\tdef validate(self):\n\t\tpass\n",
+			),
 			"pass then method": (
 				"\tpass\n\n\tdef x(self):\n\t\treturn 1\n",
-				"\tpass\n\n\tdef x(self):\n\t\treturn 1\n",
+				"\n\n\tpass\n\n\tdef x(self):\n\t\treturn 1\n",
 			),
 		}
 
 		exporter = TypeExporter(frappe._dict(name="Lone Pass", module="Core"))
 		with tempfile.TemporaryDirectory() as tmp:
 			exporter.controller_path = Path(tmp) / "lone_pass.py"
-			for case, (body, expected_tail) in cases.items():
+			for case, (body, expected_after_block) in cases.items():
 				with self.subTest(case):
 					exporter.controller_path.write_text(header + body)
 					exporter._replace_or_add_code(types_block)
-					expected = header + types_block + ("\n\n" + expected_tail if expected_tail else "\n")
+					expected = header + types_block + expected_after_block
 					self.assertEqual(exporter.controller_path.read_text(), expected)
 
 					# Re-export must not change the file
