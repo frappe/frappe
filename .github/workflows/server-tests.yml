@@ -58,7 +58,7 @@ jobs:
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: ${{ github.event_name == 'schedule' && 60 || 30 }}
     env:
       NODE_ENV: "production"
       # noisy 3rd party library warnings
