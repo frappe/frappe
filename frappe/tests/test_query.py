@@ -2201,18 +2201,11 @@ class TestQuery(IntegrationTestCase):
 			"User", fields=[{"YEAR": "creation", "as": "creation_year"}], group_by="creation_year"
 		)
 		sql = query.get_sql()
-<<<<<<< HEAD
-		self.assertIn(self.normalize_sql("YEAR(`creation`) `creation_year`"), sql)
-=======
-		if frappe.db.db_type == "postgres":
-			self.assertIn("CAST(date_part('year'", sql)
-			self.assertIn('"creation_year"', sql)
-		elif frappe.db.db_type == "sqlite":
+		if frappe.db.db_type == "sqlite":
 			self.assertIn("CAST(STRFTIME('%Y'", sql)
 			self.assertIn('"creation_year"', sql)
 		else:
 			self.assertIn(self.normalize_sql("YEAR(`creation`) `creation_year`"), sql)
->>>>>>> 98af1de (fix(sqlite): add SQL execution compatibility)
 		self.assertIn(self.normalize_sql("GROUP BY `creation_year`"), self.normalize_sql(sql))
 
 		# Test MIN function

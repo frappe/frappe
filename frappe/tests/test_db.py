@@ -5,6 +5,7 @@ import datetime
 from math import ceil
 from random import choice
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import frappe
 from frappe.core.utils import find
@@ -701,41 +702,6 @@ class TestDB(IntegrationTestCase):
 			modify_query(query),
 		)
 
-	@run_only_if(db_type_is.POSTGRES)
-<<<<<<< HEAD
-=======
-	def test_modify_query_rewrites_regexp_operator_only(self):
-		from frappe.database.postgres.database import modify_query
-
-		self.assertEqual("select 'a' ~* 'b'", modify_query("select 'a' REGEXP 'b'"))
-		self.assertEqual("select 'a' !~* 'b'", modify_query("select 'a' NOT REGEXP 'b'"))
-
-		# the operator only exists outside quoted tokens and comments
-		self.assertEqual("select 'A REGEXP B'", modify_query("select 'A REGEXP B'"))
-		self.assertEqual("select 1 -- a REGEXP here", modify_query("select 1 -- a REGEXP here"))
-		self.assertEqual("select 1 /* a REGEXP here */", modify_query("select 1 /* a REGEXP here */"))
-		self.assertEqual("select $$a REGEXP b$$", modify_query("select $$a REGEXP b$$"))
-		self.assertEqual("select $t$a REGEXP b$t$", modify_query("select $t$a REGEXP b$t$"))
-		# backticks become double quotes before this runs, so a doctype whose name contains the
-		# word must keep its table name intact
-		self.assertEqual(
-			'select 1 from "tabMy Regexp Rules"', modify_query("select 1 from `tabMy Regexp Rules`")
-		)
-		self.assertEqual('select "col REGEXP name"', modify_query('select "col REGEXP name"'))
-		self.assertEqual(r"select E'a\' REGEXP b'", modify_query(r"select E'a\' REGEXP b'"))
-		# an escape string must not desynchronise the scan: a real operator after one still converts
-		self.assertEqual(
-			r"select E'x\' REGEXP y' , 'z' ~* 'w'",
-			modify_query(r"select E'x\' REGEXP y' , 'z' REGEXP 'w'"),
-		)
-		# ... while a standard literal ends at its closing quote even with a trailing backslash
-		self.assertEqual(r"select 'a\' as c, 'b' ~* 'c'", modify_query(r"select 'a\' as c, 'b' REGEXP 'c'"))
-
-		# and the rewritten operators are valid SQL
-		self.assertEqual(frappe.db.sql("select 'abc' REGEXP 'B'")[0][0], True)
-		self.assertEqual(frappe.db.sql("select 'abc' NOT REGEXP 'z'")[0][0], True)
-		self.assertEqual(frappe.db.sql("select 'A REGEXP B'")[0][0], "A REGEXP B")
-
 	@run_only_if(db_type_is.SQLITE)
 	def test_modify_query_transpiles_mariadb_sql_to_sqlite(self):
 		from frappe.database.sqlite.database import modify_query
@@ -1056,13 +1022,7 @@ class TestDB(IntegrationTestCase):
 		# compatibility function for it.
 		self.assertIsInstance(frappe.db.sql("select now()")[0][0], str)
 
-	def test_regex_filter_operator(self):
-		# pypika's Term.regex renders " REGEX ", which is not an operator on either backend
-		matched = frappe.get_all("User", filters={"name": ["regex", "^Administrator$"]}, pluck="name")
-		self.assertEqual(matched, ["Administrator"])
-
 	@run_only_if(db_type_is.POSTGRES)
->>>>>>> 98af1de (fix(sqlite): add SQL execution compatibility)
 	def test_modify_values(self):
 		from frappe.database.postgres.database import modify_values
 

@@ -4,10 +4,6 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, get_type_hints
 
-<<<<<<< HEAD
-from pypika.queries import Column, QueryBuilder, _SetOperation
-from pypika.terms import PseudoColumn, Term
-=======
 # These PyPika classes are intentionally extended with Frappe's long-standing
 # run/walk adapters below; PyPika does not expose hooks for those entry points.
 from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
@@ -15,8 +11,7 @@ from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
 	QueryBuilder,
 	_SetOperation,
 )
-from pypika.terms import PseudoColumn
->>>>>>> 10dc22f (chore: document query builder Semgrep exceptions)
+from pypika.terms import PseudoColumn, Term
 
 import frappe
 from frappe.query_builder.terms import EscapedValueWrapper, NamedParameterWrapper

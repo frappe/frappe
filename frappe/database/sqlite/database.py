@@ -175,16 +175,14 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def set_execution_timeout(self, seconds: float):
 		self.sql(f"PRAGMA busy_timeout = {round(seconds * 1000)}")
 
-<<<<<<< HEAD
 	def get_execution_timeout(self) -> float:
 		return self.sql("PRAGMA busy_timeout")[0][0] / 1000
-=======
+
 	def set_session_time_zone(self, timezone: str):
 		self._session_time_zone = ZoneInfo(timezone)
 
 	def _convert_to_unix_timestamp(self, value):
 		return convert_datetime_to_unix_timestamp(value, self._session_time_zone)
->>>>>>> 98af1de (fix(sqlite): add SQL execution compatibility)
 
 	def setup_type_map(self):
 		self.db_type = "sqlite"
