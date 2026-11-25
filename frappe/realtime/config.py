@@ -31,7 +31,6 @@ class RealtimeConfig:
 	redis_queue: str
 	uds: str | None = None
 	default_site: str | None = None
-	site: str | None = None
 	developer_mode: bool = False
 	webserver_port: int | None = None
 	webserver_host: str | None = None
@@ -43,6 +42,7 @@ class RealtimeConfig:
 	# HTTP back into ourselves. This is a property of the process, not of the site
 	# config; the process that embeds realtime sets it. See frappe.asgi.
 	embedded: bool = False
+	site: str | None = None
 
 
 def get_config(
@@ -63,11 +63,11 @@ def get_config(
 		redis_queue=conf.get("redis_queue") or DEFAULT_REDIS_QUEUE,
 		uds=conf.get("socketio_uds") or None,
 		default_site=conf.get("default_site") or None,
-		site=site,
 		developer_mode=bool(conf.get("developer_mode")),
 		webserver_port=int(webserver_port) if webserver_port else None,
 		webserver_host=conf.get("webserver_host") or None,
 		worker_threads=int(conf.get("socketio_worker_threads") or DEFAULT_WORKER_THREADS),
 		sites_path=sites_path,
 		embedded=embedded,
+		site=site,
 	)
