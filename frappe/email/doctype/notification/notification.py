@@ -27,6 +27,7 @@ from frappe.utils import (
 	add_to_date,
 	cast,
 	cint,
+	cstr,
 	get_email_addresses,
 	now_datetime,
 	nowdate,
@@ -320,17 +321,18 @@ def get_context(context):
 
 	def validate_property_target(self):
 		# the target document is saved without permission checks
-		changed = self.is_new() or any(
-			self.has_value_changed(f) for f in ("set_property_after_alert", "property_value")
-		)
+		fields = ("set_property_after_alert", "property_value", "document_type")
+		changed = self.is_new() or any(self.has_value_changed(f) for f in fields)
 		if not (self.set_property_after_alert and changed) or is_code_author():
 			return
 
 		df = frappe.get_meta(self.document_type).get_field(self.set_property_after_alert)
-		if df and df.executes_code:
+		# some fields are code only where the value holds Jinja (Web Page content, print layouts)
+		value = cstr(self.property_value)
+		if (df and df.executes_code) or any(marker in value for marker in ("{{", "{%", "\\{")):
 			frappe.throw(
 				_("Only a user with the {0} role can set {1} after the alert").format(
-					_(CODE_AUTHOR_ROLE), _(df.label)
+					_(CODE_AUTHOR_ROLE), _(df.label if df else self.set_property_after_alert)
 				),
 				frappe.PermissionError,
 				title=_("Not Permitted"),

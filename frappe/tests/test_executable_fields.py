@@ -92,9 +92,27 @@ class TestExecutableFields(IntegrationTestCase):
 			self.assertRaises(frappe.PermissionError, make_notification, **values)
 
 			# a field that runs nothing stays available
-			notification = make_notification(**{**values, "set_property_after_alert": "use_html"})
+			notification = make_notification(
+				**{**values, "set_property_after_alert": "use_html", "property_value": "0"}
+			)
 			notification.property_value = "1"
 			notification.save()
+
+			# retargeting counts, and so does template syntax in a field that is code only with Jinja
+			notification = make_notification(
+				**{
+					**values,
+					"document_type": "Communication",
+					"set_property_after_alert": "subject",
+					"property_value": "Hi",
+				}
+			)
+			notification.document_type = "Email Template"
+			self.assertRaises(frappe.PermissionError, notification.save)
+
+			page = {**values, "document_type": "Web Page", "set_property_after_alert": "main_section_html"}
+			self.assertRaises(frappe.PermissionError, make_notification, **page)
+			make_notification(**{**page, "property_value": "<p>Plain</p>"})
 
 		with test_user(roles=["System Manager", "Code Author"]) as user, self.set_user(user.name):
 			make_notification(**values)
