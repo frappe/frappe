@@ -1690,3 +1690,31 @@ class TestWebForm(IntegrationTestCase):
 		self.addCleanup(restore_settings)
 		frappe.db.set_value("Web Form", "manage-events", settings, update_modified=False)
 		frappe.clear_document_cache("Web Form", "manage-events")
+
+	def test_submission_cannot_write_code(self):
+		with test_user(roles=["Website Manager"]) as user, self.set_user(user.name):
+			web_form = frappe.get_doc(
+				{
+					"doctype": "Web Form",
+					"title": frappe.generate_hash(length=10),
+					"doc_type": "Web Page",
+					"login_required": 1,
+					"allow_multiple": 1,
+					"published": 1,
+					"web_form_fields": [
+						{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+						{"fieldname": "main_section_html", "fieldtype": "Code", "label": "HTML"},
+					],
+				}
+			).insert()
+			data = {"doctype": "Web Page", "title": frappe.generate_hash(length=10), "content_type": "HTML"}
+
+			accept(web_form.name, json.dumps({**data, "main_section_html": "<p>About</p>"}))
+			self.assertRaises(
+				frappe.PermissionError,
+				accept,
+				web_form.name,
+				json.dumps(
+					{**data, "title": frappe.generate_hash(length=10), "main_section_html": "{{ 6 * 7 }}"}
+				),
+			)
