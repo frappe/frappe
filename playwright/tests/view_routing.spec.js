@@ -11,10 +11,8 @@ function setup_default_view(api, args) {
 }
 
 function list_loaded(page) {
-	return page.waitForResponse(
-		(res) =>
-			res.request().method() === "POST" &&
-			res.url().includes("/api/method/frappe.desk.reportview.get")
+	return page.waitForResponse((res) =>
+		res.url().includes("/api/method/frappe.desk.reportview.get")
 	);
 }
 
