@@ -16,6 +16,7 @@ from frappe.core.doctype.communication.email import make
 from frappe.desk.form.assign_to import add as assign_to
 from frappe.email import get_system_managers
 from frappe.model.document import Document
+from frappe.model.executable_fields import TemplateSyntaxGuard
 from frappe.utils import (
 	add_days,
 	date_diff,
@@ -42,6 +43,7 @@ week_map = {
 
 
 class AutoRepeat(Document):
+	code_field_guard = TemplateSyntaxGuard
 	_DOCTYPE_NAME = "Auto Repeat"
 
 	# begin: auto-generated types

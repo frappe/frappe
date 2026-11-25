@@ -628,6 +628,10 @@ class TestAutoRepeat(IntegrationTestCase):
 			auto_repeat.subject = "{{ frappe.session.user }}"
 			self.assertRaises(frappe.PermissionError, auto_repeat.save)
 
+			auto_repeat.reload()
+			auto_repeat.subject = "Monthly invoice"
+			auto_repeat.save()
+
 
 def make_auto_repeat(**args):
 	args = frappe._dict(args)

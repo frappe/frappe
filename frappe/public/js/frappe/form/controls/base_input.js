@@ -71,7 +71,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	read_only_because_of_code_author() {
-		return this.df.executes_code && !frappe.user.is_code_author();
+		return (
+			this.df.executes_code && this.df.fieldtype !== "Check" && !frappe.user.is_code_author()
+		);
 	}
 
 	// update input value, label, description

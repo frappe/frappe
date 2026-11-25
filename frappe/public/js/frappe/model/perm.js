@@ -299,7 +299,13 @@ $.extend(frappe.perm, {
 		}
 		if (explain) console.log("By Read Only:" + status);
 
-		if (status === "Write" && df.executes_code && !frappe.user.is_code_author()) {
+		// a check stays editable: unticking runs nothing, the server refuses ticking it
+		if (
+			status === "Write" &&
+			df.executes_code &&
+			df.fieldtype !== "Check" &&
+			!frappe.user.is_code_author()
+		) {
 			status = "Read";
 		}
 		if (explain) console.log("By Executes Code:" + status);

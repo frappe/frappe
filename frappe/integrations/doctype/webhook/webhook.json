@@ -171,6 +171,7 @@
   {
    "default": "0",
    "description": "On checking this option, URL will be treated like a jinja template string",
+   "executes_code": 1,
    "fieldname": "is_dynamic_url",
    "fieldtype": "Check",
    "label": "Is Dynamic URL?"
@@ -203,7 +204,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2026-11-24 12:00:00.000000",
+ "modified": "2026-11-25 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

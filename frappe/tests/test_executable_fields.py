@@ -117,6 +117,39 @@ class TestExecutableFields(IntegrationTestCase):
 		with test_user(roles=["System Manager", "Code Author"]) as user, self.set_user(user.name):
 			make_notification(**values)
 
+	def test_webhook_url_is_code_only_when_dynamic(self):
+		values = {
+			"doctype": "Webhook",
+			"webhook_doctype": "ToDo",
+			"webhook_docevent": "after_insert",
+			"request_url": "https://example.com/hook",
+		}
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			webhook = frappe.get_doc({**values, "name": frappe.generate_hash(length=10)}).insert()
+
+			webhook.request_url = "https://example.com/{{ frappe.session.user }}"
+			webhook.save()
+
+			webhook.is_dynamic_url = 1
+			self.assertRaises(frappe.PermissionError, webhook.save)
+
+			webhook.reload()
+			dynamic = {
+				**values,
+				"name": frappe.generate_hash(length=10),
+				"request_url": "https://example.com/{{ doc.name }}",
+				"is_dynamic_url": 1,
+			}
+			self.assertRaises(frappe.PermissionError, frappe.get_doc(dynamic).insert)
+
+		with test_user(roles=["System Manager", "Code Author"]) as user, self.set_user(user.name):
+			webhook = frappe.get_doc(dynamic).insert()
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			webhook.is_dynamic_url = 0
+			webhook.save()
+
 	def test_author_can_change_code(self):
 		for role in ("Code Author", "Script Manager"):
 			with self.subTest(role=role), test_user(roles=["System Manager", role]) as user:

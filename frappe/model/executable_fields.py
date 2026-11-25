@@ -121,6 +121,18 @@ class CodeFieldGuard:
 		return []
 
 
+class TemplateSyntaxGuard(CodeFieldGuard):
+	"""Fields rendered as Jinja are code only where the value holds template syntax."""
+
+	markers = ("{",)
+
+	def is_authored(self, row, reference, df, is_new, child_doctype=None):
+		value = cstr(row.get(df.fieldname))
+		return any(marker in value for marker in self.markers) and super().is_authored(
+			row, reference, df, is_new, child_doctype
+		)
+
+
 def is_code_author(user=None):
 	return not set(CODE_AUTHOR_ROLES).isdisjoint(frappe.get_roles(user))
 
