@@ -317,3 +317,4 @@ frappe.patches.v16_0.hash_session_ids
 frappe.patches.v16_0.encrypt_indexing_refresh_token
 frappe.patches.v17_0.keep_flow_user_trigger_sessions_private
 frappe.patches.v16_0.set_language_and_time_zone_on_sites_without_a_region
+frappe.patches.v16_0.unescape_currency_number_format
