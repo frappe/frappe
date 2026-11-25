@@ -41,7 +41,10 @@ jobs:
             const pending = issues
               .filter((other) => other.state === "open" && !other.assignees.length && Date.parse(other.created_at) > since)
               .map((other) => other.number);
-            if (!pending.includes(issue.number)) pending.unshift(issue.number);
+            const { data: current } = await github.rest.issues.get({ ...context.repo, issue_number: issue.number });
+            if (current.state === "open" && !current.assignees.length && !pending.includes(current.number)) {
+              pending.push(current.number);
+            }
             for (const number of pending.sort((a, b) => a - b)) {
               await github.rest.issues.addAssignees({
                 ...context.repo,
