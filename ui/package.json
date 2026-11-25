@@ -73,6 +73,10 @@
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"
     },
+    "./mobile": {
+      "import": "./src/mobile/index.ts",
+      "types": "./src/mobile/index.ts"
+    },
     "./utils": {
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"

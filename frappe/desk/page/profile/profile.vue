@@ -2,9 +2,8 @@
 import { computed, onUnmounted, reactive, ref, watch } from "vue";
 import { Button, Switch, TextInput } from "frappe-ui";
 import { on_phone_visit } from "../search/phone_page.js";
-import Group from "./components/Group.vue";
+import { Profile, ProfileGroup as Group, ProfileRow as Row } from "@framework/ui/mobile";
 import Photo from "./components/Photo.vue";
-import Row from "./components/Row.vue";
 
 // Gameplan's phone "You" page (frontend/src/components/MobileMoreMenu.vue) and its settings
 // pages: the avatar and name, then grouped rows, with the settings tabs listed directly.
@@ -197,208 +196,196 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 </script>
 
 <template>
-	<div class="h-full overflow-y-auto bg-surface-gray-1">
-		<div v-if="screen" class="space-y-6 px-4 pt-3 pb-10">
-			<!-- the page head is hidden (see onMounted), so a screen names itself -->
-			<div class="flex items-center gap-1">
-				<Button
-					variant="ghost"
-					size="lg"
-					icon="lucide-chevron-left"
-					:aria-label="__('Back to Profile')"
-					@click="go()"
-				/>
-				<h1 class="truncate text-xl-semibold text-ink-gray-9">{{ SCREENS[screen] }}</h1>
-			</div>
-
-			<template v-if="screen === 'session-defaults'">
-				<Group v-if="session_defaults.length" :label="__('Current values')">
-					<Row
-						v-for="(field, index) in session_defaults"
-						:key="field.fieldname"
-						icon="lucide-bookmark"
-						:label="field.label"
-						:value="field.default || __('Not set')"
-						:divider="index > 0"
-						@click="frappe.ui.toolbar.setup_session_defaults()"
-					/>
-				</Group>
-				<p v-else class="pl-4 text-lg text-ink-gray-5">
-					{{ __("No session defaults configured.") }}
-				</p>
-				<Group>
-					<Row
-						v-if="session_defaults.length"
-						icon="lucide-pencil"
-						:label="__('Edit')"
-						@click="frappe.ui.toolbar.setup_session_defaults()"
-					/>
-					<Row
-						v-if="can_configure_defaults"
-						icon="lucide-settings"
-						:label="__('Configure')"
-						:divider="!!session_defaults.length"
-						@click="frappe.set_route('Form', 'Session Default Settings')"
-					/>
-				</Group>
-			</template>
-
-			<Group v-else-if="!settings" aria-busy="true">
-				<span class="sr-only">{{ __("Loading...") }}</span>
-				<div v-for="index in 5" :key="index" class="flex min-h-14 items-center">
-					<span class="flex w-14 shrink-0 justify-center">
-						<span class="size-5 animate-pulse rounded bg-surface-gray-2" />
-					</span>
-					<span class="h-3 w-1/2 animate-pulse rounded bg-surface-gray-2" />
-				</div>
-			</Group>
-
-			<template v-else-if="screen === 'personal'">
-				<div class="flex flex-col items-center">
-					<Photo :image="user.image" :name="user.fullname || me" />
-					<Button
-						variant="ghost"
-						size="lg"
-						class="mt-2"
-						:label="__('Change photo')"
-						@click="settings.upload_image(refresh_user)"
-					/>
-				</div>
-
-				<section class="space-y-4 rounded-7 bg-surface-base p-4">
-					<TextInput v-model="name_form.first_name" :label="__('First Name')" required />
-					<TextInput v-model="name_form.middle_name" :label="__('Middle Name')" />
-					<TextInput v-model="name_form.last_name" :label="__('Last Name')" />
-					<TextInput v-model="name_form.username" :label="__('Username')" />
-					<Button
-						variant="solid"
-						theme="gray"
-						size="lg"
-						class="w-full"
-						:label="__('Save')"
-						:loading="saving"
-						:disabled="!name_changed || !name_form.first_name.trim()"
-						@click="save_name"
-					/>
-				</section>
-
-				<Group>
-					<Row
-						icon="lucide-key-round"
-						:label="__('Change Password')"
-						@click="frappe.ui.show_change_password_dialog(me)"
-					/>
-				</Group>
-			</template>
-
-			<!-- email, preferences, lists, forms and reports: switches, then their extra rows -->
-			<template v-else>
-				<Group>
-					<div
-						v-for="(field, index) in switches(screen)"
-						:key="field.fieldname"
-						class="relative px-4 py-3"
-					>
-						<span
-							v-if="index > 0"
-							class="pointer-events-none absolute left-4 right-4 top-0 border-t"
-							aria-hidden="true"
-						/>
-						<Switch
-							:label="field.label"
-							:description="field.description"
-							:model-value="!!user_data[field.fieldname]"
-							@update:model-value="(on) => toggle(field.fieldname, on)"
-						/>
-					</div>
-				</Group>
-
-				<Group v-if="screen === 'email'" :label="__('Signature')">
-					<Row
-						icon="lucide-signature"
-						:label="__('Email Signature')"
-						:value="user_data.email_signature ? __('Set') : __('Not set')"
-						@click="change('email_signature')"
-					/>
-				</Group>
-
-				<Group v-if="screen === 'preferences'" :label="__('Locale')">
-					<Row
-						icon="lucide-languages"
-						:label="__('Language')"
-						:value="language"
-						@click="change_language"
-					/>
-					<Row
-						icon="lucide-globe"
-						:label="__('Time Zone')"
-						:value="user_data.time_zone || ''"
-						divider
-						@click="change('time_zone')"
-					/>
-				</Group>
-			</template>
+	<Profile v-if="screen">
+		<!-- the page head is hidden (see onMounted), so a screen names itself -->
+		<div class="flex items-center gap-1">
+			<Button
+				variant="ghost"
+				size="lg"
+				icon="lucide-chevron-left"
+				:aria-label="__('Back to Profile')"
+				@click="go()"
+			/>
+			<h1 class="truncate text-xl-semibold text-ink-gray-9">{{ SCREENS[screen] }}</h1>
 		</div>
 
-		<div v-else class="px-4 pt-8 pb-10">
-			<div class="flex flex-col items-center text-center">
+		<template v-if="screen === 'session-defaults'">
+			<Group v-if="session_defaults.length" :label="__('Current values')">
+				<Row
+					v-for="(field, index) in session_defaults"
+					:key="field.fieldname"
+					icon="lucide-bookmark"
+					:label="field.label"
+					:value="field.default || __('Not set')"
+					@click="frappe.ui.toolbar.setup_session_defaults()"
+				/>
+			</Group>
+			<p v-else class="pl-4 text-lg text-ink-gray-5">
+				{{ __("No session defaults configured.") }}
+			</p>
+			<Group>
+				<Row
+					v-if="session_defaults.length"
+					icon="lucide-pencil"
+					:label="__('Edit')"
+					@click="frappe.ui.toolbar.setup_session_defaults()"
+				/>
+				<Row
+					v-if="can_configure_defaults"
+					icon="lucide-settings"
+					:label="__('Configure')"
+					@click="frappe.set_route('Form', 'Session Default Settings')"
+				/>
+			</Group>
+		</template>
+
+		<Group v-else-if="!settings" aria-busy="true">
+			<span class="sr-only">{{ __("Loading...") }}</span>
+			<div v-for="index in 5" :key="index" class="flex min-h-14 items-center">
+				<span class="flex w-14 shrink-0 justify-center">
+					<span class="size-5 animate-pulse rounded bg-surface-gray-2" />
+				</span>
+				<span class="h-3 w-1/2 animate-pulse rounded bg-surface-gray-2" />
+			</div>
+		</Group>
+
+		<template v-else-if="screen === 'personal'">
+			<div class="flex flex-col items-center">
 				<Photo :image="user.image" :name="user.fullname || me" />
-				<div class="mt-5 max-w-full truncate text-5xl-semibold text-ink-gray-9">
-					{{ user.fullname }}
-				</div>
 				<Button
 					variant="ghost"
 					size="lg"
 					class="mt-2"
-					:label="__('View profile')"
-					@click="frappe.set_route('Form', 'User', me)"
+					:label="__('Change photo')"
+					@click="settings.upload_image(refresh_user)"
 				/>
 			</div>
 
-			<div class="mt-8 space-y-6">
-				<Group v-if="MORE.length">
-					<Row
-						v-for="(option, index) in MORE"
-						:key="option.name"
-						:icon="MENU_ICONS[option.name] || 'lucide-circle-dot'"
-						:label="option.label"
-						:divider="index > 0"
-						@click="open(option)"
-					/>
-				</Group>
+			<section class="space-y-4 rounded-7 bg-surface-base p-4">
+				<TextInput v-model="name_form.first_name" :label="__('First Name')" required />
+				<TextInput v-model="name_form.middle_name" :label="__('Middle Name')" />
+				<TextInput v-model="name_form.last_name" :label="__('Last Name')" />
+				<TextInput v-model="name_form.username" :label="__('Username')" />
+				<Button
+					variant="solid"
+					theme="gray"
+					size="lg"
+					class="w-full"
+					:label="__('Save')"
+					:loading="saving"
+					:disabled="!name_changed || !name_form.first_name.trim()"
+					@click="save_name"
+				/>
+			</section>
 
-				<Group :label="__('Settings')">
-					<Row
-						v-for="(row, index) in SETTINGS_ROWS"
-						:key="row.screen"
-						:icon="row.icon"
-						:label="SCREENS[row.screen]"
-						:divider="index > 0"
-						@click="go(row.screen)"
+			<Group>
+				<Row
+					icon="lucide-key-round"
+					:label="__('Change Password')"
+					@click="frappe.ui.show_change_password_dialog(me)"
+				/>
+			</Group>
+		</template>
+
+		<!-- email, preferences, lists, forms and reports: switches, then their extra rows -->
+		<template v-else>
+			<Group>
+				<div
+					v-for="(field, index) in switches(screen)"
+					:key="field.fieldname"
+					class="relative px-4 py-3"
+				>
+					<span
+						v-if="index > 0"
+						class="pointer-events-none absolute left-4 right-4 top-0 border-t"
+						aria-hidden="true"
 					/>
-					<Row
-						:icon="(THEMES[theme_mode] || THEMES.light).icon"
-						:label="__('Theme')"
-						:value="THEMES[theme_mode]?.label"
-						divider
-						@click="cycle_theme"
+					<Switch
+						:label="field.label"
+						:description="field.description"
+						:model-value="!!user_data[field.fieldname]"
+						@update:model-value="(on) => toggle(field.fieldname, on)"
 					/>
-					<Row
-						v-if="reload"
-						icon="lucide-rotate-ccw"
-						:label="__('Reload')"
-						divider
-						@click="open(reload)"
-					/>
-					<Row
-						v-if="logout"
-						icon="lucide-log-out"
-						:label="__('Log out')"
-						divider
-						@click="open(logout)"
-					/>
-				</Group>
+				</div>
+			</Group>
+
+			<Group v-if="screen === 'email'" :label="__('Signature')">
+				<Row
+					icon="lucide-signature"
+					:label="__('Email Signature')"
+					:value="user_data.email_signature ? __('Set') : __('Not set')"
+					@click="change('email_signature')"
+				/>
+			</Group>
+
+			<Group v-if="screen === 'preferences'" :label="__('Locale')">
+				<Row
+					icon="lucide-languages"
+					:label="__('Language')"
+					:value="language"
+					@click="change_language"
+				/>
+				<Row
+					icon="lucide-globe"
+					:label="__('Time Zone')"
+					:value="user_data.time_zone || ''"
+					@click="change('time_zone')"
+				/>
+			</Group>
+		</template>
+	</Profile>
+
+	<Profile v-else>
+		<template #header>
+			<Photo :image="user.image" :name="user.fullname || me" />
+			<div class="mt-5 max-w-full truncate text-5xl-semibold text-ink-gray-9">
+				{{ user.fullname }}
 			</div>
-		</div>
-	</div>
+			<Button
+				variant="ghost"
+				size="lg"
+				class="mt-2"
+				:label="__('View profile')"
+				@click="frappe.set_route('Form', 'User', me)"
+			/>
+		</template>
+
+		<Group v-if="MORE.length">
+			<Row
+				v-for="(option, index) in MORE"
+				:key="option.name"
+				:icon="MENU_ICONS[option.name] || 'lucide-circle-dot'"
+				:label="option.label"
+				@click="open(option)"
+			/>
+		</Group>
+
+		<Group :label="__('Settings')">
+			<Row
+				v-for="(row, index) in SETTINGS_ROWS"
+				:key="row.screen"
+				:icon="row.icon"
+				:label="SCREENS[row.screen]"
+				@click="go(row.screen)"
+			/>
+			<Row
+				:icon="(THEMES[theme_mode] || THEMES.light).icon"
+				:label="__('Theme')"
+				:value="THEMES[theme_mode]?.label"
+				@click="cycle_theme"
+			/>
+			<Row
+				v-if="reload"
+				icon="lucide-rotate-ccw"
+				:label="__('Reload')"
+				@click="open(reload)"
+			/>
+			<Row
+				v-if="logout"
+				icon="lucide-log-out"
+				:label="__('Log out')"
+				@click="open(logout)"
+			/>
+		</Group>
+	</Profile>
 </template>
