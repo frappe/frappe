@@ -18,11 +18,12 @@ class CodeFieldGuard:
 		self.fields, self.tables = fields, tables
 
 	def validate(self):
-		# a restore re-inserts the snapshot saved when the document was deleted; a web form
-		# submission skips permissions for access only, the submitter still needs the role
+		# a restore re-inserts the snapshot saved when the document was deleted and a conversion
+		# rebuilds a saved document; a web form submission skips permissions for access only,
+		# the submitter still needs the role
 		flags = self.doc.flags
 		skip = flags.ignore_permissions and not flags.from_web_form
-		if skip or flags.from_restore or frappe.flags.in_install:
+		if skip or flags.from_restore or flags.from_conversion or frappe.flags.in_install:
 			return
 
 		# only after the skips: during install, child DocTypes may not be synced yet

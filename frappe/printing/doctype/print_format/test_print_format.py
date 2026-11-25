@@ -1391,6 +1391,50 @@ class TestPrintFormatDraft(IntegrationTestCase):
 
 
 class TestBuilderJinja(IntegrationTestCase):
+	def test_html_needs_code_author_only_with_jinja(self):
+		starter = '<div class="print-format">\n\t<h3>New</h3>\n</div>'
+		values = {"doctype": "Print Format", "doc_type": "ToDo", "custom_format": 1}
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			print_format = frappe.get_doc(
+				{**values, "name": frappe.generate_hash(length=10), "html": starter}
+			).insert()
+			print_format.html = starter + "<p>plain</p>"
+			print_format.save()
+
+			print_format.html = "{{ frappe.session.user }}"
+			self.assertRaises(frappe.PermissionError, print_format.save)
+
+			report = {**values, "print_format_for": "Report", "report": "ToDo", "print_format_type": "JS"}
+			report.pop("doc_type")
+			frappe.get_doc({**report, "name": frappe.generate_hash(length=10), "html": starter}).insert()
+
+	def test_converted_print_designer_copy_without_code_author(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import converted_values
+
+		image = {
+			"type": "image",
+			"isDynamic": True,
+			"image": {"doctype": "User", "fieldname": "user_image", "parentField": "allocated_to"},
+			"width": 100,
+		}
+		source = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "ToDo",
+				"print_designer_body": frappe.as_json([{"childrens": [image]}]),
+			}
+		)
+		values, _notes = converted_values(source)
+		copy = frappe.get_doc(
+			{"doctype": "Print Format", "name": frappe.generate_hash(length=10), "doc_type": "ToDo", **values}
+		)
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, copy.insert)
+			copy.flags.from_conversion = True
+			copy.insert()
+
 	def test_custom_format_from_standard_without_code_author(self):
 		from frappe.printing.doctype.print_format.print_format import create_custom_format
 

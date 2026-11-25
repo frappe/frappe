@@ -4,11 +4,26 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.executable_fields import CodeFieldGuard
 from frappe.modules.utils import export_module_json
 from frappe.utils import escape_html, flt, is_image
 
 
+class LetterHeadGuard(CodeFieldGuard):
+	"""validate() builds the HTML of an image zone, so it is not typed code."""
+
+	def load_fields(self):
+		super().load_fields()
+		doc = self.doc
+		generated = {
+			"content": doc.source == "Image" and is_image(doc.image or ""),
+			"footer": doc.footer_source == "Image" and is_image(doc.footer_image or ""),
+		}
+		self.fields = [df for df in self.fields if not generated.get(df.fieldname)]
+
+
 class LetterHead(Document):
+	code_field_guard = LetterHeadGuard
 	_DOCTYPE_NAME = "Letter Head"
 
 	# begin: auto-generated types

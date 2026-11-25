@@ -123,6 +123,7 @@ def convert(print_format: str) -> dict:
 			copy.update(
 				{"standard": "No", "disabled": 0, "module": None, "converted_from": doc.name, **values}
 			)
+			copy.flags.from_conversion = True
 			copy.insert(set_name=editor_copy_name(doc.name))
 		move_print_format_usage(doc.name, copy.name)
 		turn_off(doc)

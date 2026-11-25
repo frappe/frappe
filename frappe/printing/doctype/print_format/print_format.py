@@ -11,6 +11,7 @@ from frappe.custom.doctype.property_setter.property_setter import delete_propert
 from frappe.model.document import Document
 from frappe.model.executable_fields import CodeFieldGuard
 from frappe.printing.layout import iter_fields, iter_nodes, iter_zones
+from frappe.utils import cstr
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
 
@@ -40,7 +41,18 @@ BUILDER_DRAFT_FIELDS = (
 )
 
 
+class PrintFormatGuard(CodeFieldGuard):
+	"""HTML and raw commands are code only where they hold Jinja."""
+
+	def is_authored(self, row, reference, df, is_new, child_doctype=None):
+		value = cstr(row.get(df.fieldname))
+		return ("{{" in value or "{%" in value) and super().is_authored(
+			row, reference, df, is_new, child_doctype
+		)
+
+
 class PrintFormat(Document):
+	code_field_guard = PrintFormatGuard
 	_DOCTYPE_NAME = "Print Format"
 
 	# begin: auto-generated types
