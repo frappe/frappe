@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import SlotScopeProvider from "@/runtime/components/SlotScopeProvider.vue"
-import type { RepeaterProps } from "@/runtime/types/studio_components/Repeater"
+import type { RepeaterProps } from "./types"
 
 defineProps<RepeaterProps>()
 </script>

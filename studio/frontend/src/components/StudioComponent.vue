@@ -134,7 +134,7 @@ import { isDynamicValue } from "@/runtime/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { SlotScope } from "@/types"
-import type HTML from "@/runtime/components/AppLayout/HTML.vue"
+import type { HTML } from "@/runtime/components/core"
 import MissingComponent from "@/runtime/components/MissingComponent.vue"
 import { usePageScope } from "@/runtime/stores/codeStore"
 

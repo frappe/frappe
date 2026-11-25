@@ -211,7 +211,7 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 			: ""
 	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
 	const studioImports = studioComponents
-		.map((comp) => `import ${comp} from "@/runtime/components/AppLayout/${comp}.vue"`)
+		.map((comp) => `import ${comp} from "@/runtime/components/core/${comp}/${comp}.vue"`)
 		.join("\n")
 	const customComponentNames = Object.keys(customComponents)
 	const customImports = customComponentNames
