@@ -58,8 +58,7 @@ class DocumentNamingRule(Document):
 		if self.disabled:
 			return
 
-		conditions = {(d.field, d.condition, d.value) for d in self.conditions}
-		for name in frappe.get_all(
+		candidates = frappe.get_all(
 			self.doctype,
 			filters={
 				"document_type": self.document_type,
@@ -68,9 +67,21 @@ class DocumentNamingRule(Document):
 				"name": ("!=", self.name),
 			},
 			pluck="name",
+		)
+		if not candidates:
+			return
+
+		other_conditions = {name: set() for name in candidates}
+		for d in frappe.get_all(
+			"Document Naming Rule Condition",
+			filters={"parent": ("in", candidates), "parenttype": self.doctype},
+			fields=["parent", "field", "condition", "value"],
 		):
-			other = frappe.get_doc(self.doctype, name)
-			if {(d.field, d.condition, d.value) for d in other.conditions} == conditions:
+			other_conditions[d.parent].add((d.field, d.condition, d.value))
+
+		conditions = {(d.field, d.condition, d.value) for d in self.conditions}
+		for name in candidates:
+			if other_conditions[name] == conditions:
 				frappe.throw(
 					_("Document Naming Rule {0} already has the same priority and conditions").format(
 						get_link_to_form(self.doctype, name)
