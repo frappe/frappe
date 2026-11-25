@@ -135,7 +135,12 @@ if __name__ == "__main__":
 	total_builds = int(os.environ.get("TOTAL_BUILDS"))
 
 	# Run tests with code coverage
-	with CodeCoverage(with_coverage=with_coverage, app=app, impact_map_outfile=impact_map_outfile):
+	with CodeCoverage(
+		with_coverage=with_coverage,
+		app=app,
+		outfile=os.environ.get("COVERAGE_OUTFILE") or "coverage.xml",
+		impact_map_outfile=impact_map_outfile,
+	):
 		from frappe.parallel_test_runner import ParallelTestRunner
 
 		runner = ParallelTestRunner(
