@@ -83,6 +83,15 @@ frappe.ui.form.on("Web Form", {
 			frm.doc.created_new_doctype ? "eval:!doc.__islocal" : ""
 		);
 		frm.set_df_property("doc_type", "read_only", frm.doc.created_new_doctype);
+		frm.set_df_property("web_form_fields", "read_only", cannot_edit_created_doctype(frm));
+		frm.set_intro(
+			cannot_edit_created_doctype(frm)
+				? __(
+						"Only a user who can edit DocType {0} can change the fields of this Web Form.",
+						[frappe.utils.bold(frm.doc.doc_type)]
+				  )
+				: ""
+		);
 		frm.refresh_field("web_form_fields");
 	},
 
@@ -893,7 +902,16 @@ function add_embed_link(frm) {
 
 // the canvas is not a Desk field, so frm.disable_form() never reaches it
 function is_builder_read_only(frm) {
-	return (frm.doc.is_standard && !frappe.boot.developer_mode) || !frm.has_perm("write");
+	return (
+		(frm.doc.is_standard && !frappe.boot.developer_mode) ||
+		!frm.has_perm("write") ||
+		cannot_edit_created_doctype(frm)
+	);
+}
+
+// its fields sync onto that DocType on save
+function cannot_edit_created_doctype(frm) {
+	return Boolean(frm.doc.created_new_doctype) && !frappe.model.can_write("DocType");
 }
 
 // such a form adds fields of its own, every other one picks from its doctype

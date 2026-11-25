@@ -314,6 +314,15 @@ class WebForm(WebsiteGenerator):
 		if [field_signature(df) for df in fields] == before:
 			return
 
+		if not frappe.has_permission("DocType", "write", self.doc_type):
+			frappe.throw(
+				_("Only a user who can edit DocType {0} can change the fields of this Web Form.").format(
+					frappe.bold(self.doc_type)
+				),
+				frappe.PermissionError,
+				title=_("Fields Cannot Be Changed"),
+			)
+
 		target_doctype.set("fields", fields)
 		for idx, df in enumerate(target_doctype.fields, 1):
 			df.idx = idx

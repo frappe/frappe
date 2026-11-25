@@ -1869,6 +1869,23 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Web Form", web_form.name))
 		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
 
+	def test_field_change_needs_doctype_write_permission(self):
+		web_form = self.new_web_form("Test WF Issue 11 Fields Need DocType Write")
+
+		with test_user(roles=["Website Manager"]) as user:
+			with self.set_user(user.name):
+				web_form = frappe.get_doc("Web Form", web_form.name)
+				web_form.introduction_text = "Still editable"
+				web_form.save()
+
+				web_form.append(
+					"web_form_fields", {"fieldname": "last_name", "label": "Last Name", "fieldtype": "Data"}
+				)
+				with self.assertRaisesRegex(frappe.PermissionError, "Only a user who can edit DocType"):
+					web_form.save()
+
+		self.assertFalse(frappe.get_meta(web_form.doc_type).has_field("last_name"))
+
 	def test_sync_fields_to_doctype_adds_new_field_after_creation(self):
 		web_form = self.new_web_form("Test Web Form Sync DocType")
 		doctype_name = web_form.doc_type
