@@ -1267,7 +1267,7 @@ class TestQuery(IntegrationTestCase):
 		"""Test is set and is not set filters"""
 		result = frappe.qb.get_query("DocType", filters={"autoname": ["is", "not set"]}).run(as_dict=1)
 		self.assertTrue({"name": "Integration Request"} in result)
-		self.assertTrue({"name": "User"} in result)
+		self.assertTrue({"name": "Contact"} in result)
 		self.assertFalse({"name": "Blogger"} in result)
 
 		result = frappe.qb.get_query("DocType", filters={"autoname": ["is", "set"]}).run(as_dict=1)

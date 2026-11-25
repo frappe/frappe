@@ -30,6 +30,8 @@ class TestPersonalDataDeletionRequest(IntegrationTestCase):
 		self.assertTrue("Subject: Confirm Deletion of Account" in email_queue[0].message)
 
 	def test_anonymized_data(self):
+		# a user from before v17, whose ID is their email, is renamed away from it
+		create_user_if_not_exists(email="test_delete@example.com", email_as_id=True)
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a deleted user"}).insert()
 		frappe.db.set_value(
 			"ToDo",
