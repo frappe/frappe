@@ -26,8 +26,8 @@ class TestListFilter(UnitTestCase):
 		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_filter_%"]})
 		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_layout_%"]})
 		for email in (LIST_FILTER_OWNER, LIST_FILTER_OTHER):
-			if frappe.db.exists("User", email):
-				frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+			if user := get_user_by_email(email):
+				frappe.delete_doc("User", user, force=True, ignore_permissions=True)
 		frappe.set_user("Administrator")
 
 	def _create_filter(self, **kwargs):

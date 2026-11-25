@@ -10,7 +10,7 @@ from frappe.desk.treeview import get_children
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Max
 from frappe.tests import IntegrationTestCase
-from frappe.utils import evaluate_filters, random_string
+from frappe.utils import evaluate_filters, get_user_by_email, random_string
 from frappe.utils.nestedset import (
 	NestedSetChildExistsError,
 	NestedSetInvalidMergeError,
@@ -96,7 +96,7 @@ class TestNestedSet(IntegrationTestCase):
 	def setUpClass(cls) -> None:
 		cls.nsu = NestedSetTestUtil()
 		cls.nsu.setup_test_doctype()
-		if not frappe.db.exists("User", "tree-manager@example.com"):
+		if not get_user_by_email("tree-manager@example.com"):
 			frappe.get_doc(
 				doctype="User",
 				email="tree-manager@example.com",
