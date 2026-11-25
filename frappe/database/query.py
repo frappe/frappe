@@ -265,7 +265,6 @@ class Engine:
 		self.is_postgres = db_type == "postgres"
 		self.is_sqlite = db_type == "sqlite"
 		self.user = user or frappe.session.user
-		self.parent_doctype = parent_doctype
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
@@ -283,12 +282,18 @@ class Engine:
 			self.doctype = table
 			self.table = qb.DocType(table)
 
+<<<<<<< HEAD
+=======
+		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
+		self.parent_doctype = parent_doctype if parent_doctype and frappe.is_table(self.doctype) else None
+
+>>>>>>> 1774c44 (fix(query): use parent doctype permissions only for child tables)
 		if frappe.flags.get("ignore_user_permissions_for_doctype") == self.doctype:
 			self.ignore_user_permissions = True
 
 		if self.apply_permissions:
 			self.check_select_permission()
-			self.permission_doctype = parent_doctype or self.doctype
+			self.permission_doctype = self.parent_doctype or self.doctype
 			self.permission_table = (
 				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
 			)
