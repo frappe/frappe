@@ -213,10 +213,8 @@ class WebPage(WebsiteGenerator):
 
 	def has_jinja_content(self):
 		# every content field, not only the active one: switching content_type would
-		# otherwise activate Jinja stored in a field that was inactive when it was saved.
-		# Markdown also as rendered: escaped braces become `{{`
-		contents = [self.get(f) for f in CONTENT_FIELDS] + [md_to_html(self.main_section_md or "")]
-		return self.dynamic_template or any(has_jinja_markers(content) for content in contents)
+		# otherwise activate Jinja stored in a field that was inactive when it was saved
+		return self.dynamic_template or any(content_has_jinja(f, self.get(f)) for f in CONTENT_FIELDS)
 
 	def validate_dates(self):
 		if (
@@ -326,9 +324,15 @@ def get_dynamic_web_pages() -> dict[str, str]:
 
 
 class JinjaContentGuard(CodeFieldGuard):
-	def get_source_filters(self, value, child_doctype=None):
-		# text without Jinja markers is only rendered as Jinja on a dynamic page
-		return [] if has_jinja_markers(value) else [["Web Page", "dynamic_template", "=", 1]]
+	def get_source_filters(self, fieldname, value, child_doctype=None):
+		# other text is only rendered as Jinja on a dynamic page
+		return [] if content_has_jinja(fieldname, value) else [["Web Page", "dynamic_template", "=", 1]]
+
+
+def content_has_jinja(fieldname, content):
+	# Markdown also as rendered: escaped braces become `{{`
+	rendered = md_to_html(content or "") if fieldname == "main_section_md" else None
+	return has_jinja_markers(content) or has_jinja_markers(rendered)
 
 
 def has_jinja_markers(content):

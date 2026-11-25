@@ -77,6 +77,8 @@ class TestWebPage(IntegrationTestCase):
 		jinja_page = make_web_page(main_section_html="<p>{{ 6 * 7 }}</p>")
 		markdown_page = make_web_page(content_type="Markdown", main_section_md="plain")
 		make_web_page(dynamic_template=1, main_section_html="<p>dynamic</p>")
+		escaped_markdown = r"\{\{ 6 * 7 \}\}"
+		make_web_page(content_type="Markdown", main_section_md=escaped_markdown)
 
 		with test_user(roles=["Website Manager"]) as user, self.set_user(user.name):
 			static_page = make_web_page(main_section_html="<p>About</p>")
@@ -90,7 +92,8 @@ class TestWebPage(IntegrationTestCase):
 				frappe.PermissionError, make_web_page, dynamic_template=1, main_section_html=content
 			)
 
-			# Markdown renders escaped braces as `{{`
+			# Markdown renders escaped braces as `{{`; an unchanged copy still saves
+			make_web_page(content_type="Markdown", main_section_md=escaped_markdown)
 			self.assertRaises(
 				frappe.PermissionError,
 				make_web_page,

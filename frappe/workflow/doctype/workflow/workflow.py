@@ -420,6 +420,6 @@ class ExpressionValueGuard(CodeFieldGuard):
 			return False
 		return super().is_authored(row, reference, df, is_new, child_doctype)
 
-	def get_source_filters(self, value, child_doctype=None):
+	def get_source_filters(self, fieldname, value, child_doctype=None):
 		# copying a plain value into an expression state would turn it into code
 		return [[child_doctype, "evaluate_as_expression", "=", 1]]
