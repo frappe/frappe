@@ -304,6 +304,66 @@ def get_state_for_docstatus(workflow: "Workflow", docstatus) -> str:
 	return workflow.states[0].state
 
 
+def validate_workflow_edit_permission(doc: Document) -> None:
+	"""Refuse a save that edits a document in a workflow state the user may not edit.
+
+	The form makes the document read-only unless the user has the current state's
+	"Only Allow Edit For" role; this applies the same rule to every server-side save
+	(REST, `frappe.client`, data import, MCP tools...).
+
+	A save that only moves the document to another state (and sets that state's
+	`update_field`) is left to the transition check in `validate_workflow`, so
+	approvers who cannot edit the current state can still apply their action.
+
+	Must run before the controller's validate hooks, so that fields they compute
+	are not mistaken for the caller's edits.
+	"""
+	if doc.flags.ignore_permissions or frappe.flags.in_install == "frappe":
+		return
+
+	before = getattr(doc, "_doc_before_save", None)
+	if not before:
+		return
+
+	workflow = get_workflow(doc.doctype, before)
+	if not workflow:
+		return
+
+	state_field = workflow.workflow_state_field
+	current_state = before.get(state_field)
+	state_row = next((d for d in workflow.states if d.state == current_state), None)
+	if not state_row:
+		# unset or peer-workflow state: validate_workflow decides
+		return
+
+	if state_row.allow_edit in frappe.get_roles():
+		return
+
+	from frappe.core.doctype.version.version import get_diff
+
+	diff = get_diff(before, doc)
+	if not diff:
+		return
+
+	changed = {d[0] for d in diff.changed}
+	if not (changed or diff.added or diff.removed or diff.row_changed):
+		return
+
+	next_state = doc.get(state_field)
+	if next_state and next_state != current_state and not (diff.added or diff.removed or diff.row_changed):
+		next_state_row = next((d for d in workflow.states if d.state == next_state), None)
+		allowed = {state_field}
+		if next_state_row and next_state_row.update_field:
+			allowed.add(next_state_row.update_field)
+		if changed <= allowed:
+			return
+
+	frappe.throw(
+		_("Not allowed to edit in Workflow State {0}").format(frappe.bold(_(current_state))),
+		WorkflowPermissionError,
+	)
+
+
 def validate_workflow(doc):
 	"""Validate Workflow State and Transition for the current user.
 

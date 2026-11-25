@@ -1178,6 +1178,7 @@ class Document(_DocumentBase):
 		self.set_parent_in_children()
 		self.set_name_in_children()
 
+		self.validate_workflow_edit_permission()
 		self.validate_higher_perm_levels()
 		self._validate_links()
 		self.run_before_save_methods()
@@ -1517,6 +1518,15 @@ class Document(_DocumentBase):
 
 			# Make sure rating is between 0 and 1
 			self.set(field.fieldname, max(0, min(value, 1)))
+
+	def validate_workflow_edit_permission(self):
+		"""Refuse edits in a workflow state the user may not edit (before validate hooks run)"""
+		if self._action == "cancel":
+			return
+
+		from frappe.model.workflow import validate_workflow_edit_permission
+
+		validate_workflow_edit_permission(self)
 
 	def validate_workflow(self):
 		"""Validate if the workflow transition is valid"""

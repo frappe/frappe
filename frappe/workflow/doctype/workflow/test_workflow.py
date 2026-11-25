@@ -7,6 +7,7 @@ import responses
 
 import frappe
 from frappe.model.workflow import (
+	WorkflowPermissionError,
 	WorkflowTransitionError,
 	apply_workflow,
 	can_cancel_document,
@@ -117,6 +118,83 @@ class TestWorkflow(IntegrationTestCase):
 		with patch.object(frappe.db, "commit"):
 			bulk_workflow_approval([todo.name], "ToDo", "Approve")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Approved")
+
+	def make_rejected_todo(self):
+		"""A ToDo in "Rejected", which only Test Approver may edit; "Review" back to Pending is open to All."""
+		todo = create_new_todo()
+		apply_workflow(todo, "Reject")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Rejected")
+		return todo
+
+	def test_edit_refused_in_state_user_cannot_edit(self):
+		"""Only Allow Edit For is enforced on the server, not only by the form."""
+		from frappe.client import save
+
+		todo = self.make_rejected_todo()
+		frappe.set_user("test@example.com")
+
+		doc = frappe.get_doc("ToDo", todo.name)
+		doc.description = "edited through the API"
+		self.assertRaises(WorkflowPermissionError, doc.save)
+
+		as_dict = frappe.get_doc("ToDo", todo.name).as_dict()
+		as_dict["priority"] = "High"
+		self.assertRaises(WorkflowPermissionError, save, as_dict)
+
+		frappe.set_user("Administrator")
+		self.assertNotEqual(frappe.db.get_value("ToDo", todo.name, "description"), "edited through the API")
+		self.assertNotEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
+
+	def test_edit_refused_when_combined_with_allowed_transition(self):
+		"""An allowed transition cannot carry other edits past the edit role."""
+		todo = self.make_rejected_todo()
+		frappe.set_user("test@example.com")
+
+		doc = frappe.get_doc("ToDo", todo.name)
+		doc.workflow_state = "Pending"
+		doc.description = "smuggled edit"
+		self.assertRaises(WorkflowPermissionError, doc.save)
+
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Rejected")
+
+	def test_transition_allowed_without_edit_role(self):
+		"""Applying an allowed action still works for a user who cannot edit the current state."""
+		todo = self.make_rejected_todo()
+		frappe.set_user("test@example.com")
+
+		apply_workflow(frappe.get_doc("ToDo", todo.name), "Review")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Pending")
+
+		# Pending may be edited by All
+		doc = frappe.get_doc("ToDo", todo.name)
+		doc.description = "edited in an editable state"
+		doc.save()
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "edited in an editable state")
+
+	def test_edit_allowed_with_edit_role_or_ignore_permissions(self):
+		todo = self.make_rejected_todo()
+
+		frappe.set_user("test@example.com")
+		doc = frappe.get_doc("ToDo", todo.name)
+		doc.description = "edited by system code"
+		doc.save(ignore_permissions=True)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "edited by system code")
+
+		# saving without any change is not an edit
+		frappe.get_doc("ToDo", todo.name).save()
+
+		# the same user can edit once they hold the state's edit role
+		frappe.set_user("Administrator")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
+		user.add_roles("Test Approver")
+		self.addCleanup(user.remove_roles, "Test Approver")
+		frappe.set_user("test@example.com")
+
+		doc = frappe.get_doc("ToDo", todo.name)
+		doc.description = "edited by the edit role"
+		doc.save()
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "edited by the edit role")
 
 	def test_if_workflow_actions_were_processed_using_role(self):
 		user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
