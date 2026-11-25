@@ -37,6 +37,10 @@
       "import": "./src/components/AutomationCanvas/index.ts",
       "types": "./src/components/AutomationCanvas/index.ts"
     },
+    "./AutomationBuilder": {
+      "import": "./src/components/AutomationBuilder/index.ts",
+      "types": "./src/components/AutomationBuilder/index.ts"
+    },
     "./ListView": {
       "import": "./src/components/ListView/index.ts",
       "types": "./src/components/ListView/index.ts"

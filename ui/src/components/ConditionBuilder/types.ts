@@ -122,6 +122,10 @@ export interface ConditionBuilderProps<TLeaf = FieldConditionValue>
   doctype?: string;
 
   fields?: ConditionField[];
+  operatorsForField?: (
+    fieldtype: string,
+    fieldname?: string
+  ) => ConditionOperatorOption[];
   columns?: ConditionColumns;
 
   /** Root group is depth 0. Defaults to 4; past that a row has too little width. */

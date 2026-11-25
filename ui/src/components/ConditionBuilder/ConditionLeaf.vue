@@ -178,8 +178,12 @@ const fieldOptions = computed(() =>
 	fields.value.map((f) => ({ label: f.label, value: f.fieldname }))
 );
 
+function offeredForField(fieldtype: string, fieldname?: string) {
+	return (context.operatorsForField ?? conditionOperators)(fieldtype, fieldname);
+}
+
 const offeredOperators = computed(() =>
-	conditionOperators(field.value?.fieldtype ?? "", field.value?.fieldname)
+	offeredForField(field.value?.fieldtype ?? "", field.value?.fieldname)
 );
 
 const operators = computed(() => {
@@ -305,13 +309,8 @@ function fieldFromOption(option: unknown): ConditionField | undefined {
 function onFieldChange(option: unknown) {
 	const next = fieldFromOption(option);
 	if (!next) return;
-	// Told what this component offers, not what `Filter` does, or `is not`
-	// would read as unavailable on every field and reset the row.
-	const carried = carryOver(
-		filterCondition.value,
-		next,
-		conditionOperators(next.fieldtype, next.fieldname)
-	);
+	const carried = carryTo(next);
+
 	emit("update", {
 		fieldname: carried.fieldname,
 		// `carryOver` was handed this component's own list, so what it kept came
@@ -319,6 +318,16 @@ function onFieldChange(option: unknown) {
 		operator: carried.operator as ConditionOperator,
 		value: carried.value as ConditionValue,
 	});
+}
+
+function carryTo(next: ConditionField) {
+	const offered = offeredForField(next.fieldtype, next.fieldname);
+	const carried = carryOver(filterCondition.value, next, offered);
+	if (offered.length && !offered.some(({ value }) => value === carried.operator)) {
+		carried.operator = offered[0].value;
+		carried.value = defaultValueFor(next, carried.operator);
+	}
+	return carried;
 }
 
 // `Select` emits its own option value type, so the operator is matched against
