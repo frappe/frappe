@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 	from frappe.website.doctype.web_form_request.web_form_request import WebFormRequest
 
 LAYOUT_FIELDTYPES = ("Section Break", "Column Break", "Page Break")
+DOCTYPE_BREAK_FIELDTYPES = ("Section Break", "Column Break", "Tab Break")
 
 
 class WebForm(WebsiteGenerator):
@@ -226,9 +227,7 @@ class WebForm(WebsiteGenerator):
 
 		# breaks have no fieldname to match on, so they are rebuilt from the Web Form
 		docfields = {
-			df.fieldname: df
-			for df in target_doctype.fields
-			if df.fieldtype not in ("Section Break", "Column Break", "Tab Break")
+			df.fieldname: df for df in target_doctype.fields if df.fieldtype not in DOCTYPE_BREAK_FIELDTYPES
 		}
 
 		fields = []
@@ -1086,7 +1085,7 @@ def get_web_form_module(doc):
 def field_signature(df):
 	"""The DocField properties a Web Form controls. A break's fieldname is random, so it is left out."""
 	keys = ("label", "fieldtype", "options", "reqd", "default", "description")
-	if df.get("fieldtype") not in ("Section Break", "Column Break", "Tab Break"):
+	if df.get("fieldtype") not in DOCTYPE_BREAK_FIELDTYPES:
 		keys = ("fieldname", *keys)
 	return tuple(df.get(key) or None for key in keys)
 
@@ -1101,9 +1100,7 @@ def get_web_form_managed_fields(doctype):
 	fields = [doc.as_docfield(d) for d in doc.web_form_fields if d.fieldname]
 	return {
 		"web_form": web_form,
-		"fields": [
-			df for df in fields if df["fieldtype"] not in ("Section Break", "Column Break", "Tab Break")
-		],
+		"fields": [df for df in fields if df["fieldtype"] not in DOCTYPE_BREAK_FIELDTYPES],
 	}
 
 
