@@ -613,10 +613,9 @@ if __name__ == "__main__":
 	skips_suites = (
 		os.environ.get("SKIP_ON_PRS") and skips_test_suites(pr_number, repo) and not tests_requested
 	)
-	picked_only = skips_suites and fetch_pr_data(pr_number, repo)["base"]["ref"] == "develop"
-	if skips_suites and not picked_only:
+	if skips_suites:
 		print(
-			"desk-v2 and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
+			"Develop, desk-v2 and hotfix PRs skip the test suites, they run in the merge queue or on the branch; stopping build process."
 		)
 		sys.exit(0)
 
@@ -629,9 +628,6 @@ if __name__ == "__main__":
 		else:
 			print("Found `Skip CI` label on pr, stopping build process.")
 			sys.exit(0)
-	elif ci_files_changed and picked_only:
-		print("CI related files were updated, the full suite runs in the merge queue.")
-		sys.exit(0)
 	elif ci_files_changed:
 		print("CI related files were updated, running all build processes.")
 	elif only_docs_changed and not tests_requested:
@@ -653,13 +649,5 @@ if __name__ == "__main__":
 		print("No server-side changes; Stopping Python build process.")
 		sys.exit(0)
 
-	jobs = {"build", "studio", "flow"}
-	if picked_only:
-		jobs = queue_jobs(build_type, files_list) - (set() if selected else {"build"})
-		if selected is None:
-			print("These changes need the full suite, which runs in the merge queue.")
-		if not jobs:
-			sys.exit(0)
-
-	run_jobs(jobs)
+	run_jobs()
 	write_selection(build_type, selected, run_postgres)
