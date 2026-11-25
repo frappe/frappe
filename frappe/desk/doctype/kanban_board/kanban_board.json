@@ -31,7 +31,9 @@
   "section_break_new_kanban_fields",
   "card_fields",
   "preview_fields",
-  "group_by_fields"
+  "group_by_fields",
+  "section_break_board_preview",
+  "board_preview"
  ],
  "fields": [
   {
@@ -191,11 +193,22 @@
    "fieldname": "section_break_new_kanban_fields",
    "fieldtype": "Section Break",
    "label": "Card and Preview Fields"
+  },
+  {
+   "depends_on": "eval:doc.use_kanban_v2 && !doc.__islocal && frappe.model.can_read(doc.reference_doctype)",
+   "fieldname": "section_break_board_preview",
+   "fieldtype": "Section Break",
+   "label": "Board preview"
+  },
+  {
+   "fieldname": "board_preview",
+   "fieldtype": "HTML"
   }
  ],
  "icon": "square-kanban",
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-09-30 23:40:31.093233",
+ "modified": "2026-11-27 14:31:39.415754",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",

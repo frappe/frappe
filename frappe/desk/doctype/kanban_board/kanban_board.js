@@ -21,10 +21,14 @@ frappe.ui.form.on("Kanban Board", {
 				set_title_image_field_options(frm);
 			});
 		}
+		render_board_preview(frm);
 		if (frm.is_new()) return;
 		frm.add_custom_button(__("Show Board"), function () {
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
 		});
+	},
+	on_hide: function (frm) {
+		destroy_board_preview(frm);
 	},
 
 	reference_doctype: function (frm) {
@@ -65,6 +69,38 @@ frappe.ui.form.on("Kanban Board", {
 		frm.refresh();
 	},
 });
+
+/**
+ * The saved board with only its own filters, so a saved change shows up below the settings.
+ * Refresh also runs when the form shows again, so the board is rebuilt after on_hide.
+ */
+function render_board_preview(frm) {
+	destroy_board_preview(frm);
+	if (
+		frm.is_new() ||
+		!frm.doc.use_kanban_v2 ||
+		!frappe.model.can_read(frm.doc.reference_doctype)
+	) {
+		return;
+	}
+
+	const container = $('<div class="kanban-board-preview">').appendTo(
+		frm.get_field("board_preview").$wrapper
+	)[0];
+	const board_name = frm.doc.name;
+	frappe.require("kanban.bundle.js", () => {
+		// the form refreshed, hid or moved to another board while the bundle loaded
+		if (!container.isConnected || frm.doc.name !== board_name) return;
+		frm.board_preview = new frappe.views.KanbanV2Embed({ container, board_name });
+	});
+}
+
+/** A hidden board would still reload on every change to its document type. */
+function destroy_board_preview(frm) {
+	if (frm.board_preview) frm.board_preview.destroy();
+	frm.board_preview = null;
+	frm.get_field("board_preview").$wrapper.empty();
+}
 
 // autofill the row label from its field; it stays editable
 function autofill_field_label(frm, cdt, cdn) {
