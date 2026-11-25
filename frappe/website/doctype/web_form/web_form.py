@@ -111,6 +111,7 @@ class WebForm(WebsiteGenerator):
 
 		if not self.doc_type or self.created_new_doctype:
 			self.set_fieldnames()
+			self.validate_saved_fieldnames_unchanged()
 
 		if not self.doc_type and not self.is_new():
 			frappe.throw(_("Select a DocType"), frappe.MandatoryError)
@@ -220,6 +221,21 @@ class WebForm(WebsiteGenerator):
 			),
 			title=_("DocType Cannot Be Changed"),
 		)
+
+	def validate_saved_fieldnames_unchanged(self):
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		saved = {d.name: d.fieldname for d in before.web_form_fields if d.fieldname}
+		for d in self.web_form_fields:
+			if d.name in saved and d.fieldname != saved[d.name]:
+				frappe.throw(
+					_(
+						"Fieldname {0} of field {1} cannot be changed. Remove the field and add a new one."
+					).format(frappe.bold(saved[d.name]), frappe.bold(d.label or d.fieldname)),
+					title=_("Fieldname Cannot Be Changed"),
+				)
 
 	def get_fields_for_new_doctype(self):
 		return [self.as_docfield(d) for d in self.web_form_fields]

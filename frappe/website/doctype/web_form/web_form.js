@@ -77,6 +77,11 @@ frappe.ui.form.on("Web Form", {
 			"fieldtype",
 			editable ? "Autocomplete" : "Select"
 		);
+		frm.fields_dict.web_form_fields.grid.update_docfield_property(
+			"fieldname",
+			"read_only_depends_on",
+			frm.doc.created_new_doctype ? "eval:!doc.__islocal" : ""
+		);
 		frm.set_df_property("doc_type", "read_only", frm.doc.created_new_doctype);
 		frm.refresh_field("web_form_fields");
 	},

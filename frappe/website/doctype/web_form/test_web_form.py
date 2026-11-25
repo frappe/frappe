@@ -2093,3 +2093,15 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		expected = ["upper", "a_b", "my_field", "int", "cafe", "autoname_2"]
 		self.assertEqual([d.fieldname for d in web_form.web_form_fields], expected)
 		self.assertEqual([df.fieldname for df in frappe.get_meta(web_form.doc_type).fields], expected)
+
+	def test_saved_fieldname_cannot_be_changed(self):
+		web_form = self.new_web_form("Test Web Form Rename Fieldname")
+		web_form.web_form_fields[0].fieldname = "given_name"
+
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be changed"):
+			web_form.save()
+
+		web_form.reload()
+		web_form.append("web_form_fields", {"fieldname": "given_name", "label": "Given", "fieldtype": "Data"})
+		web_form.save()
+		self.assertTrue(frappe.get_meta(web_form.doc_type).has_field("given_name"))
