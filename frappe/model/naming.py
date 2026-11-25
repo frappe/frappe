@@ -276,19 +276,6 @@ def set_naming_from_document_naming_rule(doc):
 			break
 
 
-def revert_series_from_document_naming_rule(doc):
-	if not isinstance(doc.name, str):
-		return
-
-	for d in frappe.cache_manager.get_doctype_map(
-		"Document Naming Rule",
-		doc.doctype,
-		filters={"document_type": doc.doctype, "disabled": 0},
-		order_by="priority desc",
-	):
-		frappe.get_cached_doc("Document Naming Rule", d.name).revert(doc)
-
-
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""
 	if not doc.naming_series:

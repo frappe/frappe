@@ -12,7 +12,7 @@ from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.model.naming import revert_series_from_document_naming_rule, revert_series_if_last
+from frappe.model.naming import revert_series_if_last
 from frappe.model.utils import is_virtual_doctype
 from frappe.query_builder import DocType
 from frappe.utils.data import get_link_to_form
@@ -269,8 +269,6 @@ def update_naming_series(doc):
 
 		elif doc.meta.autoname.split(":", 1)[0] not in ("Prompt", "field", "hash", "autoincrement"):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
-
-	revert_series_from_document_naming_rule(doc)
 
 
 def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
