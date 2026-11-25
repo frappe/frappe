@@ -714,13 +714,13 @@ export const SPECS = {
 			"agent",
 			"scope",
 			"user",
-			"user.full_name as user_name",
+			"user.email as user_email",
 			"status",
 			"source",
 		],
-		searchFields: ["name", "content", "agent", "scope", "user", "status", "source"],
+		searchFields: ["name", "content", "agent", "scope", "user", "user.email", "status", "source"],
 		subtitle: (doc) =>
-			[doc.agent, doc.scope === "User" ? doc.user_name || doc.user : __("shared"), doc.status]
+			[doc.agent, doc.scope === "User" ? doc.user_email || doc.user : __("shared"), doc.status]
 				.filter(Boolean)
 				.join(" · "),
 		orderBy: "modified desc",

@@ -1113,9 +1113,17 @@ def get_manageable_workspaces():
 		ignore_permissions=True,
 	)
 	if owners := {w.for_user for w in workspaces if w.for_user}:
-		names = dict(frappe.get_all("User", {"name": ("in", owners)}, ["name", "full_name"], as_list=True))
+		emails = dict(
+			frappe.get_all(
+				"User",
+				filters=[["name", "in", owners], ["name", "not in", frappe.STANDARD_USERS]],
+				fields=["name", "email"],
+				as_list=True,
+			)
+		)
 		for workspace in workspaces:
-			workspace.owner_name = names.get(workspace.for_user) or workspace.for_user
+			if workspace.for_user:
+				workspace.owner_display_id = emails.get(workspace.for_user) or workspace.for_user
 	return workspaces
 
 
