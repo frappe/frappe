@@ -1011,7 +1011,9 @@ frappe.ui.form.Form = class FrappeForm {
 			// on every validation-error path)
 			btn && $(btn).prop("disabled", true).attr("aria-busy", "true");
 			frappe.ui.form.close_grid_form();
-			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
+			frappe.after_ajax(() =>
+				me.validate_and_save(save_action, callback, btn, on_error, resolve, reject)
+			);
 		})
 			.then(() => {
 				me.show_success_action();
@@ -1749,6 +1751,11 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		if (this.meta.in_dialog || !this.in_form) {
+			return;
+		}
+
+		const [view, doctype, docname] = frappe.get_route();
+		if (view !== "Form" || doctype !== this.doctype || docname !== old) {
 			return;
 		}
 
