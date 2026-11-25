@@ -838,6 +838,80 @@ class TestPermissions(IntegrationTestCase):
 			self.assertNotIn(child_doctype, frappe.flags.error_message)
 			self.assertNotIn(row.name, frappe.flags.error_message)
 
+	def make_permlevel_child_doctypes(self):
+		"""A parent with a child table whose `rate` field is at permlevel 1.
+
+		`_Test Permlevel Role` can create and write the parent at permlevel 0 only.
+		"""
+		role = "_Test Permlevel Role"
+		with self.set_user("Administrator"):
+			frappe.get_doc(doctype="Role", role_name=role).insert(ignore_if_duplicate=True)
+			child_doctype = (
+				new_doctype(
+					istable=1,
+					fields=[
+						{"label": "Item", "fieldname": "item", "fieldtype": "Data"},
+						{
+							"label": "Rate",
+							"fieldname": "rate",
+							"fieldtype": "Float",
+							"default": "10",
+							"permlevel": 1,
+						},
+					],
+				)
+				.insert()
+				.name
+			)
+			parent_doctype = (
+				new_doctype(
+					fields=[{"label": "Items", "fieldname": "items", "fieldtype": "Table", "options": child_doctype}],
+					permissions=[{"role": role, "read": 1, "write": 1, "create": 1}],
+				)
+				.insert()
+				.name
+			)
+			user = frappe.get_doc("User", "test2@example.com")
+			user.add_roles(role)
+			self.addCleanup(user.remove_roles, role)
+
+		return parent_doctype
+
+	def test_child_rows_of_new_document_respect_permlevel(self):
+		parent_doctype = self.make_permlevel_child_doctypes()
+
+		with self.set_user("test2@example.com"):
+			doc = frappe.get_doc(
+				{"doctype": parent_doctype, "items": [{"item": "A", "rate": 1}, {"item": "B", "rate": 5}]}
+			).insert()
+
+			# the user cannot write rate: rows get the default instead of the submitted value
+			self.assertEqual([d.rate for d in doc.items], [10, 10])
+			self.assertEqual([d.item for d in doc.items], ["A", "B"])
+			self.assertEqual(
+				frappe.get_all(doc.items[0].doctype, filters={"parent": doc.name}, pluck="rate"), [10, 10]
+			)
+
+	def test_child_rows_added_to_existing_document_respect_permlevel(self):
+		parent_doctype = self.make_permlevel_child_doctypes()
+
+		with self.set_user("Administrator"):
+			doc = frappe.get_doc({"doctype": parent_doctype, "items": [{"item": "A", "rate": 3}]}).insert()
+
+		with self.set_user("test2@example.com"):
+			doc = frappe.get_doc(parent_doctype, doc.name)
+			doc.items[0].rate = 99  # existing row: keeps its stored value
+			doc.append("items", {"item": "B", "rate": 7})  # new row: gets the default
+			doc.save()
+
+			doc.reload()
+			self.assertEqual([(d.item, d.rate) for d in doc.items], [("A", 3), ("B", 10)])
+
+		# a user with access to the permlevel can still set it
+		with self.set_user("Administrator"):
+			doc = frappe.get_doc({"doctype": parent_doctype, "items": [{"item": "C", "rate": 4}]}).insert()
+			self.assertEqual(doc.items[0].rate, 4)
+
 	def test_select_user(self):
 		"""If test3@example.com is restricted by a User Permission to see only
 		users linked to a certain doctype (in this case: Gender "Female"), he

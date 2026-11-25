@@ -1692,11 +1692,8 @@ class Document(_DocumentBase):
 		if high_permlevel_fields:
 			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
-		# If new record then don't reset the values for child table
-		if self.is_new():
-			return
-
-		# check for child tables
+		# check for child tables (rows of a new document, or rows added to an existing one,
+		# are reset to the child doctype's defaults)
 		for df in self.meta.get_table_fields():
 			high_permlevel_fields = frappe.get_meta(df.options).get_high_permlevel_fields()
 			if high_permlevel_fields:
@@ -4159,27 +4156,31 @@ class Document(_DocumentBase):
 		if not to_reset:
 			return
 
-		if self.is_new():
-			# if new, set default value
-			ref_doc = frappe.new_doc(self.doctype)
-		else:
+		ref_doc = None
+		if not self.is_new():
 			# get values from old doc
 			if self.parent_doc:
-				parent_doc = self.parent_doc.get_latest()
-				child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
-				if not child_docs:
-					return
-				ref_doc = child_docs[0]
+				if not self.parent_doc.is_new():
+					parent_doc = self.parent_doc.get_latest()
+					ref_doc = next(
+						(d for d in (parent_doc.get(self.parentfield) if parent_doc else []) if d.name == self.name),
+						None,
+					)
 			else:
 				ref_doc = self.get_latest()
 
+		# new document, or a child row that did not exist before: use default values
+		is_new_row = ref_doc is None
+		if is_new_row:
+			ref_doc = frappe.new_doc(self.doctype)
+
 		masked_fieldnames = [df.fieldname for df in to_reset if df.get("mask_readonly")]
 		ref_values = {}
-		if not self.is_new() and masked_fieldnames:
+		if not is_new_row and masked_fieldnames:
 			ref_values = frappe.db.get_value(self.doctype, self.name, masked_fieldnames, as_dict=True) or {}
 
 		for df in to_reset:
-			if df.get("mask_readonly") and not self.is_new():
+			if df.get("mask_readonly") and not is_new_row:
 				if df.fieldname in ref_values:
 					self.set(df.fieldname, ref_values[df.fieldname])
 			else:
