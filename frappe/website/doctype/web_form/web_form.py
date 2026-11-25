@@ -168,6 +168,8 @@ class WebForm(WebsiteGenerator):
 				"name": doctype_name,
 				"module": self.module,
 				"custom": 1,
+				"autoname": "hash",
+				"naming_rule": "Random",
 				"fields": self.get_fields_for_new_doctype(),
 				"permissions": [
 					{

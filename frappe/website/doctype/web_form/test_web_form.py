@@ -1748,6 +1748,16 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.assertEqual(field.fieldtype, "Data")
 		self.assertEqual(field.reqd, 1)
 
+	def test_created_doctype_uses_hash_naming(self):
+		frappe.clear_messages()
+		web_form = self.new_web_form("Test WF Issue 18 Hash Naming")
+
+		meta = frappe.get_meta(web_form.doc_type)
+		self.assertEqual(meta.autoname, "hash")
+		self.assertEqual(meta.naming_rule, "Random")
+		messages = [m.get("message") for m in frappe.get_message_log()]
+		self.assertNotIn(frappe._("Warning: Naming is not set"), messages)
+
 	def test_generated_doctype_onload_lists_web_form_managed_fields(self):
 		web_form = self.new_web_form(
 			"Test Web Form Managed Fields",
