@@ -124,6 +124,9 @@ def build_cache() -> None:
 		if fn := _get_whitelisted_method(path, ignore_cache=True):
 			method = _method_summary(fn)
 			items.append(method)
+			# A method kept only for backward compatibility stays describable but out of search.
+			if method.get("replaced_by"):
+				continue
 			entry = {"type": "method", **method}
 			search_entries.append(
 				{"method": method, "haystack": _method_search_text(entry, inspect.getdoc(fn))}
@@ -245,6 +248,7 @@ def _method_summary(fn: Callable) -> dict[str, Any]:
 			"kind": "rpc",
 			"path": f"{fn.__module__}.{fn.__name__}",
 			"description": docstring.splitlines()[0] if docstring else None,
+			"replaced_by": getattr(fn, "replaced_by", None),
 		}
 	)
 
@@ -261,6 +265,7 @@ def _method_document(path: str, fn: Callable) -> dict[str, Any]:
 			"params": _method_params(fn),
 			"endpoint": f"/api/v2/method/{path}",
 			"docstring": inspect.getdoc(fn),
+			"replaced_by": getattr(fn, "replaced_by", None),
 			"source": _method_source(fn),
 		}
 	)

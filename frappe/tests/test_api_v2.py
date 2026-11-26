@@ -1219,6 +1219,23 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		# frappe opts into source exposure via the `expose_discovery_source` hook
 		self.assertIn("source", data)
 		self.assertIn("def test(", data["source"])
+		self.assertNotIn("replaced_by", data)
+
+	def test_replaced_method_is_described_but_not_searched_v2(self):
+		path = "frappe.tests.test_api_v2.replaced_discovery_method"
+		search_response = self.get(
+			self.discovery_path("search"), {"sid": self.sid, "q": "replaced_discovery_method"}
+		)
+		self.assertEqual(search_response.status_code, 200)
+		self.assertEqual(search_response.json["data"]["results"], [])
+
+		index_response = self.get(self.discovery_path("method"), {"sid": self.sid})
+		indexed = next(item for item in index_response.json["data"]["methods"] if item.get("path") == path)
+		self.assertEqual(indexed["replaced_by"], "frappe.tests.test_api.test")
+
+		method_response = self.get(self.discovery_path("method", path), {"sid": self.sid})
+		self.assertEqual(method_response.status_code, 200)
+		self.assertEqual(method_response.json["data"]["replaced_by"], "frappe.tests.test_api.test")
 
 	def test_method_source_hidden_without_hook_v2(self):
 		real_get_hooks = frappe.get_hooks
@@ -1318,3 +1335,12 @@ def test(*, fail: int | bool = False, handled: int | bool = True, message: str =
 			1 / 0
 	else:
 		frappe.msgprint(message)
+
+
+@whitelist_for_tests()
+def replaced_discovery_method() -> str:
+	"""Old path kept for API discovery tests."""
+	return "replaced"
+
+
+replaced_discovery_method.replaced_by = "frappe.tests.test_api.test"
