@@ -115,7 +115,7 @@
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
-   "mandatory_depends_on": "eval:doc.is_standard",
+   "mandatory_depends_on": "eval:doc.is_standard && !doc.doc_type",
    "options": "Module Def"
   },
   {
@@ -495,7 +495,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-11-25 14:57:17.318837",
+ "modified": "2026-11-26 04:23:47.968041",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

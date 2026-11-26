@@ -65,6 +65,13 @@ frappe.listview_settings["Web Form"] = {
 					fieldtype: "Link",
 					options: "DocType",
 					reqd: !can_create_doctype,
+					onchange() {
+						let doc_type = dialog.get_value("doc_type");
+						if (!doc_type) return;
+						frappe.db
+							.get_value("DocType", doc_type, "module")
+							.then((r) => dialog.set_value("module", r.message?.module));
+					},
 				},
 				{
 					label: __("Is standard"),
@@ -81,7 +88,7 @@ frappe.listview_settings["Web Form"] = {
 					fieldtype: "Link",
 					options: "Module Def",
 					depends_on: "eval:doc.is_standard",
-					mandatory_depends_on: "eval:doc.is_standard",
+					mandatory_depends_on: "eval:doc.is_standard && !doc.doc_type",
 				},
 				{
 					label: __("Banner Image"),
