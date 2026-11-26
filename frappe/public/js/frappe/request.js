@@ -143,7 +143,10 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
-			if (xhr.responseJSON?._server_messages && frappe.msg_dialog?.msg_area.html()) {
+			if (
+				(xhr.responseJSON?._server_messages || xhr.responseJSON?.errors) &&
+				frappe.msg_dialog?.msg_area.html()
+			) {
 				// cleanup has already shown the server's messages
 				frappe.re_route_on_msgprint_hide();
 			} else {
@@ -174,7 +177,7 @@ frappe.request.call = function (opts) {
 				if (_server_messages.indexOf(__("Not permitted")) !== -1) {
 					return;
 				}
-			} else {
+			} else if (!xhr.responseJSON?.errors?.some((e) => e.message)) {
 				frappe.msgprint({
 					title: __("Not permitted"),
 					indicator: "red",
@@ -499,11 +502,11 @@ frappe.request.cleanup = function (opts, r) {
 		//
 		let messages;
 		if (opts.api_version == "v2") {
-			messages = r.messages;
+			messages = [...(r.messages || []), ...(r.errors || []).filter((e) => e.message)];
 		} else if (r._server_messages) {
 			messages = JSON.parse(r._server_messages);
 		}
-		if (messages && !opts.silent) {
+		if (messages?.length && !opts.silent) {
 			// show server messages if no handlers exist
 			if (handlers.length === 0) {
 				const opens_dialog = messages.some((m) => {
