@@ -281,9 +281,6 @@ class EMail:
 			self.sender = self.email_account.default_sender
 
 		validate_email_address(strip(self.sender), True)
-<<<<<<< HEAD
-		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
-=======
 		sender_name, sender_email = email.utils.parseaddr(self.sender)
 		if not sender_email:
 			frappe.throw(
@@ -291,11 +288,7 @@ class EMail:
 				frappe.InvalidEmailAddressError,
 			)
 		self.sender = format_sender((sender_name,), sender_email)
-		self.validate_reply_to()
-
-		if self.email_account.add_x_original_from:
-			self.set_header("X-Original-From", self.sender)
->>>>>>> 5f456ed (fix(email): drop sender display name that is an email address)
+		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
 
 		self.set_header("X-Original-From", self.sender)
 		self.replace_sender()
