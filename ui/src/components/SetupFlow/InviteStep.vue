@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col gap-2">
+	<div ref="root" class="flex flex-col gap-2">
 		<Alert
 			v-if="failed.length"
 			class="mb-2"
@@ -7,7 +7,12 @@
 			:title="text.failedTitle(failed.length)"
 			:description="text.failedWho(failed.join(', '))"
 		/>
-		<div v-for="(row, index) in rows" :key="row.id" class="flex flex-col gap-1">
+		<div
+			v-for="(row, index) in rows"
+			:key="row.id"
+			:data-invite-row="row.id"
+			class="flex flex-col gap-1"
+		>
 			<div class="relative flex items-center gap-1.5 sm:gap-2">
 				<div class="min-w-0 flex-1">
 					<FormControl
@@ -16,9 +21,15 @@
 						:placeholder="text.placeholder"
 						:aria-label="text.email(index + 1)"
 						:disabled="sending || row.sent"
+						@keydown.enter.prevent="index === rows.length - 1 && addRow()"
+						@blur="touch(row.id)"
 					>
 						<template v-if="row.sent" #suffix>
-							<Badge :label="text.sent" theme="green" variant="subtle" />
+							<Badge
+								:label="row.existing ? text.existing : text.sent"
+								:theme="row.existing ? 'gray' : 'green'"
+								variant="subtle"
+							/>
 						</template>
 					</FormControl>
 				</div>
@@ -49,9 +60,10 @@
 			class="mt-1 self-start"
 			icon-left="lucide-plus"
 			:label="text.add"
-			:disabled="sending"
-			@click="rows.push(newRow())"
+			:disabled="sending || atLimit"
+			@click="addRow"
 		/>
+		<p v-if="atLimit" class="text-p-sm text-ink-gray-5">{{ text.limit(maxRows) }}</p>
 		<!-- The app can say more about an error it knows, like a link to fix it. -->
 		<slot v-if="error" name="error" :message="error">
 			<ErrorMessage :message="error" />
@@ -59,7 +71,7 @@
 
 		<div class="mt-6 flex items-center gap-2">
 			<Button
-				v-if="!pending.length && sentRoles.size"
+				v-if="!pending.length && rows.some((row) => row.sent)"
 				variant="solid"
 				:label="text.continue"
 				@click="finish"
@@ -97,7 +109,8 @@
 
 <script setup lang="ts">
 import { Alert, Badge, Button, ErrorMessage, FormControl } from "frappe-ui";
-import { computed, onActivated, ref, watch } from "vue";
+import { computed, nextTick, onActivated, ref, watch } from "vue";
+import { type InviteRow, normal, useInviteRows } from "./inviteRows";
 
 export interface InviteRole {
 	label: string;
@@ -109,10 +122,14 @@ export interface Invitee {
 	role: string;
 }
 
-/** What one `send` call did. Emails in `failed` were not invited; the rest were. */
+/**
+ * What one `send` call did. Emails in `failed` were not invited; those in `existing` already
+ * have access, so nothing was sent to them; the rest were invited.
+ */
 export interface InviteOutcome {
 	invited?: number;
 	failed?: string[];
+	existing?: string[];
 }
 
 /** English defaults; pass translated text to relabel. Text with a number or names in it is a function. */
@@ -129,6 +146,11 @@ export interface InviteStepLabels {
 	sent: string;
 	invalid: string;
 	duplicate: string;
+	/** Under an empty row the owner tried to move past. */
+	empty: string;
+	/** Badge on a row whose person already has access. */
+	existing: string;
+	limit: (count: number) => string;
 	failed: string;
 	/** Above the people who could not be invited. */
 	failedTitle: (count: number) => string;
@@ -151,8 +173,13 @@ const props = withDefaults(
 		labels?: Partial<InviteStepLabels>;
 		/** Shows Back beside Skip, for flows that keep it with the step's own buttons. */
 		canGoBack?: boolean;
+		/** The app's own email check. Defaults to a simple name@domain.tld pattern. */
+		validate?: (email: string) => boolean;
+		maxRows?: number;
+		/** Milliseconds to keep the sent rows on screen before moving on. */
+		finishDelay?: number;
 	}>(),
-	{ canGoBack: false }
+	{ canGoBack: false, maxRows: 20, finishDelay: 0 }
 );
 const emit = defineEmits<{
 	done: [result: { invited: number; roles: string[] }];
@@ -175,6 +202,9 @@ const defaults: InviteStepLabels = {
 	sent: "Sent",
 	invalid: "Enter a valid email address",
 	duplicate: "This email is already in the list",
+	empty: "Enter an email first",
+	existing: "Already added",
+	limit: (count) => `You can invite up to ${count} at a time`,
 	failed: "Could not send the invites. Please try again.",
 	failedTitle: (count) =>
 		count === 1 ? "1 invite could not be sent" : `${count} invites could not be sent`,
@@ -182,14 +212,15 @@ const defaults: InviteStepLabels = {
 };
 const text = computed(() => ({ ...defaults, ...props.labels }));
 
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const roleFor = () => props.defaultRole ?? props.roles[0]?.value ?? "";
-const normal = (email: string) => email.trim().toLowerCase();
-
-type Row = { id: number; email: string; role: string; sent: boolean };
-let lastId = 0;
-const newRow = (role = roleFor()): Row => ({ id: ++lastId, email: "", role, sent: false });
-const rows = ref<Row[]>([newRow(props.firstRole ?? roleFor()), newRow()]);
+const { rows, problems, pending, atLimit, isValid, check, add, touch, remove } = useInviteRows({
+	firstRole: props.firstRole ?? roleFor(),
+	role: roleFor,
+	maxRows: () => props.maxRows,
+	validate: () => props.validate,
+	text: () => text.value,
+});
+const canSend = computed(() => pending.value.length > 0);
 
 // The suggestion can change while the step is open, say after going back to another goal.
 // It moves the first row only until a name is typed there.
@@ -201,40 +232,29 @@ watch(
 	}
 );
 
-const problems = computed(() => {
-	const seen = new Set(rows.value.filter((row) => row.sent).map((row) => normal(row.email)));
-	const found: Record<number, string> = {};
-	for (const row of rows.value) {
-		const email = normal(row.email);
-		if (row.sent || !email) continue;
-		if (!EMAIL.test(email)) found[row.id] = text.value.invalid;
-		else if (seen.has(email)) found[row.id] = text.value.duplicate;
-		seen.add(email);
-	}
-	return found;
-});
-const pending = computed(() => rows.value.filter((row) => !row.sent && row.email.trim()));
-const canSend = computed(
-	() => pending.value.length > 0 && !pending.value.some((row) => problems.value[row.id])
-);
-
 watch(
 	rows,
 	() =>
 		emit(
 			"invitees",
 			rows.value
-				.filter((row) => row.email.trim() && !problems.value[row.id])
+				.filter((row) => isValid(normal(row.email)) && !problems.value[row.id])
 				.map((row) => ({ email: row.email.trim(), role: row.role }))
 		),
 	{ deep: true }
 );
 
-function remove(index: number) {
-	rows.value.splice(index, 1);
-	if (!rows.value.length) rows.value.push(newRow());
+function addRow() {
+	const unfinished = add();
+	if (unfinished)
+		nextTick(() =>
+			root.value
+				?.querySelector<HTMLInputElement>(`[data-invite-row="${unfinished.id}"] input`)
+				?.focus()
+		);
 }
 
+const root = ref<HTMLElement | null>(null);
 const sending = ref(false);
 const error = ref("");
 // A kept-alive step shown again, say after the owner fixed what failed, starts without it.
@@ -244,17 +264,22 @@ let invited = 0;
 const sentRoles = ref(new Set<string>());
 
 function outcomeOf(result: InviteOutcome | number | void, count: number): Required<InviteOutcome> {
-	if (typeof result === "number") return { invited: result, failed: [] };
+	if (typeof result === "number") return { invited: result, failed: [], existing: [] };
 	const notInvited = result?.failed ?? [];
-	return { invited: result?.invited ?? count - notInvited.length, failed: notInvited };
+	const existing = result?.existing ?? [];
+	return {
+		invited: result?.invited ?? count - notInvited.length - existing.length,
+		failed: notInvited,
+		existing,
+	};
 }
 
 async function send() {
-	if (!canSend.value) return;
+	if (!canSend.value || !check()) return;
 	sending.value = true;
 	error.value = "";
 	failed.value = [];
-	const byRole = new Map<string, Row[]>();
+	const byRole = new Map<string, InviteRow[]>();
 	for (const row of pending.value) byRole.set(row.role, [...(byRole.get(row.role) ?? []), row]);
 	try {
 		for (const [role, group] of byRole) {
@@ -266,10 +291,14 @@ async function send() {
 				group.length
 			);
 			const notInvited = new Set(outcome.failed.map(normal));
+			const existing = new Set(outcome.existing.map(normal));
 			// Sent rows lock, so a retry after a later role fails does not send them twice.
-			for (const row of group) row.sent = !notInvited.has(normal(row.email));
+			for (const row of group) {
+				row.sent = !notInvited.has(normal(row.email));
+				row.existing = existing.has(normal(row.email));
+			}
 			invited += outcome.invited;
-			if (group.some((row) => row.sent))
+			if (group.some((row) => row.sent && !row.existing))
 				sentRoles.value = new Set([...sentRoles.value, role]);
 			failed.value.push(...group.filter((row) => !row.sent).map((row) => row.email.trim()));
 		}
@@ -280,7 +309,9 @@ async function send() {
 		sending.value = false;
 	}
 	// Someone could not be invited: the step stays, so the owner sees who and can fix it.
-	if (!failed.value.length) finish();
+	if (failed.value.length) return;
+	if (props.finishDelay) setTimeout(finish, props.finishDelay);
+	else finish();
 }
 
 function finish() {
