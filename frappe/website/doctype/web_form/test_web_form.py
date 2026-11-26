@@ -2005,7 +2005,7 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.assertEqual(fieldnames, ["full_name", "full_name_2", "owner_2", None, "int", None, "notes"])
 
 		meta = frappe.get_meta(web_form.doc_type)
-		for fieldname in filter(None, fieldnames):
+		for fieldname in [f for f in fieldnames if f]:
 			self.assertTrue(meta.has_field(fieldname), fieldname)
 		self.assertEqual([df.label for df in meta.get("fields", {"fieldtype": "Tab Break"})], ["More"])
 
