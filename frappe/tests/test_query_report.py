@@ -1201,6 +1201,61 @@ data = columns, result
 		full_name = frappe.db.get_value("User", "Administrator", "full_name")
 		self.assertEqual(titles["User::Administrator"], full_name)
 
+	def test_user_permissions_skip_link_columns_that_ignore_them(self):
+		from frappe.desk.query_report import get_filtered_data
+
+		viewer, assigner = self.restrict_to_own_user()
+		column = {"fieldname": "assigned_by", "fieldtype": "Link", "options": "User"}
+		data = [{"assigned_by": assigner}]
+
+		self.assertEqual(get_filtered_data("ToDo", [column], data, viewer), [])
+		self.assertEqual(
+			get_filtered_data("ToDo", [{**column, "ignore_user_permissions": 1}], data, viewer), data
+		)
+
+	def test_saved_columns_cannot_skip_user_permissions(self):
+		from frappe.desk.query_report import generate_report_result, get_report_doc
+
+		viewer, assigner = self.restrict_to_own_user()
+		column = dict(fieldname="assigned_by", label="Assigned By", fieldtype="Link", options="User")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Assigned By Report " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+				"columns": [column],
+			}
+		).insert(ignore_permissions=True)
+		report.report_script = f'result = [{{"assigned_by": "{assigner}"}}]'
+		report.save()
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Assigned By Custom Report " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"is_standard": "No",
+				"json": json.dumps({"columns": [{**column, "ignore_user_permissions": 1}]}),
+			}
+		).insert(ignore_permissions=True)
+
+		result = generate_report_result(get_report_doc(custom_report.name), user=viewer)
+
+		self.assertEqual(result["result"], [])
+
+	def restrict_to_own_user(self):
+		"""User permission restricting test@example.com to their own User; returns them and another user."""
+		from frappe.permissions import add_user_permission
+
+		viewer, other = "test@example.com", "test1@example.com"
+		add_user_permission("User", viewer, viewer, ignore_permissions=True)
+		self.addCleanup(frappe.cache.hdel, "user_permissions", viewer)
+		return viewer, other
+
 	def make_link_column_report(self):
 		"""Script report with an ID column and a User link column, returning one row."""
 		frappe.set_user("Administrator")

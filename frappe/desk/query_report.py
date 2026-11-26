@@ -144,6 +144,7 @@ def generate_report_result(
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
 	columns = [get_column_as_dict(col) for col in (columns or [])]
 	report_column_names = [col["fieldname"] for col in columns]
+	ignore_user_permissions = {col["fieldname"] for col in columns if col.get("ignore_user_permissions")}
 	# convert to list of dicts
 
 	result = normalize_result(result, columns)
@@ -161,6 +162,13 @@ def generate_report_result(
 	if custom_columns:
 		for custom_column in custom_columns:
 			columns.insert(custom_column["insert_after_index"] + 1, custom_column)
+
+	# only the report's own columns may skip user permissions, not saved or added ones
+	for column in columns:
+		if column["fieldname"] in ignore_user_permissions:
+			column["ignore_user_permissions"] = 1
+		else:
+			column.pop("ignore_user_permissions", None)
 
 	# all columns which are not in original report
 	report_custom_columns = [column for column in columns if column["fieldname"] not in report_column_names]
@@ -1158,7 +1166,7 @@ def get_linked_doctypes(columns, data):
 
 	for idx in range(len(columns)):
 		df = columns_dict[idx]
-		if df.get("fieldtype") == "Link":
+		if df.get("fieldtype") == "Link" and not df.get("ignore_user_permissions"):
 			if data and isinstance(data[0], list | tuple):
 				linked_doctypes[df["options"]] = idx
 			else:
