@@ -2,20 +2,6 @@
 // For license information, please see license.txt
 
 frappe.query_reports["User Doctype Permissions"] = {
-	filters: [
-		{
-			fieldname: "user",
-			label: __("User"),
-			fieldtype: "Link",
-			options: "User",
-		},
-		{
-			fieldname: "doctype",
-			label: __("Doctype"),
-			fieldtype: "Link",
-			options: "DocType",
-		},
-	],
 	onload(report) {
 		const refresh = report.refresh.bind(report);
 		report.refresh = function () {
