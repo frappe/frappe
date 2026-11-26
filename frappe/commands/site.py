@@ -1659,15 +1659,18 @@ def get_standard_tables():
 	import re
 
 	tables = []
-	sql_file = os.path.join(
-		"..",
-		"apps",
-		"frappe",
-		"frappe",
-		"database",
-		frappe.conf.db_type,
-		f"framework_{frappe.conf.db_type}.sql",
-	)
+	database_folder = os.path.join("..", "apps", "frappe", "frappe", "database", frappe.conf.db_type)
+	if frappe.conf.db_type == "sqlite":
+		import sqlite3
+		from contextlib import closing
+
+		framework_db = os.path.join(database_folder, "framework_sqlite.db")
+		with closing(sqlite3.connect(f"file:{framework_db}?immutable=1", uri=True)) as connection:
+			return [
+				row[0] for row in connection.execute("select name from sqlite_master where type = 'table'")
+			]
+
+	sql_file = os.path.join(database_folder, f"framework_{frappe.conf.db_type}.sql")
 	content = open(sql_file).read().splitlines()
 
 	for line in content:
