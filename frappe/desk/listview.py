@@ -13,7 +13,7 @@ from frappe.query_builder import Field, Order
 from frappe.query_builder.functions import Avg, Count, Max, Min, Sum
 from frappe.query_builder.terms import SubQuery
 from frappe.query_builder.utils import DocType
-from frappe.utils import cint, cstr
+from frappe.utils import cint
 
 
 @frappe.whitelist()
@@ -151,12 +151,10 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 			ignore_permissions=False,
 		)
 
-		user_meta = frappe.get_meta("User")
-		search_fields = [User[fieldname] for fieldname in _get_search_fields(user_meta)]
 		query = (
 			frappe.qb.from_(ToDo)
 			.from_(User)
-			.select(ToDo.allocated_to.as_("name"), count, *search_fields)
+			.select(ToDo.allocated_to.as_("name"), count)
 			.where(
 				ToDo.status.notin(("Cancelled", "Closed"))
 				& (ToDo.allocated_to == User.name)
@@ -164,19 +162,12 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 				& (ToDo.reference_type == doctype)
 				& (ToDo.reference_name.isin(SubQuery(filtered_records)))
 			)
-			.groupby(ToDo.allocated_to, *search_fields)
+			.groupby(ToDo.allocated_to)
 			.orderby(count, order=Order.desc)
 			.limit(50)
 		)
-		if user_meta.show_title_field_in_link:
-			title = User[user_meta.get_title_field()]
-			query = query.select(title.as_("title")).groupby(title)
-
 		data = query.run(as_dict=True)
-		for item in data:
-			values = [item.pop(column.name) for column in search_fields]
-			item.search_text = " ".join(cstr(value) for value in values if value)
-
+		_add_titles_and_descriptions(data, "User")
 		return data
 
 	meta = frappe.get_meta(doctype)
@@ -208,48 +199,45 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 	else:
 		data = data[0:50]
 
-	# Add in title if it's a link field and `show_title_field_in_link` is set
 	if field in ("owner", "modified_by"):
-		link_doctype = "User"
+		_add_titles_and_descriptions(data, "User")
 	elif (field_meta := meta.get_field(field)) and field_meta.fieldtype == "Link":
-		link_doctype = field_meta.options
-	else:
-		link_doctype = None
-
-	if not link_doctype:
-		return data
-
-	link_meta = frappe.get_meta(link_doctype)
-	title_field = link_meta.get_title_field() if link_meta.show_title_field_in_link else None
-	search_fields = _get_search_fields(link_meta)
-	if not (title_field or search_fields):
-		return data
-
-	fields = {"name", *search_fields}
-	if title_field:
-		fields.add(title_field)
-	rows = {
-		row.name: row
-		for row in frappe.get_all(
-			link_doctype, filters={"name": ("in", [item.name for item in data])}, fields=list(fields)
-		)
-	}
-	for item in data:
-		row = rows.get(item.name) or {}
-		if title_field:
-			item.title = row.get(title_field)
-		item.search_text = " ".join(cstr(row.get(f)) for f in search_fields if row.get(f))
+		_add_titles_and_descriptions(data, field_meta.options)
 
 	return data
 
 
-def _get_search_fields(meta) -> list[str]:
-	"""Search fields of `meta` the user may select, sent so quick filters match on them."""
-	if not frappe.has_permission(meta.name, "select"):
-		return []
+def _add_titles_and_descriptions(data: list[dict], doctype: str) -> None:
+	"""Label each row and describe it below its label as a Link field's search shows its options.
 
-	return [
+	Titles come as before; the other search fields only for users who may select `doctype`.
+	"""
+	from frappe.desk.search import build_for_autosuggest, get_std_fields_list
+
+	meta = frappe.get_meta(doctype)
+	show_title = meta.show_title_field_in_link and meta.title_field
+	can_select = frappe.has_permission(doctype, "select")
+	fields = [
 		fieldname
-		for fieldname in meta.get_search_fields()
-		if (df := meta.get_field(fieldname)) and not df.is_virtual and not df.permlevel
+		for fieldname in get_std_fields_list(meta, "name")
+		if fieldname == "name"
+		or (show_title and fieldname == meta.title_field)
+		or (can_select and (df := meta.get_field(fieldname)) and not df.is_virtual and not df.permlevel)
 	]
+	if not data or fields == ["name"]:
+		return
+
+	rows = frappe.get_all(
+		doctype, filters={"name": ("in", [item.name for item in data])}, fields=fields, as_list=True
+	)
+	if show_title:
+		# as `search_widget` selects them: the title as the label, right after the name
+		title_index = fields.index(meta.title_field)
+		rows = [(row[0], row[title_index], *row[1:]) for row in rows]
+
+	options = {option["value"]: option for option in build_for_autosuggest(rows, doctype)}
+	for item in data:
+		option = options.get(item.name, {})
+		if show_title:
+			item.title = option.get("label")
+		item.description = option.get("description")
