@@ -2279,6 +2279,10 @@ class TestWebFormNewDocType(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("DocType", "webform-test-wf-issue-8-standard"))
 
+		# in developer mode a standard form exports into the app
+		previous = frappe.local.conf.developer_mode
+		frappe.local.conf.developer_mode = 0
+		self.addCleanup(lambda: frappe.local.conf.update(developer_mode=previous))
 		web_form = frappe.get_doc(
 			{
 				"doctype": "Web Form",
