@@ -2,10 +2,12 @@ name: SQLite Individual
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
 concurrency:
-  group: sqlite-individual-tests-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  # Another label's event gets its own group, so it cannot cancel a run in progress.
+  group: sqlite-individual-tests-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}${{ github.event.action == 'labeled' && github.event.label.name != 'sqlite' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -14,11 +16,16 @@ permissions:
 
 env:
   SHARD_COUNT: 4
+  # Test processes that run side by side in one shard, each on its own copy of the site.
+  WORKERS: 2
 
 jobs:
   checkrun:
     name: Plan Tests
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') || contains(github.event.pull_request.labels.*.name, 'Run Server Tests') }}
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch'
+      || (contains(github.event.pull_request.labels.*.name, 'sqlite')
+      && (github.event.action != 'labeled' || github.event.label.name == 'sqlite')) }}
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.check-build.outputs.build }}
@@ -37,7 +44,7 @@ jobs:
 
   discover:
     needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' || contains(github.event.pull_request.labels.*.name, 'sqlite') }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -80,12 +87,18 @@ jobs:
           python-version: "3.14"
           node-version: 24
           db: sqlite
+          prebuilt-assets: true
           db-root-password: db_root
           disable-web: true
           disable-socketio: true
           # SQLite permits only one writer. Tests run serially in this job, hence disabling workers that can write queued setup jobs.
           disable-workers: true
           enable-server-scripts: false
+      - name: Prepare the site for tests
+        shell: bash
+        # One small module runs the setup wizard and creates the shared test records, so the
+        # saved site already has them and the modules below do not each repeat that work.
+        run: bench --site test_site run-tests --app frappe --module frappe.tests.test_seen
       - name: Save pristine SQLite site
         shell: bash
         run: |
@@ -107,28 +120,70 @@ jobs:
           cp "$RUNNER_TEMP/pristine.db" "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")"
           rm -f "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")-wal"
           rm -f "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")-shm"
+      - name: Add a site for every extra worker
+        shell: bash
+        # A SQLite site is a folder, so a worker's site is a copy of the saved one with its own
+        # database name, host name and cache database. The workers then share no data.
+        run: |
+          cache_url=$(jq -r .redis_cache sites/common_site_config.json)
+          for worker in $(seq 2 "$WORKERS"); do
+            site="test_site_$worker"
+            echo "127.0.0.1 $site" | sudo tee -a /etc/hosts
+            cp -a "$RUNNER_TEMP/pristine-site" "$RUNNER_TEMP/pristine-site-$worker"
+            cd "$RUNNER_TEMP/pristine-site-$worker"
+            db_name=$(jq -r .db_name site_config.json)
+            mv "db/$db_name.db" "db/${db_name}_$worker.db"
+            jq --arg db "${db_name}_$worker" --arg host "http://$site:8000" \
+              --arg cache "${cache_url%/}/$((worker - 1))" \
+              '. + {db_name: $db, host_name: $host, redis_cache: $cache}' site_config.json > site_config.json.new
+            mv site_config.json.new site_config.json
+            cd - > /dev/null
+          done
       - name: Run Tests
         shell: bash
         run: |
           echo "$ALL_TESTS" | jq -r --argjson shard "$SHARD_INDEX" --argjson total "$SHARD_COUNT" \
             '[to_entries[] | select(.key % $total == ($shard - 1)) | .value] | .[]' > shard_tests.txt
 
+          run_worker() {
+            local worker=$1 site=test_site pristine="$RUNNER_TEMP/pristine-site" status=0
+            if [ "$worker" -gt 1 ]; then
+              site="test_site_$worker"
+              pristine="$RUNNER_TEMP/pristine-site-$worker"
+            fi
+            local cache_url
+            cache_url=$(jq -r .redis_cache "$pristine/site_config.json" sites/common_site_config.json | grep -v null | head -1)
+
+            while IFS= read -r test; do
+              # MariaDB's individual-test workflow gives every module a fresh site. Restore the
+              # SQLite site too, so committed database rows and files cannot leak between modules.
+              rsync --archive --delete "$pristine/" "sites/$site/"
+              redis-cli -u "$cache_url" flushdb > /dev/null
+
+              echo "Running $test"
+              bench --site "$site" run-tests --app frappe --module "$test" || status=1
+            done < <(awk -v workers="$WORKERS" -v worker="$worker" 'NR % workers == worker - 1' shard_tests.txt)
+            return "$status"
+          }
+
+          pids=()
+          for worker in $(seq 1 "$WORKERS"); do
+            run_worker "$worker" &> "worker-$worker.log" &
+            pids+=($!)
+          done
+
           status=0
-          while IFS= read -r test; do
-            # MariaDB's individual-test workflow gives every module a fresh site. Restore the
-            # SQLite site too, so committed database rows and files cannot leak between modules.
-            rsync --archive --delete "$RUNNER_TEMP/pristine-site/" sites/test_site/
-            bench --site test_site clear-cache
-
-            echo "Running $test"
-            bench --site test_site run-tests --app frappe --module "$test" || status=1
-          done < shard_tests.txt
-
+          for worker in $(seq 1 "$WORKERS"); do
+            wait "${pids[$((worker - 1))]}" || status=1
+            echo "::group::Worker $worker"
+            cat "worker-$worker.log"
+            echo "::endgroup::"
+          done
           exit "$status"
 
   http-integration:
     needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' || contains(github.event.pull_request.labels.*.name, 'sqlite') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Run the HTTP contract separately with required service(s)
@@ -143,6 +198,7 @@ jobs:
           python-version: "3.14"
           node-version: 24
           db: sqlite
+          prebuilt-assets: true
           db-root-password: db_root
           disable-socketio: true
           disable-workers: true
