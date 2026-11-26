@@ -7,6 +7,7 @@ import email.utils
 import os
 import re
 from email import policy
+from email.charset import QP, Charset
 from email.mime.multipart import MIMEMultipart
 from typing import TYPE_CHECKING
 
@@ -129,10 +130,6 @@ class EMail:
 		expose_recipients=None,
 		x_priority: Literal[1, 3, 5] = 3,
 	):
-		from email import charset as Charset
-
-		Charset.add_charset("utf-8", Charset.QP, Charset.QP, "utf-8")
-
 		if isinstance(recipients, str):
 			recipients = recipients.replace(";", ",").replace("\n", "")
 			recipients = split_emails(recipients)
@@ -198,7 +195,7 @@ class EMail:
 		"""
 		from email.mime.text import MIMEText
 
-		part = MIMEText(message, "plain", "utf-8", policy=policy.SMTP)
+		part = MIMEText(message, "plain", get_utf8_charset(), policy=policy.SMTP)
 		self.msg_alternative.attach(part)
 
 	def set_part_html(self, message, inline_images):
@@ -224,7 +221,7 @@ class EMail:
 			# prepare parts
 			msg_related = MIMEMultipart("related", policy=policy.SMTP)
 
-			html_part = MIMEText(message, "html", "utf-8", policy=policy.SMTP)
+			html_part = MIMEText(message, "html", get_utf8_charset(), policy=policy.SMTP)
 			msg_related.attach(html_part)
 
 			for image in _inline_images:
@@ -238,7 +235,7 @@ class EMail:
 
 			self.msg_alternative.attach(msg_related)
 		else:
-			self.msg_alternative.attach(MIMEText(message, "html", "utf-8", policy=policy.SMTP))
+			self.msg_alternative.attach(MIMEText(message, "html", get_utf8_charset(), policy=policy.SMTP))
 
 	def set_html_as_text(self, html):
 		"""Set plain text from HTML"""
@@ -249,7 +246,7 @@ class EMail:
 		from email.mime.text import MIMEText
 
 		_maintype, subtype = mime_type.split("/")
-		part = MIMEText(message, _subtype=subtype, policy=policy.SMTP)
+		part = MIMEText(message, _subtype=subtype, _charset=get_utf8_charset(), policy=policy.SMTP)
 
 		if as_attachment:
 			part.add_header("Content-Disposition", "attachment", filename=filename)
@@ -483,7 +480,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 			# If bytes are provided, assume UTF-8
 			fcontent = fcontent.decode("utf-8")
 
-		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
+		part = MIMEText(fcontent, _subtype=subtype, _charset=get_utf8_charset())
 
 	elif maintype == "image":
 		if isinstance(fcontent, str):
@@ -512,6 +509,13 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 		part.add_header("Content-ID", f"<{content_id}>")
 
 	parent.attach(part)
+
+
+def get_utf8_charset() -> Charset:
+	"""Return a UTF-8 charset with quoted-printable bodies, independent of the global `email.charset` registry."""
+	charset = Charset("utf-8")
+	charset.body_encoding = QP
+	return charset
 
 
 def get_message_id():
