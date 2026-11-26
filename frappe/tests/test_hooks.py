@@ -311,7 +311,7 @@ def block_ping():
 	else:
 		path = frappe.request.path
 	if path == "/api/method/frappe.ping":
-		frappe.throw("Blocked", frappe.PermissionError)
+		raise frappe.PermissionError
 
 
 class CustomToDo(ToDo):
