@@ -77,6 +77,15 @@ def get_only() -> str:
 	return "get"
 
 
+@whitelist_for_tests()
+@frappe.read_only()
+def replaced_whoami() -> list:
+	return read_only_whoami()
+
+
+replaced_whoami.replaced_by = f"{MODULE}.read_only_whoami"
+
+
 REPORT_SCRIPT = """
 if not filters.company:
 	frappe.throw("Company is mandatory")
@@ -219,6 +228,13 @@ class TestFindApis(IntegrationTestCase):
 			self.assertEqual(call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"][0], self.user)
 		self.assertEqual(found["path"], f"{MODULE}.read_only_whoami")
 		self.assertTrue(found["read_only"])
+
+	def test_skips_replaced_apis_but_describes_them(self):
+		discovery.build_cache()
+		found = find_apis(query="test_ai_builtins whoami", ctx=self.ctx)
+		self.assertEqual([entry["path"] for entry in found], [f"{MODULE}.read_only_whoami"])
+		replaced = describe_api(method=f"{MODULE}.replaced_whoami", ctx=self.ctx)
+		self.assertEqual(replaced["replaced_by"], f"{MODULE}.read_only_whoami")
 
 	def test_runs_api_server_scripts(self):
 		frappe.get_doc("User", self.user).add_roles("Script Manager")
