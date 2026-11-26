@@ -692,7 +692,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			})
 			.catch((error) => {
 				this.hide_loading_rows();
-				if (this.grouped && !this.grouped_rows.groups.length) this.show_load_failed();
+				if (!this.grouped) this.toggle_result_area();
+				else if (!this.grouped_rows.groups.length) this.show_load_failed();
 				throw error;
 			});
 	}
