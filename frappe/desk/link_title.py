@@ -26,7 +26,7 @@ def get_link_title_field(doctype: str) -> str | None:
 
 
 def get_link_titles(
-	doctype: str, title_field: str, names: set[str], ignore_user_permissions: bool = False
+	doctype: str, title_field: str, names: set[str], *, ignore_user_permissions: bool = False
 ) -> dict[str, str]:
 	"""Titles of the readable documents among `names`, keyed by document name."""
 	titles = {}
@@ -110,7 +110,9 @@ def get_report_link_titles(columns, rows) -> dict[str, str]:
 		title_field = get_link_title_field(doctype)
 		if not title_field:
 			continue
-		for name, title in get_link_titles(doctype, title_field, names, ignore_user_permissions).items():
+		for name, title in get_link_titles(
+			doctype, title_field, names, ignore_user_permissions=ignore_user_permissions
+		).items():
 			titles[f"{doctype}::{name}"] = title
 	return titles
 

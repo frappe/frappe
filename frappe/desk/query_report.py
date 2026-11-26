@@ -144,7 +144,9 @@ def generate_report_result(
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
 	columns = [get_column_as_dict(col) for col in (columns or [])]
 	report_column_names = [col["fieldname"] for col in columns]
-	ignore_user_permissions = {col["fieldname"] for col in columns if col.get("ignore_user_permissions")}
+	options_ignoring_user_permissions = {
+		col["fieldname"]: col.get("options") for col in columns if col.get("ignore_user_permissions")
+	}
 	# convert to list of dicts
 
 	result = normalize_result(result, columns)
@@ -165,7 +167,10 @@ def generate_report_result(
 
 	# only the report's own columns may skip user permissions, not saved or added ones
 	for column in columns:
-		if column["fieldname"] in ignore_user_permissions:
+		if (
+			column["fieldname"] in options_ignoring_user_permissions
+			and column.get("options") == options_ignoring_user_permissions[column["fieldname"]]
+		):
 			column["ignore_user_permissions"] = 1
 		else:
 			column.pop("ignore_user_permissions", None)
