@@ -1244,7 +1244,9 @@ def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
 		desc = frappe.db.get_table_columns_description(tab)
 		has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
 		table = Table(tab)
-		taken_at = frappe.db.get_value("User", old_name, "creation")
+		taken_by, taken_at = frappe.db.get_value("User", old_name, ["name", "creation"]) or (None, None)
+		if taken_by == new_name:
+			taken_at = None
 		for field in has_fields:
 			query = frappe.qb.update(table).set(table[field], new_name).where(table[field] == old_name)
 			if taken_at:
