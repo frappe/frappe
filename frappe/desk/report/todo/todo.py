@@ -32,21 +32,27 @@ def execute(filters=None):
 		reverse=True,
 	)
 
-	full_names = {}
-	if users := {user for todo in todo_list for user in (todo.owner, todo.assigned_by) if user}:
-		full_names = dict(
-			frappe.get_all(
-				"User", filters={"name": ("in", users)}, fields=["name", "full_name"], as_list=True
-			)
-		)
-
 	columns = [
 		_("ID") + ":Link/ToDo:90",
 		_("Priority") + "::60",
 		_("Date") + ":Date",
 		_("Description") + "::150",
-		_("Assigned To/Owner") + ":Data:120",
-		_("Assigned By") + ":Data:120",
+		{
+			"label": _("Assigned To/Owner"),
+			"fieldname": "owner",
+			"fieldtype": "Link",
+			"options": "User",
+			"ignore_user_permissions": 1,
+			"width": 120,
+		},
+		{
+			"label": _("Assigned By"),
+			"fieldname": "assigned_by",
+			"fieldtype": "Link",
+			"options": "User",
+			"ignore_user_permissions": 1,
+			"width": 120,
+		},
 		_("Reference") + "::200",
 	]
 
@@ -68,8 +74,8 @@ def execute(filters=None):
 					todo.priority,
 					todo.date,
 					todo.description,
-					full_names.get(todo.owner) or todo.owner,
-					full_names.get(todo.assigned_by) or todo.assigned_by,
+					todo.owner,
+					todo.assigned_by,
 					todo.reference,
 				]
 			)
