@@ -378,6 +378,8 @@ class LDAPSettings(Document):
 	def convert_ldap_entry_to_dict(self, user_entry: Entry):
 		# support multiple email values
 		email = user_entry[self.ldap_email_field].value
+		if not email:
+			frappe.throw(_("Your LDAP account has no email address. Please contact your LDAP administrator."))
 
 		if isinstance(email, list):
 			# use the first email that already belongs to a user, else the first one
