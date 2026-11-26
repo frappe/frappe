@@ -19,35 +19,11 @@ env:
   WORKERS: 2
 
 jobs:
-<<<<<<< HEAD
   discover:
-=======
-  checkrun:
-    name: Plan Tests
     if: >-
       ${{ github.event_name == 'workflow_dispatch'
       || (contains(github.event.pull_request.labels.*.name, 'sqlite')
       && (github.event.action != 'labeled' || github.event.label.name == 'sqlite')) }}
-    runs-on: ubuntu-latest
-    outputs:
-      build: ${{ steps.check-build.outputs.build }}
-    steps:
-      - name: Clone
-        uses: actions/checkout@v7
-      - name: Check if unit tests should be run
-        id: check-build
-        run: |
-          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
-        env:
-          TYPE: "server"
-          PR_NUMBER: ${{ github.event.number }}
-          REPO_NAME: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  discover:
-    needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' || contains(github.event.pull_request.labels.*.name, 'sqlite') }}
->>>>>>> 566a3f9 (ci: update sqlite ci)
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -185,11 +161,10 @@ jobs:
           exit "$status"
 
   http-integration:
-<<<<<<< HEAD
-=======
-    needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' || contains(github.event.pull_request.labels.*.name, 'sqlite') }}
->>>>>>> 566a3f9 (ci: update sqlite ci)
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch'
+      || (contains(github.event.pull_request.labels.*.name, 'sqlite')
+      && (github.event.action != 'labeled' || github.event.label.name == 'sqlite')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Run the HTTP contract separately with required service(s)
