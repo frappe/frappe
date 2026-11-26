@@ -84,13 +84,14 @@ runs:
   - id: yarn-cache-dir-path
     shell: bash -e {0}
     run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-  - uses: actions/cache@v4
+  - uses: actions/cache/restore@v4
     id: yarn-cache
     with:
       path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
       key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       restore-keys: |
         ${{ runner.os }}-yarn-
+        node-cache-${{ runner.os }}-x64-yarn-
 
   - shell: bash -e {0}
     run: |
