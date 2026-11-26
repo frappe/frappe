@@ -135,19 +135,25 @@ def get_login_with_email_link_ratelimit() -> int:
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
-def send_login_link(email: str):
+def send_login_link(email: str, redirect_to: str | None = None):
 	if not frappe.get_system_settings("login_with_email_link"):
 		return
 
-	frappe.enqueue(_send_login_link, queue="short", email=email, lang=frappe.local.lang)
+	frappe.enqueue(
+		_send_login_link,
+		queue="short",
+		email=email,
+		lang=frappe.local.lang,
+		redirect_to=sanitize_redirect(redirect_to),
+	)
 
 
-def _send_login_link(email: str, lang: str):
+def _send_login_link(email: str, lang: str, redirect_to: str | None = None):
 	frappe.local.lang = lang
 
 	try:
 		expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
-		link = _generate_temporary_login_link(email, expiry)
+		link = _generate_temporary_login_link(email, expiry, redirect_to)
 
 		app_name = (
 			frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
@@ -174,7 +180,7 @@ def _send_login_link(email: str, lang: str):
 		frappe.log_error(title="Login link generation failed unexpectedly", message=frappe.get_traceback())
 
 
-def _generate_temporary_login_link(email: str, expiry: int):
+def _generate_temporary_login_link(email: str, expiry: int, redirect_to: str | None = None):
 	assert isinstance(email, str)
 
 	user = get_user_by_email(email, enabled=True)
@@ -182,6 +188,8 @@ def _generate_temporary_login_link(email: str, expiry: int):
 		frappe.throw(_("No active user found with email address {0}").format(email), frappe.DoesNotExistError)
 	key = frappe.generate_hash()
 	frappe.cache.set_value(f"one_time_login_key:{key}", user, expires_in_sec=expiry * 60)
+	if redirect_to:
+		frappe.cache.set_value(f"one_time_login_redirect:{key}", redirect_to, expires_in_sec=expiry * 60)
 
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}", allow_header_override=False)
 
@@ -191,13 +199,16 @@ def _generate_temporary_login_link(email: str, expiry: int):
 def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
 	user = frappe.cache.get_value(cache_key)
+	redirect_key = f"one_time_login_redirect:{key}"
+	redirect_to = frappe.cache.get_value(redirect_key)
 
 	if user:
-		frappe.cache.delete_value(cache_key)
+		frappe.cache.delete_value([cache_key, redirect_key])
 		frappe.local.login_manager.login_as(user)
 
 		redirect_post_login(
-			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
+			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User",
+			redirect_to=redirect_to,
 		)
 	else:
 		frappe.respond_as_web_page(
