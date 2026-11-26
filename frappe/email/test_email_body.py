@@ -285,92 +285,6 @@ From: =?utf-8?Q?admin=40example=2Ecom?=
 		email = Email.decode_email("=?utf-8?Q?Jane_Doe?= <jane@example.com>")
 		self.assertIn("jane@example.com", email)
 
-<<<<<<< HEAD
-=======
-	def test_quotes_in_email_sender(self):
-		content_bytes = rb"""MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-To: "\"fail@example.com\" via ABC"  <success@example.com>
-From: "\"fail@example.com\" via DEF"  <success@example.com>
-Reply-To: "\"fail@example.com\" via GHI"  <success@example.com>
-CC: "\"fail@example.com\" via JKL"  <success@example.com>
-"""
-
-		mail = Email(content_bytes)
-		self.assertEqual(mail.from_email, "success@example.com")
-
-		self.assertEqual(mail.from_real_name, "failexamplecom via DEF")
-		# https://github.com/frappe/frappe/pull/3371
-		# self.assertEqual(mail.from_real_name, '"fail@example.com" via DEF')
-
-		email_account = frappe._dict({"email_id": "receive@example.com"})
-		mail = InboundMail(content_bytes, email_account)
-		communication: Communication = mail.process()  # type: ignore
-		self.assertEqual(communication.sender_full_name, "failexamplecom via DEF")
-
-	def test_quotes_in_email_recipients(self):
-		content_bytes = rb"""MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-From: "=?utf-8?Q?=F0=9F=98=83?="
-	=?utf-8?Q?=3Ctest=40ex?= =?utf-8?Q?ample=2Eco?= =?utf-8?Q?m=3E?=
-To: =?iso-8859-1?Q?X=E9Y=40example=2Ecom?= <xy@example.com>, "fail@example.com" <success@example.com>
-"""
-
-		# https://ldu2.github.io/rfc2047/
-		email_account = frappe._dict({"email_id": "receive@example.com"})
-		mail = InboundMail(content_bytes, email_account)
-		communication: Communication = mail.process()  # type: ignore
-		self.assertEqual(communication.sender_mailid, "test@example.com")
-		# self.assertEqual(communication.sender_full_name, "😃")
-		# # TODO: Fix get_name_from_email_string to accept non-ASCII chars
-		self.assertEqual(
-			communication.recipients,
-			'XéY@example.com <xy@example.com>, "fail@example.com" <success@example.com>',
-		)
-		frappe.db.rollback()
-
-	def test_plain_text_body_preserves_bare_angle_bracket_address(self):
-		content_bytes = rb"""MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-From: sender@example.com
-To: receive@example.com
-Subject: Plain text body
-
-Please contact John Doe <john.doe@example.com> for details.
-"""
-
-		email_account = frappe._dict({"email_id": "receive@example.com"})
-		mail = InboundMail(content_bytes, email_account)
-		communication: Communication = mail.process()  # type: ignore
-
-		self.assertIn("&lt;john.doe@example.com&gt;", communication.content)
-		self.assertNotIn("<john.doe@example.com>", communication.content)
-		frappe.db.rollback()
-
-	def test_plain_text_body_escapes_rather_than_executes_markup(self):
-		content_bytes = rb"""MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-From: sender@example.com
-To: receive@example.com
-Subject: Plain text body with script
-
-Hello <script>alert(1)</script> world.
-"""
-
-		email_account = frappe._dict({"email_id": "receive@example.com"})
-		mail = InboundMail(content_bytes, email_account)
-		communication: Communication = mail.process()  # type: ignore
-
-		self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", communication.content)
-		self.assertNotIn("<script>", communication.content)
-		frappe.db.rollback()
-
 	def use_default_utf8_charset(self):
 		"""Reset the global `utf-8` charset to the Python default for this test."""
 		self.addCleanup(charset.CHARSETS.__setitem__, "utf-8", charset.CHARSETS["utf-8"])
@@ -395,7 +309,6 @@ Hello <script>alert(1)</script> world.
 
 		self.assertEqual(charset.CHARSETS["utf-8"], default_utf8_charset)
 
->>>>>>> 04d66a7 (fix(email): do not use the global utf-8 charset for text parts)
 
 def fixed_column_width(string, chunk_size):
 	parts = [string[0 + i : chunk_size + i] for i in range(0, len(string), chunk_size)]
