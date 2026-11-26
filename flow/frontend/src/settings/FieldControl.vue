@@ -282,7 +282,9 @@ watch(
 	() => [searched.value, props.doc[props.field.name]],
 	async ([doctype, value]) => {
 		const selected = Array.isArray(value) ? value : value ? [value] : [];
-		const missing = selected.filter((name) => !(name in labels.value));
+		const missing = selected.filter(
+			(name) => !(name in labels.value) && !links.value.some((option) => option.value === name)
+		);
 		if (!doctype || !missing.length) return;
 		missing.forEach((name) => (labels.value[name] = name));
 		for (const option of await labelLinks(doctype, missing, props.doc.doctype)) {
