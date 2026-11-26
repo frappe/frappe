@@ -11,16 +11,8 @@
 	<!-- nested overlay nodes (sub-dialogs) are collapsed into cards instead of rendering inline -->
 	<template v-else-if="isOverlayNode"></template>
 
-	<MissingComponent
-		v-else-if="block.isStudioComponent && componentStore.isComponentMissing(block.componentName)"
-		:componentName="block.componentName"
-		:data-component-id="block.componentId"
-		:data-breakpoint="breakpoint"
-		:class="classes"
-		ref="componentRef"
-	/>
 	<StudioComponentWrapper
-		v-else-if="block.isStudioComponent"
+		v-else-if="block.isStudioComponent && !isMissingStudioComponent"
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 		:breakpoint="breakpoint"
@@ -204,6 +196,10 @@ const isOverlayNode = computed(() => {
 	)
 })
 
+const isMissingStudioComponent = computed(
+	() => props.block.isStudioComponent && componentStore.isComponentMissing(props.block.componentName),
+)
+
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
 
@@ -212,7 +208,9 @@ const componentName = computed(() => {
 	if (props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
 	}
-	if (!name || isUnregistered(name)) return h(MissingComponent, { componentName: props.block.componentName })
+	if (isMissingStudioComponent.value || !name || isUnregistered(name)) {
+		return h(MissingComponent, { componentName: props.block.componentName })
+	}
 	return name
 })
 
