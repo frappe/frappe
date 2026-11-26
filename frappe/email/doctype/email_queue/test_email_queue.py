@@ -99,37 +99,6 @@ class TestEmailQueue(IntegrationTestCase):
 		self.assertIsNot(get_server(frappe.new_doc("Email Queue")), get_server(q1))
 		self.assertIs(get_server(q1), get_server(q2))
 
-<<<<<<< HEAD
-=======
-	def test_discards_smtp_session_on_send_failure(self):
-		"""SMTPRecipientsRefused (not an SMTPResponseException) must still discard the session."""
-		email_record = frappe.new_doc(
-			"Email Queue",
-			sender="Test <test@example.com>",
-			show_as_cc="",
-			message="Test message",
-			status="Not Sent",
-			priority=1,
-			recipients=[{"recipient": "test_refused@example.com"}],
-		).insert()
-
-		mock_session = MagicMock()
-		mock_session.has_extn.return_value = False
-		mock_session.sendmail.side_effect = smtplib.SMTPRecipientsRefused(
-			{"test_refused@example.com": (550, b"Mailbox unavailable")}
-		)
-		mock_smtp_server = MagicMock()
-		mock_smtp_server.session = mock_session
-
-		frappe.flags.testing_email = True
-		try:
-			with self.assertRaises(smtplib.SMTPRecipientsRefused):
-				email_record.send(smtp_server_instance=mock_smtp_server)
-		finally:
-			frappe.flags.testing_email = False
-
-		mock_smtp_server.discard_session.assert_called_once()
-
 	@run_only_if(db_type_is.SQLITE)
 	def test_send_records_result_when_another_connection_commits_during_send(self):
 		email_record = frappe.new_doc(
@@ -172,7 +141,6 @@ class TestEmailQueue(IntegrationTestCase):
 			frappe.db.get_value("Email Queue Recipient", {"parent": email_record.name}, "status"), "Sent"
 		)
 
->>>>>>> a6899b9 (fix(sqlite): record an email's send result when another writer commits during the send)
 	def test_redacts_message_only_once_sent(self):
 		"""A failed send must keep the message intact, it is the only copy the retry has."""
 		link = f"http://example.com/update-password?key={frappe.generate_hash()}"
