@@ -4,12 +4,15 @@
 import base64
 import os
 import re
+from email import charset
+from email.mime.multipart import MIMEMultipart
 
 import frappe
 from frappe import safe_decode
 from frappe.core.doctype.communication.communication import Communication
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
 from frappe.email.email_body import (
+	add_attachment,
 	get_email,
 	get_header,
 	inline_style_in_html,
@@ -333,6 +336,71 @@ To: =?iso-8859-1?Q?X=E9Y=40example=2Ecom?= <xy@example.com>, "fail@example.com" 
 		)
 		frappe.db.rollback()
 
+<<<<<<< HEAD
+=======
+	def test_plain_text_body_preserves_bare_angle_bracket_address(self):
+		content_bytes = rb"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+From: sender@example.com
+To: receive@example.com
+Subject: Plain text body
+
+Please contact John Doe <john.doe@example.com> for details.
+"""
+
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(content_bytes, email_account)
+		communication: Communication = mail.process()  # type: ignore
+
+		self.assertIn("&lt;john.doe@example.com&gt;", communication.content)
+		self.assertNotIn("<john.doe@example.com>", communication.content)
+		frappe.db.rollback()
+
+	def test_plain_text_body_escapes_rather_than_executes_markup(self):
+		content_bytes = rb"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+From: sender@example.com
+To: receive@example.com
+Subject: Plain text body with script
+
+Hello <script>alert(1)</script> world.
+"""
+
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(content_bytes, email_account)
+		communication: Communication = mail.process()  # type: ignore
+
+		self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", communication.content)
+		self.assertNotIn("<script>", communication.content)
+		frappe.db.rollback()
+
+	def use_default_utf8_charset(self):
+		"""Reset the global `utf-8` charset to the Python default for this test."""
+		self.addCleanup(charset.CHARSETS.__setitem__, "utf-8", charset.CHARSETS["utf-8"])
+		charset.add_charset("utf-8", charset.SHORTEST, charset.BASE64, "utf-8")
+
+	def test_text_attachment_does_not_depend_on_global_charset(self):
+		self.use_default_utf8_charset()
+		parent = MIMEMultipart()
+
+		add_attachment("README.md", "# Notes\nPlain ASCII text.\n", parent=parent)
+
+		part = parent.get_payload(0)
+		self.assertEqual(part["Content-Type"], 'text/markdown; charset="utf-8"')
+		self.assertEqual(part["Content-Transfer-Encoding"], "quoted-printable")
+		self.assertEqual(part.get_payload(decode=True), b"# Notes\nPlain ASCII text.\n")
+
+	def test_email_does_not_change_global_charset(self):
+		self.use_default_utf8_charset()
+		default_utf8_charset = charset.CHARSETS["utf-8"]
+
+		get_email(recipients=["test@example.com"], sender="me@example.com", msg="<p>Hello</p>")
+
+		self.assertEqual(charset.CHARSETS["utf-8"], default_utf8_charset)
+
+>>>>>>> 04d66a7 (fix(email): do not use the global utf-8 charset for text parts)
 
 def fixed_column_width(string, chunk_size):
 	parts = [string[0 + i : chunk_size + i] for i in range(0, len(string), chunk_size)]
