@@ -167,7 +167,7 @@ class WebForm(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def recreate_doctype(self):
-		"""Create the deleted DocType again from this Web Form's fields. Its records are not restored."""
+		"""Records of the deleted DocType are not restored."""
 		self.check_permission("write")
 		frappe.has_permission("DocType", "create", throw=True)
 		if self.created_doctype_deleted():
@@ -252,7 +252,6 @@ class WebForm(WebsiteGenerator):
 		frappe.db.commit()  # nosemgrep
 
 	def set_fieldnames(self):
-		"""Give each field a unique fieldname that the DocType keeps as is."""
 		taken = {*default_fields, *child_table_fields, *RESERVED_KEYWORDS, *dir(Document), "autoname"}
 		unnamed = []
 		for d in self.web_form_fields:
@@ -317,8 +316,7 @@ class WebForm(WebsiteGenerator):
 		}
 
 	def sync_fields_to_doctype(self):
-		"""Make the target DocType's fields match the Web Form's, deleting fields removed from the form.
-		Fields added to the DocType from Desk are kept at the end."""
+		"""Deletes DocType fields removed from the form. Fields added from Desk stay at the end."""
 		if not self.created_new_doctype:
 			return
 
@@ -406,8 +404,7 @@ class WebForm(WebsiteGenerator):
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
 
 	def validate_fieldtype_changes(self):
-		"""Reject a fieldtype change the existing records cannot take. The DocType saves
-		its fields before it alters the column, so this must run before the sync."""
+		"""The DocType saves its fields before it alters the column, so this must run before the sync."""
 		if not frappe.db.exists(self.doc_type, {}):
 			return
 
@@ -490,8 +487,7 @@ class WebForm(WebsiteGenerator):
 
 	# export
 	def on_update(self):
-		"""Sync the fields to the DocType this Web Form created. In developer mode, export
-		a standard Web Form's JSON and create its .js and .py stubs."""
+		"""In developer mode, export a standard Web Form's JSON and create its .js and .py stubs."""
 		if not (frappe.flags.in_import or self.flags.in_insert):
 			if self.needs_new_doctype():
 				self.create_new_doctype(keep_web_form=True)
@@ -544,8 +540,7 @@ def get_context(context):
 		self.delete_created_doctype()
 
 	def delete_created_doctype(self):
-		"""Delete the DocType this Web Form created, unless it has records, another Web Form
-		uses it or the user cannot delete it. An import deletes and re-inserts, so it keeps the DocType."""
+		"""An import deletes and re-inserts, so it keeps the DocType."""
 		if (
 			frappe.flags.in_import
 			or not self.created_new_doctype
@@ -1281,7 +1276,6 @@ def get_web_form_module(doc):
 
 
 def scrub_fieldname(text):
-	"""Lowercase ASCII letters, digits and underscores, accents dropped, never digit-first, within the column name limit."""
 	text = unicodedata.normalize("NFKD", cstr(text)).encode("ascii", "ignore").decode()
 	fieldname = re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
 	if fieldname[:1].isdigit():
@@ -1290,13 +1284,12 @@ def scrub_fieldname(text):
 
 
 def get_doctype_linking_to(doctype):
-	"""Another DocType with a Link or Table field (standard or custom) whose options is `doctype`."""
 	linking_doctypes = [*get_linked_fields(doctype), *get_parent_doctypes([doctype])[doctype]]
 	return next((dt for dt in linking_doctypes if dt != doctype), None)
 
 
 def field_signature(df):
-	"""The DocField properties a Web Form controls. A break's fieldname is random, so it is left out."""
+	"""A break's fieldname is random, so it is left out."""
 	keys = ("label", "fieldtype", "options", "reqd", "default", "description")
 	if df.get("fieldtype") not in DOCTYPE_BREAK_FIELDTYPES:
 		keys = ("fieldname", *keys)

@@ -70,12 +70,6 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	toggle_new_doctype_fields(frm) {
-		// "Field Name" stays freely editable (existing fields shown as
-		// suggestions) while a DocType is still being designed: during
-		// initial creation, and afterwards only for the DocType this very
-		// Web Form created, so new fields can keep being added from here.
-		// Any other DocType (even one that's Custom) keeps the original
-		// pick-from-existing-fields behaviour.
 		let editable = designs_own_doctype(frm);
 		frm.fields_dict.web_form_fields.grid.update_docfield_property(
 			"fieldname",
@@ -914,12 +908,10 @@ function is_builder_read_only(frm) {
 	);
 }
 
-// its fields sync onto that DocType on save
 function cannot_edit_created_doctype(frm) {
 	return Boolean(frm.doc.created_new_doctype) && !frappe.model.can_write("DocType");
 }
 
-// such a form adds fields of its own, every other one picks from its doctype
 function show_created_doctype_deleted(frm) {
 	const can_recreate = frappe.model.can_create("DocType");
 	const can_delete = frappe.model.can_delete("Web Form");
