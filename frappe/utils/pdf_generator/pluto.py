@@ -306,7 +306,12 @@ def local_resource_fetcher(block_external_requests=False):
 
 		def fetch_url(self, url):
 			if url not in self.cache:
-				self.cache[url] = self.fetch(url)
+				try:
+					self.cache[url] = self.fetch(url)
+				except plutoprint.Error as error:
+					self.cache[url] = error
+			if isinstance(self.cache[url], plutoprint.Error):
+				raise self.cache[url]
 			return self.cache[url]
 
 		def fetch(self, url):
