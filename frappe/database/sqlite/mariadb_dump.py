@@ -17,11 +17,9 @@ import click
 from pymysql.converters import escape_string
 
 import frappe
-from frappe import _
+from frappe import _, scrub
 from frappe.database.mariadb.database import MariaDBDatabase
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.database.sequence import SQLITE_SEQUENCE_TABLE
-from frappe.utils import scrub
 
 FRAMEWORK_SQL = Path(frappe.__file__).parent / "database" / "mariadb" / "framework_mariadb.sql"
 FTS_SHADOW_SUFFIXES = ("_config", "_content", "_data", "_docsize", "_idx")
@@ -538,11 +536,7 @@ class MariaDBDumpWriter:
 		).fetchall()
 		virtual = [name for name, sql in rows if (sql or "").upper().startswith("CREATE VIRTUAL TABLE")]
 		shadow = {f"{name}{suffix}" for name in virtual for suffix in FTS_SHADOW_SUFFIXES}
-		tables = [
-			name
-			for name, _sql in rows
-			if not name.startswith("sqlite_") and name != SQLITE_SEQUENCE_TABLE and name not in shadow
-		]
+		tables = [name for name, _sql in rows if not name.startswith("sqlite_") and name not in shadow]
 		if self.include_tables:
 			tables = [table for table in tables if table in self.include_tables]
 		return [table for table in tables if table not in self.exclude_tables]
@@ -827,35 +821,21 @@ class MariaDBDumpWriter:
 		return None
 
 	def write_sequences(self, connection, dump):
-		sequences = {}
-		if connection.execute(
-			"SELECT 1 FROM sqlite_master WHERE name = ?", (SQLITE_SEQUENCE_TABLE,)
-		).fetchone():
-			sequences = {
-				row[0]: row
-				for row in connection.execute(
-					f"SELECT name, current, increment, min_value, max_value, cycle FROM {SQLITE_SEQUENCE_TABLE}"
-				)
-			}
+		counters = {}
+		if connection.execute("SELECT 1 FROM sqlite_master WHERE name = 'sqlite_sequence'").fetchone():
+			counters = dict(connection.execute("SELECT name, seq FROM sqlite_sequence"))
 		dumped_tables = set(self.get_tables(connection))
 		autoincrement_doctypes = frappe.get_all(
 			"DocType", filters={"issingle": 0, "is_virtual": 0, "autoname": "autoincrement"}, pluck="name"
 		)
 		dump.write("--\n-- Sequences\n--\n\n")
 		for doctype in sorted(autoincrement_doctypes):
-			if f"tab{doctype}" not in dumped_tables:
+			table = f"tab{doctype}"
+			if table not in dumped_tables:
 				continue
 			name = scrub(f"{doctype}_id_seq")
-			row = sequences.pop(name, None)
-			current = max(row[1] if row else 0, highest_numeric_name(connection, f"tab{doctype}"))
+			current = max(counters.get(table, 0), highest_numeric_name(connection, table))
 			if current:
-				dump.write(f"SELECT SETVAL({quote_identifier(name)}, {int(current)}, 1);\n")
-		if not self.include_tables:
-			for name, current, increment, min_value, max_value, cycle in sequences.values():
-				options = f" INCREMENT BY {increment} MINVALUE {min_value}"
-				options += f" MAXVALUE {max_value}" if max_value is not None else ""
-				options += " CYCLE" if cycle else " NOCYCLE"
-				dump.write(f"CREATE SEQUENCE IF NOT EXISTS {quote_identifier(name)}{options} NOCACHE;\n")
 				dump.write(f"SELECT SETVAL({quote_identifier(name)}, {int(current)}, 1);\n")
 		dump.write("\n")
 

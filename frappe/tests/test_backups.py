@@ -49,7 +49,7 @@ class TestSQLiteBackup(unittest.TestCase):
 
 @run_only_if(db_type_is.SQLITE)
 class TestMariaDBCompatibleBackup(IntegrationTestCase):
-	def write_dump(self, rows_by_table: dict[str, tuple[str, list[tuple]]]) -> str:
+	def write_dump(self, rows_by_table: dict[str, tuple[str, list[tuple]]], *statements: str) -> str:
 		with TemporaryDirectory() as directory:
 			database_path = Path(directory) / "site.db"
 			with contextlib.closing(sqlite3.connect(database_path)) as database:
@@ -57,6 +57,8 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 					database.execute(f'CREATE TABLE "{table}" ({columns})')
 					placeholders = ", ".join("?" * len(rows[0]))
 					database.executemany(f'INSERT INTO "{table}" VALUES ({placeholders})', rows)
+				for statement in statements:
+					database.execute(statement)
 				database.commit()
 			dump_path = Path(directory) / "dump.sql.gz"
 			MariaDBDumpWriter(database_path).write(dump_path, "-- begin frappe metadata\n")
@@ -75,6 +77,16 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 		self.assertIn("-- Partial Backup of Frappe Site", content)
 		tables = set(re.findall(r"^create table `([^`]+)`", content, re.M | re.I))
 		self.assertEqual(tables, {"tabToDo"})
+
+	def test_export_runs_schema_hooks_that_read_the_site(self):
+		backup = new_backup(
+			ignore_files=True, ignore_conf=True, include_doctypes="Automation Trigger Queue", for_mariadb=True
+		)
+		self.addCleanup(os.remove, backup.backup_path_conf)
+		self.addCleanup(os.remove, backup.backup_path_db)
+
+		with gzip.open(backup.backup_path_db, "rt") as dump:
+			self.assertIn("dedup_key", dump.read())
 
 	def test_dump_uses_mariadb_schema_and_literals(self):
 		dump = self.write_dump(
@@ -165,8 +177,8 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 						"name varchar(140) primary key, subject text",
 						[("ascii", "a" * 65536), ("emoji", "😀" * 16384), ("fits", "😀" * 16383)],
 					),
-					"tabBackground Task": (
-						"name varchar(140) primary key, arguments text",
+					"tabWorkflow": (
+						"name varchar(140) primary key, workflow_data text",
 						[("valid", '{"a": 1}'), ("empty", ""), ("nan", '{"a": NaN}'), ("null", None)],
 					),
 				}
@@ -177,9 +189,9 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 		self.assertIn(
 			"tabComment.subject: value of 65536 bytes exceeds text (row emoji)", str(error.exception)
 		)
-		self.assertIn("tabBackground Task.arguments: '' is not valid JSON (row empty)", str(error.exception))
+		self.assertIn("tabWorkflow.workflow_data: '' is not valid JSON (row empty)", str(error.exception))
 		self.assertIn(
-			"""tabBackground Task.arguments: '{"a": NaN}' is not valid JSON (row nan)""", str(error.exception)
+			"""tabWorkflow.workflow_data: '{"a": NaN}' is not valid JSON (row nan)""", str(error.exception)
 		)
 		self.assertNotIn("(row fits)", str(error.exception))
 		self.assertNotIn("(row valid)", str(error.exception))
@@ -187,15 +199,16 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 
 	def test_sequence_continues_after_the_highest_name(self):
 		dump = self.write_dump(
-			{
-				"tabWeb Form List Column": ("name bigint primary key", [(3,), (7,)]),
-				"__frappe_sqlite_sequences": (
-					"name text primary key, current int, increment int, min_value int, max_value int, cycle int, declared int",
-					[("web_form_list_column_id_seq", 3, 1, 1, None, 0, 1)],
-				),
-			}
+			{"tabWeb Form List Column": ("name bigint primary key", [(3,), (7,)])},
 		)
 		self.assertIn("SELECT SETVAL(`web_form_list_column_id_seq`, 7, 1);", dump)
+
+	def test_sequence_continues_after_deleted_autoincrement_names(self):
+		dump = self.write_dump(
+			{"tabWeb Form List Column": ("name integer primary key autoincrement", [(3,), (9,)])},
+			'DELETE FROM "tabWeb Form List Column" WHERE name = 9',
+		)
+		self.assertIn("SELECT SETVAL(`web_form_list_column_id_seq`, 9, 1);", dump)
 
 	def test_parses_keys_from_create_table(self):
 		shape = parse_table_shape(
