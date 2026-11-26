@@ -1,4 +1,5 @@
 import type { BlockOptions, BlockStyleMap } from "@/types";
+import { getBlockInstance } from "@/runtime/utils/serializer";
 import { familyTemplates } from "./familyTemplates";
 
 
@@ -128,6 +129,10 @@ function getBlockTemplate(type: CoreTemplate | FamilyTemplate): BlockOptions {
 				} as BlockStyleMap,
 			};
 	}
+}
+
+export function getRootBlock() {
+	return getBlockInstance(getBlockTemplate("body"));
 }
 
 export default getBlockTemplate;

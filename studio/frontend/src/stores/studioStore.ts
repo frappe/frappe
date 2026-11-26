@@ -6,7 +6,7 @@ import { defineStore } from "pinia"
 
 import { fetchApp, fetchPage, confirm, getRouteVariables, getInitialVariableValue } from "@/utils/helpers"
 import { getBlockInstance, getBlockCopyWithoutParent, jsToJson } from "@/runtime/utils/serializer"
-import getBlockTemplate from "@/utils/blockTemplate"
+import { getRootBlock } from "@/utils/blockTemplate"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
 import { studioVariables } from "@/runtime/data/studioVariables"
@@ -289,7 +289,7 @@ const useStudioStore = defineStore("store", () => {
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
-			pageBlocks.value = [getBlockInstance(getBlockTemplate("body"))]
+			pageBlocks.value = [getRootBlock()]
 		} else {
 			pageBlocks.value = [getBlockInstance(blocks[0])]
 		}
