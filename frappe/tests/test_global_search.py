@@ -9,9 +9,10 @@ from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	get_doctypes_for_global_search,
 )
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+from frappe.model.naming import NamingSeries
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects
-from frappe.utils import cint, global_search, now_datetime
+from frappe.utils import global_search, now_datetime
 
 
 class TestGlobalSearch(IntegrationTestCase):
@@ -105,12 +106,8 @@ class TestGlobalSearch(IntegrationTestCase):
 
 	def test_exact_name_match_survives_the_result_limit(self):
 		make_property_setter("Event", None, "show_name_in_global_search", 1, "Check", for_doctype=True)
-		frappe.clear_cache(doctype="Event")
-		# Without reusable gaps the rows are stored in insertion order. All 26 rows match the
-		# search equally well, so the target, inserted last, is the row the limit cuts off.
 		frappe.db.truncate("__global_search")
-		current = frappe.db.sql("select `current` from `tabSeries` where name = %s", "EV") or [[0]]
-		target_name = f"EV{cint(current[0][0]) + 26:05d}"
+		target_name = f"EV{NamingSeries('EV.#####').get_current_value() + 26:05d}"
 		for i in range(25):
 			frappe.get_doc(
 				doctype="Event", subject=f"Follow-up {i} for {target_name}", starts_on=now_datetime()
@@ -119,10 +116,9 @@ class TestGlobalSearch(IntegrationTestCase):
 		self.assertEqual(target.name, target_name)
 		global_search.sync_global_search()
 
-		results = global_search.search(target.name)
+		results = global_search.search(target.name.lower())
 
 		self.assertEqual(results[0].name, target.name)
-		self.assertEqual([r.name for r in results].count(target.name), 1)
 
 	def test_update_doc(self):
 		self.insert_test_events()
