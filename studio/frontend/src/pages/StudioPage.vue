@@ -223,8 +223,8 @@ import { usePageScope } from "@/runtime/stores/codeStore"
 import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
-import { getBlockCopy, getBlockInstance } from "@/runtime/utils/serializer"
-import getBlockTemplate from "@/utils/blockTemplate"
+import { getBlockCopy } from "@/runtime/utils/serializer"
+import { getRootBlock } from "@/utils/blockTemplate"
 import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/completions/useStudioCompletions"
 import { toast } from "frappe-ui"
 
@@ -327,7 +327,7 @@ async function setPage() {
 	if (pageID === "new") {
 		await studioPages.insert
 			.submit({
-				draft_blocks: [getBlockInstance(getBlockTemplate("body"))],
+				draft_blocks: [getRootBlock()],
 				studio_app: appID,
 			})
 			.then(async (data: StudioPage) => {
