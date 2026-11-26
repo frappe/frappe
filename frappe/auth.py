@@ -667,8 +667,8 @@ def _is_oauth_client_auth(authorization_header) -> bool:
 	"""True if the request carries OAuth client credentials, which OAuthLib authenticates itself.
 
 	Matched on the resolved method name so that every route form is covered: `/api/method/<m>`,
-	`/api/v1/method/<m>`, `/api/v2/method/<m>`, each with an optional trailing slash, and the
-	deprecated `?cmd=<m>`. A false positive only leaves the session as Guest, never grants access.
+	`/api/v1/method/<m>`, `/api/v2/method/<m>`, each with an optional trailing slash.
+	A false positive only leaves the session as Guest, never grants access.
 	"""
 	from frappe.integrations.oauth2 import ENDPOINTS
 
@@ -680,9 +680,7 @@ def _is_oauth_client_auth(authorization_header) -> bool:
 		ENDPOINTS["revocation_endpoint"].rpartition("/")[2],
 		ENDPOINTS["introspection_endpoint"].rpartition("/")[2],
 	}
-	return bool(
-		client_auth_methods & {frappe.request.path.removesuffix("/").rpartition("/")[2], frappe.form_dict.cmd}
-	)
+	return frappe.request.path.removesuffix("/").rpartition("/")[2] in client_auth_methods
 
 
 def validate_oauth(authorization_header):

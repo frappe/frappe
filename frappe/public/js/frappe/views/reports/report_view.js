@@ -1887,7 +1887,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 									args,
 								});
 							} else {
-								open_url_post(frappe.request.url, args);
+								const { cmd, ...params } = args;
+								open_url_post(`/api/method/${cmd}`, params);
 							}
 
 							d.hide();

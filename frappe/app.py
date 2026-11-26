@@ -7,7 +7,7 @@ import os
 import sys
 
 import orjson
-from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.exceptions import Gone, HTTPException, NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response  # nosemgrep: frappe-monkey-patching-not-allowed
@@ -15,7 +15,6 @@ from werkzeug.wsgi import ClosingIterator
 
 import frappe
 import frappe.api
-import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
 import frappe.recorder
@@ -120,16 +119,8 @@ def application(request: Request):
 		if request.method == "OPTIONS":
 			response = Response()
 
-		elif frappe.form_dict.cmd:
-			from frappe.deprecation_dumpster import deprecation_warning
-
-			deprecation_warning(
-				"unknown",
-				"v17",
-				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
-			)
-			frappe.handler.handle()
-			response = frappe.utils.response.build_response("json")
+		elif request.path == "/" and frappe.form_dict.cmd:
+			raise Gone(f"Calling methods with `cmd` is not supported, use /api/method/{frappe.form_dict.cmd}")
 
 		elif request.path.startswith("/api/"):
 			response = frappe.api.handle(request)
