@@ -195,7 +195,7 @@ class TestWebPageView(IntegrationTestCase):
 
 		_, data, _, _, summary = website_analytics({**filters, "range": "Daily"})
 
-		self.assertEqual(data, [(self._path("pricing"), 2, 1), (self._path("about"), 1, 1)])
+		self.assertEqual(data, ((self._path("pricing"), 2, 1), (self._path("about"), 1, 1)))
 		self.assertEqual([s["value"] for s in summary], [3, 2])
 
 		# Every bucket the chart produces has to land on one of the labels it is plotted

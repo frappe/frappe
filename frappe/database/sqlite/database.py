@@ -198,6 +198,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
+	def _transform_result(self, result: list[tuple] | tuple[tuple]) -> tuple[tuple]:
+		return tuple(result) if isinstance(result, list) else result
+
 	def set_execution_timeout(self, seconds: float):
 		self.sql(f"PRAGMA busy_timeout = {round(seconds * 1000)}")
 
@@ -717,6 +720,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self.before_rollback.run()
 
 			self._conn.rollback()
+			self.transaction_writes = 0
 			self._invalidate_transactional_schema_cache()
 			self._transaction_has_schema_changes = False
 			self.start_next_transaction(self.after_rollback)
