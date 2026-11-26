@@ -5,7 +5,7 @@ import {
 	load_doctype_model,
 	section_boilerplate,
 } from "./utils";
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useDebouncedRefHistory, onKeyDown, useActiveElement } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
@@ -36,6 +36,20 @@ export const useStore = defineStore("form-builder-store", () => {
 	// set by the web form host, which owns the page limit and its message
 	let validate_page_limit = ref(null);
 	let creates_fields = ref(false);
+	// a field left unlabelled when the user moves on is named after its fieldtype
+	watch(
+		() => form.value.selected_field,
+		(_, previous) => {
+			if (
+				creates_fields.value &&
+				previous &&
+				!previous.label &&
+				!frappe.model.layout_fields.includes(previous.fieldtype)
+			) {
+				previous.label = __(previous.fieldtype);
+			}
+		}
+	);
 	let preview = ref(false);
 	let drag = ref(false);
 	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";

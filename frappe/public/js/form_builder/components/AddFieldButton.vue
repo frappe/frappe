@@ -128,7 +128,7 @@ function add_new_field(field) {
 		df = store.get_df(values.fieldtype, values.fieldname, values.label);
 		Object.assign(df, values);
 	} else {
-		df = store.get_df(value, "", store.creates_fields ? __(value) : "");
+		df = store.get_df(value);
 	}
 
 	let new_field = {
