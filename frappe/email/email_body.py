@@ -285,6 +285,11 @@ class EMail:
 		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
 =======
 		sender_name, sender_email = email.utils.parseaddr(self.sender)
+		if not sender_email:
+			frappe.throw(
+				_("{0} is not a valid Email Address").format(frappe.utils.escape_html(self.sender)),
+				frappe.InvalidEmailAddressError,
+			)
 		self.sender = format_sender((sender_name,), sender_email)
 		self.validate_reply_to()
 

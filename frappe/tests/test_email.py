@@ -378,6 +378,16 @@ class TestEmail(FrappeTestCase):
 				self.assertEqual(email_queue.sender, expected)
 				self.assertEqual(email.message_from_string(email_queue.message)["From"], expected)
 
+		from frappe.email.email_body import EMail
+
+		mail = EMail(
+			"jane@customer.example, john@customer.example",
+			["test@example.com"],
+			"Subject",
+			email_account=email_account,
+		)
+		self.assertRaises(frappe.InvalidEmailAddressError, mail.validate)
+
 	def test_sendmail_sends_to_the_email_of_a_user_id(self):
 		from frappe.core.doctype.user.test_user import test_user
 
