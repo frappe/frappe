@@ -261,8 +261,7 @@ export default class GroupedRows {
 		for (const row of rows) {
 			const group = { value: "", count: row.count, totals: this.totals_of(row) };
 			const users = JSON.parse(row._assign || "[]");
-			// the Not assigned group lists records with no value at all ("is not set")
-			if (!row._assign) empty.push(group);
+			if (!users.length) empty.push(group);
 			for (const user of users) by_user.set(user, [...(by_user.get(user) || []), group]);
 		}
 		const items = [...by_user].map(([user, groups]) => ({
@@ -811,6 +810,9 @@ export default class GroupedRows {
 
 	filter_of({ fieldname, value }) {
 		const doctype = this.list.doctype;
+		// no assignee: empty, or a merge rename's "[]"; every assignee is a quoted id
+		if (fieldname === "_assign" && value === "")
+			return [doctype, fieldname, "not like", '%"%'];
 		if (value === "") return [doctype, fieldname, "is", "not set"];
 		return [doctype, fieldname, "=", value];
 	}
