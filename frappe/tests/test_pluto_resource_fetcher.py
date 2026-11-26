@@ -55,6 +55,15 @@ class TestPlutoResourceFetcher(UnitTestCase):
 		with patch("requests.adapters.HTTPAdapter.send", return_value=image):
 			self.assertEqual(self.fetcher.fetch(PUBLIC_IMAGE).get_mime_type(), "image/png")
 
+	def test_failed_url_is_fetched_once(self):
+		import plutoprint
+
+		with patch("requests.adapters.HTTPAdapter.send", return_value=_response(404)) as send:
+			for _attempt in range(2):
+				with self.assertRaises(plutoprint.Error):
+					self.fetcher.fetch_url(PUBLIC_IMAGE)
+		send.assert_called_once()
+
 	def test_image_past_the_deadline_is_abandoned(self):
 		import plutoprint
 
