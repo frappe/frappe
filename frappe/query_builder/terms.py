@@ -131,3 +131,50 @@ class SubQuery(Criterion):
 
 
 subqry = SubQuery
+<<<<<<< HEAD
+=======
+
+
+class PostgresAwareCriterion(BasicCriterion):
+	def __init__(self, comparator: Comparator, postgres_comparator: Comparator, left: Term, right: Term):
+		super().__init__(comparator, left, right)
+		self.default_comparator = comparator
+		self.postgres_comparator = postgres_comparator
+
+	def get_sql(self, **kwargs: Any) -> str:
+		self.comparator = (
+			self.postgres_comparator
+			if renders_for_postgres(kwargs.get("dialect"))
+			else self.default_comparator
+		)
+		return super().get_sql(**kwargs)
+
+
+class LikeCriterion(PostgresAwareCriterion):
+	"""LIKE / NOT LIKE with a backslash escaping `%` and `_` on every database."""
+
+	has_escape_clause = False
+
+	def get_sql(self, **kwargs: Any) -> str:
+		sql = super().get_sql(**kwargs)
+		if self.has_escape_clause or not renders_for_sqlite(kwargs.get("dialect")):
+			return sql
+		pattern = self.right.value if isinstance(self.right, ValueWrapper) else None
+		if isinstance(pattern, str) and "\\" not in pattern:
+			return sql
+		# MariaDB and Postgres escape with a backslash by default; SQLite has no default.
+		# CHAR(92) is a backslash: a quoted one would read as an escaped quote to the placeholder parser.
+		return f"{sql} ESCAPE CHAR(92)"
+
+
+def renders_for_sqlite(dialect: Dialects | None) -> bool:
+	if dialect:
+		return dialect == Dialects.SQLLITE
+	return bool(frappe.db and frappe.db.db_type == "sqlite")
+
+
+def renders_for_postgres(dialect: Dialects | None) -> bool:
+	if dialect:
+		return dialect == Dialects.POSTGRESQL
+	return bool(frappe.db and frappe.db.db_type == "postgres")
+>>>>>>> 97fe4c5 (fix(sqlite): escape like wildcards with a backslash)

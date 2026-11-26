@@ -14,7 +14,16 @@ from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
 from pypika.terms import PseudoColumn, Term
 
 import frappe
+<<<<<<< HEAD
 from frappe.query_builder.terms import EscapedValueWrapper, NamedParameterWrapper
+=======
+from frappe.query_builder.terms import (
+	EscapedValueWrapper,
+	LikeCriterion,
+	NamedParameterWrapper,
+	PostgresAwareCriterion,
+)
+>>>>>>> 97fe4c5 (fix(sqlite): escape like wildcards with a backslash)
 
 # Frappe's public query-builder helpers are installed on Base below. This is the
 # existing framework extension mechanism rather than an app overriding Frappe.
@@ -282,6 +291,58 @@ def patch_get_query():
 	Base.get_query = get_query
 
 
+<<<<<<< HEAD
+=======
+def patch_like_operators():
+	"""Render the query-builder LIKE / NOT LIKE operators as ILIKE / NOT ILIKE on postgres.
+
+	MariaDB's default collation makes LIKE case-insensitive; postgres compares text
+	case-sensitively, so a `.like()` search (link-field autocomplete, etc.) would only match
+	exact case on postgres. Mapping to ILIKE keeps pattern matching case-insensitive on both
+	backends -- matching MariaDB and the like->ilike translation `frappe.db.get_list` already
+	applies for its filter path. MariaDB keeps native LIKE.
+	"""
+	# pypika has no hook for dialect-specific operator rendering, so patch Term.like/not_like the same
+	# way the query-builder patches above (QueryBuilder.run, Base.max, ...) and app.py's
+	# Request.max_form_memory_size do. The rule anchors on the import, so suppress it there too.
+	from pypika.enums import Matching
+	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
+
+	def like(self, expr: str):
+		return LikeCriterion(Matching.like, Matching.ilike, self, self.wrap_constant(expr))
+
+	def not_like(self, expr: str):
+		return LikeCriterion(Matching.not_like, Matching.not_ilike, self, self.wrap_constant(expr))
+
+	Term.like = like  # nosemgrep: frappe-monkey-patching-not-allowed
+	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
+def patch_regex_operator():
+	"""Render the query-builder regex operator in each backend's native spelling.
+
+	pypika's Term.regex emits " REGEX ", which is an operator on neither backend: MySQL spells it
+	REGEXP, postgres uses the case-insensitive match ~*. So `frappe.get_all(filters={"f":
+	["regex", ...]})` produced a syntax error everywhere. Emitting the right operator here also
+	means a generated query no longer depends on the textual REGEXP rewrite in modify_query.
+	"""
+	# pypika has no hook for dialect-specific operator rendering, so patch Term.regex the same way
+	# patch_like_operators above does. The rule anchors on the import, so suppress it there too.
+	from pypika.enums import Comparator, Matching
+	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
+
+	class PostgresMatching(Comparator):
+		regex = " ~* "
+
+	def regex(self, pattern: str):
+		return PostgresAwareCriterion(
+			Matching.regexp, PostgresMatching.regex, self, self.wrap_constant(pattern)
+		)
+
+	Term.regex = regex  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
+>>>>>>> 97fe4c5 (fix(sqlite): escape like wildcards with a backslash)
 def patch_all():
 	patch_query_execute()
 	patch_query_aggregation()
