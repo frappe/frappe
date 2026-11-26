@@ -699,7 +699,7 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 		self._request_with(self.api_key, "x")
 		frappe.db.savepoint("failed_key_lookup")
 		with self.assertRaises(frappe.AuthenticationError):
-			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
+			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="Missing DocType")
 		frappe.db.rollback(save_point="failed_key_lookup")
 
 		self.assertEqual(self._entries(), [])
