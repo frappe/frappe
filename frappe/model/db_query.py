@@ -970,6 +970,7 @@ from {tables}
 		# contain subqueries (e.g. `... in (select ...)`), so they are tracked separately
 		# and exempted from the final-query validation in `validate_generated_query`.
 		self.permission_conditions = []
+		self.validate_fieldlevel_permissions_for_filters()
 		self.build_filter_conditions(self.filters, self.conditions)
 		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
 
@@ -978,6 +979,41 @@ from {tables}
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
 				self.permission_conditions.append(f"({match_conditions})")
+
+	def validate_fieldlevel_permissions_for_filters(self):
+		"""Block filtering by a field the user can't read at its permlevel."""
+		if self.flags.ignore_permissions or not (self.filters or self.or_filters):
+			return
+
+		from frappe.boot import get_additional_filters_from_hooks
+
+		additional_filters_config = get_additional_filters_from_hooks()
+
+		for f in (*self.filters, *self.or_filters):
+			f = get_filter(self.doctype, f, additional_filters_config)
+			if not self.can_read_field(f.doctype, f.fieldname):
+				raise frappe.PermissionError(
+					_("Not permitted to filter by {0}").format(frappe.bold(f.fieldname))
+				)
+
+	def can_read_field(self, doctype: str, fieldname: str) -> bool:
+		# user_query filters every User link search by user_type; it is not sensitive
+		if doctype == "User" and fieldname == "user_type":
+			return True
+
+		# Only real docfields with permlevel > 0 are gated, like in order by / group by
+		meta = frappe.get_meta(doctype)
+		df = meta.get_field(fieldname)
+		if not df or not df.permlevel:
+			return True
+
+		parenttype = self.doctype if meta.istable and doctype != self.doctype else self.parent_doctype
+		return fieldname in get_permitted_fields(
+			doctype=doctype,
+			parenttype=parenttype,
+			permission_type=self.permission_map.get(doctype),
+			user=self.user,
+		)
 
 	def build_filter_conditions(self, filters, conditions: list, ignore_permissions=None):
 		"""build conditions from user filters"""
