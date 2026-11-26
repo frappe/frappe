@@ -1,11 +1,11 @@
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { dialog, toast } from "frappe-ui";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
 import { inPanel } from "../panel.js";
-import { canLabel, knownLabel, labelLinks, pickedNames } from "./links.js";
+import { canLabel, linkLabels, pickedNames } from "./links.js";
 import { newDoc } from "./specs.js";
 
 // What a list of records and a record's form do, for settings and for the setup forms in the
@@ -86,6 +86,8 @@ export function useRecord(props, emit) {
 	const saving = ref(false);
 	const running = ref(null);
 	const form = ref(null);
+	const labels = linkLabels();
+	provide("flowLinkLabels", labels);
 
 	const isNew = computed(() => !props.spec.single && !doc.value?.name);
 	const canWrite = computed(() =>
@@ -135,12 +137,12 @@ export function useRecord(props, emit) {
 			.map((field) => [
 				field.link,
 				pickedNames(value[field.name]).filter(
-					(name) => knownLabel(field.link, name) === undefined
+					(name) => labels.get(field.link, name) === undefined
 				),
 			])
 			.filter(([, names]) => names.length);
 		await Promise.allSettled(
-			lookups.map(([doctype, names]) => labelLinks(doctype, names, props.spec.doctype))
+			lookups.map(([doctype, names]) => labels.label(doctype, names, props.spec.doctype))
 		);
 	}
 

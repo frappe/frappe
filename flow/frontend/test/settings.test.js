@@ -536,8 +536,7 @@ test("a saved record's changed title renames it, after saving its other edits; a
 
 test("a saved record opens with its links labelled, never showing their names first", async (t) => {
 	transport.answers["frappe.client.get"] = (args) => ({ name: args.name, title: args.name, user: "u-opened" });
-	// a label lookup slower than the form, which then has nothing to show but the name;
-	// a name no other test has labelled, as labels are kept for the page
+	// a label lookup slower than the form, which then has nothing to show but the name
 	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
 		filters?.name
 			? new Promise((resolve) =>
@@ -552,6 +551,12 @@ test("a saved record opens with its links labelled, never showing their names fi
 	await until(() => el.querySelector('[data-control="User"]'));
 	const field = el.querySelector('[data-control="User"]').__vueParentComponent;
 	assert.deepEqual(field.props.options, [{ value: "u-opened", label: "Opened User" }]);
+
+	// labels last as long as the form: opened again, the record's are looked up again
+	transport.calls.length = 0;
+	const again = mount(t, DocForm, { spec, name: "Helper" });
+	await until(() => again.querySelector('[data-control="User"]'));
+	assert.ok(transport.calls.some(([, args]) => args.filters?.name));
 });
 
 test("a refused rename keeps the typed title and says why; edits saved before it still reach the list and the page", async (t) => {

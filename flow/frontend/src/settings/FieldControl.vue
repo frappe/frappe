@@ -199,7 +199,7 @@ import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
-import { canLabel, knownLabel, labelLinks, pickedNames, searchLinks } from "./links.js";
+import { canLabel, linkLabels, pickedNames } from "./links.js";
 
 // CodeMirror loads only when a code field shows
 const CodeField = defineAsyncComponent(() => import("./CodeField.vue"));
@@ -211,6 +211,8 @@ const props = defineProps({
 	variant: { type: String, default: "outline" },
 });
 const page = inject("flowPage");
+// shared by the fields of the record they show
+const labels = inject("flowLinkLabels", linkLabels, true);
 
 // numbers read with separators; everything else as it is
 const readonlyText = computed(() => {
@@ -268,7 +270,7 @@ const listed = computed(() => (props.disabled ? null : searched.value));
 const links = ref([]);
 const linksLoading = ref(!!listed.value); // until the first results arrive
 const linksError = ref("");
-const label = (name) => (searched.value && knownLabel(searched.value, name)) ?? name;
+const label = (name) => (searched.value && labels.get(searched.value, name)) ?? name;
 const options = computed(() => [
 	...links.value,
 	...pickedNames(props.doc[props.field.name])
@@ -282,11 +284,11 @@ watch(
 	async ([doctype, value]) => {
 		if (!doctype) return;
 		const missing = pickedNames(value).filter(
-			(name) => !asked.has(name) && knownLabel(doctype, name) === undefined
+			(name) => !asked.has(name) && labels.get(doctype, name) === undefined
 		);
 		if (!missing.length) return;
 		missing.forEach((name) => asked.add(name));
-		await labelLinks(doctype, missing, props.doc.doctype);
+		await labels.label(doctype, missing, props.doc.doctype);
 	},
 	{ immediate: true }
 );
@@ -310,7 +312,7 @@ watch(
 			return;
 		}
 		try {
-			const data = await searchLinks(doctype, query, props.doc.doctype);
+			const data = await labels.search(doctype, query, props.doc.doctype);
 			if (!stale) links.value = data;
 		} catch (err) {
 			if (!stale) linksError.value = err.message;
