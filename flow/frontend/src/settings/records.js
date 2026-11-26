@@ -5,7 +5,7 @@ import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
 import { inPanel } from "../panel.js";
-import { labelLinks } from "./links.js";
+import { canLabel, knownLabel, labelLinks, pickedNames } from "./links.js";
 import { newDoc } from "./specs.js";
 
 // What a list of records and a record's form do, for settings and for the setup forms in the
@@ -114,36 +114,39 @@ export function useRecord(props, emit) {
 		return !!field.locked?.(doc.value);
 	}
 
-	function adopt(data) {
+	// as the form edits it: a multi-link as the names it picks
+	function toDoc(data) {
 		const value = { ...data };
 		for (const field of multilinks.value)
 			value[field.name] = (data[field.name] ?? []).map((row) => row[field.child]);
-		doc.value = value;
-		original.value = JSON.stringify(value);
+		return value;
 	}
 
-	// before the form shows, so no link flashes its name first; where the field itself can't
-	// search, or the lookup fails, it shows the name as before
-	async function labelRecordLinks(data) {
+	function adopt(data) {
+		doc.value = toDoc(data);
+		original.value = JSON.stringify(doc.value);
+	}
+
+	// before the form shows, so no link flashes its name first; a link that can't be labelled,
+	// or whose lookup fails, shows its names as before
+	async function labelRecordLinks(value) {
+		const lookups = props.spec.fields
+			.filter((field) => field.link && canLabel(page, field.link))
+			.map((field) => [
+				field.link,
+				pickedNames(value[field.name]).filter(
+					(name) => knownLabel(field.link, name) === undefined
+				),
+			])
+			.filter(([, names]) => names.length);
 		await Promise.allSettled(
-			props.spec.fields
-				.filter((field) => field.link && (field.link === "DocType" || page.can(field.link, "select")))
-				.map((field) => {
-					const value = data[field.name];
-					const names =
-						field.type === "multilink"
-							? (value ?? []).map((row) => row[field.child])
-							: value
-							? [value]
-							: [];
-					return names.length && labelLinks(field.link, names, props.spec.doctype);
-				})
+			lookups.map(([doctype, names]) => labelLinks(doctype, names, props.spec.doctype))
 		);
 	}
 
 	async function open(args) {
 		const data = await call("frappe.client.get", args);
-		await labelRecordLinks(data);
+		await labelRecordLinks(toDoc(data));
 		adopt(data);
 	}
 

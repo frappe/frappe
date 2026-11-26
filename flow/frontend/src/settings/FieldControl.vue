@@ -199,7 +199,7 @@ import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
-import { knownLabel, labelLinks, searchLinks } from "./links.js";
+import { canLabel, knownLabel, labelLinks, pickedNames, searchLinks } from "./links.js";
 
 // CodeMirror loads only when a code field shows
 const CodeField = defineAsyncComponent(() => import("./CodeField.vue"));
@@ -260,49 +260,33 @@ const providerOptions = computed(() => {
 // it shows the names as they are.
 const linkQuery = ref("");
 const debouncedLinkQuery = useDebouncedValue(linkQuery, 300);
-// `search_link` answers DocType for everyone
 const searched = computed(() =>
-	props.disabled && props.field.link !== "DocType" && !page.can(props.field.link, "select")
-		? null
-		: props.field.link
+	props.disabled && !canLabel(page, props.field.link) ? null : props.field.link
 );
 // a read-only field opens no list to pick from, so only its labels are looked up
 const listed = computed(() => (props.disabled ? null : searched.value));
 const links = ref([]);
 const linksLoading = ref(!!listed.value); // until the first results arrive
 const linksError = ref("");
-const options = computed(() => {
-	const value = props.doc[props.field.name];
-	const selected = Array.isArray(value) ? value : value ? [value] : [];
-	return [
-		...links.value,
-		...selected
-			.filter((name) => !links.value.some((option) => option.value === name))
-			.map((name) => ({ value: name, label: labels.value[name] ?? name })),
-	];
-});
-// each pick keeps the label it was picked by, as later searches may leave it out;
-// picks no search has shown take the label their record was opened with, or are labelled
-// once, by title, each showing its name meanwhile
-const labels = ref({});
+const label = (name) => (searched.value && knownLabel(searched.value, name)) ?? name;
+const options = computed(() => [
+	...links.value,
+	...pickedNames(props.doc[props.field.name])
+		.filter((name) => !links.value.some((option) => option.value === name))
+		.map((name) => ({ value: name, label: label(name) })),
+]);
+// picks no search has labelled are looked up once, each showing its name meanwhile
+const asked = new Set();
 watch(
 	() => [searched.value, props.doc[props.field.name]],
 	async ([doctype, value]) => {
-		const selected = Array.isArray(value) ? value : value ? [value] : [];
-		const missing = [];
-		for (const name of selected) {
-			if (name in labels.value) continue;
-			const label =
-				links.value.find((option) => option.value === name)?.label ??
-				(doctype ? knownLabel(doctype, name) : undefined);
-			if (label !== undefined) labels.value[name] = label;
-			else missing.push(name);
-		}
-		if (!doctype || !missing.length) return;
-		missing.forEach((name) => (labels.value[name] = name));
-		for (const option of await labelLinks(doctype, missing, props.doc.doctype)) {
-			labels.value[option.value] = option.label;
-		}
+		if (!doctype) return;
+		const missing = pickedNames(value).filter(
+			(name) => !asked.has(name) && knownLabel(doctype, name) === undefined
+		);
+		if (!missing.length) return;
+		missing.forEach((name) => asked.add(name));
+		await labelLinks(doctype, missing, props.doc.doctype);
 	},
 	{ immediate: true }
 );
@@ -320,7 +304,8 @@ watch(
 		onCleanup(() => (stale = true));
 		linksError.value = "";
 		// the combobox puts the picked label in its query: nobody typed it
-		if (!doctype || (query && query === labels.value[props.doc[props.field.name]])) {
+		const echo = props.field.type === "link" && query && query === label(props.doc[props.field.name]);
+		if (!doctype || echo) {
 			linksLoading.value = false;
 			return;
 		}
