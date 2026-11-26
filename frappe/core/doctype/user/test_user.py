@@ -19,11 +19,8 @@ from frappe.core.doctype.user.user import (
 	handle_password_test_fail,
 	needs_password_setup,
 	reset_password,
-<<<<<<< HEAD
-	set_first_password,
-=======
 	rewrite_owner_fields,
->>>>>>> cafa892 (test(user): cover the deferred owner sweep after a rename)
+	set_first_password,
 	sign_up,
 	test_password_strength,
 	update_password,
@@ -37,12 +34,7 @@ from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-<<<<<<< HEAD
-from frappe.utils import get_url, today
-=======
-from frappe.utils import add_to_date, get_url, now_datetime
-from frappe.utils.data import orjson_dumps
->>>>>>> 9d464a5 (test(user): cover rows written after a rename in the owner sweep)
+from frappe.utils import add_to_date, get_url, today
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
