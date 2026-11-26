@@ -19,6 +19,12 @@ PYTHON_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python"
 PYTHON_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python_search"
 DOCTYPE_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_nonstandard"
 DOCTYPE_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_nonstandard_search"
+CACHE_KEYS = (
+	PYTHON_METHOD_CACHE_KEY,
+	PYTHON_SEARCH_CACHE_KEY,
+	DOCTYPE_METHOD_CACHE_KEY,
+	DOCTYPE_SEARCH_CACHE_KEY,
+)
 DISCOVERY_BUILD_JOB_ID = "api-v2-discovery-build"
 
 
@@ -120,14 +126,11 @@ def build_cache() -> None:
 	ttl = DEVELOPER_MODE_CACHE_TTL if frappe.conf.developer_mode else CACHE_TTL
 	items = []
 	search_entries = []
-	for path in _discover_whitelisted_method_paths():
-		if fn := _get_whitelisted_method(path, ignore_cache=True):
-			method = _method_summary(fn)
-			items.append(method)
-			entry = {"type": "method", **method}
-			search_entries.append(
-				{"method": method, "haystack": _method_search_text(entry, inspect.getdoc(fn))}
-			)
+	for path, docstring in _discover_whitelisted_methods():
+		method = _method_summary(path, docstring)
+		items.append(method)
+		entry = {"type": "method", **method}
+		search_entries.append({"method": method, "haystack": _method_search_text(entry, docstring)})
 
 	frappe.cache.set_value(PYTHON_METHOD_CACHE_KEY, items, expires_in_sec=ttl)
 	frappe.cache.set_value(PYTHON_SEARCH_CACHE_KEY, search_entries, expires_in_sec=ttl)
@@ -146,6 +149,11 @@ def build_cache() -> None:
 
 	frappe.cache.set_value(DOCTYPE_METHOD_CACHE_KEY, doctype_items, expires_in_sec=ttl)
 	frappe.cache.set_value(DOCTYPE_SEARCH_CACHE_KEY, doctype_search_entries, expires_in_sec=ttl)
+
+
+def build_cache_if_missing() -> None:
+	if frappe.cache.exists(*CACHE_KEYS) < len(CACHE_KEYS):
+		build_cache()
 
 
 def _search_index() -> list[tuple[dict[str, Any], str]]:
@@ -238,12 +246,11 @@ def build_cache_in_background() -> None:
 	)
 
 
-def _method_summary(fn: Callable) -> dict[str, Any]:
-	docstring = inspect.getdoc(fn)
+def _method_summary(path: str, docstring: str | None) -> dict[str, Any]:
 	return _without_none(
 		{
 			"kind": "rpc",
-			"path": f"{fn.__module__}.{fn.__name__}",
+			"path": path,
 			"description": docstring.splitlines()[0] if docstring else None,
 		}
 	)
@@ -355,19 +362,15 @@ def _get_api_server_scripts() -> dict[str, str]:
 	}
 
 
-def _get_whitelisted_method(path: str, ignore_cache: bool = False) -> Callable | None:
-	if not ignore_cache and path not in {method["path"] for method in _get_cached_python_methods()}:
+def _get_whitelisted_method(path: str) -> Callable | None:
+	if path not in {method["path"] for method in _get_cached_python_methods()}:
 		return None
 
 	try:
 		fn = frappe.get_attr(path)
 	except Exception:
 		return None
-	if ignore_cache and fn in frappe.whitelisted:
-		return fn
-	if not ignore_cache and fn in frappe.whitelisted:
-		return fn
-	return None
+	return fn if fn in frappe.whitelisted else None
 
 
 def _discover_doctype_methods() -> list[tuple[str, str, Callable, type]]:
@@ -375,16 +378,16 @@ def _discover_doctype_methods() -> list[tuple[str, str, Callable, type]]:
 	doctypes = frappe.get_all(
 		"DocType",
 		filters={"istable": 0},
-		pluck="name",
+		fields=["name", "is_submittable", "allow_rename"],
 		order_by="name",
 	)
 	for doctype in doctypes:
 		try:
-			doctype_methods = _get_doctype_methods(doctype)
+			doctype_methods = _get_controller_methods(doctype.name, doctype)
 		except Exception:
 			continue
 		methods.extend(
-			(doctype, method_name, fn, defining_class)
+			(doctype.name, method_name, fn, defining_class)
 			for method_name, fn, defining_class in doctype_methods
 			if not _is_standard_doctype_method(defining_class)
 		)
@@ -399,6 +402,10 @@ def _get_doctype_methods(doctype: str) -> list[tuple[str, Callable, type]]:
 			_("DocType {0} is not available for discovery").format(doctype), frappe.DoesNotExistError
 		)
 
+	return _get_controller_methods(doctype, meta)
+
+
+def _get_controller_methods(doctype: str, meta: Any) -> list[tuple[str, Callable, type]]:
 	controller = get_controller(doctype)
 	methods = []
 	for method_name in dir(controller):
@@ -438,8 +445,9 @@ def _doctype_method_applies(meta: Any, method: str) -> bool:
 	return True
 
 
-def _discover_whitelisted_method_paths() -> list[str]:
-	methods = set()
+def _discover_whitelisted_methods() -> list[tuple[str, str | None]]:
+	"""Find whitelisted functions by parsing source files, without importing them."""
+	methods = {}
 	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		app_path = Path(frappe.get_app_path(app))
 		if not app_path.exists():
@@ -450,10 +458,10 @@ def _discover_whitelisted_method_paths() -> list[str]:
 				continue
 
 			module = _module_path_from_file(app, app_path, file_path)
-			for method in _get_module_level_whitelisted_functions(file_path):
-				methods.add(f"{module}.{method}")
+			for method, docstring in _get_module_level_whitelisted_functions(file_path):
+				methods[f"{module}.{method}"] = docstring
 
-	return sorted(methods)
+	return sorted(methods.items())
 
 
 def _module_path_from_file(app: str, app_path: Path, file_path: Path) -> str:
@@ -462,16 +470,25 @@ def _module_path_from_file(app: str, app_path: Path, file_path: Path) -> str:
 	return ".".join((app, *parts))
 
 
-def _get_module_level_whitelisted_functions(file_path: Path) -> list[str]:
+def _get_module_level_whitelisted_functions(file_path: Path) -> list[tuple[str, str | None]]:
 	try:
-		tree = ast.parse(file_path.read_text(), filename=str(file_path))
-	except (OSError, SyntaxError):
+		source = file_path.read_text()
+	except OSError:
+		return []
+
+	# Most files have no whitelisted functions, and parsing is the slow part of the build.
+	if "whitelist" not in source:
+		return []
+
+	try:
+		tree = ast.parse(source, filename=str(file_path))
+	except SyntaxError:
 		return []
 
 	methods = []
 	for node in tree.body:
 		if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _has_whitelist_decorator(node):
-			methods.append(node.name)
+			methods.append((node.name, ast.get_docstring(node)))
 
 	return methods
 
