@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 import frappe
+from frappe.client import get_count
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
@@ -45,7 +46,18 @@ def setup_patched_blog_post():
 	reset("Blog Post")
 	add("Blog Post", "Website Manager", 1)
 	update("Blog Post", "Website Manager", 1, "write", 1)
-	yield
+	try:
+		yield
+	finally:
+		remove_blog_post_patches()
+
+
+def remove_blog_post_patches():
+	reset("Blog Post")
+	frappe.db.delete(
+		"Property Setter", {"doc_type": "Blog Post", "field_name": "published", "property": "permlevel"}
+	)
+	clear_custom_fields("Blog Post")
 
 
 class TestDBQuery(FrappeTestCase):
@@ -1053,7 +1065,6 @@ class TestDBQuery(FrappeTestCase):
 		with setup_patched_blog_post(), setup_test_user(set_user=True):
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "published"],
 				limit=1,
 			)
@@ -1063,7 +1074,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "`published`"],
 				limit=1,
 			)
@@ -1073,7 +1083,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "`tabBlog Post`.`published`"],
 				limit=1,
 			)
@@ -1083,13 +1092,60 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "`tabTest Child`.`test_field`"],
 				limit=1,
 			)
 			self.assertFalse("test_field" in data[0])
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
+
+	def test_permlevel_fields_in_filters(self):
+		# A permlevel-protected field must not be usable in filters,
+		# else get_count / get_list tell its value one guess at a time.
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			for filters in (
+				{"published": 1},
+				[["published", "=", 1]],
+				[["Blog Post", "published", "like", "1%"]],
+			):
+				self.assertRaises(
+					frappe.PermissionError, frappe.get_list, "Blog Post", fields=["name"], filters=filters
+				)
+
+			self.assertRaises(
+				frappe.PermissionError,
+				frappe.get_list,
+				"Blog Post",
+				fields=["name"],
+				or_filters={"published": 1},
+			)
+
+			frappe.local.form_dict = frappe._dict()
+			self.assertRaises(frappe.PermissionError, get_count, "Blog Post", filters={"published": 1})
+
+			# permlevel-0 fields stay filterable
+			frappe.get_list("Blog Post", fields=["name"], filters={"title": ["like", "%"]}, limit=1)
+
+		# a user who can read the permlevel may filter by it
+		frappe.set_user("Administrator")
+		with setup_patched_blog_post():
+			frappe.get_list("Blog Post", fields=["name"], filters={"published": 1}, limit=1)
+
+			# the check is for the user the query runs for, not the session user
+			with setup_test_user() as test_user:
+				self.assertRaises(
+					frappe.PermissionError,
+					frappe.get_list,
+					"Blog Post",
+					fields=["name"],
+					filters={"published": 1},
+					user=test_user.name,
+				)
+
+	def test_user_type_filter_for_desk_user(self):
+		# user_query filters every User link search by user_type (permlevel 1)
+		with setup_test_user(set_user=True):
+			frappe.get_list("User", fields=["name"], filters={"user_type": "System User"}, limit=1)
 
 	def test_permlevel_fields_in_order_by(self):
 		# A permlevel-protected field must not be usable in order by / group by,
@@ -1123,7 +1179,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "MAX(`published`)"],
 				limit=1,
 			)
@@ -1132,7 +1187,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "LAST(published)"],
 				limit=1,
 			)
@@ -1141,7 +1195,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "MAX(`modified`)"],
 				limit=1,
 				order_by=None,
@@ -1151,7 +1204,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "now() abhi"],
 				limit=1,
 			)
@@ -1160,7 +1212,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "'LABEL'"],
 				limit=1,
 			)
@@ -1170,7 +1221,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "COUNT(*) as count"],
 				limit=1,
 				order_by=None,
@@ -1181,7 +1231,6 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				filters={"published": 1},
 				fields=["name", "COUNT(*) count"],
 				limit=1,
 				order_by=None,
@@ -1912,6 +1961,7 @@ class TestReportView(FrappeTestCase):
 		user.add_roles("Blogger")
 
 		make_property_setter("Blog Post", "published", "permlevel", 1, "Int")
+		self.addCleanup(remove_blog_post_patches)
 		reset("Blog Post")
 		add("Blog Post", "Website Manager", 1)
 		update("Blog Post", "Website Manager", 1, "write", 1)
