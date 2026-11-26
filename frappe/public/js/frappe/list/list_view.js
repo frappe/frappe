@@ -668,13 +668,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.selected_page_count >= this.virtualization_threshold
 				? ensure_list_virtualization_loaded()
 				: Promise.resolve();
+		let refresh_id;
 		return load_virtualization
 			.catch(() => {
 				this._virtualization_bundle_failed = true;
 			})
 			.then(() => {
 				const request = super.refresh();
-				const refresh_id = this.refresh_id;
+				refresh_id = this.refresh_id;
 				return request.then(() => {
 					// a newer refresh or grouping dropped this response: the newer one finishes the list
 					if (refresh_id !== this.refresh_id) return;
@@ -691,16 +692,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				});
 			})
 			.catch((error) => {
-				this.hide_loading_rows();
-				if (!this.grouped) this.toggle_result_area();
-				else if (!this.grouped_rows.groups.length) this.show_load_failed();
+				if (refresh_id === this.refresh_id && this.view_name === "List") {
+					this.hide_loading_rows();
+					if (!this.get_result_count()) this.show_load_failed();
+				}
 				throw error;
 			});
 	}
 
 	show_load_failed() {
 		this.get_count_element().empty();
-		this.$result.hide();
+		this.$result.hide().parent(".result-container").hide();
+		this.$paging_area.hide();
 		this.$no_result
 			.empty()
 			.append(
@@ -3184,6 +3187,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			fields(grouping) === fields(this.grouping) &&
 			grouping.open === this.grouping.open;
 		const keep_figures = frappe.utils.deep_equal(grouping?.totals, this.grouping?.totals);
+		// reset takes the open groups' rows off the screen
+		if (this.grouped && !grouping) this.data = [];
 		this.grouping = grouping;
 		// a response still on its way was asked for the old grouping
 		this.refresh_id = (this.refresh_id || 0) + 1;
