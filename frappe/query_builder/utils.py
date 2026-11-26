@@ -11,7 +11,7 @@ from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
 	QueryBuilder,
 	_SetOperation,
 )
-from pypika.terms import PseudoColumn, Term
+from pypika.terms import PseudoColumn, Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
 import frappe
 from frappe.query_builder.terms import (
