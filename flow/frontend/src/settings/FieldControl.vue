@@ -260,8 +260,11 @@ const providerOptions = computed(() => {
 // it shows the names as they are.
 const linkQuery = ref("");
 const debouncedLinkQuery = useDebouncedValue(linkQuery, 300);
+// `search_link` answers DocType for everyone
 const searched = computed(() =>
-	props.disabled && !page.can(props.field.link, "select") ? null : props.field.link
+	props.disabled && props.field.link !== "DocType" && !page.can(props.field.link, "select")
+		? null
+		: props.field.link
 );
 const links = ref([]);
 const linksLoading = ref(!!searched.value); // until the first results arrive

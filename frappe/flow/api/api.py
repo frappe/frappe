@@ -42,7 +42,7 @@ SETTINGS_DOCTYPES = (
 	"Flow Settings",
 )
 # Doctypes outside Flow that its settings link to; boot reports the caller's rights on them too.
-LINKED_DOCTYPES = ("DocType", "Role", "User")
+LINKED_DOCTYPES = ("Role", "User")
 
 # Per-user chat preferences and their allowed values. None means the default.
 USER_PREFS = {

@@ -399,6 +399,22 @@ test("a read-only link the user may search shows its label", async (t) => {
 	assert.ok(!el.textContent.includes("a1b2c3"));
 });
 
+test("a read-only DocType link shows its label, as anyone may search DocTypes", async (t) => {
+	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
+		filters?.name ? [{ value: "ToDo", label: "Aufgabe" }] : [];
+	const el = mount(
+		t,
+		FieldControl,
+		{
+			field: { name: "target_doctype", type: "link", label: "Target DocType", link: "DocType" },
+			doc: { doctype: "Flow Trigger", target_doctype: "ToDo" },
+			disabled: true,
+		},
+		{ can: () => false }
+	);
+	await until(() => el.textContent.includes("Aufgabe"));
+});
+
 test("a new record leaves read-only fields out, so the server fills their defaults", () => {
 	assert.equal("source" in newDoc(SPECS.memories), false);
 	assert.equal("status" in newDoc(SPECS.knowledge_sources), false);
