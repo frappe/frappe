@@ -86,10 +86,10 @@ class TestClientCache(IntegrationTestCase):
 		with self.assertRedisCallCounts(1, exact=True):
 			self.assertIsNone(frappe.client_cache.get_value(TEST_KEY))
 
-		# Flushall should have results
+		# Flushdb should have results
 		frappe.client_cache.set_value(TEST_KEY, val)
 		self.assertEqual(frappe.client_cache.get_value(TEST_KEY), val)
-		frappe.cache.flushall()
+		frappe.cache.flushdb()
 		time.sleep(0.1)
 		with self.assertRedisCallCounts(1, exact=True):
 			self.assertIsNone(frappe.client_cache.get_value(TEST_KEY))
