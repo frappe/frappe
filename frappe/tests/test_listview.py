@@ -100,17 +100,17 @@ class TestListView(IntegrationTestCase):
 					"name": "Administrator",
 					"count": 1,
 					"title": full_name,
-					"search_text": f"{full_name} {email}",
+					"description": f"Administrator, {email}",
 				}
 			],
 		)
 
-	def test_owner_count_carries_search_field_values(self):
+	def test_owner_count_describes_the_user(self):
 		frappe.get_doc({"doctype": "Note", "title": "Test owner search text", "public": 1}).insert()
 
 		data = get_group_by_count("Note", [["title", "=", "Test owner search text"]], "owner")
-		full_name, email = frappe.db.get_value("User", "Administrator", ["full_name", "email"])
-		self.assertEqual(data[0].search_text, f"{full_name} {email}")
+		email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertEqual(data[0].description, f"Administrator, {email}")
 
 	def test_assigned_to_count_leaves_out_closed_assignments(self):
 		job = frappe.get_doc(
