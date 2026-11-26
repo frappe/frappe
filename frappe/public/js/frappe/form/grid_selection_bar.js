@@ -30,6 +30,12 @@ export default class GridSelectionBar {
 		this.grid.wrapper.toggleClass("grid-has-selection", count > 0);
 		this.$label.text(count === 1 ? __("1 row selected") : __("{0} rows selected", [count]));
 		this.$select_all.prop("disabled", count === this.grid.data.length);
+		this.$menu
+			.add(this.$divider)
+			.toggleClass(
+				"hidden",
+				!this.get_actions().some((item) => !item.condition || item.condition())
+			);
 		this.refresh_pager();
 	}
 
@@ -118,6 +124,18 @@ export default class GridSelectionBar {
 			onclick: () => this.select_all(true),
 		});
 
+		this.$menu = frappe.ui.dropdown({
+			button: { icon: "ellipsis", variant: "ghost", tooltip: __("Actions") },
+			options: () => this.get_actions(),
+			side: "top",
+			align: "start",
+		});
+		this.$divider = frappe.ui.divider({
+			orientation: "vertical",
+			flex_item: true,
+			css_class: "grid-selection-divider",
+		});
+
 		this.$wrapper = $(`<div class="grid-selection-bar"></div>`)
 			.append(
 				$(`<div class="grid-selection-summary"></div>`).append(
@@ -126,17 +144,8 @@ export default class GridSelectionBar {
 				),
 				this.make_pager(),
 				$(`<div class="grid-selection-actions"></div>`).append(
-					frappe.ui.dropdown({
-						button: { icon: "ellipsis", variant: "ghost", tooltip: __("Actions") },
-						options: () => this.get_actions(),
-						side: "top",
-						align: "start",
-					}),
-					frappe.ui.divider({
-						orientation: "vertical",
-						flex_item: true,
-						css_class: "grid-selection-divider",
-					}),
+					this.$menu,
+					this.$divider,
 					this.$select_all,
 					this.make_button({
 						icon: "x",
