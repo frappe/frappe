@@ -80,8 +80,8 @@ def export_customizations(
 	with_permissions = cint(with_permissions)
 	apply_module_export_filter = cint(apply_module_export_filter)
 
-	cf_filters = {"dt": doctype}
-	ps_filters = {"doc_type": doctype}
+	cf_filters = {"dt": doctype, "is_system_generated": 0}
+	ps_filters = {"doc_type": doctype, "is_system_generated": 0}
 
 	if apply_module_export_filter:
 		cf_filters["module"] = module
@@ -177,13 +177,16 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 				case "Custom Field":
 					for d in data[key]:
 						field = frappe.db.get_value(
-							"Custom Field", {"dt": doc_type, "fieldname": d["fieldname"]}
+							"Custom Field",
+							{"dt": doc_type, "fieldname": d["fieldname"]},
+							["name", "is_system_generated"],
+							as_dict=True,
 						)
 						if not field:
 							d["owner"] = "Administrator"
 							_insert(d)
-						else:
-							custom_field = frappe.get_doc("Custom Field", field)
+						elif not field.is_system_generated:
+							custom_field = frappe.get_doc("Custom Field", field.name)
 							custom_field.flags.ignore_validate = True
 							custom_field.update(d)
 							custom_field.db_update()
@@ -227,7 +230,10 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 								],
 								as_dict=True,
 							)
-							if current and all(current[f] == d[f] for f in current if f in d):
+							if current and (
+								current.is_system_generated
+								or all(current[f] == d[f] for f in current if f in d)
+							):
 								continue
 
 							d["doctype"] = "Property Setter"

@@ -109,6 +109,7 @@ class TestUtils(IntegrationTestCase):
 					"fieldtype": "Data",
 					"module": "OtherModule",
 				},
+				is_system_generated=False,
 			)
 
 			self.addCleanup(other_cf.delete)
@@ -228,10 +229,15 @@ def note_customizations():
 			"label": "Custom Data Field",
 			"fieldtype": "Data",
 		}
-		custom_field = create_custom_field("Note", df=df)
+		custom_field = create_custom_field("Note", df=df, is_system_generated=False)
 
 		property_setter = make_property_setter(
-			"Note", fieldname="content", property="bold", value="1", property_type="Check"
+			"Note",
+			fieldname="content",
+			property="bold",
+			value="1",
+			property_type="Check",
+			is_system_generated=False,
 		)
 
 		doctype_link = frappe.get_doc(
