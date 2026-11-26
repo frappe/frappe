@@ -360,6 +360,33 @@ class TestEmail(IntegrationTestCase):
 			"Support <support@example.com>",
 		)
 
+	def test_sender_display_name_is_never_an_email_address(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.name = email_account.email_id
+		email_account.always_use_account_email_id_as_sender = 0
+		email_account.always_use_account_name_as_sender_name = 0
+
+		for sender, expected in (
+			(None, email_account.email_id),
+			('"jane@customer.example" <jane@customer.example>', "jane@customer.example"),
+			("=?utf-8?q?jane=40customer.example?= <jane@customer.example>", "jane@customer.example"),
+			("Jane Doe <jane@customer.example>", "Jane Doe <jane@customer.example>"),
+		):
+			with (
+				self.subTest(sender=sender),
+				patch.object(QueueBuilder, "get_outgoing_email_account", return_value=email_account),
+			):
+				frappe.sendmail(
+					recipients=["test1@example.com"],
+					sender=sender,
+					subject="Test Sender",
+					message="Test Sender",
+					now=True,
+				)
+				email_queue = frappe.get_last_doc("Email Queue")
+				self.assertEqual(email_queue.sender, expected)
+				self.assertEqual(email.message_from_string(email_queue.message)["From"], expected)
+
 	def test_sendmail_sends_to_the_email_of_a_user_id(self):
 		from frappe.core.doctype.user.test_user import test_user
 
