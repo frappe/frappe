@@ -501,6 +501,32 @@ class TestReportview(IntegrationTestCase):
 			self.assertEqual(result["values"][0][1], user)
 			self.assertEqual(frappe.local.response["_link_titles"][f"User::{user}"], full_name)
 
+	def test_get_sends_link_titles_for_fields_that_ignore_user_permissions(self):
+		self.enable_link_titles("User")
+		viewer = get_user_by_email("test@example.com")
+		assigner = get_user_by_email("test1@example.com")
+		user_permission = frappe.get_doc(
+			doctype="User Permission", user=viewer, allow="User", for_value=viewer
+		).insert()
+		self.addCleanup(user_permission.delete)
+
+		with self.set_user(viewer):
+			todo = frappe.get_doc(
+				doctype="ToDo",
+				description="Assigned by another user",
+				allocated_to=viewer,
+				assigned_by=assigner,
+			).insert()
+			self.get_rows(
+				doctype="ToDo",
+				fields=["name", "assigned_by"],
+				filters={"name": todo.name},
+				with_link_titles=1,
+			)
+
+		full_name = frappe.db.get_value("User", assigner, "full_name")
+		self.assertEqual(frappe.local.response["_link_titles"][f"User::{assigner}"], full_name)
+
 	def get_todo_rows(self, name, **extra_params):
 		return self.get_rows(
 			doctype="ToDo",
