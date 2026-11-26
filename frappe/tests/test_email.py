@@ -359,8 +359,6 @@ class TestEmail(IntegrationTestCase):
 			"Support <support@example.com>",
 		)
 
-<<<<<<< HEAD
-=======
 	def test_sender_display_name_is_never_an_email_address(self):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.name = email_account.email_id
@@ -398,25 +396,6 @@ class TestEmail(IntegrationTestCase):
 		)
 		self.assertRaises(frappe.InvalidEmailAddressError, mail.validate)
 
-	def test_sendmail_sends_to_the_email_of_a_user_id(self):
-		from frappe.core.doctype.user.test_user import test_user
-
-		with test_user(roles=[], generated_id=True) as user:
-			email_queue = frappe.sendmail(recipients=[user.name], subject="Testing", message="Hello")
-
-		self.assertEqual([r.recipient for r in email_queue.recipients], [user.email])
-
-	def test_sendmail_sends_from_the_email_of_a_user_id(self):
-		from frappe.core.doctype.user.test_user import test_user
-
-		with test_user(roles=[], generated_id=True) as user:
-			email_queue = frappe.sendmail(
-				recipients=["test@example.com"], sender=user.name, subject="Testing", message="Hello"
-			)
-
-		self.assertEqual(email_queue.sender, user.email)
-
->>>>>>> 5f456ed (fix(email): drop sender display name that is an email address)
 	def test_unsubscribe(self):
 		from frappe.email.queue import unsubscribe
 
