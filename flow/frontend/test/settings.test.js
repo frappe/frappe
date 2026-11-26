@@ -382,6 +382,23 @@ test("an untouched JSON field is saved as no value and a filled one as written; 
 	assert.deepEqual(toast.shown, ["Created", "Saved"]);
 });
 
+test("a read-only link the user may search shows its label", async (t) => {
+	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
+		filters?.name ? [{ value: "a1b2c3", label: "Ann Smith" }] : [];
+	const el = mount(
+		t,
+		FieldControl,
+		{
+			field: { name: "user", type: "link", label: "User", link: "User" },
+			doc: { doctype: "Flow Agent Memory", user: "a1b2c3" },
+			disabled: true,
+		},
+		{ can: (doctype, ptype) => doctype === "User" && ptype === "select" }
+	);
+	await until(() => el.textContent.includes("Ann Smith"));
+	assert.ok(!el.textContent.includes("a1b2c3"));
+});
+
 test("a new record leaves read-only fields out, so the server fills their defaults", () => {
 	assert.equal("source" in newDoc(SPECS.memories), false);
 	assert.equal("status" in newDoc(SPECS.knowledge_sources), false);

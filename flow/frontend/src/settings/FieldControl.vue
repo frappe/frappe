@@ -261,7 +261,7 @@ const providerOptions = computed(() => {
 const linkQuery = ref("");
 const debouncedLinkQuery = useDebouncedValue(linkQuery, 300);
 const searched = computed(() =>
-	props.disabled && !page.can(props.field.link, "read") ? null : props.field.link
+	props.disabled && !page.can(props.field.link, "select") ? null : props.field.link
 );
 const links = ref([]);
 const linksLoading = ref(!!searched.value); // until the first results arrive
