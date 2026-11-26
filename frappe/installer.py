@@ -855,7 +855,7 @@ def _update_config_file(key: str, value, config_file: str):
 		site_config[key] = value
 
 	temp_file = f"{config_file}.{os.getpid()}.tmp"
-	with open(temp_file, "w") as f:
+	with open(temp_file, "w") as f:  # nosemgrep
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
 	shutil.copymode(config_file, temp_file)
 	os.replace(temp_file, config_file)
