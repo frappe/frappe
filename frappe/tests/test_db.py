@@ -1083,6 +1083,17 @@ class TestDB(IntegrationTestCase):
 			modify_query("select 'please for update your records' from `tabItem`"),
 		)
 
+		# a query that already quotes identifiers the SQLite way is not transpiled,
+		# and must still lose its locking clause
+		self.assertEqual(
+			'select name as "timestamp" from "tabItem" limit 1',
+			modify_query('select name as "timestamp" from `tabItem` limit 1\n\t\tfor update'),
+		)
+		self.assertEqual(
+			frappe.db.sql('select name as "timestamp" from `tabUser` where name = %s for update', "Guest"),
+			[("Guest",)],
+		)
+
 		# Placeholder-looking text in literals and comments is data, not a
 		# parameter. Only the final %s should be masked and restored.
 		translated = modify_query(
@@ -1264,10 +1275,10 @@ class TestDB(IntegrationTestCase):
 		self.assertRaises(SqlglotError, sqlglot.parse_one, garbage, read="mysql")
 
 		# modify_query() must not raise - it should degrade to the legacy
-		# text-rewrite fallback (backtick -> double-quote, in this case)
-		# rather than propagate the parse error
+		# text-rewrite fallback (backtick -> double-quote and no locking
+		# clause, in this case) rather than propagate the parse error
 		self.assertEqual(
-			'select * from "tabItem" where ((( not valid for update',
+			'select * from "tabItem" where ((( not valid',
 			modify_query(garbage),
 		)
 
