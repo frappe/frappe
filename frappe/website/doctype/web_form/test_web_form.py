@@ -2279,10 +2279,21 @@ class TestWebFormNewDocType(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("DocType", "webform-test-wf-issue-8-standard"))
 
+		import os
+		import shutil
+
+		from frappe.modules import get_module_path
+
 		# in developer mode a standard form exports into the app
-		previous = frappe.local.conf.developer_mode
-		frappe.local.conf.developer_mode = 0
-		self.addCleanup(lambda: frappe.local.conf.update(developer_mode=previous))
+		web_forms_path = os.path.join(get_module_path("Desk"), "web_form")
+		created_web_forms_path = not os.path.exists(web_forms_path)
+		self.addCleanup(
+			shutil.rmtree,
+			web_forms_path
+			if created_web_forms_path
+			else os.path.join(web_forms_path, "test_wf_issue_8_standard_with_doctype"),
+			ignore_errors=True,
+		)
 		web_form = frappe.get_doc(
 			{
 				"doctype": "Web Form",
