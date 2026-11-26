@@ -95,16 +95,14 @@ frappe.db = {
 		});
 	},
 	insert: function (doc) {
-		return frappe.xcall("frappe.client.insert", { doc });
+		return call_document_api("POST", `document/${encodeURIComponent(doc.doctype)}`, doc, {
+			json: true,
+		});
 	},
 	delete_doc: function (doctype, name) {
-		return new Promise((resolve) => {
-			frappe.call("frappe.client.delete", { doctype, name }, (r) => {
-				if (!r.exc) {
-					frappe.model.delete_from_locals(doctype, name);
-				}
-				resolve(r.message);
-			});
+		const path = `document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/`;
+		return call_document_api("DELETE", path).then(() => {
+			frappe.model.delete_from_locals(doctype, name);
 		});
 	},
 	count: function (doctype, args = {}, cache = false) {
@@ -120,16 +118,10 @@ frappe.db = {
 
 		const fields = [];
 
-		return frappe.xcall(
-			"frappe.desk.reportview.get_count",
-			{
-				doctype,
-				filters,
-				fields,
-				distinct,
-				limit,
-			},
-			cache ? "GET" : "POST",
+		return call_document_api(
+			cache ? "GET" : "QUERY",
+			`doctype/${encodeURIComponent(doctype)}/count`,
+			{ filters, fields, distinct, limit },
 			{ cache }
 		);
 	},
@@ -152,3 +144,17 @@ frappe.db = {
 		});
 	},
 };
+
+function call_document_api(type, path, args = {}, opts = {}) {
+	return new Promise((resolve, reject) => {
+		frappe.call({
+			url: `/api/v2/${path}`,
+			type,
+			args,
+			api_version: "v2",
+			callback: (r) => resolve(r.data),
+			error: (r) => reject(r?.message),
+			...opts,
+		});
+	});
+}
