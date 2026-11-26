@@ -181,7 +181,9 @@ frappe.report_utils = {
 				fieldname: row.fieldname,
 				label: __(row.label),
 				fieldtype: row.fieldtype,
-				options: row.options || js_filter?.options,
+				options: Array.isArray(js_filter?.options)
+					? js_filter.options
+					: row.options || js_filter?.options,
 				reqd: row.mandatory,
 				wildcard_filter: row.wildcard_filter,
 			};
