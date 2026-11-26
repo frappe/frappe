@@ -34,6 +34,11 @@ frappe.ui.form.on("Web Form", {
 		}
 		on_controlled_access_change(frm);
 
+		if (frm.doc.__onload?.created_doctype_deleted) {
+			show_created_doctype_deleted(frm);
+			return;
+		}
+
 		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
 		frm.trigger("add_get_fields_button");
@@ -915,6 +920,44 @@ function cannot_edit_created_doctype(frm) {
 }
 
 // such a form adds fields of its own, every other one picks from its doctype
+function show_created_doctype_deleted(frm) {
+	const can_recreate = frappe.model.can_create("DocType");
+	const can_delete = frappe.model.can_delete("Web Form");
+	const doctype = frappe.utils.escape_html(frm.doc.doc_type).bold();
+	const dialog = new frappe.ui.Dialog({
+		title: __("DocType Deleted"),
+		primary_action_label: can_recreate ? __("Recreate DocType") : null,
+		primary_action: can_recreate
+			? () =>
+					frm.call("recreate_doctype").then(() => {
+						dialog.hide();
+						frm.reload_doc();
+					})
+			: null,
+		secondary_action_label: can_delete ? __("Delete Web Form") : null,
+		secondary_action: can_delete
+			? () =>
+					frappe
+						.call("frappe.client.delete", { doctype: "Web Form", name: frm.doc.name })
+						.then(() => {
+							dialog.hide();
+							frappe.set_route("List", "Web Form");
+						})
+			: null,
+	});
+	dialog.$body.append(
+		`<p>${
+			can_recreate
+				? __(
+						"DocType {0} was deleted. Recreate it from this form's fields, or delete this Web Form. Old records cannot be restored.",
+						[doctype]
+				  )
+				: __("DocType {0} was deleted. Ask a System Manager to recreate it.", [doctype])
+		}</p>`
+	);
+	dialog.show();
+}
+
 function designs_own_doctype(frm) {
 	return Boolean(!frm.doc.doc_type || frm.doc.created_new_doctype);
 }

@@ -160,6 +160,23 @@ class WebForm(WebsiteGenerator):
 		if self.needs_new_doctype():
 			self.create_new_doctype()
 
+	def onload(self):
+		super().onload()
+		self.set_onload("created_doctype_deleted", self.created_doctype_deleted())
+
+	def created_doctype_deleted(self):
+		return bool(
+			self.created_new_doctype and self.doc_type and not frappe.db.exists("DocType", self.doc_type)
+		)
+
+	@frappe.whitelist()
+	def recreate_doctype(self):
+		"""Create the deleted DocType again from this Web Form's fields. Its records are not restored."""
+		self.check_permission("write")
+		frappe.has_permission("DocType", "create", throw=True)
+		if self.created_doctype_deleted():
+			self.create_new_doctype(keep_web_form=True)
+
 	def needs_new_doctype(self):
 		return not self.doc_type and any(d.fieldtype not in LAYOUT_FIELDTYPES for d in self.web_form_fields)
 

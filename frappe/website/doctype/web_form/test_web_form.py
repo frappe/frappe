@@ -2360,3 +2360,35 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		frappe.local.conf.developer_mode = 1
 
 		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
+
+	def test_deleted_created_doctype_can_be_recreated(self):
+		web_form = self.new_web_form("Test Web Form Recreate Deleted DocType")
+		doctype_name = web_form.doc_type
+		frappe.delete_doc("DocType", doctype_name, force=True)
+		frappe.db.commit()  # nosemgrep
+
+		from frappe.desk.form.load import run_onload
+
+		web_form = frappe.get_doc("Web Form", web_form.name)
+		run_onload(web_form)
+		self.assertTrue(web_form.get_onload().get("created_doctype_deleted"))
+
+		web_form.recreate_doctype()
+		self.assertEqual(frappe.db.get_value("Web Form", web_form.name, "doc_type"), doctype_name)
+		self.assertTrue(frappe.get_meta(doctype_name).has_field("first_name"))
+
+		web_form.reload()
+		run_onload(web_form)
+		self.assertFalse(web_form.get_onload().get("created_doctype_deleted"))
+
+	def test_recreating_doctype_needs_doctype_create_permission(self):
+		web_form = self.new_web_form("Test Web Form Recreate Needs Permission")
+		frappe.delete_doc("DocType", web_form.doc_type, force=True)
+		frappe.db.commit()  # nosemgrep
+
+		with test_user(roles=["Website Manager"]) as user:
+			with self.set_user(user.name):
+				with self.assertRaises(frappe.PermissionError):
+					frappe.get_doc("Web Form", web_form.name).recreate_doctype()
+
+		self.assertFalse(frappe.db.exists("DocType", web_form.doc_type))
