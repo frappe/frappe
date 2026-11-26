@@ -227,7 +227,25 @@ test("a picked value outside the search results shows its label, not its name", 
 test("a pick keeps its label when a later search leaves it out", async (t) => {
 	transport.calls.length = 0;
 	transport.answers["frappe.desk.search.search_link"] = ({ txt }) =>
-		txt === "Zelda Quill" ? [] : [{ value: "z1", label: "Zelda Quill" }];
+		txt === "nobody" ? [] : [{ value: "z1", label: "Zelda Quill" }];
+	const doc = reactive({ doctype: "Flow Trigger", run_as: "" });
+	const el = mount(t, FieldControl, {
+		field: { name: "run_as", type: "link", label: "Run as", link: "User" },
+		doc,
+	});
+	await until(() => el.textContent.includes("Zelda Quill"));
+	doc.run_as = "z1";
+	type(el, "nobody");
+	await until(() => transport.calls.some(([, args]) => args.txt === "nobody"));
+	await new Promise((resolve) => setTimeout(resolve, 20));
+	assert.ok(el.textContent.includes("Zelda Quill"));
+	assert.ok(!el.textContent.includes("z1"));
+	assert.ok(!transport.calls.some(([, args]) => args.filters?.name));
+});
+
+test("the picked label the combobox puts in its query is not searched for", async (t) => {
+	transport.calls.length = 0;
+	transport.answers["frappe.desk.search.search_link"] = () => [{ value: "z1", label: "Zelda Quill" }];
 	const doc = reactive({ doctype: "Flow Trigger", run_as: "" });
 	const el = mount(t, FieldControl, {
 		field: { name: "run_as", type: "link", label: "Run as", link: "User" },
@@ -236,11 +254,11 @@ test("a pick keeps its label when a later search leaves it out", async (t) => {
 	await until(() => el.textContent.includes("Zelda Quill"));
 	doc.run_as = "z1";
 	type(el, "Zelda Quill");
-	await until(() => transport.calls.some(([, args]) => args.txt === "Zelda Quill"));
-	await new Promise((resolve) => setTimeout(resolve, 20));
-	assert.ok(el.textContent.includes("Zelda Quill"));
-	assert.ok(!el.textContent.includes("z1"));
-	assert.ok(!transport.calls.some(([, args]) => args.filters?.name));
+	await new Promise((resolve) => setTimeout(resolve, 350)); // past the search's debounce
+	assert.deepEqual(
+		transport.calls.map(([, args]) => args.txt),
+		[""]
+	);
 });
 
 test("a read-only multilink still opens, showing only its picks and nothing to change, by name where its records can't be read", async (t) => {
@@ -402,6 +420,7 @@ test("an untouched JSON field is saved as no value and a filled one as written; 
 });
 
 test("a read-only link the user may search shows its label", async (t) => {
+	transport.calls.length = 0;
 	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
 		filters?.name ? [{ value: "a1b2c3", label: "Ann Smith" }] : [];
 	const el = mount(
@@ -416,6 +435,9 @@ test("a read-only link the user may search shows its label", async (t) => {
 	);
 	await until(() => el.textContent.includes("Ann Smith"));
 	assert.ok(!el.textContent.includes("a1b2c3"));
+	// with no list to open, only the label is looked up
+	await new Promise((resolve) => setTimeout(resolve, 350)); // past the search's debounce
+	assert.ok(transport.calls.every(([, args]) => args.filters?.name));
 });
 
 test("a read-only DocType link shows its label, as anyone may search DocTypes", async (t) => {

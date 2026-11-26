@@ -266,8 +266,10 @@ const searched = computed(() =>
 		? null
 		: props.field.link
 );
+// a read-only field opens no list to pick from, so only its labels are looked up
+const listed = computed(() => (props.disabled ? null : searched.value));
 const links = ref([]);
-const linksLoading = ref(!!searched.value); // until the first results arrive
+const linksLoading = ref(!!listed.value); // until the first results arrive
 const linksError = ref("");
 const options = computed(() => {
 	const value = props.doc[props.field.name];
@@ -312,12 +314,13 @@ const picked = computed(() =>
 	}))
 );
 watch(
-	[searched, debouncedLinkQuery],
+	[listed, debouncedLinkQuery],
 	async ([doctype, query], _, onCleanup) => {
 		let stale = false;
 		onCleanup(() => (stale = true));
 		linksError.value = "";
-		if (!doctype) {
+		// the combobox puts the picked label in its query: nobody typed it
+		if (!doctype || (query && query === labels.value[props.doc[props.field.name]])) {
 			linksLoading.value = false;
 			return;
 		}
