@@ -138,13 +138,17 @@ frappe.request.call = function (opts) {
 		200: function (data, xhr) {
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
+		202: function (data, xhr) {
+			opts.success_callback && opts.success_callback(data, xhr.responseText);
+		},
 		401: function (xhr) {
 			if (frappe.request.handle_session_expiry(xhr.responseJSON)) return;
 			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
 			if (
-				(xhr.responseJSON?._server_messages || xhr.responseJSON?.errors) &&
+				(xhr.responseJSON?._server_messages ||
+					xhr.responseJSON?.errors?.some((e) => e.message)) &&
 				frappe.msg_dialog?.msg_area.html()
 			) {
 				// cleanup has already shown the server's messages
@@ -502,7 +506,10 @@ frappe.request.cleanup = function (opts, r) {
 		//
 		let messages;
 		if (opts.api_version == "v2") {
-			messages = [...(r.messages || []), ...(r.errors || []).filter((e) => e.message)];
+			const errors = (r.errors || [])
+				.filter((e) => e.message)
+				.map((e) => ({ ...e, raise_exception: 1 }));
+			messages = [...(r.messages || []), ...errors];
 		} else if (r._server_messages) {
 			messages = JSON.parse(r._server_messages);
 		}
