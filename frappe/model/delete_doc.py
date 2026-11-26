@@ -12,7 +12,7 @@ from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.model.naming import revert_series_if_last
+from frappe.model.naming import get_document_naming_rule, revert_series_if_last
 from frappe.model.utils import is_virtual_doctype
 from frappe.query_builder import DocType
 from frappe.utils.data import get_link_to_form
@@ -263,6 +263,9 @@ def add_to_deleted_document(doc):
 
 
 def update_naming_series(doc):
+	if rule := get_document_naming_rule(doc):
+		revert_series_if_last(f"{rule.prefix}.#", doc.name, doc)
+
 	if doc.meta.autoname:
 		if doc.meta.autoname.startswith("naming_series:") and getattr(doc, "naming_series", None):
 			revert_series_if_last(doc.naming_series, doc.name, doc)
