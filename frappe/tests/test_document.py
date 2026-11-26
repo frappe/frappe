@@ -1544,7 +1544,7 @@ class TestReadDoc(IntegrationTestCase):
 			self.assertIsNone(doc.as_dict()["secret_info"])
 
 	def test_raises_without_read_permission(self):
-		with self.set_user(create_user("test_read_doc_no_access@example.com", "Blogger").name):
+		with self.set_user(create_user("test_read_doc_no_access@example.com", "Website Manager").name):
 			self.assertRaises(frappe.PermissionError, frappe.read_doc, self.doctype.name, self.docname)
 
 	def test_document_can_not_be_saved(self):
