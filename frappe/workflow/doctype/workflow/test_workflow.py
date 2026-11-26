@@ -207,6 +207,30 @@ class TestWorkflow(IntegrationTestCase):
 		workflow.states[1].doc_status = 0
 		workflow.save()
 
+	def test_workflow_state_set_on_cancel_from_code(self):
+		dt = create_new_submittable_doctype()
+		workflow = create_submittable_workflow(dt.name)
+		frappe.get_doc({"doctype": "Workflow State", "workflow_state_name": "Cancelled"}).insert(
+			ignore_if_duplicate=True
+		)
+		workflow._update_state_docstatus = True
+		workflow.states[1].doc_status = 1
+		workflow.append("states", {"state": "Cancelled", "allow_edit": "System Manager", "doc_status": 2})
+		workflow.save()
+		self.addCleanup(reset_submittable_workflow, workflow.name)
+
+		doc = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
+		doc.submit()
+
+		user = create_user_with_cancel_permission(dt.name)
+		with self.set_user(user):
+			frappe.get_doc(dt.name, doc.name).cancel()
+
+		doc.reload()
+		self.assertEqual(doc.docstatus, 2)
+		self.assertEqual(doc.workflow_state, "Cancelled")
+		self.assertEqual(frappe.db.get_value(dt.name, doc.name, "workflow_state"), "Cancelled")
+
 	def test_workflow_action_email_leaves_out_a_draft_print_when_drafts_cannot_print(self):
 		from frappe.workflow.doctype.workflow_action.workflow_action import get_common_email_args
 
@@ -550,6 +574,14 @@ def create_submittable_workflow(doctype):
 	return workflow
 
 
+def reset_submittable_workflow(name):
+	workflow = frappe.get_doc("Workflow", name)
+	workflow._update_state_docstatus = True
+	workflow.states = workflow.states[:2]
+	workflow.states[1].doc_status = 0
+	workflow.save()
+
+
 def create_new_note(doc):
 	note = frappe.new_doc("Note")
 	note.title = "workflow - " + doc.name
@@ -870,6 +902,21 @@ def create_user_without_roles() -> str:
 	user.remove_roles(*[d.role for d in user.roles])
 
 	return user.name
+
+
+def create_user_with_cancel_permission(doctype: str) -> str:
+	from frappe.permissions import add_permission, update_permission_property
+
+	role = frappe.get_doc({"doctype": "Role", "role_name": "Test Workflow Canceller"})
+	role.insert(ignore_if_duplicate=True)
+	add_permission(doctype, role.name)
+	update_permission_property(doctype, role.name, 0, "write", 1)
+	update_permission_property(doctype, role.name, 0, "cancel", 1)
+
+	user = create_user_without_roles()
+	frappe.get_doc("User", user).add_roles(role.name)
+
+	return user
 
 
 def build_todo_workflow(states=("Pending", "Approved")):
