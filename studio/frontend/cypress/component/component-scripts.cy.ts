@@ -3,6 +3,7 @@ import { pinia } from "../support/component"
 import { setActivePinia } from "pinia"
 import { computed, defineComponent, h, onUnmounted, reactive, ref } from "vue"
 
+import AppComponent from "@/runtime/components/AppComponent.vue"
 import StudioComponentRenderer from "@/runtime/components/StudioComponentRenderer.vue"
 import { setComponentScriptImporters, unregisterStudioComponentScripts } from "@/runtime/data/studioComponentScripts"
 import { registerGlobalComponents } from "@/runtime/globals"
@@ -184,10 +185,7 @@ describe("component scripts", () => {
 			;(window as any).is_preview = isPreview
 			const block = getBlockInstance({ componentName: missingId, componentId: "missing-1", isStudioComponent: true })
 			cy.mount(
-				defineComponent({
-					setup: () => () =>
-						h(StudioComponentRenderer, { studioComponent: block, evaluationContext: {}, listeners: {} }),
-				}),
+				defineComponent({ setup: () => () => h(AppComponent, { block }) }),
 				{ global },
 			)
 		}

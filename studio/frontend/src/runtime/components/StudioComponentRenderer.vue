@@ -1,6 +1,5 @@
 <template>
-	<MissingComponent v-if="isMissing" :componentName="studioComponent.componentName" />
-	<component :is="host" v-else-if="host && block" v-bind="propValues" v-on="emittedListeners">
+	<component :is="host" v-if="host && block" v-bind="propValues" v-on="emittedListeners">
 		<AppComponent :block="block" :listeners="rootListeners" />
 	</component>
 </template>
@@ -8,7 +7,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import AppComponent from "@/runtime/components/AppComponent.vue"
-import MissingComponent from "@/runtime/components/MissingComponent.vue"
 import Block from "@/runtime/utils/block"
 import useComponentStore, { isEmittedEvent } from "@/runtime/stores/componentStore"
 import { useComponentPropValues } from "@/runtime/utils/useComponentPropValues"
@@ -20,10 +18,6 @@ const props = defineProps<{
 }>()
 const componentStore = useComponentStore()
 
-// the published app stays as it was: end users never see the banner
-const isMissing = computed(
-	() => Boolean(window.is_preview) && componentStore.isComponentMissing(props.studioComponent.componentName),
-)
 const host = computed(() => componentStore.getComponentHost(props.studioComponent.componentName))
 const propValues = useComponentPropValues(
 	() => props.studioComponent,

@@ -1,6 +1,6 @@
 <template>
 	<StudioComponentRenderer
-		v-if="block.isStudioComponent"
+		v-if="block.isStudioComponent && !isMissingStudioComponent"
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 		:listeners="mergedListeners"
@@ -72,6 +72,7 @@ import StudioComponentRenderer from "@/runtime/components/StudioComponentRendere
 import SlotScopeProvider from "@/runtime/components/SlotScopeProvider.vue"
 import { customVueComponentsRegistry } from "@/runtime/utils/customVueComponents"
 import MissingComponent from "@/runtime/components/MissingComponent.vue"
+import useComponentStore from "@/runtime/stores/componentStore"
 
 const props = defineProps<{
 	block: Block
@@ -80,6 +81,13 @@ const props = defineProps<{
 	listeners?: Record<string, Function | Function[]>
 }>()
 
+const isMissingStudioComponent = computed(
+	() =>
+		Boolean(window.is_preview) &&
+		props.block.isStudioComponent &&
+		useComponentStore().isComponentMissing(props.block.componentName),
+)
+
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
 	let name = props.block.componentName
@@ -87,7 +95,7 @@ const componentName = computed(() => {
 		name = customVueComponentsRegistry.value[name]
 	}
 	// the published app stays as it was: end users never see the banner
-	if (window.is_preview && (!name || isUnregistered(name))) {
+	if (window.is_preview && (isMissingStudioComponent.value || !name || isUnregistered(name))) {
 		return h(MissingComponent, { componentName: props.block.componentName })
 	}
 	return name
