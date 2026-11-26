@@ -1,9 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+import re
 import smtplib
 import textwrap
 from email import message_from_bytes, message_from_string
 from unittest.mock import MagicMock, patch
+
+from bs4 import BeautifulSoup
 
 import frappe
 from frappe.database import get_db
@@ -277,6 +280,39 @@ class TestEmailQueue(IntegrationTestCase):
 					[part.get_content_type() for part in message.walk()],
 					["multipart/mixed", "multipart/alternative", "text/plain", "text/html", "text/plain"],
 				)
+
+	def test_plain_text_part_has_urls_and_words_of_html_part(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		body = (
+			'<p>Read <a href="https://example.com/docs">the docs</a>.</p>'
+			'<p><a href="https://example.com/raw">https://example.com/raw</a></p>'
+			'<p><a href="mailto:jane@example.com">jane@example.com</a></p>'
+		)
+		with (
+			patch("frappe.email.email_body.get_brand_name", return_value="Example"),
+			patch("frappe.email.email_body.get_brand_logo", return_value="https://example.com/logo.png"),
+		):
+			queue = frappe.sendmail(
+				recipients=["customer@example.com"],
+				subject="URLs",
+				message=body,
+				header=["Assignment Update", "blue"],
+				reference_doctype="User",
+				reference_name="Administrator",
+				unsubscribe_message="Unsubscribe",
+				email_read_tracker_url="/api/method/frappe.ping",
+			)
+		message = message_from_bytes(SendMailContext(queue).build_message("customer@example.com"))
+		text, html = (part.get_payload(decode=True).decode() for part in message.get_payload())
+		soup = BeautifulSoup(html, "html.parser")
+		html_urls = [link["href"] for link in soup.find_all("a", href=re.compile("^https?://"))]
+		html_urls += [image["src"] for image in soup.find_all("img", src=re.compile("^https?://"))]
+
+		self.assertEqual(len(html_urls), 6)
+		self.assertCountEqual(re.findall(r"https?://[^\s()]+", text), html_urls)
+		self.assertIn("Assignment Update", text)
+		self.assertNotIn("<!--", text)
 
 	def test_reply_to_address_matching(self):
 		for reply_to, recipient, is_kept in (
