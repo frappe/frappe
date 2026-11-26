@@ -1247,6 +1247,18 @@ data = columns, result
 
 		self.assertEqual(result["result"], [])
 
+	def test_link_titles_skip_user_permissions_for_columns_that_ignore_them(self):
+		viewer, assigner = self.restrict_to_own_user()
+		column = {"fieldname": "assigned_by", "fieldtype": "Link", "options": "User"}
+		rows = [{"assigned_by": assigner}]
+
+		with self.set_user(viewer):
+			restricted = get_report_link_titles([column], rows)
+			ignored = get_report_link_titles([{**column, "ignore_user_permissions": 1}], rows)
+
+		self.assertNotIn(f"User::{assigner}", restricted)
+		self.assertEqual(ignored[f"User::{assigner}"], frappe.db.get_value("User", assigner, "full_name"))
+
 	def restrict_to_own_user(self):
 		"""User permission restricting test@example.com to their own User; returns them and another user."""
 		from frappe.permissions import add_user_permission

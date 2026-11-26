@@ -25,7 +25,9 @@ def get_link_title_field(doctype: str) -> str | None:
 	return title_field
 
 
-def get_link_titles(doctype: str, title_field: str, names: set[str]) -> dict[str, str]:
+def get_link_titles(
+	doctype: str, title_field: str, names: set[str], ignore_user_permissions: bool = False
+) -> dict[str, str]:
 	"""Titles of the readable documents among `names`, keyed by document name."""
 	titles = {}
 	for names_batch in create_batch(list(names), TITLE_BATCH_SIZE):
@@ -34,6 +36,7 @@ def get_link_titles(doctype: str, title_field: str, names: set[str]) -> dict[str
 			filters={"name": ("in", names_batch)},
 			fields=["name", title_field],
 			limit=len(names_batch),
+			ignore_user_permissions=ignore_user_permissions,
 		)
 		titles.update({row.name: row.get(title_field) for row in rows})
 	return titles
@@ -103,19 +106,20 @@ def get_report_link_titles(columns, rows) -> dict[str, str]:
 	"""Titles for the Link values in `rows`, keyed `doctype::name` for the client cache."""
 	titles = {}
 	names_by_doctype = get_link_names_by_doctype(columns or [], rows or [])
-	for doctype, names in names_by_doctype.items():
+	for (doctype, ignore_user_permissions), names in names_by_doctype.items():
 		title_field = get_link_title_field(doctype)
 		if not title_field:
 			continue
-		for name, title in get_link_titles(doctype, title_field, names).items():
+		for name, title in get_link_titles(doctype, title_field, names, ignore_user_permissions).items():
 			titles[f"{doctype}::{name}"] = title
 	return titles
 
 
-def get_link_names_by_doctype(columns, rows) -> dict[str, set]:
-	"""Distinct non-empty values of every Link column, grouped by the doctype they link to."""
+def get_link_names_by_doctype(columns, rows) -> dict[tuple[str, bool], set]:
+	"""Distinct non-empty values of every Link column, grouped by the doctype they link to
+	and whether the column ignores user permissions."""
 	link_columns = [
-		(index, column["fieldname"], column["options"])
+		(index, column["fieldname"], (column["options"], bool(column.get("ignore_user_permissions"))))
 		for index, column in enumerate(columns)
 		if isinstance(column, dict)
 		and column.get("fieldtype") == "Link"
@@ -125,12 +129,12 @@ def get_link_names_by_doctype(columns, rows) -> dict[str, set]:
 
 	names_by_doctype = {}
 	for row in rows:
-		for index, fieldname, doctype in link_columns:
+		for index, fieldname, key in link_columns:
 			# report rows are dicts, except in the prepared report path where they stay lists
 			if isinstance(row, dict):
 				name = row.get(fieldname)
 			else:
 				name = row[index] if index < len(row) else None
 			if name:
-				names_by_doctype.setdefault(doctype, set()).add(name)
+				names_by_doctype.setdefault(key, set()).add(name)
 	return names_by_doctype
