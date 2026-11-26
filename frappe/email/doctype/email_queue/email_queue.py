@@ -410,6 +410,7 @@ class SendMailContext:
 		# sourcery skip: avoid-builtin-shadow
 		map = {
 			"tracker": "<!--email_open_check-->",
+			"tracker_text": "<!--email_open_check_text-->",
 			"unsubscribe_url": "<!--unsubscribe_url-->",
 			"cc": "<!--cc_message-->",
 			"recipient": "<!--recipient-->",
@@ -425,6 +426,9 @@ class SendMailContext:
 
 		message = message.replace(self.message_placeholder("tracker"), self.get_tracker_str(recipient_email))
 		message = message.replace(
+			self.message_placeholder("tracker_text"), self.get_tracker_text(recipient_email)
+		)
+		message = message.replace(
 			self.message_placeholder("unsubscribe_url"), self.get_unsubscribe_str(recipient_email)
 		)
 		message = message.replace(self.message_placeholder("cc"), self.get_receivers_str())
@@ -434,7 +438,7 @@ class SendMailContext:
 		message = self.include_attachments(message, recipient_email)
 		return message
 
-	def get_tracker_str(self, recipient_email) -> str:
+	def get_tracker_url(self, recipient_email: str) -> str:
 		tracker_url = ""
 		if self.queue_doc.get("email_read_tracker_url"):
 			email_read_tracker_url = self.queue_doc.email_read_tracker_url
@@ -452,11 +456,18 @@ class SendMailContext:
 		):
 			tracker_url = f"{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
 
+		return tracker_url
+
+	def get_tracker_str(self, recipient_email) -> str:
+		tracker_url = self.get_tracker_url(recipient_email)
 		if tracker_url:
 			tracker_url_html = f'<img src="{tracker_url}"/>'
 			return quopri.encodestring(tracker_url_html.encode()).decode()
 
 		return ""
+
+	def get_tracker_text(self, recipient_email: str) -> str:
+		return quopri.encodestring(self.get_tracker_url(recipient_email).encode()).decode()
 
 	def get_unsubscribe_str(self, recipient_email: str) -> str:
 		unsubscribe_url = ""
@@ -776,18 +787,21 @@ class QueueBuilder:
 			return email_account.default_sender
 		return self._sender
 
-	def email_text_content(self):
+	def email_text_content(self, html_content: str | None = None) -> str:
+		html_content = html_content or self.email_html_content()
 		unsubscribe_msg = self.unsubscribe_message()
-		unsubscribe_text_message = (unsubscribe_msg and unsubscribe_msg.text) or ""
+		text_content = self._text_content
 
-		if self._text_content:
-			return self._text_content + unsubscribe_text_message
+		if not text_content:
+			try:
+				text_content = html_to_plain_text(html_content, exclude=".email-unsubscribe")
+			except Exception:
+				text_content = "See html attachment"
 
-		try:
-			text_content = html_to_plain_text(self._message)
-		except Exception:
-			text_content = "See html attachment"
-		return text_content + unsubscribe_text_message
+		text_content += (unsubscribe_msg and unsubscribe_msg.text) or ""
+		if "<!--email_open_check-->" in html_content:
+			text_content += "\n<!--email_open_check_text-->\n"
+		return text_content
 
 	def email_html_content(self):
 		email_account = self.get_outgoing_email_account()
@@ -894,12 +908,13 @@ class QueueBuilder:
 		email_account = self.get_outgoing_email_account()
 		if email_account.always_bcc:
 			self._bcc = [*self.bcc, email_account.always_bcc]
+		html_content = self.email_html_content()
 		mail = get_email(
 			recipients=self.final_recipients(),
 			sender=self.sender,
 			subject=self.subject,
-			formatted=self.email_html_content(),
-			text_content=self.email_text_content(),
+			formatted=html_content,
+			text_content=self.email_text_content(html_content),
 			attachments=self._attachments,
 			reply_to=self.reply_to,
 			cc=self.final_cc(),
