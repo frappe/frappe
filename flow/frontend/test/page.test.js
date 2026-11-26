@@ -45,7 +45,7 @@ const boot = {
 	csrf_token: "token",
 	site_name: "flowtest",
 	socketio_port: 9000,
-	user: { name: "tester@example.com", full_name: "Tester" },
+	user: { name: "tester@example.com", email: "tester@example.com", full_name: "Tester" },
 	permissions: {},
 	models: [
 		{
@@ -95,8 +95,8 @@ async function until(check) {
 	throw new Error("timed out");
 }
 
-const ann = { name: "ann@example.com", full_name: "Ann", user_image: null };
-const bob = { name: "bob@example.com", full_name: "Bob", user_image: null };
+const ann = { name: "u-ann", email: "ann@example.com", full_name: "Ann", user_image: null };
+const bob = { name: "u-bob", email: "bob@example.com", full_name: "Bob", user_image: null };
 function mountPage(t, props = { boot }) {
 	const el = document.createElement("div");
 	document.body.append(el);
@@ -747,7 +747,7 @@ test("the share dialog opens with its members in, lists the owner and who may vi
 		},
 		async findUsers(query) {
 			calls.push(["find", query]);
-			return [{ name: "tester@example.com", full_name: "Tester" }, ann, bob];
+			return [{ name: "tester@example.com", email: "tester@example.com", full_name: "Tester" }, ann, bob];
 		},
 		async share(sid, user) {
 			calls.push(["share", sid, user]);
@@ -802,9 +802,9 @@ test("the share dialog opens with its members in, lists the owner and who may vi
 		calls.filter(([kind]) => kind !== "find"),
 		[
 			["shares", "S1"],
-			["share", "S1", "bob@example.com"],
-			["unshare", "S1", "ann@example.com"],
-			["unshare", "S1", "bob@example.com"],
+			["share", "S1", "u-bob"],
+			["unshare", "S1", "u-ann"],
+			["unshare", "S1", "u-bob"],
 		]
 	);
 
@@ -845,12 +845,12 @@ test("the share dialog acts only on the chat it opened for, and a late list neve
 
 	// reopened there, the first chat's late list stays out, and adding asks for this chat
 	vm.show();
-	lists[0]([{ name: "carol@example.com", full_name: "Carol", user_image: null }]);
+	lists[0]([{ name: "u-carol", email: "carol@example.com", full_name: "Carol", user_image: null }]);
 	await until(() => el.querySelector("[data-control=combobox] button"));
 	assert.ok(!el.textContent.includes("carol@example.com"), "not the other chat's list");
 	el.querySelector("[data-control=combobox] button").click();
 	await until(() => el.textContent.includes("bob@example.com"));
-	assert.deepEqual(shared, [["S2", "bob@example.com"]]);
+	assert.deepEqual(shared, [["S2", "u-bob"]]);
 
 	// this chat's own list, asked for before Bob was added, arrives last: Bob stays
 	lists[1]([ann]);

@@ -5,6 +5,7 @@ import type {
   ConditionBuilderLabels,
   ConditionColumns,
   ConditionField,
+  ConditionOperatorOption,
   ConditionPath,
   Conjunction,
 } from "../types";
@@ -24,6 +25,10 @@ export interface ConditionBuilderContext {
   invalid: ComputedRef<boolean>;
 
   fields: ComputedRef<ConditionField[]>;
+  operatorsForField?: (
+    fieldtype: string,
+    fieldname?: string
+  ) => ConditionOperatorOption[];
 
   /** While Meta is in flight a missing fieldname means "not loaded" rather than
    *  "not a field any more", and the two get opposite treatments in the leaf. */

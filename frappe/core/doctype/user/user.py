@@ -59,7 +59,6 @@ from frappe.www.login import sanitize_redirect
 desk_properties = (
 	"search_bar",
 	"notifications",
-	"list_sidebar",
 	"bulk_actions",
 	"view_switcher",
 	"form_sidebar",
@@ -134,7 +133,6 @@ class User(Document):
 		last_name: DF.Data | None
 		last_password_reset_date: DF.Date | None
 		last_reset_password_key_generated_on: DF.Datetime | None
-		list_sidebar: DF.Check
 		location: DF.Data | None
 		login_after: DF.Int
 		login_before: DF.Int
@@ -1460,15 +1458,12 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 
 def needs_password_setup(user: str | None = None) -> bool:
 	"""Whether the user was given a session without ever having a password, like a Frappe Cloud
-	site owner, and so cannot get back in once it ends. False for users who sign in without one."""
-	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
-
+	site owner. Asked on every site, Frappe Cloud v2 and email login links included: apps such as
+	the mobile ones sign in with a password. False where a password cannot be used to sign in."""
 	user = user or frappe.session.user
 	if user in STANDARD_USERS or has_password(user):
 		return False
-	if is_v2_site() or frappe.get_system_settings("disable_user_pass_login"):
-		return False
-	if frappe.get_system_settings("login_with_email_link"):
+	if frappe.get_system_settings("disable_user_pass_login"):
 		return False
 	if frappe.db.get_single_value("LDAP Settings", "enabled"):
 		return False
@@ -1883,7 +1878,9 @@ def impersonate(user: str, reason: str):
 			"doctype": "Activity Log",
 			"user": user,
 			"status": "Success",
-			"subject": _("User {0} impersonated as {1}").format(impersonator, get_fullname(user)),
+			"subject": _("User {0} impersonated as {1}").format(
+				get_user_display_id(frappe.session.user), get_user_display_id(user)
+			),
 			"operation": "Impersonate",
 		}
 	).insert(ignore_permissions=True, ignore_links=True)
@@ -1902,7 +1899,7 @@ def impersonate(user: str, reason: str):
 		user_email = frappe.db.get_value("User", user, "email")
 		email_message = _(
 			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
-		).format(escape_html(get_user_display_id(frappe.session.user)), escape_html(reason))
+		).format(escape_html(impersonator), escape_html(reason))
 
 		frappe.sendmail(
 			recipients=[user_email],

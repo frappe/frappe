@@ -3,9 +3,15 @@
 
 frappe.ui.form.on("Studio Page", {
 	refresh(frm) {
-		frappe.xcall("frappe.core.doctype.module_def.module_def.get_installed_apps").then((r) => {
-			frm.set_df_property("frappe_app", "options", JSON.parse(r));
-		});
+		frappe
+			.xcall(
+				"frappe.core.doctype.module_def.module_def.get_installed_apps",
+				undefined,
+				"GET"
+			)
+			.then((r) => {
+				frm.set_df_property("frappe_app", "options", JSON.parse(r));
+			});
 
 		if (!frappe.boot.developer_mode) {
 			frm.set_df_property("is_standard", "read_only", 1);

@@ -19,6 +19,7 @@ from frappe.query_builder import Field
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.utils import get_user_by_email
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
@@ -26,7 +27,7 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 @contextmanager
 def setup_test_user(set_user=False):
-	test_user = frappe.get_doc("User", "test@example.com")
+	test_user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 	original_user = frappe.session.user
 	original_roles = [role.role for role in test_user.roles]
 
@@ -830,14 +831,15 @@ class TestDBQuery(IntegrationTestCase):
 		clear_user_permissions_for_doctype("Nested DocType")
 
 		# user permission for only one root folder
-		add_user_permission("Nested DocType", "Level 1 A", "test2@example.com")
+		user = get_user_by_email("test2@example.com")
+		add_user_permission("Nested DocType", "Level 1 A", user)
 
 		from frappe.core.page.permission_manager.permission_manager import update
 
 		# to avoid if_owner filter
 		update("Nested DocType", "All", 0, "if_owner", 0)
 
-		frappe.get_doc("User", "test2@example.com").add_roles("Blogger")
+		frappe.get_doc("User", user).add_roles("Blogger")
 		with self.set_user("test2@example.com"):
 			data = DatabaseQuery("Nested DocType").execute()
 
@@ -1399,7 +1401,7 @@ class TestDBQuery(IntegrationTestCase):
 				}
 			}
 		):
-			names = DatabaseQuery("ToDo").execute(pluck="name", user="test@example.com")
+			names = DatabaseQuery("ToDo").execute(pluck="name", user=get_user_by_email("test@example.com"))
 
 		self.assertIn(open_todo.name, names)
 		self.assertNotIn(closed_todo.name, names)
@@ -1411,7 +1413,7 @@ class TestDBQuery(IntegrationTestCase):
 		with self.patch_hooks(
 			{"permission_query_conditions": {"ToDo": ["frappe.tests.test_db_query.todo_placeholder_hook"]}}
 		):
-			names = DatabaseQuery("ToDo").execute(pluck="name", user="test@example.com")
+			names = DatabaseQuery("ToDo").execute(pluck="name", user=get_user_by_email("test@example.com"))
 
 		self.assertEqual(names, [todo.name])
 
@@ -1591,7 +1593,7 @@ class TestDBQuery(IntegrationTestCase):
 
 	def test_setup_test_user_restores_user_and_roles(self):
 		original_user = frappe.session.user
-		test_user = frappe.get_doc("User", "test@example.com")
+		test_user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		original_roles = {role.role for role in test_user.roles}
 
 		with setup_test_user(set_user=True):
@@ -1712,7 +1714,7 @@ class TestReportView(IntegrationTestCase):
 		self.assertLessEqual(count, limit)
 
 	def test_reportview_get(self):
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		add_child_table_to_blog_post()
 
 		user_roles = frappe.get_roles()

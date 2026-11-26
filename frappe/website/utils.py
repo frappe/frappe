@@ -82,7 +82,7 @@ def get_comment_list(doctype, name):
 				"name",
 				"creation",
 				"owner",
-				"owner as comment_email",
+				"sender as comment_email",
 				"sender_full_name as comment_by",
 				"content",
 				"recipients",

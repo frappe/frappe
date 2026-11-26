@@ -22,6 +22,7 @@ frappe.require = function (items, callback) {
 class AssetManager {
 	constructor() {
 		this._executed = [];
+		this._loading = {};
 		this._handlers = {
 			js: (url) => {
 				return new Promise((resolve) => {
@@ -30,7 +31,7 @@ class AssetManager {
 					script.src = url;
 					script.onload = resolve;
 					// for backward compatibility, resolve even on error
-					script.onerror = resolve;
+					script.onerror = () => resolve(false);
 					document.head.appendChild(script);
 				});
 			},
@@ -42,7 +43,7 @@ class AssetManager {
 					link.href = url;
 					link.onload = resolve;
 					// for backward compatibility, resolve even on error
-					link.onerror = resolve;
+					link.onerror = () => resolve(false);
 					document.head.appendChild(link);
 				});
 			},
@@ -97,9 +98,11 @@ class AssetManager {
 
 		const ext = this.extn(path);
 		const handler = this._handlers[ext];
-		return handler(url).then(() => {
-			this._executed.push(path);
+		this._loading[path] ??= handler(url).then((loaded) => {
+			delete this._loading[path];
+			if (loaded !== false) this._executed.push(path);
 		});
+		return this._loading[path];
 	}
 
 	execute(items, callback) {

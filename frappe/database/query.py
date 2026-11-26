@@ -1,4 +1,5 @@
 import datetime
+import json
 import re
 import warnings
 from functools import lru_cache
@@ -62,6 +63,19 @@ IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
 }
 # A NULL column's stand-in in db_query-style IFNULL filters; no real date is 0001-01-01.
 IFNULL_FALLBACK_VALUES = {**IS_SET_EMPTY_VALUES, "Date": "0001-01-01", "Datetime": "0001-01-01"}
+
+
+class EscapedLikeCriterion(Criterion):
+	def __init__(self, criterion: Criterion):
+		super().__init__()
+		self.criterion = criterion
+
+	def nodes_(self):
+		yield self
+		yield from self.criterion.nodes_()
+
+	def get_sql(self, **kwargs: Any) -> str:
+		return f"{self.criterion.get_sql(**kwargs)} ESCAPE '!'"
 
 
 class JSONColumnCast(functions.Cast):
@@ -364,7 +378,6 @@ class Engine:
 		self.is_postgres = db_type == "postgres"
 		self.is_sqlite = db_type == "sqlite"
 		self.user = user or frappe.session.user
-		self.parent_doctype = parent_doctype
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
@@ -387,13 +400,14 @@ class Engine:
 			self.table = qb.DocType(table)
 
 		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
+		self.parent_doctype = parent_doctype if parent_doctype and frappe.is_table(self.doctype) else None
 
 		if frappe.flags.get("ignore_user_permissions_for_doctype") == self.doctype:
 			self.ignore_user_permissions = True
 
 		if self.apply_permissions:
 			self.check_select_permission()
-			self.permission_doctype = parent_doctype or self.doctype
+			self.permission_doctype = self.parent_doctype or self.doctype
 			self.permission_table = (
 				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
 			)
@@ -750,13 +764,35 @@ class Engine:
 		if isinstance(value, Document):
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
+		escape_like = False
+
+		if (
+			isinstance(field, str)
+			and field in ("_assign", "_liked_by")
+			and _operator.casefold() in ("in", "not in")
+			and _value
+		):
+			values = _value.split(",") if isinstance(_value, str) else _value
+			if members := [v for v in values if v]:
+				member_operator = "=" if _operator.casefold() == "in" else "!="
+				criteria = [
+					self._build_criterion_for_simple_filter(field, v, member_operator, doctype)
+					for v in members
+				]
+				if empty_members := [v for v in values if not v]:
+					criteria.append(
+						self._build_criterion_for_simple_filter(field, empty_members, _operator, doctype)
+					)
+				return Criterion.any(criteria) if member_operator == "=" else Criterion.all(criteria)
 
 		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
 		# single member; treat them as `like`/`not like` against the serialized value.
 		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
 			_operator = "like" if _operator == "=" else "not like"
 			if isinstance(_value, str) and _value:
-				_value = f"%{_value}%"
+				member = json.dumps(_value).replace("!", "!!").replace("%", "!%").replace("_", "!_")
+				_value = f"%{member}%"
+				escape_like = True
 
 		if _operator.lower() in ("timespan", "previous", "next"):
 			_value = get_date_range(_operator.lower(), _value)
@@ -874,7 +910,8 @@ class Engine:
 				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
 				_value = tuple(fallback_value if v is None else v for v in _value)
 
-			return operator_fn(comparison_field, _value)
+			criterion = operator_fn(comparison_field, _value)
+			return EscapedLikeCriterion(criterion) if escape_like else criterion
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
 		"""Parses a nested filter list like [cond1, 'and', cond2, 'or', cond3, ...] into a pypika Criterion."""
@@ -1172,6 +1209,21 @@ class Engine:
 		permitted_fields = permission_source(doctype, parent_doctype, permission_type)
 
 		if fieldname not in permitted_fields:
+			df = meta.get_field(fieldname)
+			if (
+				df
+				and df.fieldtype in frappe.model.table_fields
+				and df.permlevel
+				in meta.get_permlevel_access(permission_type, parenttype=parent_doctype, user=self.user)
+			):
+				frappe.throw(
+					_("{0} is a table field. Use one of its fields instead, for example {1}.").format(
+						frappe.bold(f"{doctype}.{fieldname}"), frappe.bold(f"{fieldname}.name")
+					),
+					frappe.ValidationError,
+					title=_("Invalid Field"),
+				)
+
 			frappe.throw(
 				_("You do not have permission to access field: {0}").format(
 					frappe.bold(f"{doctype}.{fieldname}")

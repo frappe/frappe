@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-import Section from "./section.js";
+import "./section.js";
 
 frappe.ui.form.Dashboard = class FormDashboard {
 	constructor(parent, frm) {
@@ -61,7 +61,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	make_section(df) {
-		return new Section(this.parent, df);
+		return new frappe.ui.form.Section(this.parent, df);
 	}
 
 	reset() {
@@ -98,7 +98,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			collapsible: 1,
 			is_dashboard_section: 1,
 		};
-		return new Section(this.parent, options).body;
+		return new frappe.ui.form.Section(this.parent, options).body;
 	}
 
 	add_progress(title, percent, message) {

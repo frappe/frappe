@@ -239,6 +239,7 @@ export default class LayoutFieldSelector {
 	open_column_selector() {
 		this.sync_fields_from_dom();
 		const selected = this.fields.map((f) => f.fieldname);
+		let field_order = selected;
 
 		const d = new frappe.ui.Dialog({
 			title: __("{0} Fields", [__(this.doctype)]),
@@ -248,7 +249,8 @@ export default class LayoutFieldSelector {
 					label: __("Reset Fields"),
 					fieldtype: "Button",
 					fieldname: "reset_fields",
-					click: () => this.reset_column_options(d),
+					click: () =>
+						this.reset_column_options(d).then((fields) => (field_order = fields)),
 				},
 				{
 					fieldtype: "Data",
@@ -267,7 +269,7 @@ export default class LayoutFieldSelector {
 		});
 
 		d.set_primary_action(__("Save"), (dialog_values) => {
-			const values = dialog_values.fields || [];
+			const values = frappe.utils.sort_by_order(dialog_values.fields || [], field_order);
 
 			this.fields = [];
 			this.fields.push({ ...this.subject_field });
@@ -338,7 +340,7 @@ export default class LayoutFieldSelector {
 	}
 
 	reset_column_options(dialog) {
-		frappe
+		return frappe
 			.xcall(
 				"frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
 				{ doctype: this.doctype }
@@ -349,6 +351,7 @@ export default class LayoutFieldSelector {
 				field.df.options = this.get_doctype_field_options(fields);
 				dialog.refresh();
 				this.setup_column_selector_search(dialog);
+				return fields;
 			});
 	}
 

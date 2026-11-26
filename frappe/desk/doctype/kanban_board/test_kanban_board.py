@@ -17,6 +17,7 @@ from frappe.desk.doctype.kanban_board.kanban_board import (
 	update_order_for_single_card,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 def _decompress_kanban_cards(cards):
@@ -308,7 +309,7 @@ class TestKanbanBoard(IntegrationTestCase):
 		)
 
 		other = "kanban_perm_test@example.com"
-		if not frappe.db.exists("User", other):
+		if not get_user_by_email(other):
 			frappe.get_doc(
 				{
 					"doctype": "User",

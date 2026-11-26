@@ -11,55 +11,55 @@ from frappe.utils.oauth import login_via_oauth2, login_via_oauth2_id_token
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def login_via_google(code: str, state: str):
+def login_via_google(code: str | None = None, state: str | None = None):
 	login_via_oauth2("google", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def login_via_github(code: str, state: str):
+def login_via_github(code: str | None = None, state: str | None = None):
 	login_via_oauth2("github", code, state)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def login_via_facebook(code: str, state: str):
+def login_via_facebook(code: str | None = None, state: str | None = None):
 	login_via_oauth2("facebook", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def login_via_frappe(code: str, state: str):
+def login_via_frappe(code: str | None = None, state: str | None = None):
 	login_via_oauth2("frappe", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def login_via_office365(code: str, state: str):
+def login_via_office365(code: str | None = None, state: str | None = None):
 	login_via_oauth2_id_token("office_365", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def login_via_salesforce(code: str, state: str):
+def login_via_salesforce(code: str | None = None, state: str | None = None):
 	login_via_oauth2("salesforce", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def login_via_fairlogin(code: str, state: str):
+def login_via_fairlogin(code: str | None = None, state: str | None = None):
 	login_via_oauth2("fairlogin", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def login_via_keycloak(code: str, state: str):
+def login_via_keycloak(code: str | None = None, state: str | None = None):
 	login_via_oauth2("keycloak", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=60, seconds=60)
-def custom(code: str, state: str):
+def custom(code: str | None = None, state: str | None = None):
 	"""
 	Callback for processing code and state for user added providers
 

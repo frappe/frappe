@@ -655,7 +655,7 @@ def custom_vue_component_names(blocks) -> set[str]:
 
 
 def get_vite_dev_server_port():
-	port_offset = frappe.conf.webserver_port - 8000
+	port_offset = (frappe.conf.webserver_port or 8000) - 8000
 	return 8080 + port_offset
 
 

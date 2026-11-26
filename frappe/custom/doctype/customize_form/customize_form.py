@@ -18,6 +18,7 @@ from frappe.core.doctype.doctype.doctype import (
 	check_email_append_to,
 	get_fields_not_allowed_in_list_view,
 	validate_autoincrement_autoname,
+	validate_decimal_length,
 	validate_fields_for_doctype,
 	validate_series,
 )
@@ -343,6 +344,7 @@ class CustomizeForm(Document):
 				self.make_property_setter(prop, self.get(prop), prop_type)
 
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
+		validate_decimal_length(df, meta_df[0])
 		for prop, prop_type in docfield_properties.items():
 			if prop != "idx" and (df.get(prop) or "") != (meta_df[0].get(prop) or ""):
 				if not self.allow_property_change(prop, meta_df, df, meta):
@@ -529,6 +531,7 @@ class CustomizeForm(Document):
 			return
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
+		validate_decimal_length(df, custom_field)
 		changed = False
 		for prop in docfield_properties:
 			if df.get(prop) != custom_field.get(prop):

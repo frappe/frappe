@@ -46,8 +46,11 @@ frappe.form.formatters = {
 			return frappe.utils.get_formatted_iban(value);
 		}
 		value = value == null ? "" : value;
-
-		return frappe.form.formatters._apply_custom_formatter(value, df);
+		value = frappe.form.formatters._apply_custom_formatter(value, df);
+		if (df?.options == "Email" && value) {
+			return `<span dir="ltr">${value}</span>`;
+		}
+		return value;
 	},
 	Autocomplete: function (value, df) {
 		if (typeof df?.options === "string" && df.options[0] === "[") {
@@ -72,7 +75,7 @@ frappe.form.formatters = {
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			null;
-		if (docfield.options && docfield.options.trim()) {
+		if (docfield.options && docfield.options.trim() && !docfield.is_virtual) {
 			// options points to a currency field, but expects precision of float!
 			docfield.precision = precision;
 			return frappe.form.formatters.Currency(value, docfield, options, doc);
@@ -334,8 +337,8 @@ frappe.form.formatters = {
 		});
 		return html;
 	},
-	SmallText: function (value) {
-		return frappe.form.formatters.Text(value);
+	SmallText: function (value, df) {
+		return frappe.form.formatters.Text(value, df);
 	},
 	TextEditor: function (value) {
 		let formatted_value = frappe.form.formatters.Text(value);

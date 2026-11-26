@@ -1620,7 +1620,11 @@ frappe.ui.form.Form = class FrappeForm {
 		// trigger link fields which have default values set
 		if (this.is_new() && this.doc.__run_link_triggers) {
 			$.each(this.fields_dict, function (fieldname, field) {
-				if (field.df.fieldtype == "Link" && this.doc[fieldname]) {
+				if (
+					["Link", "Dynamic Link"].includes(field.df.fieldtype) &&
+					this.doc[fieldname] &&
+					field.get_options()
+				) {
 					// triggers add fetch, sets value in model and runs triggers
 					field.set_value(this.doc[fieldname], true);
 				}
@@ -1745,6 +1749,11 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		if (this.meta.in_dialog || !this.in_form) {
+			return;
+		}
+
+		const [view, doctype, docname] = frappe.get_route();
+		if (view !== "Form" || doctype !== this.doctype || docname !== old) {
 			return;
 		}
 
@@ -2495,6 +2504,15 @@ frappe.ui.form.Form = class FrappeForm {
 				return;
 			}
 
+			const dynamic_link = fields.find(
+				(df) => df.fieldname === fieldname && df.fieldtype === "Dynamic Link"
+			);
+			if (dynamic_link) {
+				new_doc[dynamic_link.options] = this.doctype;
+				new_doc[fieldname] = this.doc.name;
+				return;
+			}
+
 			// link is not on the parent, look for it in a mandatory child table
 			fields
 				.filter((df) => df.fieldtype === "Table" && df.options && df.reqd)
@@ -2577,7 +2595,8 @@ frappe.ui.form.Form = class FrappeForm {
 		let doctype = this.doctype;
 		let docname = this.docname;
 
-		if (this.doc && !this.is_new()) {
+		const opened_doc = frappe.get_doc(doctype, docname);
+		if (opened_doc && !opened_doc.__islocal) {
 			frappe.realtime.doc_subscribe(doctype, docname);
 		}
 		frappe.realtime.off("docinfo_update");

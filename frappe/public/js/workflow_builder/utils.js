@@ -60,8 +60,7 @@ export function get_workflow_elements(workflow, workflow_data) {
 		let action = actions[id];
 
 		if (action) {
-			data.from_id = action.data.from_id;
-			(data.to_id = action.data.to_id), (action.data = data);
+			action.data = data;
 		} else {
 			action = {
 				id,
@@ -135,7 +134,11 @@ export function get_workflow_elements(workflow, workflow_data) {
 		let action = actions[id];
 		let source, target;
 
-		if (action && action.data.from_id && action.data.to_id) {
+		if (
+			action &&
+			states[action.data.from_id]?.data.state == transition.state &&
+			states[action.data.to_id]?.data.state == transition.next_state
+		) {
 			source = states[action.data.from_id];
 			target = states[action.data.to_id];
 		} else {

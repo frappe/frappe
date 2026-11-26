@@ -5,6 +5,7 @@ from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.model.qb_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Web Page"]
 
@@ -53,10 +54,10 @@ class TestToDo(IntegrationTestCase):
 		)
 
 	def test_todo_list_access(self):
-		create_new_todo("Test1", "testperm@example.com")
+		create_new_todo("Test1", get_user_by_email("testperm@example.com"))
 
 		frappe.set_user("test4@example.com")
-		create_new_todo("Test2", "test4@example.com")
+		create_new_todo("Test2", get_user_by_email("test4@example.com"))
 		test_user_data = DatabaseQuery("ToDo").execute()
 
 		frappe.set_user("testperm@example.com")
@@ -69,15 +70,15 @@ class TestToDo(IntegrationTestCase):
 
 	def test_doc_read_access(self):
 		# owner and assigned_by is testperm
-		todo1 = create_new_todo("Test1", "testperm@example.com")
-		test_user = frappe.get_doc("User", "test4@example.com")
+		todo1 = create_new_todo("Test1", get_user_by_email("testperm@example.com"))
+		test_user = frappe.get_doc("User", get_user_by_email("test4@example.com"))
 
 		# owner is testperm, but assigned_by is test4
-		todo2 = create_new_todo("Test2", "test4@example.com")
+		todo2 = create_new_todo("Test2", get_user_by_email("test4@example.com"))
 
 		frappe.set_user("test4@example.com")
 		# owner and assigned_by is test4
-		todo3 = create_new_todo("Test3", "test4@example.com")
+		todo3 = create_new_todo("Test3", get_user_by_email("test4@example.com"))
 
 		# user without any role to read or write todo document
 		self.assertFalse(todo1.has_permission("read"))
@@ -112,11 +113,13 @@ class TestToDo(IntegrationTestCase):
 		# owner is test4, but assigned_by and allocated_to belong to someone else
 		frappe.set_user("test4@example.com")
 		todo = frappe.get_doc(
-			doctype="ToDo", description="Owner only todo", assigned_by="testperm@example.com"
+			doctype="ToDo",
+			description="Owner only todo",
+			assigned_by=get_user_by_email("testperm@example.com"),
 		).insert()
 
-		self.assertEqual(todo.owner, "test4@example.com")
-		self.assertNotEqual(todo.assigned_by, "test4@example.com")
+		self.assertEqual(todo.owner, get_user_by_email("test4@example.com"))
+		self.assertNotEqual(todo.assigned_by, get_user_by_email("test4@example.com"))
 		self.assertFalse(todo.allocated_to)
 
 		# direct document access should be granted on ownership alone

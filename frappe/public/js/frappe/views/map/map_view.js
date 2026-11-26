@@ -107,6 +107,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	get_feature_properties(row) {
 		return {
 			name: row.name,
+			title: this.meta.show_title_field_in_link ? row[this.meta.title_field] : null,
 		};
 	}
 
@@ -143,7 +144,13 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	get_popup_content(feature) {
-		return frappe.utils.get_form_link(this.doctype, feature.properties.name, true);
+		const { name, title } = feature.properties;
+		return frappe.utils.get_form_link(
+			this.doctype,
+			name,
+			true,
+			frappe.utils.escape_html(title)
+		);
 	}
 
 	render_map_data(features) {

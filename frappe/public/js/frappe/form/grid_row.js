@@ -61,6 +61,8 @@ export default class GridRow {
 				null,
 				this.grid.docfields
 			);
+		} else if (this.doc) {
+			this.docfields = this.grid.docfields.map((df) => ({ ...df }));
 		}
 	}
 
@@ -738,7 +740,7 @@ export default class GridRow {
 
 			// background color for cell
 			if (this.doc) {
-				if (df.reqd && !txt) {
+				if (df.reqd && !txt && !df.hidden_due_to_dependency) {
 					column.addClass("error");
 				}
 				if (column.is_invalid) {
@@ -1178,16 +1180,17 @@ export default class GridRow {
 		let field_change_function = df.change;
 
 		if (!field.df.change) {
-			field.df.change = (e) => {
-				this.refresh_dependency();
+			field.df.change = function (e) {
+				const grid_row = this.grid_row || this.layout?.grid_row || me;
+				grid_row.refresh_dependency();
 				// trigger onchange with current grid row field as "this"
 				if (field_onchange_function) {
-					field_onchange_function.apply(field, [e]);
+					field_onchange_function.apply(this, [e]);
 				} else if (field_change_function) {
-					field_change_function.apply(field, [e]);
+					field_change_function.apply(this, [e]);
 				}
 
-				me.refresh_field(field.df.fieldname);
+				grid_row.refresh_field(this.df.fieldname);
 			};
 		}
 
@@ -1386,7 +1389,7 @@ export default class GridRow {
 		// hide other
 		var open_row = this.get_open_form();
 
-		if (show === undefined) show = !open_row;
+		if (show === undefined) show = open_row !== this;
 
 		// call blur
 		document.activeElement && document.activeElement.blur();
@@ -1522,6 +1525,9 @@ export default class GridRow {
 	// Static cells clip to a single line, so building the full rich-text HTML per cell
 	// is wasted work — show stripped text instead, like the list view does.
 	_format_static_value(value, df, doc) {
+		if (df?.hidden_due_to_dependency) {
+			return "";
+		}
 		const RICH_TEXT_FIELDTYPES = ["Text Editor", "HTML Editor", "Markdown Editor"];
 		if (df && RICH_TEXT_FIELDTYPES.includes(df.fieldtype)) {
 			return strip_html(cstr(value));
@@ -1539,6 +1545,7 @@ export default class GridRow {
 
 		// format values if no frm
 		if (df && this.doc) {
+			this.set_dependant_property(df);
 			txt = this._format_static_value(this.doc[fieldname], df, this.doc);
 		}
 
@@ -1551,7 +1558,10 @@ export default class GridRow {
 		if (column) {
 			column.static_area.html(txt || "");
 			if (df && df.reqd) {
-				column.toggleClass("error", !!(txt === null || txt === ""));
+				column.toggleClass(
+					"error",
+					!df.hidden_due_to_dependency && (txt === null || txt === "")
+				);
 			}
 		}
 

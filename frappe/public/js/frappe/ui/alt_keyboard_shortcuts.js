@@ -68,6 +68,7 @@ frappe.ui.keys.bind_shortcut_group_event = () => {
 	$(document).on("mousemove", () => {
 		unhighlight_alt_shortcuts();
 	});
+	$(window).on("blur", unhighlight_alt_shortcuts);
 };
 
 function get_shortcut_for_key(key) {

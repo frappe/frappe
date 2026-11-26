@@ -20,7 +20,7 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 	get_number_format() {
 		if (
 			this.df.fieldtype === "Rating" ||
-			(this.df.fieldtype === "Float" && !this.df.options?.trim())
+			(this.df.fieldtype === "Float" && (!this.df.options?.trim() || this.df.is_virtual))
 		)
 			return;
 

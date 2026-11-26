@@ -189,10 +189,12 @@ frappe.ui.Notifications = class Notifications {
 
 frappe.ui.notifications = {
 	get_notification_config() {
-		return frappe.xcall("frappe.desk.notifications.get_notification_info").then((r) => {
-			frappe.ui.notifications.config = r;
-			return r;
-		});
+		return frappe
+			.xcall("frappe.desk.notifications.get_notification_info", undefined, "GET")
+			.then((r) => {
+				frappe.ui.notifications.config = r;
+				return r;
+			});
 	},
 
 	show_open_count_list(doctype) {

@@ -199,6 +199,7 @@ frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
 frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
 frappe.patches.v16_0.merge_studio_into_frappe
+frappe.patches.v16_0.merge_flow_into_frappe
 frappe.patches.v16_0.set_user_email_from_name #1
 
 [post_model_sync]
@@ -341,3 +342,4 @@ frappe.patches.v17_0.set_owner_of_contacts_linked_to_users
 [post_fixture_sync]
 frappe.patches.v17_0.add_core_pdf_generators_to_option_overrides
 frappe.patches.v17_0.migrate_s3_blob_keys
+frappe.patches.v17_0.fix_cny_and_iqd_currency_symbols

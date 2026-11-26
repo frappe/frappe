@@ -558,6 +558,10 @@ body[data-route^="Form"] {
 	.attachments-actions + .attachment-row {
 		margin-top: 8px;
 	}
+
+	.explore-link:not(.has-attachments):hover {
+		text-decoration: none;
+	}
 }
 
 body[data-route^="Form"] .attachment-preview {

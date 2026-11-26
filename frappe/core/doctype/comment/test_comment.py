@@ -15,6 +15,7 @@ from frappe.templates.includes.comments.comments import add_comment
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_model_utils import set_user
+from frappe.utils import get_user_by_email
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Page"]
 
@@ -170,6 +171,13 @@ class TestComment(IntegrationTestCase):
 			visible = [c["name"] for c in get_comment_list("Web Page", web_page.name)]
 		self.assertNotIn(to_guest.name, visible)
 
+	def test_standard_users_comment_as_their_id(self):
+		test_doc = frappe.get_doc(doctype="ToDo", description="test").insert()
+		for user in ("Guest", "Administrator"):
+			with set_user(user):
+				comment = test_doc.add_comment("Info", f"by {user}")
+			self.assertEqual(comment.comment_email, user)
+
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 
@@ -195,15 +203,20 @@ class TestCommentPermissions(IntegrationTestCase):
 		self.todo = frappe.get_doc(doctype="ToDo", description="comment permission test").insert()
 		self.comment = self.todo.add_comment("Comment", "internal discussion").name
 
-		self.user = "comment-perm@example.com"
-		if not frappe.db.exists("User", self.user):
-			frappe.get_doc(
-				doctype="User",
-				email=self.user,
-				first_name="Comment Perm",
-				send_welcome_email=0,
-				roles=[{"role": "Blogger"}],
-			).insert(ignore_permissions=True)
+		email = "comment-perm@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="Comment Perm",
+					send_welcome_email=0,
+					roles=[{"role": "Blogger"}],
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
+		self.user = user
 
 		# needed to get past the doctype gate
 		add_permission("Comment", "Blogger", 0)

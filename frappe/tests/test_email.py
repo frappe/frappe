@@ -16,6 +16,7 @@ from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+from frappe.utils import get_user_by_email
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Email Account"]
 
@@ -308,15 +309,20 @@ class TestEmail(IntegrationTestCase):
 				"Support <support@example.com>",
 			),
 			("support@example.com", "Support <support@example.com>"),
-			("Jane Doe <jane@customer.example>", "Jane Doe <support@example.com>"),
+			("Jane Doe <jane@customer.example>", "Jane Doe via Support <support@example.com>"),
+			("John Doe <john@example.com>", "John Doe via Support <support@example.com>"),
 			("Support <support@example.com>", "Support <support@example.com>"),
-			('"Doe, Jane" <jane@customer.example>', '"Doe, Jane" <support@example.com>'),
-			('"Петров, Иван" <ivan@customer.example>', '"Петров, Иван" <support@example.com>'),
-			("山田太郎 <taro@customer.example>", "山田太郎 <support@example.com>"),
-			("=?utf-8?b?5bGx55Sw5aSq6YOO?= <taro@customer.example>", "山田太郎 <support@example.com>"),
+			("Jane Doe <SUPPORT@example.com>", "Jane Doe <support@example.com>"),
+			('"Doe, Jane" <jane@customer.example>', '"Doe, Jane via Support" <support@example.com>'),
+			('"Петров, Иван" <ivan@customer.example>', '"Петров, Иван via Support" <support@example.com>'),
+			("山田太郎 <taro@customer.example>", "山田太郎 via Support <support@example.com>"),
+			(
+				"=?utf-8?b?5bGx55Sw5aSq6YOO?= <taro@customer.example>",
+				"山田太郎 via Support <support@example.com>",
+			),
 			(
 				"=?utf-8?q?Jane=0D=0AX-Injected=3A_yes?= <jane@customer.example>",
-				'"Jane X-Injected: yes" <support@example.com>',
+				'"Jane X-Injected: yes via Support" <support@example.com>',
 			),
 		):
 			with self.subTest(sender=sender):
@@ -327,14 +333,17 @@ class TestEmail(IntegrationTestCase):
 			get_mail("jane@customer.example", address_named_account).sender, "support@example.com"
 		)
 		self.assertEqual(
+			get_mail("Jane Doe <jane@customer.example>", address_named_account).sender, "support@example.com"
+		)
+		self.assertEqual(
 			get_mail("Jane Doe <jane@customer.example>", address_named_account, 0, 1).sender,
 			"jane@customer.example",
 		)
 
-		longest_name = "山" * (frappe.db.VARCHAR_LEN - len(" <support@example.com>"))
+		longest_name = "山" * (frappe.db.VARCHAR_LEN - len(" via Support <support@example.com>"))
 		self.assertEqual(
 			get_mail(f"{longest_name} <taro@customer.example>").sender,
-			f"{longest_name} <support@example.com>",
+			f"{longest_name} via Support <support@example.com>",
 		)
 		self.assertEqual(
 			get_mail(f"{longest_name}山 <taro@customer.example>").sender, "Support <support@example.com>"
@@ -346,6 +355,10 @@ class TestEmail(IntegrationTestCase):
 		self.assertEqual(mail.reply_to, sender)
 		self.assertEqual(mail.msg_root["X-Original-From"], sender)
 		self.assertEqual(get_mail(sender, use_account_email=0).sender, sender)
+		self.assertEqual(
+			get_mail("Jane Doe <jane@customer.example>", use_account_name=1).sender,
+			"Support <support@example.com>",
+		)
 
 	def test_sendmail_sends_to_the_email_of_a_user_id(self):
 		from frappe.core.doctype.user.test_user import test_user
@@ -404,6 +417,52 @@ class TestEmail(IntegrationTestCase):
 
 		frappe.get_doc("Email Queue", email_queue).send()
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
+
+	def test_unsubscribe_link_hides_recipient(self):
+		from urllib.parse import parse_qs
+
+		from frappe.email.queue import get_unsubcribed_url, unsubscribe
+		from frappe.utils import set_request
+		from frappe.utils.verified_command import verify_request
+
+		self.addCleanup(setattr, frappe.local, "request", None)
+		QueueBuilder(
+			recipients=["test@example.com"],
+			sender="admin@example.com",
+			reference_doctype="User",
+			reference_name="Administrator",
+			subject="Testing Email Queue",
+			message="This is mail is queued!",
+			unsubscribe_message="Unsubscribe",
+		).process()
+		frappe.get_last_doc("Email Queue").send()
+
+		email_obj = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
+		html = next(part for part in email_obj.walk() if part.get_content_type() == "text/html")
+		query_string = re.search(
+			r'/api/method/frappe.email.queue.unsubscribe\?([^"]+)"', html.get_payload(decode=True).decode()
+		).group(1)
+		self.assertNotIn("example.com", query_string)
+
+		set_request(method="GET", query_string=query_string)
+		self.assertTrue(verify_request())
+		params = parse_qs(query_string)
+		unsubscribe(doctype=params["doctype"][0], name=params["name"][0], token=params["token"][0])
+		self.assertTrue(
+			frappe.db.exists(
+				"Email Unsubscribe",
+				{"reference_doctype": "User", "reference_name": "Administrator", "email": "test@example.com"},
+			)
+		)
+
+		set_request(method="GET", query_string=query_string.replace("token=", "token=A"))
+		self.assertFalse(verify_request())
+		self.assertRaises(
+			frappe.ValidationError, unsubscribe, doctype="User", name="Administrator", token="x"
+		)
+
+		custom_url = get_unsubcribed_url("User", "Administrator", "test@example.com", "/unsubscribe", None)
+		self.assertIn("email=test%40example.com", custom_url)
 
 	def test_invalid_domain_recipients_are_dropped(self):
 		email_queue = QueueBuilder(
@@ -489,10 +548,14 @@ class TestEmail(IntegrationTestCase):
 
 		target_user = "testimpersonate@example.com"
 		frappe.db.delete("Email Queue Recipient", {"recipient": target_user})  # sanity
-		if not frappe.db.exists("User", target_user):
-			frappe.get_doc(
-				{"doctype": "User", "email": target_user, "first_name": "Target", "enabled": 1}
-			).insert(ignore_permissions=True)
+		if not (user := get_user_by_email(target_user)):
+			user = (
+				frappe.get_doc(
+					{"doctype": "User", "email": target_user, "first_name": "Target", "enabled": 1}
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
 
 		with (
 			patch("frappe.sendmail") as mocked_sendmail,
@@ -500,13 +563,13 @@ class TestEmail(IntegrationTestCase):
 		):
 			with patch("frappe.db.exists", return_value=True):
 				reason = "Testing Security Alert"
-				impersonate(user=target_user, reason=reason)
+				impersonate(user=user, reason=reason)
 
 				self.assertTrue(mocked_sendmail.called)
 				_, kwargs = mocked_sendmail.call_args
 				self.assertIn(target_user, kwargs.get("recipients"))
 				self.assertIn(reason, kwargs.get("content"))
-				mocked_lm.impersonate.assert_called_with(target_user)
+				mocked_lm.impersonate.assert_called_with(user)
 
 		# Cleanup
 		frappe.db.delete("User", {"email": target_user})

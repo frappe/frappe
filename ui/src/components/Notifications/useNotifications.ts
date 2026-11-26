@@ -57,6 +57,7 @@ export function useNotifications(
 
   // sender photos for the default avatar, keyed by user id; resolved lazily as rows load
   const userImages = ref<Record<string, string>>({});
+  const userNames = ref<Record<string, string>>({});
   async function resolveUserImages(rows: NotificationLog[]) {
     const missing = [
       ...new Set(
@@ -72,10 +73,13 @@ export function useNotifications(
       const users = (await call("frappe.client.get_list", {
         doctype: "User",
         filters: { name: ["in", missing] },
-        fields: ["name", "user_image"],
-      })) as Array<{ name: string; user_image?: string }>;
-      for (const u of users)
+        fields: ["name", "user_image", "full_name"],
+        limit_page_length: missing.length,
+      })) as Array<{ name: string; user_image?: string; full_name?: string }>;
+      for (const u of users) {
         if (u.user_image) userImages.value[u.name] = u.user_image;
+        if (u.full_name) userNames.value[u.name] = u.full_name;
+      }
     } catch {
       /* avatars degrade to initials */
     }
@@ -87,6 +91,7 @@ export function useNotifications(
       from_user_image: n.from_user
         ? userImages.value[n.from_user] || undefined
         : undefined,
+      from_user_name: n.from_user ? userNames.value[n.from_user] || undefined : undefined,
     }))
   );
   watch(

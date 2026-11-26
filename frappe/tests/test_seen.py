@@ -4,6 +4,7 @@ import json
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestSeen(IntegrationTestCase):
@@ -19,6 +20,8 @@ class TestSeen(IntegrationTestCase):
 				"event_type": "Public",
 			}
 		).insert()
+		user = get_user_by_email("test@example.com")
+		user1 = get_user_by_email("test1@example.com")
 
 		frappe.set_user("test@example.com")
 
@@ -30,7 +33,7 @@ class TestSeen(IntegrationTestCase):
 		# reload the event
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertTrue("test@example.com" in json.loads(ev._seen))
+		self.assertTrue(user in json.loads(ev._seen))
 
 		# test another user
 		frappe.set_user("test1@example.com")
@@ -41,11 +44,11 @@ class TestSeen(IntegrationTestCase):
 		# reload the event
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertTrue("test@example.com" in json.loads(ev._seen))
-		self.assertTrue("test1@example.com" in json.loads(ev._seen))
+		self.assertTrue(user in json.loads(ev._seen))
+		self.assertTrue(user1 in json.loads(ev._seen))
 
 		ev.save(ignore_permissions=True)
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertFalse("test@example.com" in json.loads(ev._seen))
-		self.assertTrue("test1@example.com" in json.loads(ev._seen))
+		self.assertFalse(user in json.loads(ev._seen))
+		self.assertTrue(user1 in json.loads(ev._seen))

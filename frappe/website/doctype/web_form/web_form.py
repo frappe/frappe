@@ -468,6 +468,9 @@ def get_context(context):
 			if field.fieldtype == "Select" and field.options:
 				messages.extend(field.options.split("\n"))
 
+		for field in context.web_form_doc.get("web_form_fields", []):
+			messages.extend(df.get("label") for df in field.get("fields") or [])
+
 		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
 		if any(field.fieldtype == "Table" for field in self.web_form_fields):
 			messages.extend(

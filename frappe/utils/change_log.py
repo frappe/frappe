@@ -230,6 +230,7 @@ def check_for_update():
 						available_version=str(github_version),
 						org_name=org_name,
 						app_name=app,
+						repo_name=repo,
 						title=apps[app]["title"],
 						security_issues=security_issues_count(owner, repo, instance_version, github_version),
 					)
@@ -391,6 +392,7 @@ def show_update_popup():
 			release_links = ""
 			for app in updates[update_type]:
 				app = frappe._dict(app)
+				repo_name = app.repo_name or app.app_name
 				security_msg = ""
 				if app.security_issues:
 					security_msg = (
@@ -399,11 +401,11 @@ def show_update_popup():
 						else _("Contains {0} security fix")
 					)
 					security_msg = security_msg.format(frappe.bold(app.security_issues))
-					security_msg = f"""( <a href='https://github.com/{app.org_name}/{app.app_name}/security/advisories'
+					security_msg = f"""( <a href='https://github.com/{app.org_name}/{repo_name}/security/advisories'
 						 target='_blank'>{security_msg}</a> )"""
 				release_links += f"""
 					<b>{app.title}</b>:
-						<a href='https://github.com/{app.org_name}/{app.app_name}/releases/tag/v{app.available_version}'
+						<a href='https://github.com/{app.org_name}/{repo_name}/releases/tag/v{app.available_version}'
 							target="_blank">
 							v{app.available_version}
 						</a> {security_msg}<br>

@@ -20,17 +20,16 @@ class McpTestCase(IntegrationTestCase):
 	def create_user(self, first_name):
 		if not frappe.db.exists("Role", "MCP Desk Tester"):
 			frappe.get_doc(doctype="Role", role_name="MCP Desk Tester", desk_access=1).insert()
-		user = f"mcp.{frappe.generate_hash(length=10)}@example.com"
-		frappe.get_doc(
+		user = frappe.get_doc(
 			doctype="User",
-			email=user,
+			email=f"mcp.{frappe.generate_hash(length=10)}@example.com",
 			first_name=first_name,
 			send_welcome_email=0,
 			roles=[{"role": "MCP Desk Tester"}],
 		).insert()
-		self.addCleanup(self.delete_user, user)
-		keys = generate_keys(user)
-		return user, f"token {keys['api_key']}:{keys['api_secret']}"
+		self.addCleanup(self.delete_user, user.name)
+		keys = generate_keys(user.name)
+		return user.name, f"token {keys['api_key']}:{keys['api_secret']}"
 
 	def delete_user(self, user):
 		frappe.set_user("Administrator")

@@ -4,6 +4,7 @@ import frappe
 from frappe.core.doctype.error_log.error_log import flush_error_logs, get_queued_error_log_count
 from frappe.deferred_insert import deferred_insert, queue_prefix, save_to_db
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_datetime
 from frappe.utils.logging import ensure_log_table, get_log_db
 
 
@@ -76,3 +77,35 @@ class TestDeferredInsert(IntegrationTestCase):
 		save_to_db(doctype="Route History")
 		for record in records:
 			self.assertTrue(_route_history_exists(record))
+
+	def test_flush_keeps_queued_creation_and_owner(self):
+		frappe.set_user("Guest")
+		queued = frappe.get_doc(
+			{
+				"doctype": "View Log",
+				"viewed_by": "queued",
+				"reference_doctype": "User",
+				"reference_name": "Guest",
+			}
+		)
+		queued.deferred_insert()
+		explicit = frappe.new_doc("View Log")
+		explicit.update(
+			{
+				"viewed_by": "explicit",
+				"reference_doctype": "User",
+				"reference_name": "Guest",
+				"creation": "2020-01-01 10:00:00",
+			}
+		)
+		explicit.deferred_insert()
+		frappe.set_user("Administrator")
+
+		save_to_db(doctype="View Log")
+
+		row = frappe.db.get_value("View Log", {"viewed_by": "queued"}, ["creation", "owner"], as_dict=True)
+		self.assertEqual(row.creation, get_datetime(queued.creation))
+		self.assertEqual(row.owner, "Guest")
+		row = frappe.db.get_value("View Log", {"viewed_by": "explicit"}, ["creation", "owner"], as_dict=True)
+		self.assertEqual(row.creation, get_datetime("2020-01-01 10:00:00"))
+		self.assertEqual(row.owner, "Guest")

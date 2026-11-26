@@ -292,13 +292,28 @@ def get_redirect_uri(provider: str) -> str:
 
 
 def login_via_oauth2(provider: str, code: str, state: str, decoder: Callable | None = None):
+	if not code:
+		return respond_login_failed()
 	info = get_info_via_oauth(provider, code, decoder)
 	login_oauth_user(info, provider=provider, state=state)
 
 
 def login_via_oauth2_id_token(provider: str, code: str, state: str, decoder: Callable | None = None):
+	if not code:
+		return respond_login_failed()
 	info = get_info_via_oauth(provider, code, decoder, id_token=True)
 	login_oauth_user(info, provider=provider, state=state)
+
+
+def respond_login_failed():
+	frappe.respond_as_web_page(
+		_("Login Failed"),
+		_("Login was cancelled or could not be completed. Please try again."),
+		success=False,
+		http_status_code=417,
+		primary_action="/login",
+		primary_label=_("Login"),
+	)
 
 
 def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None, id_token: bool = False):

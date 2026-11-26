@@ -8,6 +8,7 @@ from frappe.desk.form.load import get_docinfo, get_versions, getdoc, getdoctype
 from frappe.share import add as add_share
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
+from frappe.utils import get_user_by_email
 from frappe.utils.file_manager import save_file
 
 
@@ -39,7 +40,7 @@ class TestFormLoad(IntegrationTestCase):
 
 		blog.insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
@@ -114,7 +115,7 @@ class TestFormLoad(IntegrationTestCase):
 		contact.append("phone_nos", {"phone": "123456"})
 		contact.insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
@@ -189,7 +190,7 @@ class TestFormLoad(IntegrationTestCase):
 			}
 		).insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
 		user.add_roles("Blogger")
@@ -256,7 +257,7 @@ class TestFormLoad(IntegrationTestCase):
 			}
 		).insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
 		user.add_roles("Accounts User")
@@ -371,8 +372,8 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		self._set_roles(self.SHARED_USER, [])
 
 	def _set_roles(self, email, roles):
-		user = frappe.get_doc("User", email)
-		user.remove_roles(*frappe.get_roles(email))
+		user = frappe.get_doc("User", get_user_by_email(email))
+		user.remove_roles(*frappe.get_roles(user.name))
 		if roles:
 			user.add_roles(*roles)
 
@@ -486,7 +487,7 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 	def test_shared_document_grants_permlevel_zero_only(self):
 		"""A DocShare unlocks permlevel 0, and must not drag permlevel 1 along with it."""
 		contact = self._make_contact()
-		add_share("Contact", contact.name, self.SHARED_USER, read=1)
+		add_share("Contact", contact.name, get_user_by_email(self.SHARED_USER), read=1)
 
 		with self.set_user(self.SHARED_USER):
 			versions = get_versions(frappe.get_doc("Contact", contact.name))

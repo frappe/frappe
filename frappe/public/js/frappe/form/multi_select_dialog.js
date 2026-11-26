@@ -731,6 +731,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				limit_page_length: this.child_page_length + 5,
 				order_by: "parent",
 			},
+			type: "QUERY",
 		});
 	}
 };

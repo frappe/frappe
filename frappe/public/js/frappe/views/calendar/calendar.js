@@ -304,20 +304,26 @@ frappe.views.Calendar = class Calendar {
 	}
 
 	get_system_datetime(date) {
-		return frappe.datetime.convert_to_system_tz(date, true);
+		return frappe.datetime.convert_to_system_tz(
+			moment(date).format(frappe.defaultDatetimeFormat),
+			true
+		);
 	}
 	setup_options(defaults) {
 		var me = this;
 		defaults.meridiem = "false";
+		const time_format = {
+			hour: "numeric",
+			minute: "2-digit",
+			hour12: !frappe.datetime.get_user_time_fmt().includes("H"),
+		};
 		this.cal_options = {
 			plugins: frappe.FullCalendar.Plugins,
 			initialView: defaults.initialView || "dayGridMonth",
+			locales: frappe.FullCalendar.locales,
 			locale: frappe.boot.lang,
-			eventTimeFormat: {
-				hour: "numeric",
-				minute: "2-digit",
-				hour12: true,
-			},
+			eventTimeFormat: time_format,
+			slotLabelFormat: time_format,
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			eventDisplay: "block",
 			eventOrder: "_calendar_order",

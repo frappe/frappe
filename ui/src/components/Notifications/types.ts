@@ -17,6 +17,8 @@ export interface NotificationLog {
    * a candidate to become a server virtual field so the feed query carries it directly.
    */
   from_user_image?: string;
+  /** sender's full name, for the avatar's initial; resolved with the image */
+  from_user_name?: string;
   document_type?: string;
   document_name?: string;
   /** record the notification came from, when that is not the document itself (e.g. a Comment) */

@@ -83,6 +83,16 @@ export class Api {
 		return r.message;
 	}
 
+	/** The ID of the user with this email: a new user's ID is random, not their email. */
+	async user_id(email) {
+		const { message } = await this.call("frappe.client.get_value", {
+			doctype: "User",
+			filters: { email },
+			fieldname: "name",
+		});
+		return message?.name;
+	}
+
 	set_value(doctype, name, values) {
 		return this.call("frappe.client.set_value", { doctype, name, fieldname: values });
 	}

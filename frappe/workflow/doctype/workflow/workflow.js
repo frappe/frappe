@@ -215,7 +215,7 @@ frappe.ui.form.on("Workflow", {
 		});
 	},
 	get_orphaned_states_and_count: function (frm) {
-		if (frm.is_new()) return;
+		if (frm.is_new() || !frm.perm[0].write) return;
 		let states_list = [];
 		frm.doc.states.map((state) => states_list.push(state.state));
 		return frappe

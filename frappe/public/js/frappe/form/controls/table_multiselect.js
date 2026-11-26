@@ -226,6 +226,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 		const term = (e ? e.target.value : this.$input.val()) || "";
 		this.awesomplete.list = this.filter_web_form_options(term);
+		this.awesomplete_term = term;
 	}
 	filter_web_form_options(term) {
 		if (!this._web_form_options) {

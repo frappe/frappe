@@ -184,7 +184,11 @@ def _user_options(doctype, params, search_text):
 			for field in ("name", "first_name", "middle_name", "last_name", "email")
 		]
 	return frappe.get_all(
-		"User", filters={"enabled": 1}, or_filters=or_filters, fields=["name", "full_name"], limit=20
+		"User",
+		filters={"enabled": 1},
+		or_filters=or_filters,
+		fields=["name", "full_name", "email", "user_image"],
+		limit=20,
 	)
 
 

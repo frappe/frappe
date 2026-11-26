@@ -116,10 +116,10 @@ class TestConnectedApp(IntegrationTestCase):
 				self.assertEqual(first_login.status_code, 200)
 
 			self._start_fresh_database_write()
-			authorization_url = self.connected_app.initiate_web_application_flow(user=self.user_name)
+			authorization_url = self.connected_app.initiate_web_application_flow(user=self.user.name)
 			# Save the committed Token Cache reference early so tearDown can remove
 			# it even when a following HTTP request fails.
-			self.token_cache = self.connected_app.get_token_cache(self.user_name)
+			self.token_cache = self.connected_app.get_token_cache(self.user.name)
 			# The callback runs in the web process and needs to update this row.
 			frappe.db.rollback()
 
@@ -140,12 +140,12 @@ class TestConnectedApp(IntegrationTestCase):
 		token = self.token_cache.get_password("access_token")
 		self.assertNotEqual(token, None)
 
-		with self.connected_app.get_oauth2_session(self.user_name) as oauth2_session:
+		with self.connected_app.get_oauth2_session(self.user.name) as oauth2_session:
 			frappe.db.rollback()
 			with oauth2_session.get(
 				urljoin(self.base_url, "/api/method/frappe.auth.get_logged_user"), timeout=30
 			) as response:
-				self.assertEqual(response.json().get("message"), self.user_name)
+				self.assertEqual(response.json().get("message"), self.user.name)
 
 	def test_concurrent_refresh_skips_redundant_call(self):
 		"""A refresh must be skipped if another worker already refreshed the token."""
@@ -169,7 +169,7 @@ class TestConnectedApp(IntegrationTestCase):
 			) as session_spy,
 			patch.object(TokenCache, "reload", reload_as_fresh),
 		):
-			self.connected_app.get_active_token(self.user_name)
+			self.connected_app.get_active_token(self.user.name)
 
 		session_spy.assert_not_called()
 
@@ -236,7 +236,7 @@ class TestConnectedApp(IntegrationTestCase):
 
 		with self.set_user(reader.name):
 			self.assertFalse(has_token(self.connected_app.name))
-			self.assertRaises(frappe.PermissionError, has_token, self.connected_app.name, self.user_name)
+			self.assertRaises(frappe.PermissionError, has_token, self.connected_app.name, self.user.name)
 
 	def tearDown(self):
 		def delete_if_exists(attribute):

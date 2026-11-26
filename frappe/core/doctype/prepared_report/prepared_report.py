@@ -390,6 +390,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def download_attachment(dn: str, format: str):
 	pr = frappe.read_doc("Prepared Report", dn)
 

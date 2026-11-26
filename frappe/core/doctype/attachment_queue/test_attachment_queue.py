@@ -6,7 +6,7 @@ from uuid import uuid4
 import frappe
 from frappe.core.doctype.attachment_queue.attachment_queue import AttachmentQueue
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, cstr, now
+from frappe.utils import add_to_date, cstr, get_user_by_email, now
 from frappe.utils.file_manager import save_file
 
 TEST_USER = "test@example.com"
@@ -288,7 +288,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 	def test_linking_accepts_an_integer_document_name(self):
 		target_doctype = self.make_target(
 			{"read": 1, "write": 1, "create": 1},
-			PLAIN_USER,
+			get_user_by_email(PLAIN_USER),
 			naming_rule="Autoincrement",
 			autoname="autoincrement",
 		)

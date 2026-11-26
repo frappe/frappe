@@ -14,8 +14,10 @@ $font-family-sans-serif: "{{ google_font }}", "InterVariable", "Inter", -apple-s
 {% endif -%}
 
 {% if primary_color %}$primary: {{ frappe.db.get_value('Color', primary_color, 'color') }};{% endif -%}
+{% if light_color %}$light: {{ frappe.db.get_value('Color', light_color, 'color') }};{% endif -%}
 {% if dark_color %}$dark: {{ frappe.db.get_value('Color', dark_color, 'color') }};{% endif -%}
-{% if text_color %}$body-text-color: {{ frappe.db.get_value('Color', text_color, 'color') }};{% endif -%}
+{% if text_color %}$body-text-color: {{ frappe.db.get_value('Color', text_color, 'color') }};
+$body-color: $body-text-color;{% endif -%}
 {% if background_color %}$body-bg: {{ frappe.db.get_value('Color', background_color, 'color') }};{% endif -%}
 
 $enable-shadows: {{ button_shadows and "true" or "false" }};

@@ -163,11 +163,19 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
   }
 
   function syncStatus() {
-    if (isOnboardingStepsCompleted.value || !onboardings[appName]) return;
+    if (!onboardings[appName]) return;
 
     const saved = new Map(
       onboardingSteps.value.map((s) => [s.name, s.completed]),
     );
+    // A finished checklist keeps its marks when an app sets it up again, and a step it
+    // adds later counts as done, so the count still matches "finished".
+    if (isOnboardingStepsCompleted.value) {
+      onboardings[appName].forEach((step) => {
+        step.completed = saved.get(step.name) ?? true;
+      });
+      return;
+    }
     onboardings[appName].forEach((step) => {
       step.completed = saved.get(step.name) ?? false;
     });
@@ -194,9 +202,10 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
   function setUp(steps: OnboardingStep[]) {
     showHelpModal.value = !isOnboardingStepsCompleted.value;
 
-    if (onboardings[appName]) return;
-
-    onboardings[appName] = steps;
+    // In place: callers hold the `steps` array returned earlier.
+    const current = onboardings[appName];
+    if (current) current.splice(0, current.length, ...steps);
+    else onboardings[appName] = steps;
     syncStatus();
   }
 

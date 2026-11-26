@@ -1292,7 +1292,7 @@ def validate_database_sql(path: str, _raise: bool = True) -> None:
 				exc=frappe.ExecutableNotFound,
 			)
 		try:
-			frappe.utils.execute_in_shell(f"{executable} -m1 __Auth {path}", check_exit_code=True)
+			frappe.utils.execute_in_shell([executable, "-m1", "__Auth", path], check_exit_code=True)
 			return
 		except Exception:
 			error_message = "Table `__Auth` not found in file."

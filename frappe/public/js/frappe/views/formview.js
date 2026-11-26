@@ -89,7 +89,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 		if (
 			doc &&
 			frappe.model.get_docinfo(doctype, name) &&
-			(doc.__islocal || frappe.model.is_fresh(doc))
+			(doc.__islocal || doc.__unsaved || frappe.model.is_fresh(doc))
 		) {
 			// is document available and recent?
 			this.render(doctype_layout, name);

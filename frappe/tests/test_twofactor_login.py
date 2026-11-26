@@ -9,14 +9,14 @@ from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import make_request
 from frappe.twofactor import clear_default, get_otpsecret_for_, set_default
-from frappe.utils import get_test_client
+from frappe.utils import get_test_client, get_user_by_email
 from frappe.utils.password import update_password
 
 
 class TestTwoFactorLogin(IntegrationTestCase):
 	"""HTTP requests use separate database connections, so fixtures and cleanup require commits."""
 
-	user = "twofactor-login@example.com"
+	email = "twofactor-login@example.com"
 	password = "TwoFactor-login-43A1W"
 	role = "_Test Two Factor Login"
 
@@ -40,14 +40,18 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		self.tmp_ids = []
 		self.addCleanup(self.cleanup_login)
 		frappe.get_doc(doctype="Role", role_name=self.role, two_factor_auth=1).insert()
-		frappe.get_doc(
-			doctype="User",
-			email=self.user,
-			first_name="Two Factor Login",
-			new_password=self.password,
-			send_welcome_email=0,
-			roles=[{"role": self.role}],
-		).insert()
+		self.user = (
+			frappe.get_doc(
+				doctype="User",
+				email=self.email,
+				first_name="Two Factor Login",
+				new_password=self.password,
+				send_welcome_email=0,
+				roles=[{"role": self.role}],
+			)
+			.insert()
+			.name
+		)
 		self.secret = get_otpsecret_for_(self.user)
 		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
@@ -70,7 +74,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 	def test_pending_login_runs_no_cmd(self):
 		frappe.client_cache.delete_value("installed_app_modules")
 		response = self.post_login(
-			{"usr": self.user, "pwd": self.password, "cmd": "frappe.auth.get_logged_user"}
+			{"usr": self.email, "pwd": self.password, "cmd": "frappe.auth.get_logged_user"}
 		)
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("verification", response.json)
@@ -120,8 +124,8 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		tmp_id = self.start_login()
 		code = self.email_code(tmp_id)
 		for credentials in (
-			{"usr": self.user, "pwd": self.password},
-			{"usr": self.user, "tmp_id": tmp_id},
+			{"usr": self.email, "pwd": self.password},
+			{"usr": self.email, "tmp_id": tmp_id},
 			{"tmp_id": tmp_id},
 		):
 			response = self.post_login(credentials)
@@ -131,7 +135,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 
 		response = self.post_login({"tmp_id": tmp_id, "otp": code})
 		self.assertEqual(response.json.get("exc_type"), "SecurityException")
-		response = self.post_login({"usr": self.user, "pwd": self.password})
+		response = self.post_login({"usr": self.email, "pwd": self.password})
 		self.assertEqual(response.json.get("exc_type"), "SecurityException")
 
 	def test_otp_success_resets_attempt_limit(self):
@@ -149,16 +153,16 @@ class TestTwoFactorLogin(IntegrationTestCase):
 
 	def test_password_login_resets_attempt_limit_without_2fa(self):
 		with self.change_settings("System Settings", {"enable_two_factor_auth": 0}, commit=True):
-			response = self.post_login({"usr": self.user, "pwd": "wrong-password"})
+			response = self.post_login({"usr": self.email, "pwd": "wrong-password"})
 			self.assertEqual(response.status_code, 401)
 			tracker = get_login_attempt_tracker(self.user)
 			self.assertEqual(tracker.login_failed_count, 1)
-			response = self.post_login({"usr": self.user, "pwd": self.password})
+			response = self.post_login({"usr": self.email, "pwd": self.password})
 			self.assert_logged_in(response)
 			self.assertFalse(tracker.login_failed_count)
 
 	def start_login(self, method="Email"):
-		response = self.post_login({"usr": self.user, "pwd": self.password})
+		response = self.post_login({"usr": self.email, "pwd": self.password})
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json["verification"]["method"], method)
 		self.assertNotIn("otp_secret", response.json["verification"])
@@ -188,14 +192,15 @@ class TestTwoFactorLogin(IntegrationTestCase):
 
 	def cleanup_login(self):
 		frappe.db.rollback()
-		for suffix in ("_otpsecret", "_otplogin"):
-			clear_default(self.user + suffix)
-		get_login_attempt_tracker(self.user, raise_locked_exception=False).add_success_attempt()
+		if user := get_user_by_email(self.email):
+			for suffix in ("_otpsecret", "_otplogin"):
+				clear_default(user + suffix)
+			get_login_attempt_tracker(user, raise_locked_exception=False).add_success_attempt()
+			frappe.delete_doc("User", user, force=True)
 		for tmp_id in self.tmp_ids:
 			frappe.cache.delete_value(
 				[tmp_id + suffix for suffix in ("_usr", "_pwd", "_otp_secret", "_token", "_email_verified")]
 			)
-		for doctype, name in (("User", self.user), ("Role", self.role)):
-			if frappe.db.exists(doctype, name):
-				frappe.delete_doc(doctype, name, force=True)
+		if frappe.db.exists("Role", self.role):
+			frappe.delete_doc("Role", self.role, force=True)
 		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit

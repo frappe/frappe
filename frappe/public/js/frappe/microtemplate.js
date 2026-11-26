@@ -24,9 +24,11 @@ frappe.template.compile = function (str, name) {
 
 		// {% for item in list %}
 		//       --> {% for (var i=0, len=list.length; i<len; i++) {  var item = list[i]; %}
+		var loop_count = 0;
 		function replacer(match, p1, p2, offset, string) {
-			var i = frappe.utils.get_random(3);
-			var len = frappe.utils.get_random(3);
+			loop_count++;
+			var i = "__i" + loop_count;
+			var len = "__len" + loop_count;
 			return (
 				"{% for (var " +
 				i +
@@ -184,6 +186,7 @@ frappe.render_template = function (name, data) {
 		opts.base_url = frappe.urllib.get_base_url();
 		opts.landscape = false;
 		opts.print_css = frappe.boot.print_css;
+		opts.print_css_path = frappe.assets.bundled_asset("print.bundle.css");
 		opts.print_format_css_path = frappe.assets.bundled_asset("print_format.bundle.css");
 		var tree = frappe.render_template("print_tree", opts);
 		var w = window.open();

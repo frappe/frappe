@@ -55,7 +55,9 @@ def save_to_db(doctype: str | None = None):
 def insert_record(record: dict | "Document", doctype: str):
 	try:
 		record.update({"doctype": doctype})
-		frappe.get_doc(record).insert()
+		doc = frappe.get_doc(record)
+		doc.flags.keep_user_and_timestamp = True
+		doc.insert()
 		return True
 	except (frappe.QueryDeadlockError, frappe.QueryTimeoutError):
 		raise

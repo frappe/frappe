@@ -15,10 +15,11 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 )
 from frappe.core.doctype.user.test_user import test_user
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_model_utils import set_user
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_days, add_months, getdate, today
+from frappe.utils import add_days, add_months, get_user_by_email, getdate, today
 
 if TYPE_CHECKING:
 	from frappe.custom.doctype.custom_field.custom_field import CustomField
@@ -213,12 +214,20 @@ class TestAutoRepeat(IntegrationTestCase):
 					get_auto_repeat_period(anchor, frequency, n), tuple(getdate(d) for d in expected)
 				)
 
-	def test_first_generated_document_has_period(self):
+	def add_period_fields(self):
 		for fieldname in ("from_date", "to_date"):
 			field = create_custom_field(
 				"ToDo", dict(fieldname=fieldname, label=fieldname, fieldtype="Date", insert_after="date")
-			)
+			) or frappe.get_doc("Custom Field", {"dt": "ToDo", "fieldname": fieldname})
 			self.addCleanup(field.delete)
+
+	def make_todo_date_mandatory(self):
+		property_setter = make_property_setter("ToDo", "date", "reqd", 1, "Check")
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+
+	def test_first_generated_document_has_period(self):
+		self.add_period_fields()
 
 		with set_user(create_user_without_reference_access()):
 			todo = frappe.get_doc(
@@ -240,6 +249,76 @@ class TestAutoRepeat(IntegrationTestCase):
 		new_todo = frappe.get_doc("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)})
 		self.assertEqual(getdate(new_todo.from_date), getdate(today()))
 		self.assertEqual(getdate(new_todo.to_date), getdate(today()))
+
+	def test_period_after_update_reference(self):
+		self.add_period_fields()
+		self.make_todo_date_mandatory()
+
+		with set_user(create_user_without_reference_access()):
+			first_todo = make_period_todo("2024-11-22", "2024-11-22", "2025-05-21")
+			doc = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=first_todo.name,
+				frequency="Half-yearly",
+				start_date="2024-11-22",
+			).insert()
+			latest_todo = make_period_todo("2026-05-22", "2026-05-22", "2026-11-21")
+			update_reference(doc.name, latest_todo.name)
+
+		doc.reload()
+		doc.next_schedule_date = getdate("2026-11-22")
+		new_todo = frappe.copy_doc(latest_todo)
+		doc.set_auto_repeat_period(new_todo)
+
+		self.assertEqual(getdate(new_todo.from_date), getdate("2026-11-22"))
+		self.assertEqual(getdate(new_todo.to_date), getdate("2027-05-21"))
+
+	def test_period_billed_in_arrears(self):
+		self.add_period_fields()
+		self.make_todo_date_mandatory()
+
+		with set_user(create_user_without_reference_access()):
+			todo = make_period_todo("2025-02-05", "2025-01-01", "2025-01-31")
+			doc = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=todo.name,
+				frequency="Monthly",
+				start_date="2025-02-05",
+			).insert()
+
+		doc.next_schedule_date = getdate("2025-03-05")
+		new_todo = frappe.copy_doc(todo)
+		doc.set_auto_repeat_period(new_todo)
+
+		self.assertEqual(getdate(new_todo.from_date), getdate("2025-02-01"))
+		self.assertEqual(getdate(new_todo.to_date), getdate("2025-02-28"))
+
+	def test_period_repeat_on_last_day(self):
+		self.add_period_fields()
+		self.make_todo_date_mandatory()
+
+		with set_user(create_user_without_reference_access()):
+			todo = make_period_todo("2025-01-01", "2025-01-01", "2025-01-31")
+			doc = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=todo.name,
+				frequency="Monthly",
+				start_date="2025-01-01",
+				repeat_on_last_day=1,
+			).insert()
+
+		self.assertEqual(
+			doc.get_next_schedule_date("2025-01-01", for_full_schedule=True), getdate("2025-02-28")
+		)
+		doc.next_schedule_date = getdate("2025-02-28")
+		new_todo = frappe.copy_doc(todo)
+		doc.set_auto_repeat_period(new_todo)
+
+		self.assertEqual(getdate(new_todo.from_date), getdate("2025-02-01"))
+		self.assertEqual(getdate(new_todo.to_date), getdate("2025-02-28"))
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_email_notification(self):
@@ -381,15 +460,19 @@ class TestAutoRepeat(IntegrationTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
 		).insert()
-		owner = "test_auto_repeat_owner@example.com"
-		if not frappe.db.exists("User", owner):
-			frappe.get_doc(
-				doctype="User",
-				email=owner,
-				first_name="Auto Repeat Owner",
-				send_welcome_email=0,
-				roles=[{"role": "System Manager"}],
-			).insert(ignore_permissions=True)
+		email = "test_auto_repeat_owner@example.com"
+		if not (owner := get_user_by_email(email)):
+			owner = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="Auto Repeat Owner",
+					send_welcome_email=0,
+					roles=[{"role": "System Manager"}],
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
 
 		doc = make_auto_repeat(reference_document=todo.name)
 		frappe.db.set_value("Auto Repeat", doc.name, "owner", owner)
@@ -448,7 +531,8 @@ class TestAutoRepeat(IntegrationTestCase):
 		todo = frappe.get_doc(doctype="ToDo", description="Test recurring notification print").insert()
 		frappe.set_user("Administrator")
 		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@example.com")
-		frappe.db.set_value("Auto Repeat", doc.name, "owner", "test@example.com")
+		user = get_user_by_email("test@example.com")
+		frappe.db.set_value("Auto Repeat", doc.name, "owner", user)
 		doc.reload()
 		rendered_as = []
 
@@ -459,7 +543,7 @@ class TestAutoRepeat(IntegrationTestCase):
 		with patch("frappe.attach_print", side_effect=attach_print):
 			doc.create_documents()
 
-		self.assertEqual(rendered_as, ["test@example.com"])
+		self.assertEqual(rendered_as, [user])
 		self.assertEqual(frappe.session.user, "Administrator")
 
 	def test_notification_without_attach_print(self):
@@ -619,20 +703,34 @@ def make_auto_repeat(**args):
 	).insert(ignore_permissions=True)
 
 
+def make_period_todo(date, from_date, to_date):
+	return frappe.get_doc(
+		doctype="ToDo",
+		description="test recurring todo with period",
+		date=date,
+		from_date=from_date,
+		to_date=to_date,
+	).insert()
+
+
 def create_user_without_reference_access():
 	"""Return a user who can create an Auto Repeat but cannot access another user's ToDo."""
 	email = "test_auto_repeat_reference@example.com"
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			doctype="User",
-			email=email,
-			first_name="Auto Repeat Reference",
-			send_welcome_email=0,
-			roles=[{"role": "Accounts User"}],
-		).insert(ignore_permissions=True)
-		frappe.clear_cache(user=email)
+	if not (user := get_user_by_email(email)):
+		user = (
+			frappe.get_doc(
+				doctype="User",
+				email=email,
+				first_name="Auto Repeat Reference",
+				send_welcome_email=0,
+				roles=[{"role": "Accounts User"}],
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+		frappe.clear_cache(user=user)
 
-	return email
+	return user
 
 
 def create_submittable_doctype(doctype, submit_perms=1):

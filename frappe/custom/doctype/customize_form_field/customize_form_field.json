@@ -36,7 +36,6 @@
   "length",
   "options",
   "sort_options",
-  "icon",
   "fetch_from",
   "fetch_if_empty",
   "show_dashboard",
@@ -190,7 +189,7 @@
    "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   },
   {
-   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'], doc.fieldtype)",
+   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Float', 'Currency', 'Percent'], doc.fieldtype)",
    "fieldname": "length",
    "fieldtype": "Int",
    "label": "Length"
@@ -574,21 +573,13 @@
    "fieldname": "set_only_once",
    "fieldtype": "Check",
    "label": "Set only once"
-  },
-  {
-   "depends_on": "eval:![\"Section Break\", \"Column Break\", \"Tab Break\", \"HTML\", \"Heading\", \"Fold\", \"Table\", \"Table MultiSelect\"].includes(doc.fieldtype)",
-   "description": "Icon associated with the field",
-   "fieldname": "icon",
-   "fieldtype": "Icon",
-   "label": "Icon"
   }
  ],
  "grid_page_length": 50,
  "idx": 1,
- "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-11-15 18:48:09.913307",
+ "modified": "2026-11-24 12:54:38.076937",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

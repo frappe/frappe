@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe.printing.layout import iter_layout_columns
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestPrintFormatGenerator(IntegrationTestCase):
@@ -506,7 +507,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		pf = self._make_print_format()
 		todo = self._make_todo()
-		todo.allocated_to = "test@example.com"
+		todo.allocated_to = get_user_by_email("test@example.com")
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		generator = PrintFormatGenerator(pf, todo)
@@ -1338,7 +1339,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		)
 		html = get_html("Contact", contact.name, pf.name)
 		self.assertIn("pfb-repeater", html)
-		self.assertIn("Email: pfg@example.com", html)
+		self.assertIn('Email: <span dir="ltr">pfg@example.com</span>', html)
 
 	def test_repeater_with_missing_columns_key_does_not_crash(self):
 		"""A repeater whose source is set but with no repeater_columns key must not raise."""

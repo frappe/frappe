@@ -112,7 +112,7 @@ Object.assign(frappe.defaults, {
 	update_user_permissions: function () {
 		const method =
 			"frappe.core.doctype.user_permission.user_permission.get_current_user_permissions";
-		frappe.call(method).then((r) => {
+		frappe.call({ method: method, type: "GET" }).then((r) => {
 			if (r.message) {
 				this._user_permissions = Object.assign({}, r.message);
 			}

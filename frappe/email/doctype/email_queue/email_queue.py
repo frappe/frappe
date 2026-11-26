@@ -20,7 +20,7 @@ from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
 from frappe.email.frappemail import FrappeMail
-from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
+from frappe.email.queue import UNSUBSCRIBE_METHOD, get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.smtp import SMTPServer
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval
@@ -238,6 +238,7 @@ class EmailQueue(Document):
 				return mail_options, rcpt_options
 
 			last_message = None
+			refused = None
 
 			for recipient in self.recipients:
 				if recipient.is_mail_sent():
@@ -269,13 +270,19 @@ class EmailQueue(Document):
 								mail_options=mail_options,
 								rcpt_options=rcpt_options,
 							)
-						except smtplib.SMTPException:
+						except smtplib.SMTPException as e:
 							# Session can be poisoned server-side even though NOOP
 							# still reports it alive; discard so the next recipient reconnects.
 							ctx.smtp_server.discard_session()
-							raise
+							if not isinstance(e, smtplib.SMTPRecipientsRefused):
+								raise
+							refused = e
+							continue
 
 				ctx.update_recipient_status_to_sent(recipient)
+
+			if refused:
+				raise refused
 
 			if frappe.in_test and not frappe.flags.testing_email:
 				frappe.flags.sent_mail = last_message
@@ -738,7 +745,7 @@ class QueueBuilder:
 
 	@property
 	def unsubscribe_method(self):
-		return self._unsubscribe_method or "/api/method/frappe.email.queue.unsubscribe"
+		return self._unsubscribe_method or UNSUBSCRIBE_METHOD
 
 	def _get_emails_list(self, emails=None):
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
@@ -913,11 +920,26 @@ class QueueBuilder:
 			mail.set_header("Auto-Submitted", self.auto_submitted)
 		if self.read_receipt:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
-		if self.in_reply_to:
-			if message_id := frappe.db.get_value("Communication", self.in_reply_to, "message_id"):
-				message_id = message_id.strip("<> \t\n")
-				mail.set_in_reply_to(f"<{message_id}>")
+		self.set_thread_headers(mail)
 		return mail
+
+	def set_thread_headers(self, mail):
+		"""Set In-Reply-To to the replied Communication, and References to it plus the received mail this one copies."""
+		parent_message_id = self.in_reply_to and frappe.db.get_value(
+			"Communication", self.in_reply_to, "message_id"
+		)
+		received_message_id = self.communication and frappe.db.get_value(
+			"Communication", {"name": self.communication, "sent_or_received": "Received"}, "message_id"
+		)
+		references = [
+			f"<{message_id.strip('<> \t\n')}>"
+			for message_id in (parent_message_id, received_message_id)
+			if message_id
+		]
+		if parent_message_id:
+			mail.set_in_reply_to(references[0])
+		if references:
+			mail.set_header("References", " ".join(references))
 
 	def process(self, send_now=False) -> EmailQueue | None:
 		"""Build and return the email queues those are created.

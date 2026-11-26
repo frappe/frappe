@@ -78,8 +78,12 @@ frappe.views.BaseList = class BaseList {
 
 	get_list_view_settings() {
 		return frappe
-			.call("frappe.desk.listview.get_list_settings", {
-				doctype: this.doctype,
+			.call({
+				method: "frappe.desk.listview.get_list_settings",
+				type: "GET",
+				args: {
+					doctype: this.doctype,
+				},
 			})
 			.then((doc) => (this.list_view_settings = doc.message || {}));
 	}
@@ -534,6 +538,7 @@ frappe.views.BaseList = class BaseList {
 		const args = this.get_args();
 		return {
 			method: this.method,
+			type: "QUERY",
 			args: args,
 			freeze: this.freeze_on_refresh || false,
 			freeze_message: this.freeze_message || __("Loading") + "...",
@@ -740,6 +745,7 @@ class FilterArea {
 
 		if (
 			!chips &&
+			!this.list_view.meta.is_virtual &&
 			["assigned_to", "owner", "tags"].some((v) => this.user_setting_fields.includes(v))
 		) {
 			this.render_non_standard_fields_filter();
@@ -1115,17 +1121,23 @@ class FilterArea {
 			field: field,
 		};
 
-		return frappe.call("frappe.desk.listview.get_group_by_count", args).then((r) => {
-			let field_counts = r.message || [];
-			field_counts = field_counts.filter((f) => f.count !== 0);
-			let current_user = field_counts.find((f) => f.name === frappe.session.user);
-			field_counts = field_counts.filter(
-				(f) => !["Guest", "Administrator", frappe.session.user].includes(f.name)
-			);
-			// Set frappe.session.user on top of the list
-			if (current_user) field_counts.unshift(current_user);
-			return field_counts;
-		});
+		return frappe
+			.call({
+				method: "frappe.desk.listview.get_group_by_count",
+				args: args,
+				type: "QUERY",
+			})
+			.then((r) => {
+				let field_counts = r.message || [];
+				field_counts = field_counts.filter((f) => f.count !== 0);
+				let current_user = field_counts.find((f) => f.name === frappe.session.user);
+				field_counts = field_counts.filter(
+					(f) => !["Guest", "Administrator", frappe.session.user].includes(f.name)
+				);
+				// Set frappe.session.user on top of the list
+				if (current_user) field_counts.unshift(current_user);
+				return field_counts;
+			});
 	}
 
 	apply_filter(fieldname, value) {
@@ -1134,11 +1146,6 @@ class FilterArea {
 			operator = "is";
 			value = "not set";
 		}
-		if (fieldname === "_assign") {
-			operator = "like";
-			value = `%${value}%`;
-		}
-
 		return this.list_view.filter_area.add(this.list_view.doctype, fieldname, operator, value);
 	}
 

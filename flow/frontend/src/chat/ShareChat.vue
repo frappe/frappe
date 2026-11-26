@@ -35,10 +35,10 @@
 				<div class="min-w-0 flex-1">
 					<p class="truncate text-base-medium text-ink-gray-9">{{ nameOf(user) }}</p>
 					<p
-						v-if="nameOf(user) !== user.name"
+						v-if="user.email && nameOf(user) !== user.email"
 						class="mt-1 truncate text-xs text-ink-gray-5"
 					>
-						{{ user.name }}
+						{{ user.email }}
 					</p>
 				</div>
 				<span v-if="user.name === me.name" class="flex-none text-base text-ink-gray-5">
@@ -117,13 +117,13 @@ const options = computed(() =>
 		.map((user) => ({
 			value: user.name,
 			label: nameOf(user),
-			description: user.full_name ? user.name : undefined,
+			description: user.full_name ? user.email : undefined,
 			image: user.user_image,
 		}))
 );
 
 function nameOf(user) {
-	return user.full_name || user.name;
+	return user.full_name || user.email || user.name;
 }
 
 function removeTitle(user) {

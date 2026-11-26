@@ -1,4 +1,5 @@
 import frappe
+from frappe.app_state import get_disabled_modules
 
 # this is a separate file since it is imported in frappe.model.document
 # to avoid circular imports
@@ -68,10 +69,13 @@ def get_server_script_map():
 	script_map = frappe.client_cache.get_value("server_script_map")
 	if script_map is None:
 		script_map = {"permission_query": {}}
+		filters = {"disabled": 0}
+		if disabled_modules := get_disabled_modules():
+			filters["module"] = ["not in", list(disabled_modules)]
 		enabled_server_scripts = frappe.get_all(
 			"Server Script",
 			fields=("name", "reference_doctype", "doctype_event", "api_method", "script_type"),
-			filters={"disabled": 0},
+			filters=filters,
 		)
 		for script in enabled_server_scripts:
 			if script.script_type == "DocType Event":

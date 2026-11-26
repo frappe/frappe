@@ -10,6 +10,7 @@ from frappe.database import get_db
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.utils import get_user_by_email
 
 
 class TestEmailQueue(IntegrationTestCase):
@@ -326,13 +327,14 @@ class TestEmailQueue(IntegrationTestCase):
 	def test_print_attachment_renders_once_for_every_recipient(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
+		user = get_user_by_email("test@example.com")
 		email_record = frappe.sendmail(
 			recipients=["test_to@example.com"],
 			cc=["test_cc@example.com"],
 			bcc=["test_bcc@example.com"],
 			subject="Print attachment",
 			message="Test message",
-			attachments=[{"print_format_attachment": 1, "doctype": "User", "name": "test@example.com"}],
+			attachments=[{"print_format_attachment": 1, "doctype": "User", "name": user}],
 		)
 
 		with patch(
@@ -346,7 +348,8 @@ class TestEmailQueue(IntegrationTestCase):
 	def test_print_attachment_queued_in_job_uses_user_language(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
-		frappe.local.job = frappe._dict(user="test@example.com")
+		user = get_user_by_email("test@example.com")
+		frappe.local.job = frappe._dict(user=user)
 		self.addCleanup(delattr, frappe.local, "job")
 		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
 		frappe.local.lang = "en"
@@ -356,7 +359,7 @@ class TestEmailQueue(IntegrationTestCase):
 				recipients=["test_to@example.com"],
 				subject="Print attachment",
 				message="Test message",
-				attachments=[{"print_format_attachment": 1, "doctype": "User", "name": "test@example.com"}],
+				attachments=[{"print_format_attachment": 1, "doctype": "User", "name": user}],
 			)
 
 		self.assertEqual(email_record.attachments_list[0]["lang"], "de")
@@ -367,6 +370,7 @@ class TestEmailQueue(IntegrationTestCase):
 
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
+		user = get_user_by_email("test@example.com")
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "Print attachment"}).insert()
 		communication = make(
 			doctype="ToDo",
@@ -388,5 +392,5 @@ class TestEmailQueue(IntegrationTestCase):
 		with patch("frappe.attach_print", side_effect=attach_print):
 			email_queue.send()
 
-		self.assertEqual(rendered_as, ["test@example.com"])
+		self.assertEqual(rendered_as, [user])
 		self.assertEqual(frappe.session.user, "Administrator")

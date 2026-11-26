@@ -7,6 +7,7 @@ import frappe
 from frappe.flow.permissions import FLOW_USER_ROLE
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 def _model(**overrides: Any) -> dict:
@@ -48,12 +49,21 @@ def _trigger(agent_name: str, **overrides: Any) -> dict:
 
 
 def _user(email: str, *roles: str) -> str:
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
-		).insert(ignore_permissions=True)
-	frappe.get_doc("User", email).add_roles(*roles)
-	return email
+	if not (user := get_user_by_email(email)):
+		user = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@")[0],
+					"send_welcome_email": 0,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+	frappe.get_doc("User", user).add_roles(*roles)
+	return user
 
 
 class TestFlowTriggerValidation(IntegrationTestCase):

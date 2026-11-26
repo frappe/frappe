@@ -50,7 +50,10 @@ export interface UseOnboarding {
   reset: (step: string, callback?: OnboardingStepCallback | null) => void;
   /** Mark every step not completed. */
   resetAll: (callback?: OnboardingBulkCallback | null) => void;
-  /** Register this app's steps. Call once, before rendering the banner or modal. */
+  /**
+   * Register this app's steps, before rendering the banner or modal. A later call replaces
+   * them, for example in a new order, and keeps the progress saved for each step by name.
+   */
   setUp: (steps: OnboardingStep[]) => void;
   /** Re-read the stored status into the registered steps. */
   syncStatus: () => void;
