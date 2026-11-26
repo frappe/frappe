@@ -512,6 +512,25 @@ test("a saved record's changed title renames it, after saving its other edits; a
 	}
 });
 
+test("a saved record opens with its links labelled, never showing their names first", async (t) => {
+	transport.answers["frappe.client.get"] = (args) => ({ name: args.name, title: args.name, user: "z1" });
+	// a label lookup slower than the form, which then has nothing to show but the name
+	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
+		filters?.name
+			? new Promise((resolve) =>
+					setTimeout(() => resolve([{ value: "z1", label: "Zelda Quill" }]), 50)
+			  )
+			: [];
+	const spec = {
+		...agentSpec,
+		fields: [...agentSpec.fields, { name: "user", label: "User", type: "link", link: "User" }],
+	};
+	const el = mount(t, DocForm, { spec, name: "Helper" });
+	await until(() => el.querySelector('[data-control="User"]'));
+	const field = el.querySelector('[data-control="User"]').__vueParentComponent;
+	assert.deepEqual(field.props.options, [{ value: "z1", label: "Zelda Quill" }]);
+});
+
 test("a refused rename keeps the typed title and says why; edits saved before it still reach the list and the page", async (t) => {
 	const el = await editAgent(
 		t,

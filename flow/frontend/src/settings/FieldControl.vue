@@ -199,7 +199,7 @@ import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
-import { labelLinks, searchLinks } from "./links.js";
+import { knownLabel, labelLinks, searchLinks } from "./links.js";
 
 // CodeMirror loads only when a code field shows
 const CodeField = defineAsyncComponent(() => import("./CodeField.vue"));
@@ -280,7 +280,8 @@ const options = computed(() => {
 	];
 });
 // each pick keeps the label it was picked by, as later searches may leave it out;
-// picks no search has shown are labelled once, by title, each showing its name meanwhile
+// picks no search has shown take the label their record was opened with, or are labelled
+// once, by title, each showing its name meanwhile
 const labels = ref({});
 watch(
 	() => [searched.value, props.doc[props.field.name]],
@@ -289,8 +290,10 @@ watch(
 		const missing = [];
 		for (const name of selected) {
 			if (name in labels.value) continue;
-			const option = links.value.find((option) => option.value === name);
-			if (option) labels.value[name] = option.label;
+			const label =
+				links.value.find((option) => option.value === name)?.label ??
+				(doctype ? knownLabel(doctype, name) : undefined);
+			if (label !== undefined) labels.value[name] = label;
 			else missing.push(name);
 		}
 		if (!doctype || !missing.length) return;

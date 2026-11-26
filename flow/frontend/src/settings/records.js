@@ -5,6 +5,7 @@ import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
 import { inPanel } from "../panel.js";
+import { labelLinks } from "./links.js";
 import { newDoc } from "./specs.js";
 
 // What a list of records and a record's form do, for settings and for the setup forms in the
@@ -121,18 +122,36 @@ export function useRecord(props, emit) {
 		original.value = JSON.stringify(value);
 	}
 
+	// before the form shows, so no link flashes its name first; where the field itself can't
+	// search, or the lookup fails, it shows the name as before
+	async function labelRecordLinks(data) {
+		await Promise.allSettled(
+			props.spec.fields
+				.filter((field) => field.link && (field.link === "DocType" || page.can(field.link, "select")))
+				.map((field) => {
+					const value = data[field.name];
+					const names =
+						field.type === "multilink"
+							? (value ?? []).map((row) => row[field.child])
+							: value
+							? [value]
+							: [];
+					return names.length && labelLinks(field.link, names, props.spec.doctype);
+				})
+		);
+	}
+
+	async function open(args) {
+		const data = await call("frappe.client.get", args);
+		await labelRecordLinks(data);
+		adopt(data);
+	}
+
 	async function load() {
 		error.value = "";
 		try {
-			if (props.spec.single)
-				adopt(await call("frappe.client.get", { doctype: props.spec.doctype }));
-			else if (props.name)
-				adopt(
-					await call("frappe.client.get", {
-						doctype: props.spec.doctype,
-						name: props.name,
-					})
-				);
+			if (props.spec.single) await open({ doctype: props.spec.doctype });
+			else if (props.name) await open({ doctype: props.spec.doctype, name: props.name });
 			else adopt(newDoc(props.spec));
 		} catch (err) {
 			error.value = err.message;
