@@ -434,6 +434,11 @@ class TestAuth(IntegrationTestCase):
 		self.assertTrue(res.cookies.get("sid"))
 		self.assertNotEqual(res.cookies.get("sid"), "Guest")
 
+		# Returns to where the person was going
+		redirect_to = f"{self.HOST_NAME}/desk/todo"
+		res = requests.get(_generate_temporary_login_link(user, 10, redirect_to), allow_redirects=False)
+		self.assertEqual(res.headers["Location"], redirect_to)
+
 		# Random incorrect URL
 		res = requests.get(_generate_temporary_login_link(user, 10) + "aa")
 		self.assertEqual(res.cookies.get("sid"), "Guest")
@@ -462,6 +467,40 @@ class TestAuth(IntegrationTestCase):
 			enqueue.assert_called_once()
 			self.assertEqual(enqueue.call_args.kwargs["lang"], frappe.local.lang)
 			sendmail.assert_not_called()
+
+	def test_login_link_job_gets_a_redirect_on_this_site_only(self):
+		from frappe.utils import set_request
+
+		set_request(
+			method="POST", path="/api/method/frappe.www.login.send_login_link", base_url="http://login.test"
+		)
+		self.addCleanup(setattr, frappe.local, "request", None)
+		for asked, expected in (
+			("/desk/todo?x=1", "http://login.test/desk/todo?x=1"),
+			("https://evil.example.com/steal", "http://login.test/desk"),
+			(None, None),
+		):
+			with (
+				self.change_settings("System Settings", login_with_email_link=1),
+				patch("frappe.enqueue") as enqueue,
+			):
+				inspect.unwrap(send_login_link)(self.test_user_email, asked)
+
+			self.assertEqual(enqueue.call_args.kwargs["redirect_to"], expected)
+
+	def test_login_link_remembers_its_redirect(self):
+		from urllib.parse import parse_qs, urlparse
+
+		def key_of(link):
+			return parse_qs(urlparse(link).query)["key"][0]
+
+		key = key_of(_generate_temporary_login_link(self.test_user_email, 10, "http://login.test/desk/todo"))
+		self.assertEqual(
+			frappe.cache.get_value(f"one_time_login_redirect:{key}"), "http://login.test/desk/todo"
+		)
+
+		key = key_of(_generate_temporary_login_link(self.test_user_email, 10))
+		self.assertIsNone(frappe.cache.get_value(f"one_time_login_redirect:{key}"))
 
 	def test_login_link_job_uses_the_request_language(self):
 		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
