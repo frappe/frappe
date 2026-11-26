@@ -546,9 +546,12 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 		)
 
 		if last:
-			count = str(cint(last[0][0].rsplit(separator, 1)[1]) + 1)
+			count = cint(last[0][0].rsplit(separator, 1)[1]) + 1
 		else:
-			count = "1"
+			count = 1
+
+		while frappe.db.exists(doctype, {fieldname: f"{value}{separator}{count}"}):
+			count += 1
 
 		value = f"{value}{separator}{count}"
 
