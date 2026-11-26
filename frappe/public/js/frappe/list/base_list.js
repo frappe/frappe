@@ -1022,6 +1022,13 @@ class FilterArea {
 				<span class="group-by-value ellipsis" data-name="${field.name}">
 					${applied_html}
 					${label}
+					${
+						field.description
+							? `<br><span class="small text-muted">${frappe.utils.escape_html(
+									field.description
+							  )}</span>`
+							: ""
+					}
 				</span>
 				<span class="group-by-count">${field.count}</span>
 			</a>
