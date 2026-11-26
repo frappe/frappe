@@ -2,6 +2,22 @@
 // MIT License. See license.txt
 
 frappe.ui.form.on("DocType", {
+	setup: function (frm) {
+		const savetrash = frm.savetrash.bind(frm);
+		frm.savetrash = () =>
+			frappe.listview_settings["DocType"].confirm_delete(
+				[frm.doc.name],
+				() =>
+					frappe
+						.call("frappe.client.delete", { doctype: "DocType", name: frm.doc.name })
+						.then(() => {
+							frappe.model.delete_from_locals("DocType", frm.doc.name);
+							frappe.set_route("List", "DocType");
+						}),
+				savetrash
+			);
+	},
+
 	onload: function (frm) {
 		if (frm.is_new()) {
 			frm.set_value("allow_auto_repeat", 0);
