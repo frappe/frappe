@@ -119,8 +119,8 @@ def application(request: Request):
 		if request.method == "OPTIONS":
 			response = Response()
 
-		elif request.path == "/" and frappe.form_dict.cmd:
-			raise Gone(f"Calling methods with `cmd` is not supported, use /api/method/{frappe.form_dict.cmd}")
+		elif request.path == "/" and (cmd := request.values.get("cmd")):
+			raise Gone(f"Calling methods with `cmd` is not supported, use /api/method/{cmd}")
 
 		elif request.path.startswith("/api/"):
 			response = frappe.api.handle(request)
@@ -233,6 +233,9 @@ def init_request(request):
 		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
 	if not streaming_request:
 		make_form_dict(request)
+
+	# Only the v1 router sets `cmd`, from the path. Apps' auth hooks read it as the method that runs.
+	frappe.local.form_dict.pop("cmd", None)
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = HTTPRequest()
