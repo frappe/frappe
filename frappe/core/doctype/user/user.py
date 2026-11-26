@@ -33,7 +33,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.background_jobs import get_queue, get_running_jobs_in_queue
+from frappe.utils.background_jobs import get_queue, get_queue_args, get_running_jobs_in_queue
 from frappe.utils.data import sha256_hash
 from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import sanitize_html
@@ -584,7 +584,7 @@ class User(Document):
 		pending_names = {
 			job.kwargs["kwargs"].get(key)
 			for job in queue.jobs + get_running_jobs_in_queue(queue)
-			if job.kwargs.get("site") == frappe.local.site
+			if get_queue_args(job).get("site") == frappe.local.site
 			and job.kwargs.get("method") == "frappe.core.doctype.user.user.rewrite_owner_fields"
 			for key in ("old_name", "new_name")
 		}
