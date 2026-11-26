@@ -81,12 +81,8 @@ test.describe("Grid Selection Bar", () => {
 		await expect.poll(() => page.evaluate(() => cur_frm.doc.phone_nos.length)).toBe(1002);
 	});
 
-	test("hides delete and duplicate when the table cannot delete or add rows", async ({
-		page,
-	}) => {
+	test("hides the actions menu when the table cannot delete or add rows", async ({ page }) => {
 		const table = get_table(page);
-		const menu_item = (label) =>
-			page.locator('.es-menu [role="menuitem"]', { hasText: label });
 
 		await page.waitForFunction(() => window.cur_frm?.get_field("phone_nos"));
 		await page.evaluate(() => {
@@ -96,15 +92,12 @@ test.describe("Grid Selection Bar", () => {
 		});
 
 		await table.locator('.grid-row[data-idx="1"] .grid-row-check').click();
-		await get_bar(page).getByRole("button", { name: "Actions" }).click();
-		await expect(menu_item("Delete")).toHaveCount(0);
-		await expect(menu_item("Duplicate")).toHaveCount(0);
+		await expect(get_bar(page)).toContainText("1 row selected");
+		await expect(get_bar(page).getByRole("button", { name: "Actions" })).toBeHidden();
 	});
 
-	test("hides delete and duplicate on a sortable only grid", async ({ page }) => {
+	test("hides the actions menu on a sortable only grid", async ({ page }) => {
 		const table = get_table(page);
-		const menu_item = (label) =>
-			page.locator('.es-menu [role="menuitem"]', { hasText: label });
 
 		await page.waitForFunction(() => window.cur_frm?.get_field("phone_nos"));
 		await page.evaluate(() => {
@@ -114,9 +107,8 @@ test.describe("Grid Selection Bar", () => {
 		});
 
 		await table.locator('.grid-row[data-idx="1"] .grid-row-check').click();
-		await get_bar(page).getByRole("button", { name: "Actions" }).click();
-		await expect(menu_item("Delete")).toHaveCount(0);
-		await expect(menu_item("Duplicate")).toHaveCount(0);
+		await expect(get_bar(page)).toContainText("1 row selected");
+		await expect(get_bar(page).getByRole("button", { name: "Actions" })).toBeHidden();
 	});
 
 	test("runs row remove events when every row is deleted", async ({ page }) => {
