@@ -924,7 +924,7 @@ class TestDB(IntegrationTestCase):
 		)
 		self.assertEqual(
 			frappe.db.sql('select name as "timestamp" from `tabUser` where name = %s for update', "Guest"),
-			[("Guest",)],
+			(("Guest",),),
 		)
 
 		# Placeholder-looking text in literals and comments is data, not a
@@ -969,11 +969,11 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(values, original, "binding must not mutate the caller's dictionary")
 		self.assertEqual(
 			frappe.db.sql("select name from `tabUser` where name in (%(names)s)", {"names": ["Guest"]}),
-			[("Guest",)],
+			(("Guest",),),
 		)
 		self.assertEqual(
 			frappe.db.sql("select name from `tabUser` where name in %(names)s", {"names": []}),
-			[],
+			(),
 		)
 
 		frappe.db.sql("select '100%', name from `tabUser` where name in %(names)s", {"names": ["Guest"]})
@@ -1077,8 +1077,8 @@ class TestDB(IntegrationTestCase):
 			"frappe.database.sqlite.database._modify_query",
 			side_effect=AssertionError("query-builder SQL was transpiled again"),
 		):
-			self.assertEqual(query.run(), [("Administrator",)])
-			self.assertEqual(frappe.db.sql(query), [("Administrator",)])
+			self.assertEqual(query.run(), (("Administrator",),))
+			self.assertEqual(frappe.db.sql(query), (("Administrator",),))
 
 	@run_only_if(db_type_is.SQLITE)
 	def test_raw_sql_preserves_sqlite_quoted_identifiers(self):
@@ -1087,7 +1087,7 @@ class TestDB(IntegrationTestCase):
 				'SELECT "name" FROM "tabUser" WHERE "name" = %s',
 				("Administrator",),
 			),
-			[("Administrator",)],
+			(("Administrator",),),
 		)
 		self.assertEqual(
 			frappe.db.sql("SELECT IF(1, '{\"key\": \"value\"}', 'no')")[0][0],
@@ -1500,7 +1500,7 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_column_type(self.doctype, "amount"), "real")
 		self.assertEqual(
 			frappe.db.sql(f"SELECT `name`, `amount` FROM `{self.table_name}` ORDER BY `name`"),
-			[("blank", 7.5), ("number", 12.5)],
+			(("blank", 7.5), ("number", 12.5)),
 		)
 
 	def test_rename_column_uses_the_column_name_from_pragma(self) -> None:
@@ -1568,12 +1568,12 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 			f"INSERT INTO `{self.table_name}` (`code`, `payload`) VALUES (%s, %s)",
 			("second", "two"),
 		)
-		self.assertEqual(frappe.db.sql(f"SELECT `id` FROM `{self.table_name}` ORDER BY `id`"), [(1,), (2,)])
+		self.assertEqual(frappe.db.sql(f"SELECT `id` FROM `{self.table_name}` ORDER BY `id`"), ((1,), (2,)))
 		self.assertEqual(
 			frappe.db.sql(f"SELECT `row_id` FROM `{self.audit_table}` ORDER BY `row_id`"),
-			[(1,), (2,)],
+			((1,), (2,)),
 		)
-		self.assertEqual(frappe.db.sql(f"SELECT `value` FROM `{legacy_temp_table}`"), [("keep me",)])
+		self.assertEqual(frappe.db.sql(f"SELECT `value` FROM `{legacy_temp_table}`"), (("keep me",),))
 
 	def test_schema_sync_preserves_unique_expression_indexes(self) -> None:
 		from frappe.database.sqlite.database import get_table_indexes
@@ -1626,7 +1626,7 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 			for column in frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
 		}
 		self.assertEqual(columns["value"].type.lower(), "text")
-		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.table_name}`"), [("row-1", "value")])
+		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.table_name}`"), (("row-1", "value"),))
 		self.assertTrue(frappe.db.has_index(self.table_name, f"{self.table_name}_value_idx"))
 
 	def test_schema_changes_remain_in_the_caller_transaction(self) -> None:
@@ -1638,7 +1638,7 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 
 		frappe.db.rollback()
 		self.assertFalse(frappe.db.table_exists(self.doctype, cached=False))
-		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), ())
 
 	def test_schema_batch_failure_does_not_commit_pending_writes(self) -> None:
 		import sqlite3
@@ -1670,7 +1670,7 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 
 		frappe.db.rollback()
 		self.assertEqual(frappe.db.get_column_type(self.doctype, "value"), "text")
-		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), ())
 
 	def test_rebuild_rejects_schema_features_it_cannot_preserve(self) -> None:
 		definitions: dict[str, str | None] = {
@@ -1766,7 +1766,7 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		frappe.db.sql(f"INSERT INTO `{self.table_name}` (`name`) VALUES ('second')")
 		self.assertEqual(
 			frappe.db.sql(f"SELECT `name` FROM `{self.audit_table}` ORDER BY `name`"),
-			[("first",), ("second",)],
+			(("first",), ("second",)),
 		)
 
 	def test_table_creation_uses_framework_declared_types_and_indexes(self) -> None:
