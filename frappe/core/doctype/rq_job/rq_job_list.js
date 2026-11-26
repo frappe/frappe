@@ -14,41 +14,48 @@ frappe.listview_settings["RQ Job"] = {
 			__("Actions")
 		);
 
-		frappe.xcall("frappe.core.doctype.rq_job.rq_job.get_custom_queues").then((options) => {
-			const select_element = listview.filter_area.standard_filters_wrapper.find(
-				'select[data-fieldname="queue"]'
-			);
-			options.forEach((option) => {
-				select_element.append($("<option>", { value: option, text: option }));
-			});
-		});
-
-		frappe.xcall("frappe.utils.scheduler.get_scheduler_status").then(({ status }) => {
-			if (status === "active") {
-				listview.page.set_indicator(__("Scheduler: Active"), "green");
-			} else {
-				listview.page.set_indicator(__("Scheduler: Inactive"), "red");
-				listview.page.add_inner_button(
-					__("Enable Scheduler"),
-					() => {
-						frappe.confirm(__("Are you sure you want to re-enable scheduler?"), () => {
-							frappe
-								.xcall("frappe.utils.scheduler.activate_scheduler")
-								.then(() => {
-									frappe.show_alert(__("Enabled Scheduler"));
-								})
-								.catch((e) => {
-									frappe.show_alert({
-										message: __("Failed to enable scheduler: {0}", e),
-										indicator: "error",
-									});
-								});
-						});
-					},
-					__("Actions")
+		frappe
+			.xcall("frappe.core.doctype.rq_job.rq_job.get_custom_queues", undefined, "GET")
+			.then((options) => {
+				const select_element = listview.filter_area.standard_filters_wrapper.find(
+					'select[data-fieldname="queue"]'
 				);
-			}
-		});
+				options.forEach((option) => {
+					select_element.append($("<option>", { value: option, text: option }));
+				});
+			});
+
+		frappe
+			.xcall("frappe.utils.scheduler.get_scheduler_status", undefined, "GET")
+			.then(({ status }) => {
+				if (status === "active") {
+					listview.page.set_indicator(__("Scheduler: Active"), "green");
+				} else {
+					listview.page.set_indicator(__("Scheduler: Inactive"), "red");
+					listview.page.add_inner_button(
+						__("Enable Scheduler"),
+						() => {
+							frappe.confirm(
+								__("Are you sure you want to re-enable scheduler?"),
+								() => {
+									frappe
+										.xcall("frappe.utils.scheduler.activate_scheduler")
+										.then(() => {
+											frappe.show_alert(__("Enabled Scheduler"));
+										})
+										.catch((e) => {
+											frappe.show_alert({
+												message: __("Failed to enable scheduler: {0}", e),
+												indicator: "error",
+											});
+										});
+								}
+							);
+						},
+						__("Actions")
+					);
+				}
+			});
 
 		setInterval(() => {
 			if (listview.list_view_settings.disable_auto_refresh) {

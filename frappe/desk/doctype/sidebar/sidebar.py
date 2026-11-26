@@ -331,6 +331,11 @@ class Sidebar(Document, DeskViews):
 
 		rename_sidebar_rows(old_name, new_name)
 
+	def clear_cache(self):
+		super().clear_cache()
+		# Every desk user's boot carries the resolved sidebars.
+		frappe.cache.delete_key("bootinfo")
+
 	def on_trash(self):
 		from frappe.desk.doctype.dock.dock import remove_sidebar_rows
 
@@ -2305,8 +2310,7 @@ def doctype_landing_route(item: dict) -> str | None:
 	if not meta or meta.istable:
 		return None
 
-	slug = frappe.utils.slug(item["link_to"])
-	route = f"/desk/{slug}/{item['link_to']}" if meta.issingle else f"/desk/{slug}"
+	route = "/desk/" + frappe.utils.slug(item["link_to"])
 	if item.get("tab"):
 		route += f"#{item['tab']}"
 

@@ -28,3 +28,59 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
+
+.gmail-admin-steps {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 3);
+	padding: calc(var(--spacing) * 3);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md);
+
+	p {
+		margin: 0;
+	}
+
+	.gmail-admin-steps__head {
+		display: flex;
+		align-items: flex-start;
+		gap: calc(var(--spacing) * 3);
+	}
+
+	.gmail-admin-steps__title {
+		font-weight: var(--weight-medium);
+		color: var(--text-color);
+	}
+
+	ol {
+		display: flex;
+		flex-direction: column;
+		gap: calc(var(--spacing) * 5);
+		margin: 0;
+		padding-left: calc(var(--spacing) * 5);
+	}
+
+	li > .es-button,
+	.gmail-client-id {
+		margin-top: calc(var(--spacing) * 1.5);
+	}
+
+	.gmail-client-id {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing);
+		padding: var(--spacing) var(--spacing) var(--spacing) calc(var(--spacing) * 2);
+		border-radius: var(--border-radius);
+		background: var(--subtle-fg);
+
+		code {
+			flex: 1;
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			color: var(--text-color);
+			background: none;
+		}
+	}
+}

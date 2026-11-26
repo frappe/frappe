@@ -61,7 +61,7 @@
 							}"
 						>
 							<div
-								v-for="(mf, mi) in text_merges(col)"
+								v-for="(mf, mi) in row_merges(col, row, i)"
 								:key="mi"
 								class="cell-line"
 								:class="`cell-line--${mf.style || 'primary'}`"
@@ -126,7 +126,7 @@ const {
 	format_cell,
 	has_merge,
 	image_merge,
-	text_merges,
+	row_merges,
 	merged_line,
 	cell_image,
 	thumb_box,
@@ -155,6 +155,10 @@ function start_col_resize(e, ci) {
 </script>
 
 <style scoped>
+.table {
+	color: var(--text-muted);
+}
+
 .column-header {
 	position: relative;
 }

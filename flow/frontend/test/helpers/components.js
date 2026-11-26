@@ -15,6 +15,7 @@ const real = new Set([
 	"RecordForm.vue",
 	"PageHeader.vue",
 	"AgentPicker.vue",
+	"ChatPickers.vue",
 	"AgentPalette.vue",
 	"SkillPicker.vue",
 	"SessionSidebar.vue",
@@ -39,7 +40,10 @@ const real = new Set([
 	"NamesView.vue",
 	"CodeView.vue",
 	"SnippetView.vue",
-	"JsonView.vue",
+	"ResultView.vue",
+	"DataView.vue",
+	"ApiView.vue",
+	"ArgsView.vue",
 	"CodeBlock.vue",
 ]);
 const stubs = new Map();
@@ -97,6 +101,8 @@ const fakes = {
 		export const Switch = { props: ["modelValue"], emits: ["update:modelValue"], render() { return h("button", { "data-stub": "Switch", "aria-label": this.$attrs["aria-label"], onClick: () => this.$emit("update:modelValue", !this.modelValue) }) } }
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
 		export const Avatar = stub("Avatar")
+		// a tooltip as its trigger alone
+		export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
 		// a picker and a menu: the trigger, and the choices once it is clicked (a picker's once loaded)
 		export const Combobox = {
 			props: ["options", "loading"],
@@ -161,7 +167,7 @@ const fakes = {
 				])
 			}
 		}
-		export const toast = { shown: [], success(message) { this.shown.push(message) }, error() {} }
+		export const toast = { shown: [], errors: [], success(message) { this.shown.push(message) }, error(message) { this.errors.push(message) } }
 		export const dialog = {
 			asked: [],
 			danger(options) { this.asked.push(options) },
@@ -244,13 +250,14 @@ const fakes = {
 			const router = createRouter({ history: options.history ?? createMemoryHistory(), routes: options.routes })
 			options.configure?.({ config: { globalProperties: { $router: router } } })
 			mounts.push({ el, options, router })
-			return { shadow_root: { host: el } }
+			return { shadow_root: { host: el }, update() {} }
 		}
 	`),
 	"./index.css": moduleURL(""),
 };
 // the app's root modules reach the site through the same fake
 fakes["./api/frappe.js"] = fakes["../api/frappe.js"];
+fakes["../../api/frappe.js"] = fakes["../api/frappe.js"];
 export const island = await import(fakes["@framework/ui/island"]);
 export const transport = await import(fakes["../api/frappe.js"]);
 export const { toast, dialog } = await import(fakes["frappe-ui"]);

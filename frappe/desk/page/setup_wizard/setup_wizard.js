@@ -41,11 +41,13 @@ frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
 		frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
 			freeze: true,
+			type: "GET",
 			callback: function (r) {
 				frappe.setup.data.lang = r.message;
 				frappe.call({
 					method: "frappe.desk.page.setup_wizard.setup_wizard.load_user_details",
 					freeze: true,
+					type: "GET",
 					callback: function (r) {
 						frappe.setup.data.full_name = r.message.full_name;
 						frappe.setup.data.email = r.message.email;
@@ -133,7 +135,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			<div class="flex gap-3 mb-8 ${apps.length ? "" : "hidden"}">
 				${apps.map((app) => `<img class="setup-intro__logo" src="${app.logo}" alt="">`).join("")}
 			</div>
-			<div class="setup-intro__hello grid text-12xl text-ink-gray-9" aria-hidden="true"></div>
+			<div class="setup-intro__hello grid text-ink-gray-9" aria-hidden="true"></div>
 			<p class="setup-intro__tagline mt-2 mb-0 text-p-lg text-ink-gray-5"></p>
 		</div>`).appendTo(this.parent);
 		this.$intro.find(".setup-intro__tagline").text(tagline);
@@ -688,17 +690,19 @@ frappe.setup.utils = {
 					frappe.wizard.values.language =
 						frappe.wizard.values.language || r.message.language;
 
-					frappe.db.get_value(
-						"User",
-						{ name: ["not in", ["Administrator", "Guest"]] },
-						["full_name", "email"],
-						(r) => {
-							if (r) {
-								frappe.wizard.values.full_name = r.full_name;
-								frappe.wizard.values.email = r.email;
+					if (frappe.session.user === "Administrator") {
+						frappe.db.get_value(
+							"User",
+							{ name: ["not in", ["Administrator", "Guest"]] },
+							["full_name", "email"],
+							(r) => {
+								if (r) {
+									frappe.wizard.values.full_name = r.full_name;
+									frappe.wizard.values.email = r.email;
+								}
 							}
-						}
-					);
+						);
+					}
 				}
 				callback(slide);
 			});
@@ -707,6 +711,7 @@ frappe.setup.utils = {
 	load_regional_data: function (slide, callback) {
 		frappe.call({
 			method: "frappe.geo.country_info.get_country_timezone_info",
+			type: "GET",
 			callback: function (data) {
 				frappe.setup.data.regional_data = data.message;
 				callback(slide);
@@ -718,6 +723,7 @@ frappe.setup.utils = {
 		frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.load_user_details",
 			freeze: true,
+			type: "GET",
 			callback: function (r) {
 				frappe.setup.data.full_name = r.message.full_name;
 				frappe.setup.data.email = r.message.email;

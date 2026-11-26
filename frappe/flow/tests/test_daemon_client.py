@@ -12,7 +12,7 @@ import httpx
 
 import frappe
 from frappe.flow.daemon import lifecycle
-from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.daemon.client import DaemonClient, DaemonDown, DaemonError
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
@@ -57,7 +57,7 @@ class TestDaemonClient(UnitTestCase):
 				lambda: self.client.set_model("s1", "openai/gpt-5", api_key="k", api_base="https://b"),
 				"POST",
 				"/sessions/s1/model",
-				{"model": "openai/gpt-5", "api_key": "k", "api_base": "https://b", "reasoning_effort": None},
+				{"model": "openai/gpt-5", "api_key": "k", "api_base": "https://b"},
 			),
 			(
 				lambda: self.client.set_model("s1", "openai/gpt-5", model_params={"route": "x"}),
@@ -67,7 +67,6 @@ class TestDaemonClient(UnitTestCase):
 					"model": "openai/gpt-5",
 					"api_key": None,
 					"api_base": None,
-					"reasoning_effort": None,
 					"model_params": {"route": "x"},
 				},
 			),
@@ -154,6 +153,16 @@ class TestDaemonClient(UnitTestCase):
 		self.assertIsNone(caught.exception.status)
 		self.assertIn("unreachable", str(caught.exception))
 		self.assertNotIn(TOKEN, str(caught.exception))
+		self.assertIsInstance(caught.exception, DaemonDown)
+
+		# only a refused connection is safe to send again: a call that timed out may have run
+		def time_out(request: httpx.Request) -> httpx.Response:
+			raise httpx.ReadTimeout("timed out")
+
+		with DaemonClient("/nowhere/flow.sock", transport=httpx.MockTransport(time_out)) as client:
+			with self.assertRaises(DaemonError) as caught:
+				client.healthz()
+		self.assertNotIsInstance(caught.exception, DaemonDown)
 
 	def test_a_client_sends_only_the_site_and_secret_it_has(self):
 		with patch.dict(frappe.local.conf, {"flow_server_secret": None}):
@@ -252,6 +261,15 @@ class TestLiveDaemon(IntegrationTestCase):
 					with self.assertRaises(DaemonError) as caught:
 						stranger.get_session("nothing")
 				self.assertEqual(caught.exception.status, 401)
+
+	def test_a_stopped_server_is_down_until_it_starts_again_with_its_sessions(self):
+		self.client.create_session(self.config("restarted"))
+		lifecycle.stop()  # as supervisor stops it: the socket stays behind and refuses connections
+		self.addCleanup(lifecycle.ensure_running)
+		with self.assertRaises(DaemonDown):
+			self.client.get_session("restarted")
+		lifecycle.start()
+		self.assertEqual(self.client.get_session("restarted")["session_id"], "restarted")
 
 	def test_a_session_asking_past_the_server_policy_is_refused(self):
 		for change, detail in (

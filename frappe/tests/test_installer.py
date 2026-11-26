@@ -137,7 +137,8 @@ class TestAddModuleDefs(IntegrationTestCase):
 	def test_skips_modules_the_app_already_has(self):
 		modules = frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name")
 
-		add_module_defs("frappe")
+		with patch("frappe.get_module_list", return_value=modules):
+			add_module_defs("frappe")
 
 		self.assertCountEqual(
 			frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name"), modules

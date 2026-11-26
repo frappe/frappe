@@ -1,7 +1,7 @@
 <template>
-	<!-- a new chat's agent, beside the composer's + menu -->
+	<!-- a new chat's agent, from its button beside the composer's + -->
 	<PalettePanel
-		title="Agent"
+		:title="__('Agent')"
 		dropdown
 		align="left"
 		:beside="beside"
@@ -13,7 +13,7 @@
 			<input
 				ref="field"
 				v-model="search"
-				placeholder="Search agents…"
+				:placeholder="__('Search agents…')"
 				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 			/>
 		</div>
@@ -33,7 +33,7 @@
 					aria-hidden="true"
 				/>
 			</button>
-			<div v-if="!options.length" class="flow-palette-empty">No matching agents</div>
+			<div v-if="!options.length" class="flow-palette-empty">{{ __("No matching agents") }}</div>
 		</div>
 	</PalettePanel>
 </template>
@@ -42,11 +42,12 @@
 import { computed, inject, onMounted, ref } from "vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { useAgent } from "./agent.js";
 
-// A new chat's agent, picked from its own list beside the composer's + menu.
-defineProps({ beside: { type: Number, default: 0 } }); // this far from the + button's left
+// A new chat's agent, picked from its own list under its button beside the composer's +.
+defineProps({ beside: { type: Number, default: 0 } }); // this far from its anchor's left
 const emit = defineEmits(["close"]);
 const page = inject("flowPage");
 const { current } = useAgent();

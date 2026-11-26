@@ -8,14 +8,15 @@ import re
 from flow_harness.events import AssistantMessage, RepliesSuggested, Usage
 from flow_harness.model.base import Model, ModelRequest
 
-MIN_REPLIES, MAX_REPLIES = 2, 4
+MIN_REPLIES, MAX_REPLIES = 1, 3
 MAX_REPLY_CHARS = 200
 
 REPLIES_PROMPT = (
 	"What might I, the user, ask you next? Reply with only a JSON object and call no tools: "
-	'{"replies": [two to four short follow-ups I would send you in this chat], "multi_select": false}. '
-	"Each is the next step I'd likely want or, when your last reply asked me something, its "
-	"likely answers. Set multi_select to true when I may pick several together. "
+	'{"replies": [one to three short follow-ups I would send you in this chat], "multi_select": false}. '
+	"Each is a next step I'd likely want or, when your last reply asked me something, a likely "
+	"answer. Give only the ones I'd really pick, even if that is just one, and never filler like "
+	'"No, that\'s it" or "Thanks". Set multi_select to true when I may pick several together. '
 	'Reply {"replies": []} when no next step is clear.'
 )
 

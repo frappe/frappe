@@ -20,7 +20,8 @@ from frappe.utils import (
 	add_to_date,
 	cast,
 	cint,
-	get_email_address,
+	get_email_addresses,
+	get_user_display_id,
 	now_datetime,
 	nowdate,
 	validate_email_address,
@@ -178,6 +179,17 @@ class Notification(Document):
 			validate_template(self.subject)
 
 		validate_template(self.message)
+		self.sender_email = (
+			frappe.db.get_value("Email Account", self.sender, "email_id") if self.sender else None
+		)
+		if self.channel in ("Email", "Webhook", "System Notification") and not (
+			self.email_template or self.subject
+		):
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("subject")))),
+				frappe.MandatoryError,
+			)
+
 		if self.channel == "Webhook" and not self.notification_webhook_url:
 			frappe.throw(
 				_("Notification Webhook URL is required for the Webhook channel"),
@@ -211,6 +223,12 @@ class Notification(Document):
 			email_template = frappe.get_cached_doc("Email Template", self.email_template)
 			if not email_template.response_:
 				frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
+
+		if self.channel != "Webhook" and not (self.recipients or self.send_to_all_assignees):
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("recipients")))),
+				frappe.MandatoryError,
+			)
 
 		self.validate_forbidden_document_types()
 		self.validate_condition()
@@ -438,7 +456,10 @@ def get_context(context):
 				if allow_update and not doc.flags.in_notification_update:
 					fieldname = self.set_property_after_alert
 					value = self.property_value
-					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
+					fieldtype = doc.meta.get_field(fieldname).fieldtype
+					if fieldtype in frappe.model.float_like_fields:
+						value = frappe.utils.flt(value)
+					elif fieldtype in frappe.model.numeric_fieldtypes:
 						value = frappe.utils.cint(value)
 
 					doc.reload()
@@ -647,7 +668,9 @@ def get_context(context):
 			user = doc.get(field)
 			mobile_no = frappe.get_value("User", user, "mobile_no")
 			if not mobile_no:
-				doc.log_error(_("Notification: user {0} has no Mobile number set").format(user))
+				doc.log_error(
+					_("Notification: user {0} has no Mobile number set").format(get_user_display_id(user))
+				)
 		elif option == "Customer":
 			customer = doc.get(field)
 			mobile_no = frappe.get_value("Customer", customer, "mobile_no")
@@ -663,6 +686,7 @@ def get_context(context):
 
 	def get_list_of_recipients(self, doc, context):
 		recipients = []
+		users = []
 		cc = []
 		bcc = []
 		for recipient in self.recipients:
@@ -675,17 +699,17 @@ def get_context(context):
 				)
 				if child_field:
 					for d in doc.get(child_field):
-						email_id = d.get(data_field)
-						if email_id == "Administrator":
-							email_id = get_email_address("Administrator")
-						if validate_email_address(email_id):
-							recipients.append(email_id)
+						value = d.get(data_field)
+						if _is_user_field(d, data_field):
+							users.append(value)
+						elif validate_email_address(value):
+							recipients.append(value)
 				# field from current doc
 				else:
 					email_ids_value = doc.get(data_field)
-					if email_ids_value == "Administrator":
-						email_ids_value = get_email_address("Administrator")
-					if validate_email_address(email_ids_value):
+					if _is_user_field(doc, data_field):
+						users.append(email_ids_value)
+					elif validate_email_address(email_ids_value):
 						email_ids = email_ids_value.replace(",", "\n")
 						recipients = recipients + email_ids.split("\n")
 
@@ -700,8 +724,9 @@ def get_context(context):
 					recipients = recipients + email.split("\n")
 
 		if self.send_to_all_assignees:
-			recipients = recipients + get_assignees(doc)
+			users.extend(get_assignees(doc))
 
+		recipients.extend(get_email_addresses(users))
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
 	def get_receiver_list(self, doc, context, field_on_user="mobile_no", recipient_extractor_func=None):
@@ -835,8 +860,7 @@ def clear_notification_cache():
 
 @frappe.whitelist()
 def get_documents_for_today(notification: str):
-	notification = frappe.get_doc("Notification", notification)
-	notification.check_permission("read")
+	notification = frappe.read_doc("Notification", notification)
 	return [d.name for d in notification.get_documents_for_today()]
 
 
@@ -926,11 +950,10 @@ def evaluate_alert(doc: Document, alert, event=None):
 		)
 		frappe.throw(message, title=_("Error in Notification"))
 	except Exception as e:
-		title = str(e)
+		title = str(e) or type(e).__name__
 		message = frappe.get_traceback(with_context=True)
 		frappe.log_error(title=title, message=message)
-		msg = f"<details><summary>{title}</summary>{message}</details>"
-		frappe.throw(msg, title=_("Error in Notification"))
+		frappe.throw(title, title=_("Error in Notification"))
 
 
 def get_comments_for_context(doc):
@@ -954,7 +977,12 @@ def get_comments_for_context(doc):
 	)
 	comments.sort(key=lambda c: c.creation)
 	return [
-		{"comment": truncate(c.content), "by": c.by or c.owner, "name": c.name} for c in comments[-100:]
+		{
+			"comment": truncate(c.content),
+			"by": c.by or frappe.utils.get_user_display_id(c.owner),
+			"name": c.name,
+		}
+		for c in comments[-100:]
 	] or None
 
 
@@ -983,6 +1011,14 @@ def get_assignees(doc):
 	)
 
 	return [d.allocated_to for d in assignees]
+
+
+def _is_user_field(doc, fieldname):
+	if fieldname == "owner":
+		return True
+
+	df = doc.meta.get_field(fieldname)
+	return bool(df and df.fieldtype == "Link" and df.options == "User")
 
 
 def get_emails_from_template(template, context):

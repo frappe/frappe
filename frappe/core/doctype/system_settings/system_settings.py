@@ -6,7 +6,9 @@ import frappe.defaults
 from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
-from frappe.utils import cint, today
+from frappe.utils import cint, today, validate_time_zone
+
+MAX_SUBMISSION_QUEUE_TIMEOUT = 3600
 
 
 class SystemSettings(Document):
@@ -112,6 +114,7 @@ class SystemSettings(Document):
 		show_external_link_warning: DF.Literal["Never", "Ask", "Always"]
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
+		submission_queue_timeout: DF.Int
 		sync_in_batch: DF.Check
 		sync_timeout: DF.Int
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
@@ -132,6 +135,9 @@ class SystemSettings(Document):
 		elif not enable_password_policy:
 			self.minimum_password_score = ""
 
+		if self.time_zone and self.has_value_changed("time_zone"):
+			validate_time_zone(self.time_zone)
+
 		if self.session_expiry:
 			parts = self.session_expiry.split(":")
 			if len(parts) != 2 or not (cint(parts[0]) or cint(parts[1])):
@@ -147,9 +153,10 @@ class SystemSettings(Document):
 							)
 						)
 				toggle_two_factor_auth(True, roles=["All"])
-			else:
-				self.bypass_2fa_for_retricted_ip_users = 0
-				self.bypass_restrict_ip_check_if_2fa_enabled = 0
+
+		if not self.enable_two_factor_auth:
+			self.bypass_2fa_for_retricted_ip_users = 0
+			self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 		frappe.flags.update_last_reset_password_date = False
 		if self.force_user_to_reset_password and not cint(
@@ -172,6 +179,7 @@ class SystemSettings(Document):
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
 			)
 		self.validate_snapshot_reports()
+		self.validate_submission_queue_timeout()
 
 	def validate_otp_sms_template(self):
 		if not self.enable_two_factor_auth or self.two_factor_method != "SMS" or not self.otp_sms_template:
@@ -234,6 +242,14 @@ class SystemSettings(Document):
 			old_doc.frequency != self.frequency
 		):
 			snapshot_report_scheduler(self.enable_snapshot_reports, self.frequency)
+
+	def validate_submission_queue_timeout(self):
+		if cint(self.submission_queue_timeout) > MAX_SUBMISSION_QUEUE_TIMEOUT:
+			label = self.meta.get_translated_label("submission_queue_timeout")
+			frappe.throw(
+				_("{0} cannot be more than {1} seconds (1 hour)").format(label, MAX_SUBMISSION_QUEUE_TIMEOUT),
+				title=_("Invalid Submission Queue Timeout"),
+			)
 
 
 def update_last_reset_password_date():

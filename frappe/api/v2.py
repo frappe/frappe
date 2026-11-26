@@ -90,9 +90,7 @@ def read_doc(doctype: str, name: str):
 	if fields and not isinstance(fields, list):
 		raise FrappeValueError("'fields' must be a list")
 
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
+	doc = frappe.read_doc(doctype, name)
 	_doc = doc.as_dict()
 
 	for key in _doc:
@@ -251,9 +249,7 @@ def create_doc(doctype: str):
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
 	"""Return a clean copy of the given document that can be modified and posted as a new document."""
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
+	doc = frappe.read_doc(doctype, name)
 
 	copy = frappe.copy_doc(doc, ignore_no_copy=ignore_no_copy)
 
@@ -651,14 +647,13 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	ptype = PERMISSION_MAP[frappe.request.method]
 	# unsaved docs need create, not write; `__islocal` comes from the client, so check the DB too
 	# (a Single always exists, whatever name the client sends)
-	if (
-		ptype == "write"
-		and doc.is_new()
-		and not doc.meta.issingle
-		and not frappe.db.exists(doc.doctype, doc.name)
-	):
+	stored = not doc.is_new() or bool(doc.meta.issingle or frappe.db.exists(doc.doctype, doc.name))
+	if ptype == "write" and not stored:
 		ptype = "create"
-	doc.check_permission(ptype)
+	if stored:
+		frappe.has_permission(doc.doctype, ptype, doc.name, throw=True)
+	else:
+		doc.check_permission(ptype)
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
 

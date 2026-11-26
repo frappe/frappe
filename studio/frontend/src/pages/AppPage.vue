@@ -1,5 +1,7 @@
 <template>
-	<AppComponent :block="root" />
+	<PageScriptHost :key="scope.pageScriptVersion">
+		<AppComponent :block="root" />
+	</PageScriptHost>
 </template>
 
 <script setup lang="ts">
@@ -9,6 +11,7 @@ import { usePageMeta } from "frappe-ui"
 import { useLoadedPage } from "@/page/pageLoader"
 import { onPageScriptHotUpdate } from "@/data/studioPageScripts"
 import AppComponent from "@/components/AppComponent.vue"
+import PageScriptHost from "@/components/PageScriptHost.vue"
 
 import useAppStore from "@/stores/appStore"
 import { pageScopeKey } from "@/stores/codeStore"

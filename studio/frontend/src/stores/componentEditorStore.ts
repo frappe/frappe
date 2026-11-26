@@ -1,24 +1,32 @@
 import { defineStore } from "pinia"
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { dialog } from "frappe-ui"
 import { studioComponents } from "@/data/studioComponents"
+import useStudioStore from "@/stores/studioStore"
 import { confirm } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "frappe-ui"
-import type { StudioComponent, ComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
+import { setScriptProp } from "@/utils/componentScriptProps"
 import useComponentStore from "@/stores/componentStore"
 
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
 	const studioComponentBlock = ref<Block | null>(null)
-	const componentInputs = ref<ComponentInput[]>([])
+	// The pages and components that use the component being edited. One that the user cannot read is null.
+	const componentUsages = ref<(string | null)[]>([])
 	const componentStore = useComponentStore()
+	/** The props that the script of the open component declares, or its saved inputs. */
+	const declaredProps = computed<StudioComponentInput[]>(() =>
+		componentStore.getComponentProps(useCanvasStore().fragmentData.fragmentId ?? ""),
+	)
 
-	async function createComponent(componentName: string, block?: Block | null) {
+	async function createComponent(componentName: string, block?: Block | null, isGlobal = false) {
 		const component: any = { component_name: componentName }
+		if (!isGlobal) component.studio_app = useStudioStore().activeApp?.name
 		if (block) {
 			component.block = getBlockObjectCopy(block)
 			if (component.block?.parentSlotName) {
@@ -48,66 +56,100 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		dialog.prompt({
 			title: "Create Component",
 			confirmLabel: "Create",
-			fields: [{ name: "componentName", label: "Component Name", required: true }],
+			fields: [
+				{ name: "componentName", label: "Component Name", required: true },
+				{ name: "isGlobalComponent", label: "Global Component", type: "checkbox" },
+			],
 			onConfirm: async ({ values }: { values: Record<string, any> }) => {
-				const component = await createComponent(values.componentName, options.block)
+				const component = await createComponent(values.componentName, options.block, values.isGlobalComponent)
 				if (component) options.onCreated(component)
 			},
 		})
 	}
 
-	function saveComponent(block: Block, componentName: string) {
-		const payload: any = {
-			name: componentName,
-			block: getBlockObjectCopy(block),
+	async function saveComponent(block: Block, componentId: string) {
+		const payload = { block: getBlockObjectCopy(block) }
+
+		try {
+			const { name } = componentStore.getComponentDoc(componentId)
+			const data = await studioComponents.setValue.submit({ ...payload, name })
+			// before a message from the server, which shows next and must stay on top
+			toast.success("Component saved")
+			await componentStore.cacheComponent(data)
+			studioComponents.reload()
+			resetStudioComponent()
+		} catch (error: any) {
+			toast.error("Failed to save component", { description: error?.messages?.join(", ") })
+			// the editor keeps the component open and its changes unsaved
+			throw error
 		}
-
-		payload.inputs = componentInputs.value.map((input) => ({
-			input_name: input.input_name,
-			type: input.type,
-			description: input.description || "",
-			default: input.default || "",
-			required: 0,
-			options: input.options,
-		}))
-
-		return studioComponents.setValue.submit(payload, {
-			onSuccess(data: StudioComponent) {
-				componentStore.cacheComponent(data)
-				resetStudioComponent()
-				toast.success("Component saved")
-			},
-			onError(error: any) {
-				toast.error("Failed to save component", {
-					description: error.messages.join(", "),
-				})
-			},
-		})
 	}
 
-	async function editComponent(componentId: string) {
+	/** Make the component global, or a component of the open app. Its docname changes, and its id stays. */
+	async function setGlobal(componentId: string, isGlobal: boolean) {
+		const componentDoc = componentStore.getComponentDoc(componentId)
+		try {
+			const { message } = await studioComponents.runDocMethod.submit({
+				name: componentDoc.name,
+				method: "set_app",
+				studio_app: isGlobal ? null : useStudioStore().activeApp?.name,
+			})
+			toast.success(
+				isGlobal
+					? `${componentDoc.component_name} is now a global component`
+					: `${componentDoc.component_name} is now a component of this app`,
+				{
+					description: message?.is_global_kept
+						? "Another app uses the global component, so it was kept."
+						: undefined,
+				},
+			)
+			await componentStore.reloadComponent(componentId)
+			studioComponents.reload()
+		} catch (error: any) {
+			toast.error("Failed to change the component", { description: error?.messages?.join(", ") })
+		}
+	}
+
+	async function renameComponent(componentId: string, componentName: string) {
+		const { name } = componentStore.getComponentDoc(componentId)
+		try {
+			const data = await studioComponents.setValue.submit({ name, component_name: componentName })
+			await componentStore.cacheComponent(data)
+			studioComponents.reload()
+			useCanvasStore().fragmentData.fragmentName = componentName
+		} catch (error: any) {
+			toast.error("Failed to rename the component", { description: error?.messages?.join(", ") })
+		}
+	}
+
+	async function loadComponentUsages(componentId: string) {
+		componentUsages.value = []
+		const { name } = componentStore.getComponentDoc(componentId)
+		const { message } = await studioComponents.runDocMethod.submit({ name, method: "get_usages" })
+		componentUsages.value = message || []
+	}
+
+	/** Open a component on top of what is open, for a component inside it. `isReplacing` closes
+	 * what is open first, for a component that the user picks from a list. */
+	async function editComponent(componentId: string, isReplacing = false) {
+		const canvasStore = useCanvasStore()
+		if (isReplacing) {
+			if (canvasStore.fragmentData.fragmentId === componentId) return
+			await canvasStore.exitAllFragments()
+			// the user kept the unsaved changes of what is open
+			if (canvasStore.fragmentStack.length) return
+		}
 		const componentBlock = await componentStore.getComponent(componentId)
 		const componentDoc = componentStore.getComponentDoc(componentId)
 		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
 		studioComponentBlock.value = getComponentBlock(componentId, true)
 
-		// Load existing inputs from the component doc
-		if (componentDoc && componentDoc.inputs) {
-			componentInputs.value = componentDoc.inputs.map((input: any) => ({
-				input_name: input.input_name,
-				type: input.type,
-				description: input.description,
-				default: input.default,
-				options: input.options,
-			}))
-		} else {
-			componentInputs.value = []
-		}
+		loadComponentUsages(componentId)
 
-		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
 			block,
-			(editedBlock) => saveComponent(editedBlock, componentDoc.component_id),
+			(editedBlock) => saveComponent(editedBlock, componentId),
 			"Save Component",
 			componentDoc.component_name,
 			componentDoc.component_id,
@@ -116,89 +158,63 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		)
 	}
 
-	async function deleteComponent(component: StudioComponent) {
-		if (isComponentUsed(component.component_id)) {
-			toast.error("Component is used in this page. You cannot delete it.")
-		} else {
-			const confirmed = await confirm(
-				`Are you sure you want to delete the component '${component.component_name}'?`,
-			)
-			if (confirmed) {
-				studioComponents.delete
-					.submit(component.component_id)
-					.then(() => {
-						toast.success(`Component '${component.component_name}' deleted`)
-						studioComponents.reload()
-						componentStore.removeCachedComponent(component.component_id)
-					})
-					.catch(() => {
-						toast.error(`Failed to delete component '${component.component_name}'`)
-					})
-			}
-		}
-	}
-
-	function isComponentUsed(componentId: string): Boolean {
-		const checkComponent = (block: Block) => {
-			if (block.isStudioComponent && block.componentName === componentId) {
-				return true
-			}
-			if (block.children) {
-				for (const child of block.children) {
-					if (checkComponent(child)) {
-						return true
-					}
-				}
-			}
+	/** Whether the component was deleted. */
+	async function deleteComponent(component: Pick<StudioComponent, "name" | "component_id" | "component_name">) {
+		if (!(await confirm(`Are you sure you want to delete the component '${component.component_name}'?`))) {
 			return false
 		}
-		const canvasStore = useCanvasStore()
-		for (const block of canvasStore.activeCanvas?.getRootBlock()?.children || []) {
-			if (checkComponent(block)) {
-				return true
-			}
+		try {
+			await studioComponents.delete.submit(component.name)
+			toast.success(`Component '${component.component_name}' deleted`)
+			studioComponents.reload()
+			componentStore.removeCachedComponent(component.component_id)
+			return true
+		} catch (error: any) {
+			toast.error(`Failed to delete component '${component.component_name}'`, {
+				description: error?.messages?.join(", "),
+			})
+			return false
 		}
-		return false
 	}
 
 	function resetStudioComponent() {
 		studioComponentBlock.value = null
 	}
 
-	// component inputs
-	function addComponentInput(input: ComponentInput) {
-		componentInputs.value.push(input)
-	}
-
-	function updateComponentInput(index: number, input: ComponentInput) {
-		if (index >= 0 && index < componentInputs.value.length) {
-			componentInputs.value[index] = input
+	/**
+	 * Add, change or remove one prop in the component's script, and save the script.
+	 * Pass only `prop` to add a prop, and only `previous` to remove one.
+	 */
+	async function saveComponentProp(
+		componentId: string,
+		previous: StudioComponentInput | null,
+		prop: StudioComponentInput | null,
+	) {
+		const componentDoc = componentStore.getComponentDoc(componentId)
+		try {
+			const script = setScriptProp(componentDoc.script || "", previous, prop)
+			const data = await studioComponents.setValue.submit({ name: componentDoc.name, script })
+			await componentStore.cacheComponent(data)
+			toast.success(prop ? "Prop saved" : "Prop removed")
+			return true
+		} catch (error: any) {
+			toast.error("Failed to save the prop", { description: error?.messages?.join(", ") || error?.message })
+			return false
 		}
-	}
-
-	function removeComponentInput(index: number) {
-		if (index >= 0 && index < componentInputs.value.length) {
-			componentInputs.value.splice(index, 1)
-		}
-	}
-
-	function clearComponentInputs() {
-		componentInputs.value = []
 	}
 
 	return {
 		selectedComponent,
 		studioComponentBlock,
-		componentInputs,
+		declaredProps,
 		createComponent,
 		promptNewComponent,
 		editComponent,
 		deleteComponent,
-		// inputs
-		addComponentInput,
-		updateComponentInput,
-		removeComponentInput,
-		clearComponentInputs,
+		setGlobal,
+		renameComponent,
+		componentUsages,
+		saveComponentProp,
 	}
 })
 

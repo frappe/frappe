@@ -19,7 +19,7 @@
 
 | Key | Value |
 | --- | --- |
-| `header`, `footer` | A zone: `{"columns": [...]}`. Printed at the top and bottom of every page. Takes the same columns (with `width`) and fields as a section. |
+| `header`, `footer` | A zone: `{"columns": [...]}`. Printed at the top and bottom of the page. Takes the same columns (with `width`) and fields as a section. `show_on` picks the pages: `every_page`, `first_page`, `last_page` or `after_first_page`. Leave it out to follow Print Settings. |
 | `sections` | List of sections, printed in order. |
 | `page` | `size`: a Print Settings `pdf_page_size` value such as `A4`, `A5`, `Letter`, `Legal`. `orientation`: `Portrait` or `Landscape`. Leave it out to use Print Settings. |
 | `letter_head` | Name of a Letter Head. An empty string prints none. Leave the key out to follow the document. |
@@ -71,12 +71,12 @@ Every field is a dict in a column's `fields`. Every block that is not a DocType 
 | --- | --- | --- |
 | Any DocType field type | `fieldname` of the document | The formatted value, through `doc.get_formatted`. |
 | `Linked Field` | `link_path: "customer.customer_group"` | A field of the linked document, one hop. Respects permissions. |
-| `Static Text` | `text` | Fixed text. `{fieldname}` and `{link_field.fieldname}` in the text become the document's values, for example `"Invoice {name} for {customer_name}"`. `{name}` is the document name. New lines print as line breaks. |
+| `Static Text` | `text` | Fixed text. `{fieldname}` and `{link_field.fieldname}` in the text become the document's values, for example `"Invoice {name} for {customer_name}"`. `{name}` is the document name. In the header and footer, `{page}` and `{page_count}` print the page number and the page count, for example `"Page {page} of {page_count}"`, unless the DocType has a field of that name. Chrome and PlutoPrint fill them only when Print Settings `repeat_header_footer` is on. New lines print as line breaks. |
 | `HTML` | `html` | A Jinja template rendered with `doc` and the `global_variables` names. Use it for anything the other blocks cannot express. Not printable with Typst. |
 | `Table` | `fieldname` and `options` of the child table, `table_columns` | The child table. See below. |
 | `Repeater` | `source` (child table fieldname), `repeater_columns` | Child rows with your own cell text. Each column: `template` (list of `{"t": "f", "v": "<fieldname>"}` for a value or `{"t": "t", "v": "text"}` for text), `align`, `color` (hex), `width` (percent). |
 | `Image` | `image_url`, `width` (CSS length like `40mm`) | A fixed image, or the field's own image value. |
-| `Barcode` | `barcode_format` (`CODE128`, `CODE39` or `QR`), `barcode_field` or `barcode_value`, `show_text`, `width` | A barcode or QR code of a field or a fixed value. |
+| `Barcode` | `barcode_format` (`CODE128`, `CODE39`, `EAN13`, `EAN8`, `EAN14`, `UPCA`, `ISBN13`, `ITF`, `GS1_128` or `QR`), `barcode_field` or `barcode_value`, `show_text`, `width` | A barcode or QR code of a field or a fixed value. `{fieldname}` and `{link_field.fieldname}` in `barcode_value` become the document's raw values, for example `"{item_code}-{batch_no}"`. EAN, UPC and ISBN values may leave out their check digit; a wrong one prints nothing. A `GS1_128` value has no brackets around its application identifiers, for example `0109501101530003`. |
 | `Divider` | `custom_style` | A horizontal line. |
 | `Spacer` | `height` (px) | Vertical space. |
 | `Field Template` | `field_template` (a Print Format Field Template) | A shared template. |

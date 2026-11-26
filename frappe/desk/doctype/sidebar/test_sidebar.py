@@ -36,6 +36,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 )
 from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, ensure_module
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 MODULE = "Test Sidebar Module"
 
@@ -212,19 +213,22 @@ def user_with_roles(email: str, roles: list[str]) -> str:
 	left some.
 
 	"""
-	if frappe.db.exists("User", email):
-		frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+	if user := get_user_by_email(email):
+		frappe.delete_doc("User", user, force=True, ignore_permissions=True)
 
-	frappe.get_doc(
-		{
-			"doctype": "User",
-			"email": email,
-			"first_name": email.split("@")[0],
-			"send_welcome_email": 0,
-			"roles": [{"role": role} for role in roles],
-		}
-	).insert(ignore_permissions=True)
-	return email
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"send_welcome_email": 0,
+				"roles": [{"role": role} for role in roles],
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 class TestItemIdentity(IntegrationTestCase):
@@ -1085,8 +1089,8 @@ class TestCanonicalShellOfASystemOrSharedPage(IntegrationTestCase):
 	def test_the_desk_is_told_which_pages_are_which(self):
 		from frappe.desk.desk_views import DeskViews
 
-		email = user_with_roles("test-sidebar-page-flags@example.com", ["Desk User"])
-		self.enterContext(self.set_user(email))
+		user = user_with_roles("test-sidebar-page-flags@example.com", ["Desk User"])
+		self.enterContext(self.set_user(user))
 		pages = DeskViews.get_allowed_pages()
 
 		self.assertEqual(pages["print"].get("shared_page"), 1)
@@ -1141,11 +1145,12 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		kept = next(iter(get_module_sidebars()))
 		blocked = [m for m in frappe.get_all("Module Def", pluck="name") if m != kept]
-		email = user_with_roles("test-sidebar-one-module@example.com", ["System Manager"])
-		user = frappe.get_doc("User", email)
+		user = frappe.get_doc(
+			"User", user_with_roles("test-sidebar-one-module@example.com", ["System Manager"])
+		)
 		user.set("block_modules", [{"module": module} for module in blocked])
 		user.save(ignore_permissions=True)
-		self.enterContext(self.set_user(email))
+		self.enterContext(self.set_user(user.name))
 
 		shells = set(get_module_sidebars())
 		canonical, home = self.assert_total()
@@ -2321,6 +2326,17 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			self.with_content()
 
 			self.assertTrue(all(row["added"] == 0 for row in get_app_sidebar_layer(MODULE)))
+
+	def test_saving_drops_the_cached_boot(self):
+		"""The desk boots from a cache, so a save that left it would show the old sidebar on the next
+		page load."""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = json.dumps(get_app_sidebar_layer(MODULE))
+			frappe.cache.hset("bootinfo", "Administrator", {"stale": 1})
+			save_app_sidebar(MODULE, rows)
+
+		self.assertIsNone(frappe.cache.hget("bootinfo", "Administrator"))
 
 	def test_saving_writes_a_standard_document_and_exports_it(self):
 		"""One action. The layer is named after the app, and a document that is not standard is not

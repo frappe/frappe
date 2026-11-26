@@ -3,7 +3,7 @@ from functools import lru_cache
 import frappe
 from frappe.app import application as _trigger_imports
 from frappe.tests.microbenchmarks.utils import NanoBenchmark
-from frappe.utils import get_test_client
+from frappe.utils import get_test_client, get_user_by_email
 from frappe.utils.user import AUTOMATIC_ROLES
 
 try:
@@ -141,13 +141,13 @@ def get_sid():
 	set_request(path="/")
 	frappe.local.cookie_manager = CookieManager()
 	frappe.local.login_manager = LoginManager()
-	frappe.local.login_manager.login_as(TEST_USER)
+	frappe.local.login_manager.login_as(get_user_by_email(TEST_USER))
 	frappe.db.commit()
 	return frappe.session.sid
 
 
 def create_test_user(name):
-	if frappe.db.exists("User", name):
+	if get_user_by_email(name):
 		return
 
 	user = frappe.new_doc("User")
@@ -157,7 +157,7 @@ def create_test_user(name):
 	user.send_welcome_email = 0
 	user.time_zone = "Asia/Kolkata"
 	user.flags.ignore_password_policy = True
-	user.insert(ignore_if_duplicate=True)
+	user.insert()
 
 	user.reload()
 

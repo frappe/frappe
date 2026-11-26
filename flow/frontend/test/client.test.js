@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { FrappeClient } from "../src/api/client.js";
+import { CREDIT_EXPIRED, CREDIT_SPENT } from "../src/api/events.js";
 
 function fakeTransport(answers = {}) {
 	const calls = [];
@@ -186,10 +187,7 @@ test("the model list comes from the page's boot first, then refreshes from the s
 				},
 			],
 		},
-		"frappe.flow.api.set_model": ({ model }) => ({
-			model,
-			reasoning_effort: "high",
-		}),
+		"frappe.flow.api.set_model": ({ model }) => ({ model }),
 	});
 	const client = new FrappeClient({ boot, transport });
 	assert.deepEqual(
@@ -207,15 +205,16 @@ test("the model list comes from the page's boot first, then refreshes from the s
 			context_window: null,
 		},
 	]);
+	// a thinking level the store still holds is not sent: Flow offers none
 	const switched = await client.setModel("S1", { model: "GPT", reasoning_effort: "high" });
 	assert.deepEqual(switched, { model: "GPT", context_window: null });
 	assert.deepEqual(transport.calls.at(-1), [
 		"frappe.flow.api.set_model",
-		{ session: "S1", model: "GPT", reasoning_effort: "high" },
+		{ session: "S1", model: "GPT" },
 	]);
 });
 
-test("shared provider IDs preserve the session's model when its thinking level changes", async (t) => {
+test("shared provider IDs preserve the session's model", async (t) => {
 	const { createFlowStore } = await import("@flow/ui-core/store.js");
 	const { fakeSocket } = await import("./helpers/socket.js");
 	globalThis.localStorage = { getItem: () => null, setItem() {} };
@@ -236,11 +235,6 @@ test("shared provider IDs preserve the session's model when its thinking level c
 	t.after(() => store.detach());
 	await store.openSession("S1");
 	assert.equal(store.state.conversation.model, "Sonnet");
-	await store.selectEffort("high");
-	assert.equal(
-		transport.calls.find(([method]) => method === "frappe.flow.api.set_model")[1].model,
-		"Sonnet"
-	);
 	await client.setModel("S1", { model: "Other account" });
 	assert.equal(
 		client.present({ type: "model_changed", model: models[0].model_id }, "S1").model,
@@ -313,6 +307,16 @@ test("each call reaches its frappe.flow.api endpoint and answers with the server
 	);
 });
 
+test("a user's approval mode and step rows are kept on the site, the store's other settings are not", async () => {
+	const transport = fakeTransport();
+	const prefs = { mode: "ask", separateToolCalls: true };
+	const client = new FrappeClient({ boot: { models: [], prefs }, transport });
+	assert.deepEqual(client.settings(), { settings: prefs });
+	await client.updateSettings({ mode: null, chatFontSize: 16, presets: [] });
+	await client.updateSettings({ lastModel: "Sonnet" });
+	assert.deepEqual(transport.calls, [["frappe.flow.api.set_prefs", { prefs: { mode: null } }]]);
+});
+
 test("a sync that fails after a run ends is retried once, then dropped quietly", async () => {
 	const { fakeSocket } = await import("./helpers/socket.js");
 	const reported = [];
@@ -341,4 +345,33 @@ test("a sync that fails after a run ends is retried once, then dropped quietly",
 		transport.calls.filter(([method]) => method === "frappe.flow.api.sync_session").length,
 		4
 	);
+});
+
+test("a 402 on a Grove model says the free credits are spent; another provider's is its own", () => {
+	const models = [
+		{ name: "GPT-x", model_id: "grove/gpt-x", provider: "grove" },
+		...boot.models,
+	];
+	const client = new FrappeClient({ boot: { models }, transport: fakeTransport({}) });
+	const spent = { type: "run_error", status_code: 402, message: "grove (402): credit balance exhausted" };
+	client.sessionInfo({ ...session, model: "GPT-x" });
+	assert.equal(client.present(spent, "S1").message, CREDIT_SPENT);
+	assert.equal(client.present(spent, "S1").settings_tab, "models");
+	assert.equal(client.present({ ...spent, status_code: 429 }, "S1").message, spent.message);
+	client.sessionInfo({ ...session, model: "Sonnet" });
+	assert.equal(client.present(spent, "S1").message, spent.message);
+});
+
+test("a 401 on a Grove model says the free credits have expired; another provider's is its own", () => {
+	const models = [
+		{ name: "GPT-x", model_id: "grove/gpt-x", provider: "grove" },
+		...boot.models,
+	];
+	const client = new FrappeClient({ boot: { models }, transport: fakeTransport({}) });
+	const revoked = { type: "run_error", status_code: 401, message: "grove (401): key revoked or inactive" };
+	client.sessionInfo({ ...session, model: "GPT-x" });
+	assert.equal(client.present(revoked, "S1").message, CREDIT_EXPIRED);
+	assert.equal(client.present(revoked, "S1").settings_tab, "models");
+	client.sessionInfo({ ...session, model: "Sonnet" });
+	assert.equal(client.present(revoked, "S1").message, revoked.message);
 });

@@ -20,6 +20,7 @@ from frappe.modules.patch_handler import PatchType, get_patches_from_app
 from frappe.patches.v16_0.backfill_workspace_module import CUSTOM_MODULE as CUSTOM_BUCKET
 from frappe.patches.v16_0.backfill_workspace_module import PRIVATE_MODULE as PRIVATE_BUCKET
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 BACKFILL = "frappe.patches.v16_0.backfill_workspace_module"
 PIN_DESKTOP = "frappe.patches.v16_0.keep_existing_sites_on_desktop_icons"
@@ -120,22 +121,27 @@ class TestV15Upgrade(IntegrationTestCase):
 			}
 		).insert()
 
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": cls.USER,
-				"first_name": "V15",
-				"send_welcome_email": 0,
-				"roles": [{"role": "System Manager"}],
-			}
-		).insert(ignore_if_duplicate=True)
+		if not (user := get_user_by_email(cls.USER)):
+			user = (
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": cls.USER,
+						"first_name": "V15",
+						"send_welcome_email": 0,
+						"roles": [{"role": "System Manager"}],
+					}
+				)
+				.insert()
+				.name
+			)
 
 		cls.seed_workspace(cls.PUBLIC, public=1)
 		cls.seed_workspace(cls.OTHER, public=1)
 
 		# A private page contributes no sidebar of its own: its link is derived on read from the
 		# workspace itself. `for_user` is the only thing about it the backfill reads.
-		cls.seed_workspace(cls.PRIVATE, public=0, for_user=cls.USER, shortcuts=False)
+		cls.seed_workspace(cls.PRIVATE, public=0, for_user=user, shortcuts=False)
 
 		# Things this upgrade must leave alone, seeded before it runs.
 		frappe.db.set_value("Workspace", cls.PUBLIC, "standard", 1, update_modified=False)

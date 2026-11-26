@@ -75,6 +75,7 @@ frappe.ui.form.Share = class Share {
 				doctype: this.frm.doctype,
 				name: this.frm.doc.name,
 			},
+			type: "QUERY",
 			callback: function (r) {
 				me.render_shared(r.message || []);
 			},

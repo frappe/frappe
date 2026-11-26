@@ -5,7 +5,7 @@
 			size="xs"
 			class="flow-feedback-btn"
 			:class="rating === 'Up' ? 'flow-feedback-selected' : ''"
-			:title="rating === 'Up' ? 'Undo rating' : 'Good response'"
+			:title="rating === 'Up' ? __('Undo rating') : __('Good response')"
 			:disabled="busy"
 			@click="rate(rating === 'Up' ? 'None' : 'Up')"
 		>
@@ -23,7 +23,7 @@
 			size="xs"
 			class="flow-feedback-btn"
 			:class="rating === 'Down' ? 'flow-feedback-selected' : ''"
-			:title="rating === 'Down' ? 'Undo rating' : 'Bad response'"
+			:title="rating === 'Down' ? __('Undo rating') : __('Bad response')"
 			:disabled="busy"
 			@click="rating === 'Down' ? rate('None') : askWhy()"
 		>
@@ -42,6 +42,7 @@
 <script setup>
 import { computed, getCurrentInstance, inject, ref } from "vue";
 import { Button, dialog, toast } from "frappe-ui";
+import { __ } from "@flow/ui-core/translate.js";
 
 // Rendered by the core's message list after each finished turn (options.turnActions).
 const props = defineProps({
@@ -62,18 +63,18 @@ const rating = computed(() => run.value?.feedback_rating || null);
 
 function askWhy() {
 	dialog.prompt({
-		title: "What went wrong?",
+		title: __("What went wrong?"),
 		size: "lg",
 		fields: [
 			{
 				name: "comment",
 				type: "textarea",
-				label: "Feedback",
-				placeholder: "What went wrong? How should it respond instead?",
+				label: __("Feedback"),
+				placeholder: __("What went wrong? How should it respond instead?"),
 				defaultValue: run.value?.feedback_comment ?? "",
 			},
 		],
-		confirmLabel: "Submit",
+		confirmLabel: __("Submit"),
 		onConfirm: ({ values }) => rate("Down", (values.comment ?? "").trim()),
 	});
 	focusComment();
@@ -103,12 +104,12 @@ async function rate(value, comment = "") {
 		if (result.memory)
 			toast.success(
 				result.memory_scope === "User"
-					? "Saved to your memory: the assistant uses it in your chats."
-					: "Saved to agent memory for everyone."
+					? __("Saved to your memory: the assistant uses it in your chats.")
+					: __("Saved to agent memory for everyone.")
 			);
-		else if (result.forgotten) toast.success("Removed from agent memory.");
+		else if (result.forgotten) toast.success(__("Removed from agent memory."));
 	} catch (error) {
-		toast.error(error?.message ?? "Could not save feedback.");
+		toast.error(error?.message ?? __("Could not save feedback."));
 	} finally {
 		busy.value = false;
 	}

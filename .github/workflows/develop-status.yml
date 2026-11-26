@@ -2,10 +2,10 @@ name: Develop Tests
 
 on:
   schedule:
-    # How often the full server and UI suites run on develop, when develop has new commits.
+    # How often the full server and UI suites run on desk-v2, when desk-v2 has new commits.
     - cron: "23 * * * *"
   pull_request_target:
-    branches: [develop, desk-v2]
+    branches: [develop, desk-v2, version-15-hotfix, version-16-hotfix]
     types: [opened, synchronize, reopened, labeled, unlabeled, closed]
   workflow_run:
     workflows: [Server, UI]
@@ -24,6 +24,7 @@ jobs:
     if: >-
       ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       || (github.event.action == 'closed' && github.event.pull_request.merged
+      && github.event.pull_request.base.ref == 'desk-v2'
       && contains(github.event.pull_request.labels.*.name, 'fixes-develop')) }}
     runs-on: ubuntu-latest
     steps:
@@ -45,9 +46,12 @@ jobs:
     if: >-
       ${{ github.event.action != 'closed'
       && (github.event_name != 'workflow_run'
-      || (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.run_attempt > 1))
+      || (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.run_attempt > 1
+      && github.event.workflow_run.conclusion != 'cancelled'))
       && (!contains(fromJSON('["labeled", "unlabeled"]'), github.event.action)
-      || contains(fromJSON('["fixes-develop", "run-full-ci", "Run Server Tests", "Run UI Tests"]'), github.event.label.name)) }}
+      || contains(fromJSON('["fixes-develop", "run-full-ci", "Run Server Tests", "Run UI Tests"]'), github.event.label.name))
+      && (github.event.action == 'labeled' || !github.event.pull_request
+      || github.event.pull_request.base.ref == 'desk-v2') }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     concurrency:
@@ -66,12 +70,15 @@ jobs:
             [ -n "$run_id" ] || continue
             gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
             for _ in $(seq 360); do [ "$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json status --jq .status)" = completed ] && break; sleep 10; done
+            [ "$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)" = "$HEAD_SHA" ] || exit 0
             gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
           done
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      - run: |
+          PR: ${{ github.event.pull_request.number }}
+      - if: ${{ !github.event.pull_request || github.event.pull_request.base.ref == 'desk-v2' }}
+        run: |
           if [ -n "$PR" ] && { [ "$ACTION" = labeled ] || [ "$FIX" = true ]; }; then python .github/helper/develop_status.py wait "$PR"
           elif [ -n "$PR" ]; then python .github/helper/develop_status.py pr "$PR"
           elif [ -n "$RUN_SHA" ]; then python .github/helper/develop_status.py commit "$RUN_SHA"

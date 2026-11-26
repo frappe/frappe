@@ -5,6 +5,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.query_report import get_print_format_data, run
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.utils.print_format import download_report_pdf, render_report_jinja
 
 REPORT = "Test Jinja Print Report"
@@ -158,8 +159,9 @@ class TestDownloadReportPdf(IntegrationTestCase):
 		self.assertIn("Opening", html)
 
 	def test_prints_a_datetime_in_the_user_time_zone(self):
-		frappe.db.set_value("User", REPORT_USER, "time_zone", "UTC")
-		self.addCleanup(frappe.db.set_value, "User", REPORT_USER, "time_zone", None)
+		user = get_user_by_email(REPORT_USER)
+		frappe.db.set_value("User", user, "time_zone", "UTC")
+		self.addCleanup(frappe.db.set_value, "User", user, "time_zone", None)
 		report_run = {
 			"columns": [{"fieldname": "opened_on", "fieldtype": "Datetime"}],
 			"result": [{"opened_on": "2026-10-24 10:00:00"}],
@@ -292,17 +294,22 @@ def make_letter_head(name, letter_head_for, content):
 
 
 def make_user_without_access():
+	if get_user_by_email(NO_ACCESS_USER):
+		return
 	user = frappe.new_doc("User")
 	user.email = NO_ACCESS_USER
 	user.first_name = "No Access"
 	user.send_welcome_email = 0
-	user.insert(ignore_permissions=True, ignore_if_duplicate=True)
+	user.insert(ignore_permissions=True)
 
 
 def make_report_user():
-	user = frappe.new_doc("User")
-	user.email = REPORT_USER
-	user.first_name = "Report User"
-	user.send_welcome_email = 0
-	user.insert(ignore_permissions=True, ignore_if_duplicate=True)
+	if name := get_user_by_email(REPORT_USER):
+		user = frappe.get_doc("User", name)
+	else:
+		user = frappe.new_doc("User")
+		user.email = REPORT_USER
+		user.first_name = "Report User"
+		user.send_welcome_email = 0
+		user.insert(ignore_permissions=True)
 	user.add_roles("System Manager")

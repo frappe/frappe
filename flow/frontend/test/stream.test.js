@@ -4,6 +4,7 @@ import test from "node:test";
 import { SessionStream } from "../src/api/stream.js";
 
 import { fakeSocket } from "./helpers/socket.js";
+import { FlowAPIError } from "@flow/ui-core/client.js";
 import { applyEvent, initialConversation } from "@flow/ui-core/transcript.js";
 
 const ended = (seq, extra = {}) => ({
@@ -256,4 +257,77 @@ test("a reconnect or a resync replaces the streaming preview instead of appendin
 		await readPreview();
 		assert.deepEqual(state.partial, [{ type: "text", text: "Hello world" }], notice);
 	}
+});
+
+// lets the stream run on to its next wait
+const settle = () => new Promise((resolve) => setImmediate(resolve));
+// any failure but a refusal or FlowServerDown, as a site under maintenance
+const down = () => new FlowAPIError(503, "Session Stopped");
+
+test("a log that cannot be read while the servers restart is read again, not the end of the stream", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
+	const socket = fakeSocket();
+	let rows = [{ type: "user_message", seq: 1 }];
+	let failure = null;
+	const stream = new SessionStream({
+		socket,
+		session: "s1",
+		fetchEntries: async (cursor) => {
+			if (failure) throw failure;
+			return { entries: rows.filter((row) => row.seq > cursor) };
+		},
+	});
+	t.after(() => stream.close());
+	const iterator = stream[Symbol.asyncIterator]();
+	assert.equal((await iterator.next()).value.seq, 1);
+
+	failure = down();
+	rows = [...rows, ended(2, { reason: "error" })];
+	socket.fire("connect");
+	const next = iterator.next();
+	await settle();
+	failure = null;
+	t.mock.timers.tick(500);
+	assert.equal((await next).value.seq, 2);
+});
+
+test("a refusal or a flow server that stayed down ends the stream at once, a web server that stays down after the restart limit", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
+	const reading = (failure) => {
+		const stream = new SessionStream({
+			socket: fakeSocket(),
+			session: "s1",
+			fetchEntries: async () => {
+				throw failure;
+			},
+		});
+		t.after(() => stream.close());
+		const outcome = { error: null };
+		collect(stream, 1).catch((error) => (outcome.error = error));
+		return outcome;
+	};
+
+	const refused = reading(new FlowAPIError(403, "Not permitted"));
+	await settle();
+	assert.match(refused.error.message, /Not permitted/);
+
+	// the call waited for the flow server before it gave this error
+	const flowServerDown = reading(
+		new FlowAPIError(503, "flow server unreachable", { exc_type: "FlowServerDown" })
+	);
+	await settle();
+	assert.match(flowServerDown.error.message, /flow server unreachable/);
+
+	const stayedDown = reading(down());
+	for (let waited = 0; waited < 6000; waited += 2000) {
+		await settle();
+		t.mock.timers.tick(2000);
+	}
+	await settle();
+	assert.equal(stayedDown.error, null);
+	for (let waited = 0; waited < 12_000; waited += 2000) {
+		t.mock.timers.tick(2000);
+		await settle();
+	}
+	assert.match(stayedDown.error.message, /Session Stopped/);
 });

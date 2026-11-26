@@ -23,7 +23,13 @@ def get_context(context):
 		from frappe.utils.print_format_generator import get_html
 
 		context.body = get_html(
-			doctype, docname, pf, letterhead, style=frappe.form_dict.get("style"), settings=settings
+			doctype,
+			docname,
+			pf,
+			letterhead,
+			style=frappe.form_dict.get("style"),
+			settings=settings,
+			print_filename=get_print_filename(doc),
 		)
 	else:
 		# Jinja formats render through the legacy pipeline, wrapped in the same

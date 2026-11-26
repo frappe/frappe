@@ -28,7 +28,7 @@ jobs:
         run: |
           python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
         env:
-          TYPE: "ui"
+          TYPE: "bundle"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,12 +56,12 @@ jobs:
       - id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v6
+      - uses: actions/cache/restore@v6
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('apps/frappe/yarn.lock') }}
+          key: yarn-${{ runner.os }}-${{ hashFiles('apps/frappe/yarn.lock', 'apps/frappe/studio/frontend/yarn.lock', 'apps/frappe/flow/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            yarn-${{ runner.os }}-
 
       - name: Prepare bench layout
         run: |

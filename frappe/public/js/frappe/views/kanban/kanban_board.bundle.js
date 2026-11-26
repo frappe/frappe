@@ -484,6 +484,7 @@ if (frappe.views.KanbanView) {
 		};
 
 		self.teardown = function () {
+			cancelAnimationFrame(self.order_sync_frame);
 			self.unwatchers.forEach((unwatch) => unwatch());
 			self.unwatchers = [];
 			self.columns.forEach((column) => column.unwatch && column.unwatch());
@@ -519,7 +520,7 @@ if (frappe.views.KanbanView) {
 				}, show_empty_state)
 			);
 
-			requestAnimationFrame(() => {
+			self.order_sync_frame = requestAnimationFrame(() => {
 				store.update_order();
 			});
 		}

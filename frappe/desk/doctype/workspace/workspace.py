@@ -13,7 +13,7 @@ from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 from frappe.modules.export_file import delete_folder, export_to_files
-from frappe.utils import strip_html
+from frappe.utils import get_user_display_id, strip_html
 from frappe.utils.html_utils import sanitize_html
 
 
@@ -84,14 +84,16 @@ class Workspace(Document, DeskViews):
 
 	def validate(self):
 		self.title = strip_html(self.title)
+		self.validate_links()
 
 		# `with_module` marks a page a module brought with it rather than one a user published. A
 		# module added on the site creates the page it opens on (`ModuleDef.after_insert`), and
 		# that is guarded by the right to create a module, which is a higher bar than this one and
 		# held by a different role. Checking again here would let someone create a module and then
 		# be refused a page for it, leaving a module nobody can reach.
+		before = self.get_doc_before_save()
 		if (
-			self.public
+			(self.public or (before and before.public))
 			and not self.flags.with_module
 			and not is_workspace_manager()
 			and not disable_saving_as_public()
@@ -134,6 +136,31 @@ class Workspace(Document, DeskViews):
 		self.validate_shared_page_has_a_module()
 		self.validate_private_page_is_yours()
 
+	def validate_links(self):
+		for fieldname in {"Link": ("link_type", "link_to"), "URL": ("external_link",)}.get(self.type, ()):
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
+
+		rows = [(link, ("link_type", "link_to")) for link in self.links if link.type == "Link"]
+		for shortcut in self.shortcuts:
+			fieldnames = ["url" if shortcut.type == "URL" else "link_to"]
+			if shortcut.doc_view == "Kanban":
+				fieldnames.append("kanban_board")
+			rows.append((shortcut, fieldnames))
+
+		for row, fieldnames in rows:
+			for fieldname in fieldnames:
+				if not row.get(fieldname):
+					frappe.throw(
+						_("Row #{0}: {1} is required").format(
+							row.idx, frappe.bold(_(row.meta.get_label(fieldname)))
+						),
+						frappe.MandatoryError,
+					)
+
 	def validate_private_page_is_yours(self):
 		"""A private page belongs to the person named in `for_user`, and only they may write one.
 
@@ -144,13 +171,19 @@ class Workspace(Document, DeskViews):
 		wrote a row into that person's own sidebar (`add_private_to_sidebar`), which is one user
 		changing another user's navigation.
 
+		The page as stored counts as well as the page being saved. `has_permission` can only read
+		`for_user` off the document in front of it, so naming yourself would otherwise be enough to
+		pass it and take someone else's page.
+
 		System writes are left alone. An install, a migration, a patch or a fixture import is the
 		site building itself rather than a user acting, and they run as Administrator in any case.
 		"""
-		if self.public or not self.for_user:
-			return
-
-		if self.for_user == frappe.session.user or is_workspace_manager():
+		owners = {
+			page.for_user
+			for page in (self, self.get_doc_before_save())
+			if page and not page.public and page.for_user
+		}
+		if owners <= {frappe.session.user} or is_workspace_manager():
 			return
 
 		if any(
@@ -762,7 +795,7 @@ def new_page(new_page: dict):
 
 	elif not frappe.has_permission(doctype="Workspace", ptype="create"):
 		frappe.flags.error_message = _("User {0} does not have the permission to create a Workspace.").format(
-			frappe.bold(frappe.session.user)
+			frappe.bold(get_user_display_id(frappe.session.user))
 		)
 		raise frappe.PermissionError
 
@@ -771,8 +804,8 @@ def new_page(new_page: dict):
 	doc.icon = page.get("icon") or "grid"
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
-	doc.label = page.get("label")
 	doc.for_user = page.get("for_user")
+	doc.label = f"{doc.title}-{doc.for_user}" if doc.for_user else doc.title
 	doc.public = page.get("public")
 	for role in page.get("roles") or []:
 		if role.get("role"):
@@ -1072,13 +1105,26 @@ def get_manageable_workspaces():
 		filters = {}
 	else:
 		filters = {"public": 0, "for_user": frappe.session.user}
-	return frappe.get_all(
+	workspaces = frappe.get_all(
 		"Workspace",
 		fields=fields,
 		filters=filters,
 		order_by="public desc, sequence_id asc",
 		ignore_permissions=True,
 	)
+	if owners := {w.for_user for w in workspaces if w.for_user}:
+		emails = dict(
+			frappe.get_all(
+				"User",
+				filters=[["name", "in", owners], ["name", "not in", frappe.STANDARD_USERS]],
+				fields=["name", "email"],
+				as_list=True,
+			)
+		)
+		for workspace in workspaces:
+			if workspace.for_user:
+				workspace.owner_display_id = emails.get(workspace.for_user) or workspace.for_user
+	return workspaces
 
 
 @frappe.whitelist()
@@ -1160,6 +1206,9 @@ def update_workspace_settings(
 			_("You need the Workspace Manager role to edit this workspace."),
 			frappe.PermissionError,
 		)
+
+	if access not in ("private", "group", "public"):
+		frappe.throw(_("Access must be one of private, group or public"))
 
 	role_list = frappe.parse_json(roles) if isinstance(roles, str) else (roles or [])
 	# a row may be a `{role: ...}` dict (from the dialog grid) or a bare role name
@@ -1363,3 +1412,36 @@ def check_workspace_manager(message: str) -> None:
 	"""Refuse anyone who is not one, with a message saying what they were trying to do."""
 	if not is_workspace_manager():
 		frappe.throw(message, frappe.PermissionError)
+
+
+def check_layer_keeps_its_owner(doc) -> None:
+	"""Refuse moving a `Custom Sidebar` or `Dock` layer to another user, unless the caller is a
+	Workspace Manager.
+
+	Their `has_permission` can only read `user` off the document being saved, so naming yourself
+	would otherwise be enough to pass it and take someone else's layer or the site's.
+	"""
+	before = doc.get_doc_before_save()
+	if before and (before.user or "") != (doc.user or ""):
+		check_workspace_manager(_("You need to be Workspace Manager to move this layer to another user."))
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""Keep a private page to its owner and Workspace Managers.
+
+	A page with no owner stays open to everyone, because `get_workspaces` shows it to everyone.
+	"""
+	user = user or frappe.session.user
+	return bool(doc.public or not doc.for_user or doc.for_user == user or is_workspace_manager(user))
+
+
+def get_permission_query_conditions(user=None):
+	"""Keep other users' private pages out of list queries, which `has_permission` does not reach."""
+	user = user or frappe.session.user
+	if is_workspace_manager(user):
+		return ""
+
+	return (
+		"(`tabWorkspace`.`public` = 1 or ifnull(`tabWorkspace`.`for_user`, '') = '' "
+		f"or `tabWorkspace`.`for_user` = {frappe.db.escape(user)})"
+	)

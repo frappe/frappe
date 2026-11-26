@@ -14,7 +14,7 @@
 			@click="add"
 		>
 			<span class="lucide-message-square size-3.5 text-ink-gray-6" aria-hidden="true" />
-			Add to chat
+			{{ __("Add to chat") }}
 		</button>
 	</div>
 </template>
@@ -23,6 +23,7 @@
 import { inject, onBeforeUnmount, onMounted, ref } from "vue"
 
 import { layout } from "../layout.js"
+import { __ } from "../translate.js"
 
 // Floating "Add to chat" pill over a text selection inside `within`: queues the
 // selected text as a quote for the composer.

@@ -9,6 +9,10 @@
       "import": "./src/index.ts",
       "types": "./src/index.ts"
     },
+    "./socket": {
+      "import": "./src/socket.ts",
+      "types": "./src/socket.ts"
+    },
     "./FormLayout": {
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
@@ -21,6 +25,10 @@
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
     },
+    "./EmailAccounts": {
+      "import": "./src/components/EmailAccounts/index.ts",
+      "types": "./src/components/EmailAccounts/index.ts"
+    },
     "./InviteUser": {
       "import": "./src/components/InviteUser/index.ts",
       "types": "./src/components/InviteUser/index.ts"
@@ -32,6 +40,10 @@
     "./AutomationCanvas": {
       "import": "./src/components/AutomationCanvas/index.ts",
       "types": "./src/components/AutomationCanvas/index.ts"
+    },
+    "./AutomationBuilder": {
+      "import": "./src/components/AutomationBuilder/index.ts",
+      "types": "./src/components/AutomationBuilder/index.ts"
     },
     "./ListView": {
       "import": "./src/components/ListView/index.ts",
@@ -64,6 +76,10 @@
     "./fields": {
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"
+    },
+    "./mobile": {
+      "import": "./src/mobile/index.ts",
+      "types": "./src/mobile/index.ts"
     },
     "./utils": {
       "import": "./src/utils/index.ts",

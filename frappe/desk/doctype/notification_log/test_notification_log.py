@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
@@ -11,6 +12,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.desk.form.assign_to import add as assign_task
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestNotificationLog(IntegrationTestCase):
@@ -87,6 +89,33 @@ class TestNotificationLog(IntegrationTestCase):
 				"Notification Log", {"for_user": recipient, "subject": "Hello there", "type": "Mention"}
 			)
 		)
+
+	def test_enqueue_create_notification_accepts_user_ids(self):
+		install_notification_types()
+		with test_user(roles=[], generated_id=True) as user:
+			enqueue_create_notification(
+				[user.name],
+				{
+					"type": "Mention",
+					"subject": "Sent by user ID",
+					"from_user": "Administrator",
+					"link": "/app",
+				},
+			)
+
+			self.assertTrue(
+				frappe.db.exists("Notification Log", {"for_user": user.name, "subject": "Sent by user ID"})
+			)
+
+	def test_enqueue_create_notification_skips_guest(self):
+		install_notification_types()
+		guest_email = frappe.db.get_value("User", "Guest", "email")
+		enqueue_create_notification(
+			["Guest", guest_email],
+			{"type": "Alert", "subject": "Not for Guest", "from_user": "Administrator"},
+		)
+
+		self.assertFalse(frappe.db.exists("Notification Log", {"subject": "Not for Guest"}))
 
 	def test_dedupe_on_prevents_duplicate_rows(self):
 		install_notification_types()
@@ -250,7 +279,10 @@ class TestNotificationLog(IntegrationTestCase):
 
 
 def make_recipient(email: str) -> str:
-	if not frappe.db.exists("User", email):
+	if user := get_user_by_email(email):
+		return user
+
+	return (
 		frappe.get_doc(
 			{
 				"doctype": "User",
@@ -258,8 +290,10 @@ def make_recipient(email: str) -> str:
 				"first_name": email.split("@")[0],
 				"send_welcome_email": 0,
 			}
-		).insert(ignore_permissions=True)
-	return email
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 def get_last_email_queue():

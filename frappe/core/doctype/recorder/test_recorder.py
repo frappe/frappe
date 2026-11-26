@@ -242,16 +242,16 @@ class TestRecorder(IntegrationTestCase):
 class TestQueryOptimization(IntegrationTestCase):
 	@run_only_if(db_type_is.POSTGRES)
 	def test_expression_index_does_not_hide_column_candidate(self):
-		query = "select name from \"tabUser\" where email='xyz'"
-		self.assertEqual(_optimize_query(query).column, "email")
+		query = "select name from \"tabUser\" where first_name='xyz'"
+		self.assertEqual(_optimize_query(query).column, "first_name")
 		frappe.db.savepoint("recorder_expression_index")
 		try:
 			frappe.db.sql(
-				'CREATE INDEX "test_recorder_expression_index" ON "tabUser" (lower(first_name), email)'
+				'CREATE INDEX "test_recorder_expression_index" ON "tabUser" (lower(last_name), first_name)'
 			)
 			indexes = _fetch_postgres_table_indexes("tabUser")
 			self.assertNotIn("test_recorder_expression_index", [index.name for index in indexes])
-			self.assertEqual(_optimize_query(query).column, "email")
+			self.assertEqual(_optimize_query(query).column, "first_name")
 		finally:
 			frappe.db.rollback(save_point="recorder_expression_index")
 
@@ -284,9 +284,9 @@ class TestQueryOptimization(IntegrationTestCase):
 					{quote}tabUser{quote} u
 					join {quote}tabHas Role{quote} r
 					on r.parent = u.name
-					where email='xyz'
+					where first_name='xyz'
 					and bio like '%xyz%'
 					"""
 				)
 				self.assertEqual(suggested_index.table, "tabUser")
-				self.assertEqual(suggested_index.column, "email")
+				self.assertEqual(suggested_index.column, "first_name")

@@ -26,7 +26,7 @@ function get_version_timeline_content(version_doc, frm) {
 	// value changed in parent
 	if (data.changed && data.changed.length) {
 		var parts = [];
-		data.changed.every(function (p) {
+		data.changed.forEach(function (p) {
 			if (p[0] === "docstatus") {
 				if (p[2] === 1) {
 					let message = updater_reference_link
@@ -104,28 +104,28 @@ function get_version_timeline_content(version_doc, frm) {
 					}
 				}
 			}
-			return parts.length < 3;
 		});
 		if (parts.length) {
+			let fields = parts.slice(0, 3).join(", ");
+			if (parts.length > 3) {
+				fields = __("{0} and {1} more", [fields, parts.length - 3]);
+			}
 			let message = updater_reference_link
 				? get_user_message(
 						version_doc.owner,
-						__("You changed the value of {0} {1}", [
-							parts.join(", "),
-							updater_reference_link,
-						]),
+						__("You changed the value of {0} {1}", [fields, updater_reference_link]),
 						__("{0} changed the value of {1} {2}", [
 							get_user_link(version_doc.owner),
-							parts.join(", "),
+							fields,
 							updater_reference_link,
 						])
 				  )
 				: get_user_message(
 						version_doc.owner,
-						__("You changed the value of {0}", [parts.join(", ")]),
+						__("You changed the value of {0}", [fields]),
 						__("{0} changed the value of {1}", [
 							get_user_link(version_doc.owner),
-							parts.join(", "),
+							fields,
 						])
 				  );
 
@@ -136,8 +136,8 @@ function get_version_timeline_content(version_doc, frm) {
 	// value changed in table field
 	if (data.row_changed && data.row_changed.length) {
 		let parts = [];
-		data.row_changed.every(function (row) {
-			row[3].every(function (p) {
+		data.row_changed.forEach(function (row) {
+			row[3].forEach(function (p) {
 				var df =
 					frm.fields_dict[row[0]] &&
 					frappe.meta.get_docfield(
@@ -171,30 +171,29 @@ function get_version_timeline_content(version_doc, frm) {
 						);
 					}
 				}
-				return parts.length < 3;
 			});
-			return parts.length < 3;
 		});
 		if (parts.length) {
+			let fields = parts.slice(0, 3).join(", ");
+			if (parts.length > 3) {
+				fields = __("{0} and {1} more", [fields, parts.length - 3]);
+			}
 			let message = updater_reference_link
 				? get_user_message(
 						version_doc.owner,
-						__("You changed the values for {0} {1}", [
-							parts.join(", "),
-							updater_reference_link,
-						]),
+						__("You changed the values for {0} {1}", [fields, updater_reference_link]),
 						__("{0} changed the values for {1} {2}", [
 							get_user_link(version_doc.owner),
-							parts.join(", "),
+							fields,
 							updater_reference_link,
 						])
 				  )
 				: get_user_message(
 						version_doc.owner,
-						__("You changed the values for {0}", [parts.join(", ")]),
+						__("You changed the values for {0}", [fields]),
 						__("{0} changed the values for {1}", [
 							get_user_link(version_doc.owner),
-							parts.join(", "),
+							fields,
 						])
 				  );
 
@@ -348,7 +347,21 @@ function get_version_timeline_content(version_doc, frm) {
 			)
 		);
 		out.push(get_version_comment(version_doc, message));
+	} else if (data.agent && !data.changed) {
+		// An insert by an agent keeps only the agent, while an update always has a diff.
+		let message = get_user_message(
+			version_doc.owner,
+			__("You created this document", null, "Form timeline"),
+			__("{0} created this document", [get_user_link(version_doc.owner)], "Form timeline")
+		);
+		out.push(get_version_comment(version_doc, message));
 	}
+
+	if (data.agent) {
+		const agent_msg = get_agent_message(data.agent);
+		out = out.map((message) => `${message} · ${agent_msg}`);
+	}
+
 	const impersonated_by = data.impersonated_by;
 
 	if (impersonated_by) {
@@ -362,6 +375,22 @@ function get_version_timeline_content(version_doc, frm) {
 		out = out.map((message) => `${message} · ${audit_msg.bold()}`);
 	}
 	return out;
+}
+
+function get_agent_message(agent) {
+	const message = __("using {0} via {1}", [
+		frappe.utils.escape_html(agent.name),
+		frappe.utils.escape_html(agent.via),
+	]);
+	if (agent.reference_doctype && agent.reference_name) {
+		return frappe.utils.get_form_link(
+			agent.reference_doctype,
+			agent.reference_name,
+			true,
+			message
+		);
+	}
+	return message;
 }
 
 function get_version_comment(version_doc, text) {

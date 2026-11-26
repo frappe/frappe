@@ -92,7 +92,11 @@ frappe.views.Workspace = class Workspace {
 	get_assignable_modules() {
 		if (!this._assignable_modules) {
 			this._assignable_modules = frappe
-				.xcall("frappe.desk.doctype.workspace.workspace.get_assignable_modules")
+				.xcall(
+					"frappe.desk.doctype.workspace.workspace.get_assignable_modules",
+					undefined,
+					"GET"
+				)
 				.then((modules) => modules || [])
 				// Drop the memo on failure. A cached rejected promise would give the same error
 				// to every later caller, so one dropped request would break the New Workspace
@@ -358,7 +362,7 @@ frappe.views.Workspace = class Workspace {
 
 			parse_content(current_page);
 
-			this.content = current_page.content;
+			this.content = current_page.content && [...current_page.content];
 			this.content && this.add_custom_cards_in_content();
 			this.content && this.add_hidden_notice_in_content(current_page);
 			this.add_mount_notice(current_page);
@@ -576,7 +580,11 @@ frappe.views.Workspace = class Workspace {
 		// renders. It loads alongside the two reads rather than after them, and all three are
 		// awaited together so the first panel builds synchronously when the dialog opens.
 		const [manageable, modules] = await Promise.all([
-			frappe.xcall("frappe.desk.doctype.workspace.workspace.get_manageable_workspaces"),
+			frappe.xcall(
+				"frappe.desk.doctype.workspace.workspace.get_manageable_workspaces",
+				undefined,
+				"GET"
+			),
 			this.get_assignable_modules(),
 			frappe.require("embedded_list.bundle.js").catch((e) => {
 				// eslint-disable-next-line no-console
@@ -724,7 +732,7 @@ frappe.views.Workspace = class Workspace {
 						},
 						// A manager sees private workspaces owned by other users, and the owner
 						// column is what tells them apart, since the titles will not
-						{ label: __("Owner"), fieldname: "for_user" },
+						{ label: __("Owner"), fieldname: "owner_display_id" },
 					],
 				}).refresh();
 			},
@@ -740,7 +748,8 @@ frappe.views.Workspace = class Workspace {
 
 		const settings = await frappe.xcall(
 			"frappe.desk.doctype.workspace.workspace.get_workspace_settings",
-			{ name: page.name }
+			{ name: page.name },
+			"GET"
 		);
 		if (!settings) return;
 
@@ -797,7 +806,9 @@ frappe.views.Workspace = class Workspace {
 		if (!this.workspace_manager) return;
 
 		const manageable = await frappe.xcall(
-			"frappe.desk.doctype.workspace.workspace.get_manageable_workspaces"
+			"frappe.desk.doctype.workspace.workspace.get_manageable_workspaces",
+			undefined,
+			"GET"
 		);
 		if (!manageable || !manageable.length) {
 			this.workspace_manager.hide();

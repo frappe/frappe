@@ -1,3 +1,5 @@
+import { __ } from "@flow/ui-core/translate.js";
+
 // The services Flow connects, as a first-timer knows them. The big three by the product people
 // use, with its maker beside it; the key comes from the maker's console. The rest by their own
 // names.
@@ -35,7 +37,7 @@ export const OTHERS = [
 ].map((service) => ({
 	maker: service.name,
 	...service,
-	console: `${service.maker ?? service.name} console`,
+	console: __("{0} console", [service.maker ?? service.name]),
 }));
 
 export const SERVICES = [...PRODUCTS, ...OTHERS];
@@ -75,7 +77,7 @@ export function addableModels(provider, listed, saved, pick) {
 		{
 			type: "custom",
 			key: "typed",
-			label: "Use the typed id",
+			label: __("Use the typed id"),
 			slot: "typed",
 			condition: ({ query }) => Boolean(typedId(query)),
 			onClick: ({ query }) => pick(typedId(query)),

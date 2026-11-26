@@ -15,6 +15,7 @@ from frappe.templates.includes.comments.comments import add_comment
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_model_utils import set_user
+from frappe.utils import get_user_by_email
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Page"]
 
@@ -139,6 +140,44 @@ class TestComment(IntegrationTestCase):
 
 		self.assertIn(comment.name, visible)
 
+	def test_portal_mails_match_the_whole_address(self):
+		from frappe.core.doctype.user.test_user import test_user
+		from frappe.website.utils import get_comment_list
+
+		web_page = frappe.get_doc("Web Page", "test-web-page-1")
+
+		def make_mail(recipients):
+			return frappe.get_doc(
+				doctype="Communication",
+				communication_type="Communication",
+				content=f"mail to {recipients}",
+				recipients=recipients,
+				reference_doctype="Web Page",
+				reference_name=web_page.name,
+			).insert(ignore_permissions=True)
+
+		with test_user(email="ann_portal@example.com", roles=[], generated_id=True) as user:
+			to_user = make_mail("Ann <ann_portal@example.com>")
+			to_other = make_mail("joann_portal@example.com")
+
+			with set_user(user.name):
+				visible = [c["name"] for c in get_comment_list("Web Page", web_page.name)]
+
+		self.assertIn(to_user.name, visible)
+		self.assertNotIn(to_other.name, visible)
+
+		to_guest = make_mail(frappe.db.get_value("User", "Guest", "email") or "guest@example.com")
+		with set_user("Guest"):
+			visible = [c["name"] for c in get_comment_list("Web Page", web_page.name)]
+		self.assertNotIn(to_guest.name, visible)
+
+	def test_standard_users_comment_as_their_id(self):
+		test_doc = frappe.get_doc(doctype="ToDo", description="test").insert()
+		for user in ("Guest", "Administrator"):
+			with set_user(user):
+				comment = test_doc.add_comment("Info", f"by {user}")
+			self.assertEqual(comment.comment_email, user)
+
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 
@@ -164,15 +203,20 @@ class TestCommentPermissions(IntegrationTestCase):
 		self.todo = frappe.get_doc(doctype="ToDo", description="comment permission test").insert()
 		self.comment = self.todo.add_comment("Comment", "internal discussion").name
 
-		self.user = "comment-perm@example.com"
-		if not frappe.db.exists("User", self.user):
-			frappe.get_doc(
-				doctype="User",
-				email=self.user,
-				first_name="Comment Perm",
-				send_welcome_email=0,
-				roles=[{"role": "Blogger"}],
-			).insert(ignore_permissions=True)
+		email = "comment-perm@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="Comment Perm",
+					send_welcome_email=0,
+					roles=[{"role": "Blogger"}],
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
+		self.user = user
 
 		# needed to get past the doctype gate
 		add_permission("Comment", "Blogger", 0)

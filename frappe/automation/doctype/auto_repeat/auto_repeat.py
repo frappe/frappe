@@ -14,10 +14,12 @@ from frappe.contacts.doctype.contact.contact import (
 )
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.assign_to import add as assign_to
+from frappe.email import get_system_managers
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
 	date_diff,
+	get_email_addresses,
 	getdate,
 	month_diff,
 	split_emails,
@@ -25,7 +27,6 @@ from frappe.utils import (
 )
 from frappe.utils.background_jobs import get_jobs
 from frappe.utils.jinja import validate_template
-from frappe.utils.user import get_system_managers
 
 month_map = {"Monthly": 1, "Quarterly": 3, "Half-yearly": 6, "Yearly": 12}
 day_map = {"Daily": 1, "Weekly": 7, "Fortnightly": 14}
@@ -54,6 +55,7 @@ class AutoRepeat(Document):
 		from frappe.types import DF
 
 		assignee: DF.TableMultiSelect[AutoRepeatUser]
+		attach_print: DF.Check
 		disabled: DF.Check
 		end_date: DF.Date | None
 		frequency: DF.Literal[
@@ -82,12 +84,20 @@ class AutoRepeat(Document):
 		self.validate_reference_doctype()
 		self.validate_reference_permission()
 		self.validate_submit_on_creation()
+		self.validate_attach_print()
 		self.validate_dates()
 		self.validate_email_id()
 		self.validate_auto_repeat_days()
 		self.set_dates()
 		self.update_auto_repeat_id()
 		self.unlink_if_applicable()
+
+		default_message = self.meta.get_field("message").default
+		if self.template and self.has_value_changed("template"):
+			template = frappe.get_cached_doc("Email Template", self.template)
+			self.subject = self.subject or template.subject
+			if not self.message or self.message == default_message:
+				self.message = template.response_
 
 		validate_template(self.subject or "")
 		validate_template(self.message or "")
@@ -139,6 +149,28 @@ class AutoRepeat(Document):
 				_("Cannot enable {0} for a non-submittable doctype").format(
 					frappe.bold(_("Submit on Creation"))
 				)
+			)
+
+	def validate_attach_print(self):
+		if (
+			self.status == "Active"
+			and self.notify_by_email
+			and self.attach_print
+			and not self.submit_on_creation
+			and frappe.get_meta(self.reference_doctype).is_submittable
+			and not frappe.get_single_value("Print Settings", "allow_print_for_draft")
+		):
+			frappe.throw(
+				_(
+					"Auto Repeat creates each {0} as a draft, and drafts cannot be printed. Enable {1}, enable {2} in {3}, or disable {4}."
+				).format(
+					_(self.reference_doctype),
+					frappe.bold(_("Submit on Creation")),
+					frappe.bold(_("Allow Print for Draft")),
+					frappe.bold(_("Print Settings")),
+					frappe.bold(_("Attach Print")),
+				),
+				title=_("Cannot Attach Print"),
 			)
 
 	def validate_dates(self):
@@ -331,12 +363,20 @@ class AutoRepeat(Document):
 		if not (anchor and new_doc.meta.get_field("to_date")):
 			return
 
-		# the reference document is period 0, the document scheduled n steps after `start_date` is period n
-		schedule_date = getdate(self.next_schedule_date)
+		# the reference document is period 0, the document scheduled n steps after it is period n.
+		# `update_doc` sets the required Date fields (e.g. posting date) to the schedule date.
+		reference_date = next(
+			(
+				reference_doc.get(df.fieldname)
+				for df in reference_doc.meta.fields
+				if df.fieldtype == "Date" and df.reqd
+			),
+			self.start_date,
+		)
 		if mcount := month_map.get(self.frequency):
-			n = (month_diff(schedule_date, self.start_date) - 1) // mcount
+			n = (month_diff(self.next_schedule_date, reference_date) - 1) // mcount
 		else:
-			n = date_diff(schedule_date, self.start_date) // day_map[self.frequency]
+			n = round(date_diff(self.next_schedule_date, reference_date) / day_map[self.frequency])
 
 		from_date, to_date = get_auto_repeat_period(anchor, self.frequency, n)
 		new_doc.set("from_date", from_date)
@@ -421,38 +461,46 @@ class AutoRepeat(Document):
 		elif "{" in self.subject:
 			subject = frappe.render_template(self.subject, {"doc": new_doc}, restrict_globals=True)
 
-		print_format = self.print_format or "Standard"
+		attachments = None
 		error_string = None
 
-		try:
-			attachments = [
-				frappe.attach_print(
-					new_doc.doctype,
-					new_doc.name,
-					file_name=new_doc.name,
-					print_format=print_format,
-					lang=new_doc.get("language")
-					or (
-						frappe.get_cached_value("Print Format", self.print_format, "default_print_language")
-						if self.print_format
-						else None
-					),
+		if self.attach_print:
+			print_format = self.print_format or frappe.get_meta(new_doc.doctype).default_print_format
+			session_user = frappe.session.user
+			frappe.set_user(self.owner)  # nosemgrep: frappe-setuser
+
+			try:
+				attachments = [
+					frappe.attach_print(
+						new_doc.doctype,
+						new_doc.name,
+						file_name=new_doc.name,
+						print_format=print_format,
+						lang=new_doc.get("language")
+						or (
+							frappe.get_cached_value("Print Format", print_format, "default_print_language")
+							if print_format
+							else None
+						),
+					)
+				]
+
+			except frappe.PermissionError:
+				error_string = _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(
+					new_doc.doctype, new_doc.name, self.name
 				)
-			]
+				error_string += "<br><br>"
 
-		except frappe.PermissionError:
-			error_string = _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(
-				new_doc.doctype, new_doc.name, self.name
-			)
-			error_string += "<br><br>"
-
-			error_string += _(
-				"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
-			).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
-			attachments = None
+				error_string += _(
+					"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
+				).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
+			finally:
+				frappe.set_user(session_user)  # nosemgrep: frappe-setuser
 
 		if error_string:
 			message = error_string
+		elif message_without_print := self.get_message_without_print(new_doc):
+			message = message_without_print
 		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
@@ -466,6 +514,13 @@ class AutoRepeat(Document):
 			content=message,
 			attachments=attachments,
 			send_email=1,
+		)
+
+	def get_message_without_print(self, doc):
+		if self.attach_print or (self.message and self.message != self.meta.get_field("message").default):
+			return None
+		return _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(
+			doc.doctype, doc.name, self.name
 		)
 
 	@frappe.whitelist()
@@ -487,8 +542,9 @@ class AutoRepeat(Document):
 		frappe.db.set_value("Auto Repeat", self.name, "disabled", 1)
 
 	def notify_error_to_user(self, error_log):
-		recipients = list(get_system_managers(only_name=True))
-		recipients.append(self.owner)
+		recipients = set(get_system_managers())
+		if self.owner != "Administrator":
+			recipients.update(get_email_addresses([self.owner]))
 		subject = _("Auto Repeat Document Creation Failed")
 
 		form_link = frappe.utils.get_link_to_form(self.reference_doctype, self.reference_document)
@@ -641,13 +697,39 @@ def update_reference(docname: str, reference: str):
 
 
 @frappe.whitelist(methods=["POST"])
+def unlink_auto_repeat(doctype: str, docname: str | int):
+	docname = str(docname)
+	if not frappe.get_meta(doctype).has_field("auto_repeat"):
+		frappe.throw(_("{0} does not support Auto Repeat").format(_(doctype)), title=_("Not Supported"))
+
+	frappe.has_permission(doctype, "write", docname, throw=True)
+	auto_repeat = frappe.db.get_value(doctype, docname, "auto_repeat")
+	if not auto_repeat:
+		return
+
+	if frappe.db.exists(
+		"Auto Repeat", {"name": auto_repeat, "reference_doctype": doctype, "reference_document": docname}
+	):
+		frappe.throw(
+			_("This document is the reference of Auto Repeat {0}. Disable the Auto Repeat instead.").format(
+				frappe.bold(auto_repeat)
+			),
+			title=_("Cannot Unlink Auto Repeat"),
+		)
+
+	frappe.db.set_value(doctype, docname, "auto_repeat", None)
+	frappe.get_doc(doctype, docname).notify_update()
+
+
+@frappe.whitelist(methods=["POST"])
 def generate_message_preview(name: str):
 	frappe.has_permission("Auto Repeat", "write", throw=True)
 	auto_repeat = frappe.get_doc("Auto Repeat", str(name))
-	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
-	doc.check_permission()
+	doc = frappe.read_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	subject_preview = _("Please add a subject to your email")
-	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc}, restrict_globals=True)
+	msg_preview = auto_repeat.get_message_without_print(doc)
+	if not msg_preview:
+		msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc}, restrict_globals=True)
 	if auto_repeat.subject:
 		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc}, restrict_globals=True)
 

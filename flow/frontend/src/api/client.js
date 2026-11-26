@@ -5,6 +5,10 @@ import { SessionStream } from "./stream.js";
 const APPROVAL_MODES = { ask: "Ask", auto: "Auto", auto_approve: "Auto-approve" };
 const approvalId = (value) => Object.keys(APPROVAL_MODES).find((key) => APPROVAL_MODES[key] === value) ?? "ask";
 
+// what a user keeps on the site, of all the store would sync: the approval mode a new chat starts
+// in, and a row per step (frappe.flow.api.USER_PREFS)
+const USER_PREFS = ["mode", "separateToolCalls"];
+
 const IMAGE_FILE = /\.(png|jpe?g|gif|webp|bmp)$/i;
 const SESSION_PAGE = 100; // frappe.flow.api.LIST_LIMIT: a shorter page would never read as more
 
@@ -38,6 +42,8 @@ export class FrappeClient {
 				const model = this.modelRows.find((row) => row.name === selected);
 				return model?.model_id === id ? selected : this.modelByProviderId.get(id) ?? id;
 			},
+			onSiteKey: () =>
+				this.modelRows.find((row) => row.name === this.configs.get(sid)?.model)?.provider === "grove",
 		});
 	}
 
@@ -196,11 +202,11 @@ export class FrappeClient {
 		return this.transport.call("frappe.flow.api.compact", { session: sid });
 	}
 
-	async setModel(sid, { model, reasoning_effort = null }) {
+	// no thinking level: a model runs at its provider's default, or as its Extra Params say
+	async setModel(sid, { model }) {
 		const data = await this.transport.call("frappe.flow.api.set_model", {
 			session: sid,
 			model,
-			reasoning_effort,
 		});
 		this.configs.set(sid, { ...this.configs.get(sid), model: data.model });
 		return {
@@ -227,6 +233,16 @@ export class FrappeClient {
 		}
 		this.configs.set(sid, config);
 		return { config };
+	}
+
+	// the store's settings sync: the user's saved preferences came with boot
+	settings() {
+		return { settings: this.boot?.prefs ?? {} };
+	}
+
+	async updateSettings(settings) {
+		const prefs = Object.fromEntries(Object.entries(settings).filter(([key]) => USER_PREFS.includes(key)));
+		if (Object.keys(prefs).length) await this.transport.call("frappe.flow.api.set_prefs", { prefs });
 	}
 
 	deleteSession(sid) {

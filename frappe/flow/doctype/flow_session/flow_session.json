@@ -9,9 +9,11 @@
   "agent",
   "model",
   "source",
+  "personal_trigger",
   "approval_mode",
   "general_access",
   "last_synced_seq",
+  "guest_token",
   "section_break_transcript",
   "transcript_html",
   "messages",
@@ -55,8 +57,18 @@
    "read_only": 1
   },
   {
+   "default": "0",
+   "description": "Started by a Flow User's own trigger, so System Managers do not see it.",
+   "fieldname": "personal_trigger",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Personal Trigger",
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
    "default": "Auto",
-   "description": "Ask stops at every confirmation-gated tool call. Auto lets the helper model approve the calls the user asked for and asks about the rest. Auto-approve runs everything; always so for Trigger sessions.",
+   "description": "Ask stops at every confirmation-gated tool call. Auto lets the helper model approve the calls the user asked for and asks about the rest. Auto-approve runs everything; always so for Trigger sessions, and guest chats start in it.",
    "fieldname": "approval_mode",
    "fieldtype": "Select",
    "label": "Approval Mode",
@@ -79,6 +91,15 @@
    "fieldtype": "Int",
    "hidden": 1,
    "label": "Last Synced Seq",
+   "read_only": 1
+  },
+  {
+   "description": "Hash of the key that opens a guest chat with a public agent.",
+   "fieldname": "guest_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Guest Token",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -118,7 +139,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-11-02 10:00:00",
+ "modified": "2026-11-20 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",

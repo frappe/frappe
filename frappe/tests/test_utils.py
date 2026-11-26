@@ -438,12 +438,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "NGN Zero only."),
 				("Fail", ""),
 			],
-			"MRO": [
-				(5000, "MRO Five Thousand only."),
-				(5000.0, "MRO Five Thousand only."),
-				(1.4, "MRO One and Two Khoums only."),
+			"MRU": [
+				(5000, "MRU Five Thousand only."),
+				(5000.0, "MRU Five Thousand only."),
+				(1.4, "MRU One and Two Khoums only."),
 				(0.2, "One Khoums only."),
-				(0, "MRO Zero only."),
+				(0, "MRU Zero only."),
 				("Fail", ""),
 			],
 			"USD": [
@@ -659,6 +659,14 @@ class TestHTMLUtils(IntegrationTestCase):
 		self.assertNotIn("onload", clean)
 
 		self.assertIsNone(sanitize_svg(None))
+
+	def test_md_to_html_with_html_tag_over_lines(self):
+		from frappe.utils import md_to_html
+
+		source = '<table border="1"\n\tstyle="width:100%">\n<tr><td>Snack</td></tr>\n</table>'
+		html = md_to_html(source)
+		self.assertIn("<td>Snack</td>", html)
+		self.assertIsNone(html.toc_html)
 
 
 class TestValidationUtils(IntegrationTestCase):
@@ -914,6 +922,18 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(width, 500)
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
+
+	def test_optimize_image_fills_transparency_with_white(self):
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path).convert("RGBA")
+		image.paste((0, 0, 0, 0), (0, 0, image.width // 2, image.height))
+		content = io.BytesIO()
+		image.save(content, format="PNG")
+
+		with self.set_user("test@example.com"):
+			optimized_content = optimize_image(content.getvalue(), "image/jpeg")
+
+		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
 
 	def test_optimize_pdf(self):
 		from pypdf import PdfReader
@@ -1571,6 +1591,22 @@ class TestXlsxUtils(IntegrationTestCase):
 		self.assertEqual(rows[2][1].data_type, "n")
 		self.assertEqual(rows[2][1].value, -5)
 
+	def test_time_values_get_number_format(self):
+		"""time / timedelta values must not be written as raw day fractions."""
+		from openpyxl import load_workbook
+
+		from frappe.utils.xlsxutils import XLSXStyleBuilder, make_xlsx
+
+		data = [
+			["in_time", "duration"],
+			[time(8, 0), timedelta(hours=9, minutes=30)],
+		]
+		wb = load_workbook(make_xlsx(data, "Test Sheet"))
+		ws = wb.active
+
+		self.assertEqual(ws["A2"].number_format, XLSXStyleBuilder.get_time_format())
+		self.assertEqual(ws["B2"].number_format, "[h]:mm:ss")
+
 
 class TestCsvUtils(IntegrationTestCase):
 	def test_escape_formula_injection_prefixes_trigger_chars(self):
@@ -1920,11 +1956,14 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertIn(frappe.local.site, get_sites())
 
 	def test_get_site_info(self):
-		info = get_site_info()
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=["System Manager"], generated_id=True) as user:
+			info = get_site_info()
 
 		installed_apps = [app["app_name"] for app in info["installed_apps"]]
 		self.assertIn("frappe", installed_apps)
-		self.assertGreaterEqual(len(info["users"]), 1)
+		self.assertIn(user.email, [u["email"] for u in info["users"]])
 
 	def test_get_url_to_form(self):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
@@ -2559,3 +2598,30 @@ class TestMsgPrint(UnitTestCase):
 		self.assertEqual(str(raised.exception), "first<br>second")
 		printed.assert_called_once()
 		self.assertNotIn("<br>", printed.call_args.args[0])
+
+
+class TestAddUserInfo(IntegrationTestCase):
+	def test_add_user_info_by_id_or_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as user:
+			user_info = {}
+			frappe.utils.add_user_info([user.name, user.email.upper(), None], user_info)
+
+			self.assertEqual(user_info[user.name].name, user.name)
+			self.assertEqual(user_info[user.email.upper()].name, user.name)
+
+	def test_add_user_info_prefers_the_id(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as other:
+			legacy = frappe.new_doc(
+				"User", email=f"legacy_{other.email}", first_name="Legacy", send_welcome_email=0
+			)
+			legacy.flags.skip_email_from_name = True
+			legacy.insert(set_name=other.email)
+			self.addCleanup(legacy.delete, force=True, ignore_permissions=True)
+
+			user_info = {}
+			frappe.utils.add_user_info(other.email, user_info)
+			self.assertEqual(user_info[other.email].name, legacy.name)

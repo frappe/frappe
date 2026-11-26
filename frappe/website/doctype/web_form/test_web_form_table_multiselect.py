@@ -7,6 +7,7 @@ from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.website.doctype.web_form.web_form import (
 	accept,
 	get_form_data,
@@ -259,11 +260,16 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 
 	def make_website_user(self):
 		email = "tms-web-form-user@example.com"
-		if not frappe.db.exists("User", email):
+		if user := get_user_by_email(email):
+			return user
+
+		return (
 			frappe.get_doc(
 				{"doctype": "User", "email": email, "first_name": "TMS", "user_type": "Website User"}
-			).insert(ignore_permissions=True)
-		return email
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
 
 	def allow_guest_read(self, doctype):
 		add_permission(doctype, "Guest", ptype="read")

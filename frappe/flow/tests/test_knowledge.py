@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 
 import json
+import os
+import tempfile
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -17,6 +19,7 @@ from frappe.flow.knowledge.extract import (
 	_extract_pdf,
 	_extract_pdf_page,
 	_extract_xlsx,
+	_render_page_png,
 	_render_rich_text,
 	_validate_public_url,
 	extract,
@@ -24,9 +27,17 @@ from frappe.flow.knowledge.extract import (
 from frappe.flow.knowledge.ingest import ingest_source, reconcile_source, sync_due_sources
 from frappe.flow.knowledge.retriever import retrieve, retrieve_attachments
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_to_date, get_files_path
 
 DIM = 4
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
+
+
+def _store_ids() -> set[int]:
+	if not store.table_exists():
+		return set()
+	with store._connect() as db:
+		return {row[0] for row in db.execute("select id from chunks")}
 
 
 def _rows():
@@ -66,6 +77,73 @@ class TestKnowledgeStore(IntegrationTestCase):
 		store.ensure_table_for_dimension(DIM)
 		store.add(_rows())
 
+	def test_the_store_is_outside_the_files_folder(self):
+		# any user can add a File row for a file there and download it
+		with patch.dict(frappe.flags, {"in_test": False}):
+			path = os.path.realpath(store.db_path())
+		files = os.path.realpath(get_files_path(is_private=1))
+		self.assertNotEqual(os.path.commonpath([files, path]), files)
+
+	def test_the_move_keeps_the_old_store_over_a_new_empty_one(self):
+		from frappe.patches.v17_0 import move_flow_lancedb_out_of_files as move
+
+		with tempfile.TemporaryDirectory() as site:
+			old = os.path.join(site, "private", "files", "lancedb")
+			new = os.path.join(site, "private", "lancedb")
+			os.makedirs(old)
+			os.makedirs(new)
+			open(os.path.join(old, "chunks"), "w").close()
+			with patch("frappe.get_site_path", side_effect=lambda *parts: os.path.join(site, *parts)):
+				move.execute()
+			self.assertEqual(os.listdir(new), ["chunks"])
+			self.assertFalse(os.path.exists(old))
+
+	def test_the_old_store_is_dropped_and_every_source_queued_again(self):
+		from frappe.patches.v17_0 import drop_flow_lancedb as drop
+
+		with tempfile.TemporaryDirectory() as site:
+			old = os.path.join(site, "private", "lancedb")
+			os.makedirs(os.path.join(old, "chunks.lance"))
+			with (
+				patch("frappe.get_site_path", side_effect=lambda *parts: os.path.join(site, *parts)),
+				patch("frappe.get_all", return_value=["SRC-a", "SRC-b"]),
+				patch.object(drop, "enqueue_ingestion") as enqueue,
+			):
+				drop.execute()
+			self.assertFalse(os.path.exists(old))
+		self.assertEqual(
+			[(call.args, call.kwargs) for call in enqueue.call_args_list],
+			[(("SRC-a",), {"rebuild": True}), (("SRC-b",), {"rebuild": True})],
+		)
+
+	def test_nothing_is_queued_when_there_is_no_old_store(self):
+		from frappe.patches.v17_0 import drop_flow_lancedb as drop
+
+		with (
+			tempfile.TemporaryDirectory() as site,
+			patch("frappe.get_site_path", side_effect=lambda *parts: os.path.join(site, *parts)),
+			patch("frappe.get_all", return_value=["SRC-a"]),
+			patch.object(drop, "enqueue_ingestion") as enqueue,
+		):
+			drop.execute()
+		enqueue.assert_not_called()
+
+	def test_a_queue_that_is_down_does_not_fail_the_patch(self):
+		from frappe.patches.v17_0 import drop_flow_lancedb as drop
+
+		with tempfile.TemporaryDirectory() as site:
+			old = os.path.join(site, "private", "lancedb")
+			os.makedirs(old)
+			with (
+				patch("frappe.get_site_path", side_effect=lambda *parts: os.path.join(site, *parts)),
+				patch("frappe.get_all", return_value=["SRC-a"]),
+				patch.object(drop, "enqueue_ingestion", side_effect=ConnectionError("queue down")),
+				patch("frappe.log_error") as log_error,
+			):
+				drop.execute()
+			self.assertFalse(os.path.exists(old))
+		log_error.assert_called_once()
+
 	def test_the_table_is_created_once_for_one_dimension(self):
 		self.assertEqual(store.search([1.0, 0.0, 0.0, 0.0]), [])
 		with self.assertRaisesRegex(frappe.ValidationError, "not initialized"):
@@ -78,8 +156,15 @@ class TestKnowledgeStore(IntegrationTestCase):
 		self.assertTrue(store.table_exists())
 		self.assertEqual(store.table_dimension(), DIM)
 		self.assertEqual(store.search([1.0, 0.0, 0.0, 0.0]), [])
+
+		# an empty table takes a new width, one with rows does not
+		store.ensure_table_for_dimension(DIM + 1)
+		self.assertEqual(store.table_dimension(), DIM + 1)
+		store.ensure_table_for_dimension(DIM)
+		store.add(_rows())
 		with self.assertRaisesRegex(frappe.ValidationError, "Rebuild"):
 			store.ensure_table_for_dimension(DIM + 1)
+		self.assertEqual(_store_ids(), {1, 2, 3})
 
 	def test_search_ranks_scopes_and_matches_keywords(self):
 		self._seed()
@@ -109,6 +194,17 @@ class TestKnowledgeStore(IntegrationTestCase):
 		)
 		hits = store.search([0.0, 0.0, 1.0, 0.0], text="vpn", limit=3)
 		self.assertEqual(hits[0]["id"], 4)
+		# re-adding an id replaces its row
+		store.add([{**_rows()[1], "content": "scanner offline"}])
+		self.assertEqual(sorted(_store_ids()), [1, 2, 3, 4])
+		with store._connect() as db:
+			self.assertEqual(store._keyword_search(db, "chunks", "1", [], "printer", 5), [])
+			self.assertEqual(store._keyword_search(db, "chunks", "1", [], "scanner", 5), [2])
+		# punctuation and common words are ignored
+		hits = store.search([0.0, 0.0, 1.0, 0.0], text='Is the "VPN" (still) in conflict?* -or NOT', limit=1)
+		self.assertEqual(hits[0]["id"], 4)
+		hits = store.search([1.0, 0.0, 0.0, 0.0], text="is it on or not?", limit=1)
+		self.assertEqual(hits[0]["id"], 1)
 
 	def test_delete_by_source_or_ids(self):
 		with self.assertRaises(ValueError):
@@ -117,6 +213,8 @@ class TestKnowledgeStore(IntegrationTestCase):
 			({"source": "SRC-a"}, [3]),
 			({"ids": [1, 3]}, [2]),
 			({"ids": []}, [1, 2, 3]),
+			({"ids": list(range(2, 50_000))}, [1]),
+			({"source": "SRC-a", "ids": [1, 3]}, [2, 3]),
 		):
 			with self.subTest(criteria=criteria):
 				store.drop_table()
@@ -467,6 +565,37 @@ class TestExtract(IntegrationTestCase):
 		pdf = scan((600, 200), (30, 80), "Scanned Document", format="PDF", resolution=100)
 		self.assertIn("Scanned", _extract_pdf(pdf))
 
+	def test_a_pdf_cannot_ask_for_a_huge_render_or_ocr_every_page(self):
+		import io
+
+		import pdfplumber
+		from PIL import Image
+		from pypdf import PdfWriter
+
+		writer = PdfWriter()
+		writer.add_blank_page(width=14400, height=7200)  # 200 inches wide: 40000 px at 200 DPI
+		buffer = io.BytesIO()
+		writer.write(buffer)
+		with pdfplumber.open(buffer) as pdf:
+			size = Image.open(io.BytesIO(_render_page_png(pdf.pages[0]))).size
+		self.assertEqual(size, (4000, 2000))
+
+		scans = [Image.new("RGB", (100, 100), "white") for _ in range(3)]
+		buffer = io.BytesIO()
+		scans[0].save(buffer, format="PDF", save_all=True, append_images=scans[1:])
+		with (
+			patch("frappe.flow.knowledge.extract._render_page_png", return_value=b"page"),
+			patch("frappe.flow.knowledge.extract._ocr_image", return_value="text") as ocr,
+		):
+			self.assertTrue(
+				_extract_pdf(buffer.getvalue(), max_ocr_pages=2).endswith(
+					"after page 2 were not read: their text is missing.]"
+				)
+			)
+			self.assertEqual(ocr.call_count, 2)
+			self.assertEqual(_extract_pdf(buffer.getvalue(), max_ocr_pages=3), "text\n\ntext\n\ntext")
+			self.assertEqual(ocr.call_count, 5)
+
 	def test_only_public_http_urls_are_fetched(self):
 		for url, error in (
 			("ftp://example.com/x", "http"),
@@ -523,8 +652,8 @@ class TestIngest(IntegrationTestCase):
 			order_by="chunk_index asc",
 		)
 
-	def _lance_count(self):
-		return store._open_table().count_rows() if store.table_exists() else 0
+	def _store_count(self):
+		return len(_store_ids())
 
 	def test_a_knowledge_base_is_renamed_with_its_chunks_once_no_source_processes(self):
 		store.ensure_table_for_dimension(DIM)
@@ -550,26 +679,24 @@ class TestIngest(IntegrationTestCase):
 		self.assertEqual(source.chunk_count, len(chunks))
 		self.assertEqual([c["chunk_index"] for c in chunks], list(range(len(chunks))))
 		self.assertTrue(all(c["knowledge_base"] == self.kb.name for c in chunks))
-		table = store._open_table()
-		self.assertEqual(table.count_rows(), len(chunks))
-		self.assertEqual(set(table.to_arrow().column("id").to_pylist()), {int(c["name"]) for c in chunks})
+		self.assertEqual(_store_ids(), {int(c["name"]) for c in chunks})
 
 		# a resync replaces the chunks instead of adding to them
 		self._ingest(source.name)
 		again = self._chunks(source.name)
 		self.assertEqual(len(again), len(chunks))
-		self.assertEqual(self._lance_count(), len(again))
+		self.assertEqual(self._store_count(), len(again))
 		self.assertEqual(len({c["name"] for c in again}), len(again))
 
 		# a resync that cannot embed keeps the chunks it had, still searchable
 		with self.assertRaises(frappe.ValidationError):
 			self._ingest(source.name, embedding=RuntimeError("provider down"))
 		self.assertEqual(self._chunks(source.name), again)
-		self.assertEqual(self._lance_count(), len(again))
+		self.assertEqual(self._store_count(), len(again))
 
 		source.delete()
 		self.assertEqual(frappe.db.count("Flow Knowledge Chunk", {"source": source.name}), 0)
-		self.assertEqual(self._lance_count(), 0)
+		self.assertEqual(self._store_count(), 0)
 
 	def test_an_empty_source_completes_and_a_failing_one_is_marked_failed(self):
 		empty = self._make_source(content="   ")
@@ -670,6 +797,55 @@ class TestDoctypeSync(IntegrationTestCase):
 			ingest_source(source_name, rebuild=rebuild)
 		return mock
 
+	def test_a_source_syncs_under_its_own_lock(self):
+		from frappe.utils.file_lock import LockTimeoutError
+		from frappe.utils.synchronization import filelock
+
+		source = self._source()
+
+		def sync(doc, settings):
+			# a second job can't take the lock
+			with (
+				self.assertRaises(LockTimeoutError),
+				filelock(f"flow_knowledge_source_{doc.name}", timeout=0),
+			):
+				pass
+
+		with (
+			patch("frappe.flow.knowledge.ingest._sync_doctype", side_effect=sync) as synced,
+			patch("frappe.log_error"),
+		):
+			self._sync(source.name)
+		synced.assert_called_once()
+		with filelock(f"flow_knowledge_source_{source.name}", timeout=0):
+			pass  # released
+
+	def test_a_failed_rebuild_leaves_both_stores_alike(self):
+		todos = {self._todo("SYNCTEST one").name, self._todo("SYNCTEST two").name}
+		source = self._source()
+		self._sync(source.name)
+		calls, rollback = [], frappe.db.rollback
+
+		def flaky(input, **kwargs):
+			calls.append(input)
+			if len(calls) == 2:
+				raise Exception("rate limited")
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 1),
+			patch("litellm.embedding", side_effect=flaky),
+			# a failure rolls back to the last commit
+			patch.object(frappe.db, "commit", side_effect=lambda: frappe.db.savepoint("ingest")),
+			patch.object(frappe.db, "rollback", side_effect=lambda: rollback(save_point="ingest")),
+			self.assertRaises(Exception),
+		):
+			ingest_source(source.name, rebuild=True)
+		self._assert_store_mirrors_chunks(source.name)
+		self._sync(source.name)
+		self.assertEqual(self._references(source.name), todos)
+		self._assert_store_mirrors_chunks(source.name)
+
 	def _chunks(self, source_name, reference_name=None):
 		filters = {"source": source_name}
 		if reference_name:
@@ -684,13 +860,8 @@ class TestDoctypeSync(IntegrationTestCase):
 	def _references(self, source_name):
 		return {c["reference_name"] for c in self._chunks(source_name)}
 
-	def _lance_ids(self):
-		if not store.table_exists():
-			return set()
-		return set(store._open_table().to_arrow().column("id").to_pylist())
-
-	def _assert_lance_mirrors_chunks(self, source_name):
-		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in self._chunks(source_name)})
+	def _assert_store_mirrors_chunks(self, source_name):
+		self.assertEqual(_store_ids(), {int(c["name"]) for c in self._chunks(source_name)})
 
 	def _content(self, source_name, reference_name):
 		return frappe.get_all(
@@ -712,14 +883,14 @@ class TestDoctypeSync(IntegrationTestCase):
 		chunks = self._chunks(src.name)
 		self.assertEqual({c["reference_name"] for c in chunks}, {printer.name, wifi.name})
 		self.assertTrue(all(c["content_hash"] for c in chunks))
-		self._assert_lance_mirrors_chunks(src.name)
+		self._assert_store_mirrors_chunks(src.name)
 
 		# a new row is added, the indexed ones are kept
 		scanner = self._todo("SYNCTEST second ticket about scanners")
 		self._sync(src.name)
 		self.assertEqual(self._references(src.name), {printer.name, wifi.name, scanner.name})
 		self.assertTrue({c["name"] for c in chunks}.issubset({c["name"] for c in self._chunks(src.name)}))
-		self._assert_lance_mirrors_chunks(src.name)
+		self._assert_store_mirrors_chunks(src.name)
 
 		# a content edit replaces the row's chunks
 		before = self._chunks(src.name, wifi.name)
@@ -734,7 +905,7 @@ class TestDoctypeSync(IntegrationTestCase):
 		after = self._chunks(src.name, wifi.name)
 		self.assertNotEqual(after[0]["content_hash"], before[0]["content_hash"])
 		self.assertTrue({c["name"] for c in before}.isdisjoint({c["name"] for c in after}))
-		self._assert_lance_mirrors_chunks(src.name)
+		self._assert_store_mirrors_chunks(src.name)
 
 		# any other edit is skipped without embedding
 		before = {c["name"]: c["content_hash"] for c in self._chunks(src.name, printer.name)}
@@ -755,13 +926,13 @@ class TestDoctypeSync(IntegrationTestCase):
 		frappe.db.set_value("ToDo", closed.name, "status", "Cancelled", update_modified=True)
 		self.assertEqual(self._sync(src.name).call_count, 0)
 		self.assertEqual(self._chunks(src.name, closed.name), [])
-		self._assert_lance_mirrors_chunks(src.name)
+		self._assert_store_mirrors_chunks(src.name)
 
 		# a delete leaves a tombstone the sweep reads
 		frappe.delete_doc("ToDo", deleted.name)
 		self._sync(src.name)
 		self.assertEqual(self._references(src.name), {keep.name, raw.name})
-		self._assert_lance_mirrors_chunks(src.name)
+		self._assert_store_mirrors_chunks(src.name)
 
 		# a raw delete leaves none: the sweep misses it, a reconcile purges it
 		frappe.db.delete("ToDo", {"name": raw.name})
@@ -769,7 +940,7 @@ class TestDoctypeSync(IntegrationTestCase):
 		self.assertEqual(self._references(src.name), {keep.name, raw.name})
 		reconcile_source(src.name)
 		self.assertEqual(self._references(src.name), {keep.name})
-		self._assert_lance_mirrors_chunks(src.name)
+		self._assert_store_mirrors_chunks(src.name)
 		src.reload()
 		self.assertEqual(src.chunk_count, len(self._chunks(src.name)))
 
@@ -791,6 +962,77 @@ class TestDoctypeSync(IntegrationTestCase):
 
 		self._sync(source.name, rebuild=True)
 		self.assertIn("Status: Closed", " ".join(self._content(source.name, todo.name)))
+
+	def test_a_row_edited_mid_sweep_does_not_make_the_next_page_skip_one(self):
+		from frappe.flow.knowledge.ingest import _upsert_page
+
+		todos = [self._todo(f"SYNCTEST row {i}") for i in range(4)]
+		source = self._source()
+		self._sync(source.name)
+		for i, todo in enumerate(todos):  # all changed since that sweep, in this order
+			todo.db_set("modified", add_to_date(None, minutes=i + 1), update_modified=False)
+
+		def edit_the_first_row(*args, **kwargs):
+			_upsert_page(*args, **kwargs)
+			todos[0].db_set("modified", add_to_date(None, minutes=10), update_modified=False)
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 2),
+			patch("frappe.flow.knowledge.ingest._upsert_page", side_effect=edit_the_first_row),
+		):
+			self._sync(source.name)
+		self.assertEqual(self._references(source.name), {todo.name for todo in todos})
+
+	def test_a_retried_first_sync_drops_rows_that_left_the_filter(self):
+		first, second = sorted((self._todo("SYNCTEST one"), self._todo("SYNCTEST two")), key=lambda t: t.name)
+		source = self._source()
+		calls, rollback = [], frappe.db.rollback
+
+		def flaky(input, **kwargs):
+			calls.append(input)
+			if len(calls) == 2:
+				raise Exception("rate limited")
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 1),
+			patch("litellm.embedding", side_effect=flaky),
+			# a failure rolls back to the last commit
+			patch.object(frappe.db, "commit", side_effect=lambda: frappe.db.savepoint("ingest")),
+			patch.object(frappe.db, "rollback", side_effect=lambda: rollback(save_point="ingest")),
+			self.assertRaises(Exception),
+		):
+			ingest_source(source.name)
+		self.assertEqual(self._references(source.name), {first.name})
+
+		first.db_set("description", "no longer a sync row")
+		self._sync(source.name)
+		self.assertEqual(self._references(source.name), {second.name})
+		self._assert_store_mirrors_chunks(source.name)
+
+	def test_moving_a_source_moves_its_chunks(self):
+		self._todo("SYNCTEST alpha")
+		source = self._source()
+		self._sync(source.name)
+		other = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Other Sync KB"}).insert()
+
+		source.knowledge_base = other.name
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+			source.save()
+		# moved at once, with nothing to re-chunk that could fail
+		enqueue.assert_not_called()
+
+		query = [0.1, 0.2, 0.3, 0.4]
+		self.assertEqual(store.search(query, kbs=[self.kb.name]), [])
+		self.assertTrue(store.search(query, kbs=[other.name]))
+		chunks = frappe.get_all("Flow Knowledge Chunk", {"source": source.name}, pluck="knowledge_base")
+		self.assertEqual(set(chunks), {other.name})
+
+		with self.subTest("not while processing"):
+			source.db_set("status", "Processing", update_modified=False)
+			source.knowledge_base = self.kb.name
+			with self.assertRaisesRegex(frappe.ValidationError, "still processing"):
+				source.save()
 
 	def test_sync_due_sources_enqueues_only_auto_sync_doctypes(self):
 		auto = self._source()
@@ -815,6 +1057,16 @@ class TestDoctypeSync(IntegrationTestCase):
 		self.assertIn(auto.name, enqueued)
 		self.assertNotIn(manual.name, enqueued)
 		self.assertNotIn(text.name, enqueued)
+
+	def test_a_restored_site_rebuilds_every_source(self):
+		self._todo("SYNCTEST alpha")
+		source = self._source()
+		self._sync(source.name)
+		store.drop_table()  # a restore brings back the chunk rows, not the store
+
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as mock:
+			sync_due_sources()
+		mock.assert_called_once_with(source.name, rebuild=True)
 
 
 class TestRetriever(IntegrationTestCase):
@@ -1025,7 +1277,29 @@ class TestAttachmentStore(IntegrationTestCase):
 
 		self._seed()
 		attachment_store.ensure_table(DIM + 1)  # different width -> dropped and recreated
-		self.assertEqual(attachment_store._open_table().count_rows(), 0)
+		self.assertEqual(attachment_store.search([1.0, 0.0, 0.0, 0.0, 0.0], session="SES-a"), [])
+
+	def test_a_row_id_reused_by_another_session_is_not_returned(self):
+		attachment_store.ensure_table(DIM)
+		attachment_store.add("SES-a", "ATT-1", ["printer of a"], [[1.0, 0.0, 0.0, 0.0]])
+		keyword_search = store._keyword_search
+
+		def reuse_the_row_id(*args):
+			found = keyword_search(*args)
+			attachment_store.delete(session="SES-a")
+			attachment_store.add("SES-b", "ATT-2", ["printer of b"], [[1.0, 0.0, 0.0, 0.0]])
+			return found
+
+		with patch.object(store, "_keyword_search", side_effect=reuse_the_row_id):
+			hits = attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a", text="printer")
+		self.assertEqual(hits, [])
+
+	def test_a_zero_vector_is_left_out_of_vector_search(self):
+		attachment_store.ensure_table(DIM)
+		attachment_store.add("SES-a", "ATT-1", ["zero", "one"], [[0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0]])
+		hits = attachment_store.search([1.0, 0.0, 0.0, 0.0], session="SES-a")
+		self.assertEqual([hit["content"] for hit in hits], ["one"])
+		self.assertEqual(attachment_store.search([0.0, 0.0, 0.0, 0.0], session="SES-a"), [])
 
 	def test_search_is_scoped_to_one_session(self):
 		self._seed()

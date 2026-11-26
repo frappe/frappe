@@ -14,6 +14,7 @@ import {
 	subagentTitle,
 	waitingApprovals,
 } from "./transcript.js"
+import { __ } from "./translate.js"
 
 // mirrors MAX_ATTACHMENTS_PER_MESSAGE on the daemon; the client has no endpoint to
 // learn it from, so it is restated here and enforced before anything is staged
@@ -69,6 +70,7 @@ const SYNCED_PREFS = [
 	"folderOrder",
 	"chatFontSize",
 	"chatFontWeight",
+	"separateToolCalls",
 ]
 const COLOR_SCHEMES = ["system", "light", "dark"]
 
@@ -127,7 +129,7 @@ export function createFlowStore(client, options = {}) {
 		webSearch: null, // { provider, api_key } for new chats; null uses DuckDuckGo
 		cwd: null,
 		sidebarOpen: true,
-		sidebarWidth: 288,
+		sidebarWidth: 256,
 		openFolders: [], // the sidebar's expanded workspace folders
 		sidebarGroup: "workspace", // "workspace" | "list": the sidebar's chats under their folders, or in one list
 		sidebarOrder: "updated", // "updated" | "manual": newest activity first, or as dragged
@@ -137,6 +139,7 @@ export function createFlowStore(client, options = {}) {
 		explorerWidth: 220,
 		chatFontSize: CHAT_FONT_SIZE.default,
 		chatFontWeight: CHAT_FONT_WEIGHT.default,
+		separateToolCalls: false, // true lists every tool call on its own row; else a run of them folds into one line
 	}
 	// only what differs from these is saved, so a setting left alone follows a new default
 	const prefs = { ...copy(defaults), ...readJSON(keys.prefs, {}) }
@@ -187,9 +190,14 @@ export function createFlowStore(client, options = {}) {
 
 	let stream = null
 	let streamTask = null
+	const modelChanges = new Map()
 	let opening = 0 // keys the newest openSession: an older load of the same chat gives way
 	let creating = null // { blank, session }: in-flight lazy session creation; a double-send shares it
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
+	// a sent picture's own file, by each id its bubble goes by (the composer's, then the stored copy's),
+	// so the bubble shows it from the start rather than a chip while the stored copy loads. Only for a
+	// client that can load that copy later, and dropped when the chat is left
+	const sentPreviews = new Map()
 	let queueCount = 0 // keys the queue's rows
 	let lastRunEnd = null // the open session's latest run_ended reason
 	// waiting messages, as { message, attachments, afterSeq }, of the sessions not open right now
@@ -332,7 +340,7 @@ export function createFlowStore(client, options = {}) {
 		return (
 			info.title ??
 			state.titles[info.session_id] ??
-			`${(info.cwd ?? "").split("/").filter(Boolean).pop() ?? "session"} · ${info.session_id.slice(0, 8)}`
+			`${(info.cwd ?? "").split("/").filter(Boolean).pop() ?? __("session")} · ${info.session_id.slice(0, 8)}`
 		)
 	}
 
@@ -428,7 +436,7 @@ export function createFlowStore(client, options = {}) {
 		if (!data) return
 		foldersRequest++
 		state.folders = state.folders.map((folder) => (folder.path === path ? data.workspace : folder))
-		notify("Workspace renamed")
+		notify(__("Workspace renamed"))
 	}
 
 	// it leaves the sidebar, its folder and chats stay: the chats are in no workspace now, and a new
@@ -440,7 +448,7 @@ export function createFlowStore(client, options = {}) {
 		state.folders = state.folders.filter((folder) => folder.path !== path)
 		for (const session of state.sessions) if (session.workspace === path) session.workspace = null
 		if (!state.sessionId && state.prefs.cwd === path) setCwd(latestFolder())
-		notify("Workspace deleted")
+		notify(__("Workspace deleted"))
 	}
 
 	// Typing filters the loaded rows, which is exact only while every session is loaded;
@@ -449,6 +457,14 @@ export function createFlowStore(client, options = {}) {
 		if (query === listQuery) return
 		if (!listQuery && !state.sessionsMore) return
 		return refreshSessions({ query })
+	}
+
+	// The palette's search past a full page: the host's matches by title, for a list of its
+	// own, so the sidebar keeps the chats it shows. None while every chat is loaded.
+	async function findSessions(query) {
+		if (!state.sessionsMore) return []
+		const data = await guard(() => client.sessions({ query }))
+		return data?.sessions ?? []
 	}
 
 	// only the newest request lands, so an older answer can't end its loading or replace its list
@@ -528,7 +544,7 @@ export function createFlowStore(client, options = {}) {
 			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
 			tabs: stored.map(({ kind, path, diff, since }) =>
 				kind === "subagent"
-					? { kind, path, name: "Sub-agent" } // named once the thread is loaded
+					? { kind, path, name: __("Sub-agent") } // named once the thread is loaded
 					: {
 							kind: "editor",
 							path,
@@ -554,7 +570,10 @@ export function createFlowStore(client, options = {}) {
 		// a same-session reload (rewind) keeps the open file tabs as they are, and a chat
 		// just created (`config`) keeps the ones opened before its first message
 		const switching = state.sessionId !== sid && !config
-		if (switching) resetWorkspace()
+		if (switching) {
+			resetWorkspace()
+			dropSentPreviews()
+		}
 		swapQueue(sid)
 		state.sessionId = sid
 		if (switching) restoreWorkspace(sid)
@@ -572,12 +591,16 @@ export function createFlowStore(client, options = {}) {
 		state.conversation = initialConversation()
 		// a chat just created knows its model, and a list row's when the host vouches for it;
 		// anything else waits for the load
-		state.conversation.model = config?.model ?? (options.listedModel ? listed?.model : null) ?? null
+		const changing = modelChanges.get(sid)
+		state.conversation.model = changing?.model ?? config?.model ?? (options.listedModel ? listed?.model : null) ?? null
+		state.conversation.reasoningEffort = changing?.reasoning_effort ?? null
 		lastRunEnd = null
 		// a message sent before this session existed is still in flight: its bubble
 		// stays up instead of blinking out while the transcript loads
 		state.conversation.sending = sending
 		state.loading = true
+		while (modelChanges.has(sid)) await modelChanges.get(sid).promise
+		if (state.sessionId !== sid || own !== opening) return
 		const [info, catalog] = await Promise.all([
 			guard(() => client.session(sid), { quiet }),
 			options.skillsEnabled && typeof client.skills === "function"
@@ -659,6 +682,11 @@ export function createFlowStore(client, options = {}) {
 			thread.liveErrorSeqs.push(event.seq)
 		}
 		if (event.subagent_id) return // a sub-agent's rows change nothing below
+		const changing = modelChanges.get(sid)
+		if (event.type === "model_changed" && changing) {
+			state.conversation.model = changing.model
+			state.conversation.reasoningEffort = changing.reasoning_effort
+		}
 		if (event.type === "user_message") {
 			// Match attachment messages, whose text is wrapped in content blocks.
 			const blocks = Array.isArray(event.content) ? event.content : []
@@ -722,10 +750,24 @@ export function createFlowStore(client, options = {}) {
 
 	// Reset to the blank "new chat" state, in the caller's folder or newChatCwd's.
 	// No server call — send() creates it lazily.
+	function keepPreviews(items, ids = items.map((item) => item.id ?? item.key)) {
+		if (typeof client.attachmentBlob !== "function") return
+		items.forEach((item, i) => {
+			if (item.kind === "image" && item.file && ids[i] && !sentPreviews.has(ids[i]))
+				sentPreviews.set(ids[i], URL.createObjectURL(item.file))
+		})
+	}
+
+	function dropSentPreviews() {
+		for (const url of sentPreviews.values()) URL.revokeObjectURL(url)
+		sentPreviews.clear()
+	}
+
 	function startNewChat({ cwd = null } = {}) {
 		const nextCwd = cwd ?? newChatCwd()
 		closeStream()
 		resetWorkspace()
+		dropSentPreviews()
 		swapQueue(null)
 		state.sessionId = null
 		state.session = null
@@ -799,6 +841,9 @@ export function createFlowStore(client, options = {}) {
 	async function loadSkills({ force = false } = {}) {
 		if (!options.skillsEnabled) return
 		const sid = state.sessionId
+		// a chat still opening loads its own, and says once why it can't open; a forced
+		// refetch still runs, for a skill that changed meanwhile
+		if (sid && state.loading && !force) return
 		const cwd = state.prefs.cwd
 		// a live session reports what it can invoke; before one exists, preview the folder
 		const fetcher = sid ? client.skills : client.previewSkills
@@ -832,7 +877,7 @@ export function createFlowStore(client, options = {}) {
 		const model = state.conversation.model ?? (state.loading ? null : state.prefs.lastModel)
 		if (!options.onlyListedModels || !model || !state.models.length) return null
 		if (state.models.some((item) => item.name === model)) return null
-		return `${modelTitle(model, state.models)} isn't available to you. Pick a different model.`
+		return __("{0} isn't available to you. Pick a different model.", [modelTitle(model, state.models)])
 	}
 
 	async function send(text, attachments = []) {
@@ -842,13 +887,13 @@ export function createFlowStore(client, options = {}) {
 		// MAX_ATTACHMENTS; only their sum rides the run, so check it before staging
 		// anything — otherwise both succeed and the run is rejected as oversized.
 		if (attachments.length > options.maxAttachments) {
-			notify(`A message can carry at most ${options.maxAttachments} attachments.`, "error")
+			notify(__("A message can carry at most {0} attachments.", [options.maxAttachments]), "error")
 			return false
 		}
 		// a paused run refuses every message until its approval is answered, so say that
 		// here instead of sending one and handing the text back with an error
 		if (state.conversation.pendingApproval) {
-			notify("Answer the approval before sending another message.", "error")
+			notify(__("Answer the approval before sending another message."), "error")
 			return false
 		}
 		// A run going, or about to start with a message still on its way, holds the next
@@ -877,6 +922,7 @@ export function createFlowStore(client, options = {}) {
 	// Opens the next turn, its bubble up before the first round trip: creating the
 	// session, searching memory and reaching the daemon happen behind it.
 	async function sendNow(message, attachments) {
+		keepPreviews(attachments)
 		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments) }
 		state.conversation.sending.push(pending)
 		const sent = await deliver(message, attachments, pending, null)
@@ -890,7 +936,7 @@ export function createFlowStore(client, options = {}) {
 	async function sendQueued(item) {
 		if (!state.queued.includes(item)) return
 		if (state.conversation.pendingApproval) {
-			notify("Answer the approval before sending another message.", "error")
+			notify(__("Answer the approval before sending another message."), "error")
 			return
 		}
 		if (!state.conversation.running) return sendWaiting(item)
@@ -937,7 +983,7 @@ export function createFlowStore(client, options = {}) {
 			message,
 			attachments,
 			afterSeq,
-			label: message || `${attachments.length} attachment(s)`,
+			label: message || __("{0} attachment(s)", [attachments.length]),
 		}
 	}
 
@@ -997,7 +1043,7 @@ export function createFlowStore(client, options = {}) {
 		const created = !sid
 		if (created) {
 			if (options.requireCwd && !state.prefs.cwd) {
-				notify("Choose a project folder before sending a message.", "error")
+				notify(__("Choose a project folder before sending a message."), "error")
 				return false
 			}
 			// only from the same blank chat: one opened since makes a chat of its own
@@ -1012,6 +1058,7 @@ export function createFlowStore(client, options = {}) {
 				if (creating === own) creating = null
 			}
 		}
+		while (modelChanges.has(sid)) await modelChanges.get(sid).promise
 		const staged = await stageAttachments(sid, attachments)
 		if (!staged) return false
 		const attachmentIds = staged.attachments.map((item) => item.id)
@@ -1021,6 +1068,7 @@ export function createFlowStore(client, options = {}) {
 			// with it, and the turn can consume it before this call answers
 			if (steered) steered.attachmentIds = attachmentIds
 			const seen = state.conversation.entries.length
+			while (modelChanges.has(sid)) await modelChanges.get(sid).promise
 			const result = await guard(() => client.run(sid, message, attachmentIds))
 			if (!result) return false
 			admitted = true
@@ -1059,7 +1107,8 @@ export function createFlowStore(client, options = {}) {
 	// id: { attachments: [{ id, name, kind }], created: ids staged by this call }, or null
 	// when one failed (the guard has said why, and nothing staged here is left behind).
 	async function stageAttachments(sid, attachments) {
-		const uploads = attachments.filter((item) => item.file && !item.id).map((item) => item.file)
+		const uploading = attachments.filter((item) => item.file && !item.id)
+		const uploads = uploading.map((item) => item.file)
 		const mentionPaths = attachments.filter((item) => item.mentionPath).map((item) => item.mentionPath)
 		// independent sources — resolve concurrently rather than paying two round trips
 		const [uploaded, attached] = await Promise.all([
@@ -1071,6 +1120,9 @@ export function createFlowStore(client, options = {}) {
 			if (created.length) await client.cleanupAttachments(sid, created.map((item) => item.id)).catch(() => {})
 			return null
 		}
+		// the server answers uploads in the order they went
+		keepPreviews(attachments.filter((item) => item.id))
+		keepPreviews(uploading, (uploaded?.attachments ?? []).map((item) => item.id))
 		return {
 			attachments: [...attachments.filter((item) => item.id), ...created].map(({ id, name, kind }) => ({ id, name, kind })),
 			created: created.map((item) => item.id),
@@ -1125,8 +1177,9 @@ export function createFlowStore(client, options = {}) {
 		await refreshTools() // a reload can add or drop extension tools
 		const names = info.extensions.map((extension) => extension.name)
 		const errors = info.diagnostics.filter((diagnostic) => diagnostic.severity === "error")
-		if (errors.length) notify(`Extension error: ${errors[0].message}`, "error")
-		else notify(names.length ? `Extensions reloaded: ${names.join(", ")}` : "Extensions reloaded: none loaded")
+		const loaded = names.join(", ")
+		if (errors.length) notify(__("Extension error: {0}", [errors[0].message]), "error")
+		else notify(names.length ? __("Extensions reloaded: {0}", [loaded]) : __("Extensions reloaded: none loaded"))
 	}
 
 	// Rewind to just before a user message: everything after it leaves the
@@ -1207,28 +1260,11 @@ export function createFlowStore(client, options = {}) {
 			state.prefs.lastModel = model
 			return savePrefs()
 		}
-		const data = await guard(() =>
-			client.setModel(sid, {
-				model,
-				reasoning_effort:
-					state.prefs.lastEffort && state.prefs.lastEffort !== "default" ? state.prefs.lastEffort : null,
-			}),
-		)
-		// a chat refuses a change while it runs: only one it took becomes the default
-		if (!data) return
-		state.prefs.lastModel = model
-		savePrefs()
-		// the list's copy is what this chat shows while it reopens
-		const listed = state.sessions.find((s) => s.session_id === sid)
-		if (listed) listed.model = data.model
-		if (state.sessionId !== sid) return // the user moved to another chat meanwhile
-		state.conversation.model = data.model
-		state.conversation.contextWindow = data.context_window ?? null
-		if (state.session) {
-			state.session.model = data.model
-			state.session.context_window = data.context_window ?? null
-			state.session.supports_images = data.supports_images
-		}
+		const changing = modelChanges.get(sid)
+		const effort = changing
+			? changing.reasoning_effort
+			: state.prefs.lastEffort && state.prefs.lastEffort !== "default" ? state.prefs.lastEffort : null
+		await changeModel(sid, model, effort, "lastModel")
 	}
 
 	// a model the host renamed stays the one a new chat starts with
@@ -1246,18 +1282,48 @@ export function createFlowStore(client, options = {}) {
 		}
 		const model = state.conversation.model ?? state.session?.model
 		if (!model) return
-		const data = await guard(() =>
-			client.setModel(sid, {
-				model,
-				reasoning_effort: effort === "default" ? null : effort,
-			}),
-		)
-		// a chat refuses a change while it runs: only one it took becomes the default
-		if (!data) return
-		state.prefs.lastEffort = effort
-		savePrefs()
-		if (state.sessionId !== sid) return // the user moved to another chat meanwhile
-		state.conversation.reasoningEffort = effort === "default" ? null : effort
+		await changeModel(sid, model, effort === "default" ? null : effort, "lastEffort")
+	}
+
+	function changeModel(sid, model, effort, preference) {
+		const conversation = state.conversation
+		const previous = modelChanges.get(sid)
+		const confirmed = previous?.confirmed ?? {
+			model: conversation.model,
+			reasoning_effort: conversation.reasoningEffort,
+			context_window: conversation.contextWindow,
+			supports_images: state.session?.supports_images,
+		}
+		const preferences = {
+			...previous?.preferences,
+			[preference]: preference === "lastModel" ? model : effort ?? "default",
+		}
+		const changing = { model, reasoning_effort: effort, confirmed, preferences, promise: null }
+		modelChanges.set(sid, changing)
+		conversation.model = model
+		conversation.reasoningEffort = effort
+		changing.promise = (async () => {
+			if (previous) await previous.promise
+			const data = await guard(() => client.setModel(sid, { model, reasoning_effort: effort }))
+			if (data) {
+				if (confirmed.model !== data.model) confirmed.context_window = null
+				Object.assign(confirmed, data, { reasoning_effort: effort })
+				const listed = state.sessions.find((s) => s.session_id === sid)
+				if (listed) listed.model = data.model
+				Object.assign(state.prefs, preferences)
+				savePrefs()
+			}
+			if (modelChanges.get(sid) === changing) {
+				modelChanges.delete(sid)
+				if (state.sessionId === sid) {
+					state.conversation.model = confirmed.model
+					state.conversation.reasoningEffort = confirmed.reasoning_effort
+					state.conversation.contextWindow = confirmed.context_window
+					if (state.session) Object.assign(state.session, confirmed)
+				}
+			}
+		})()
+		return changing.promise
 	}
 
 	// Approval mode: remembered for new chats, and applied to the current session
@@ -1468,7 +1534,7 @@ export function createFlowStore(client, options = {}) {
 	function openSubagent(id) {
 		const ws = state.workspace
 		if (!ws.tabs.some((t) => t.path === id)) {
-			const name = subagentTabName(id) ?? "Sub-agent"
+			const name = subagentTabName(id) ?? __("Sub-agent")
 			ws.tabs.push({ kind: "subagent", path: id, name })
 		}
 		ws.active = id
@@ -1489,7 +1555,7 @@ export function createFlowStore(client, options = {}) {
 	// the tab reads like the step row; null once the call left the branch
 	function subagentTabName(id) {
 		const title = subagentTitle(state.conversation, id)
-		return title == null ? null : `Sub-agent: ${title}`
+		return title == null ? null : __("Sub-agent: {0}", [title])
 	}
 
 	async function saveFile(path, content) {
@@ -1615,6 +1681,11 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
+	function setSeparateToolCalls(on) {
+		state.prefs.separateToolCalls = !!on
+		savePrefs()
+	}
+
 	function setSettingsOpen(open, tab = null) {
 		if (tab) state.settingsTab = tab
 		state.settingsOpen = open
@@ -1699,7 +1770,7 @@ export function createFlowStore(client, options = {}) {
 		const listed = state.sessions.find((info) => info.session_id === sid)
 		if (listed) listed.title = data.config.title
 		if (state.sessionId === sid && state.session) state.session.title = data.config.title
-		notify("Chat renamed")
+		notify(__("Chat renamed"))
 	}
 
 	async function deleteSession(sid) {
@@ -1716,7 +1787,7 @@ export function createFlowStore(client, options = {}) {
 		}
 		if (state.sessionId === sid) startNewChat()
 		heldBySession.delete(sid)
-		notify("Chat deleted")
+		notify(__("Chat deleted"))
 	}
 
 	// Pick a cwd via the daemon's native folder dialog; null = cancelled or unavailable.
@@ -1726,7 +1797,7 @@ export function createFlowStore(client, options = {}) {
 			return data.path
 		} catch (error) {
 			if (error instanceof FlowAPIError && error.status === 501)
-				notify("No folder dialog on this host — use /cwd <path> instead.", "error")
+				notify(__("No folder dialog on this host — use /cwd <path> instead."), "error")
 			else notify(error.message, "error")
 			return null
 		}
@@ -1762,6 +1833,7 @@ export function createFlowStore(client, options = {}) {
 		discardAttachments: client.discardAttachments?.bind(client),
 		refreshSessions,
 		loadMoreSessions,
+		findSessions,
 		searchSessions,
 		refreshModels,
 		refreshTools,
@@ -1819,6 +1891,7 @@ export function createFlowStore(client, options = {}) {
 		setWebSearch,
 		setChatFontSize,
 		setChatFontWeight,
+		setSeparateToolCalls,
 		setSettingsOpen,
 		setTranscriptOpen,
 		activePreset,
@@ -1838,6 +1911,7 @@ export function createFlowStore(client, options = {}) {
 		removeFolder,
 		pickFolder,
 		attachmentPreview,
+		sentPreview: (id) => sentPreviews.get(id) ?? null,
 		sessionTitle,
 		notify,
 		detach,

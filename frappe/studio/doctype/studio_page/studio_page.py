@@ -9,6 +9,7 @@ from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.studio.doctype.studio_component.studio_component import (
+	delete_component_files,
 	get_components_for_blocks,
 	mark_components_standard,
 )
@@ -30,9 +31,12 @@ from frappe.studio.export import (
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import (
 	camel_case_to_kebab_case,
+	find_script_file,
 	get_export_folder,
 	has_page_write_perm,
+	script_extension,
 	validate_file_name,
+	validate_one_script_file,
 	walk_blocks,
 )
 from frappe.utils import get_datetime
@@ -106,11 +110,11 @@ class StudioPage(Document):
 	def validate(self):
 		validate_standard_app_change(self)
 		self.validate_page_title()
-		# only published pages are served, so only they must not share a route or title
-		if self.published and any(
-			self.has_value_changed(field) for field in ("route", "page_title", "published")
-		):
-			self.validate_conflicts_with_other_pages()
+		if self.has_value_changed("page_title"):
+			self.validate_export_stem_is_free()
+		if self.has_value_changed("route"):
+			self.validate_route_is_free()
+
 		# passed from the frontend for faster page saves when variables & resources are not changed
 		if not hasattr(self, "_skip_validate"):
 			self.validate_variables()
@@ -132,37 +136,37 @@ class StudioPage(Document):
 		if can_export(self):
 			# each page lives in its own folder: studio/<app>/studio_page/<scrubbed_title>/
 			frappe.create_folder(self.get_folder_path())
-			# script lives in the companion .ts (code mode), so keep it out of the JSON
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
 			self.relocate_on_retitle()
 			self.export_components()
 
 	def export_script_to_file(self):
-		"""Move the page script into its companion <page>.ts and clear the DB `script` field. Called on enabling exports"""
+		"""Move page code to its repository file and clear the DB field. Called on enabling exports.
+
+		A database app's script is JavaScript, so it keeps that language on disk."""
 		if not self.script:
 			return
 		if os.path.exists(self.get_script_file_path()):
 			self.db_set("script", None, update_modified=False)
 		else:
-			self.write_script_file()
+			self.write_script_file(default_extension="js")
 
-	def write_script_file(self):
-		"""Write the page script to its companion <page>.ts and clear the DB field."""
+	def write_script_file(self, default_extension: str = "ts"):
+		"""Write the page script to its companion file and clear the DB field. An existing file keeps
+		its language; a new one is TypeScript unless the caller asks for another."""
 		if self.script:
-			frappe.create_folder(self.get_folder_path())
-			write_code_file(
-				self,
-				self.get_folder_path(),
-				code_field="script",
-				extension="ts",
-				filename=self.get_export_docname(),
-			)
+			folder = self.get_folder_path()
+			stem = self.get_export_docname()
+			extension = script_extension(folder, stem, default_extension)
+			validate_one_script_file(folder, f"{stem}.{extension}")
+			frappe.create_folder(folder)
+			write_code_file(self, folder, code_field="script", extension=extension, filename=stem)
 		else:
 			delete_file(self.get_script_file_path())
 		self.db_set("script", None, update_modified=False)
 
 	def restore_script_from_file(self):
-		"""Load the exported <page>.ts back into the `script` field, so the code survives in DB-only
+		"""Load the exported script back into the `script` field, so the code survives in DB-only
 		mode (called before the export folder is deleted on un-export)."""
 		if self.has_script_file():
 			self.db_set("script", frappe.read_file(self.get_script_file_path()), update_modified=False)
@@ -195,17 +199,15 @@ class StudioPage(Document):
 			return bool(name) and re.search(rf"\b{re.escape(name)}\b", text)
 
 		return {
-			"components": get_components_for_blocks(blocks),
+			"components": get_components_for_blocks(blocks, self.studio_app),
 			"files": self.get_app_files(script, blocks),
 			"resources": [pick(r, PAGE_RESOURCE_FIELDS) for r in self.resources if used(r.resource_name)],
 			"variables": [pick(v, PAGE_VARIABLE_FIELDS) for v in self.variables if used(v.variable_name)],
 		}
 
 	def get_app_files(self, script: str, blocks) -> list[dict]:
-		if not (self.is_standard and self.frappe_app):
-			return []
 		app = self.get_app()
-		script_dir = os.path.relpath(self.get_folder_path(), app.get_folder_path())
+		script_dir = f"studio_page/{self.get_export_docname()}"
 		return app.collect_files(script, script_dir, blocks)
 
 	def get_app(self):
@@ -221,7 +223,7 @@ class StudioPage(Document):
 
 	def relocate_on_retitle(self):
 		"""The page folder and its files are named after the page title, so a retitle relocates them.
-		The JSON is regenerated under the new name; carry the companion <page>.ts over too, then
+		The JSON is regenerated under the new name; carry the companion script over too, then
 		remove the old folder."""
 		if not self.has_value_changed("page_title"):
 			return
@@ -235,9 +237,11 @@ class StudioPage(Document):
 		)
 		if old_folder == self.get_folder_path():
 			return
-		old_page_script = os.path.join(old_folder, f"{old_stem}.ts")
+		old_page_script = find_script_file(old_folder, old_stem)
 		if os.path.exists(old_page_script):
-			os.rename(old_page_script, self.get_script_file_path())
+			extension = os.path.splitext(old_page_script)[1]
+			new_name = self.get_export_docname() + extension
+			os.rename(old_page_script, os.path.join(self.get_folder_path(), new_name))
 		delete_folder(old_folder)
 
 	def has_blocks(self, check_draft: bool = False):
@@ -385,7 +389,7 @@ class StudioPage(Document):
 		blocks = parse_json(self.blocks) or []
 		if not blocks:
 			return []
-		trees = [blocks, *(parse_json(component["block"]) for component in get_components_for_blocks(blocks))]
+		trees = [blocks, *(parse_json(component["block"]) for component in self.get_components(blocks))]
 		return [
 			(block.get("componentProps") or {}).get("name") or "Variant"
 			for tree in trees
@@ -406,22 +410,30 @@ class StudioPage(Document):
 		self.save()
 		return self.modified
 
-	def validate_conflicts_with_other_pages(self):
+	def validate_export_stem_is_free(self):
+		stem = self.get_export_docname()
+		for page_title in frappe.get_all(
+			"Studio Page",
+			filters={"studio_app": self.studio_app, "name": ["!=", self.name]},
+			pluck="page_title",
+		):
+			if frappe.scrub(page_title) == stem:
+				frappe.throw(
+					_('Page titles "{0}" and "{1}" both become "{2}". Rename one of the pages.').format(
+						self.page_title, page_title, stem
+					),
+					title=_("Conflicting Page Titles"),
+				)
+
+	def validate_route_is_free(self):
+		# preview and the editor route every page of the app, published or not
 		other_pages = frappe.get_all(
 			"Studio Page",
-			filters={"studio_app": self.studio_app, "name": ["!=", self.name], "published": 1},
-			or_filters=[
-				["route", "=", self.route],
-				["page_title", "=", self.page_title],
-			],
-			fields=["route", "page_title"],
+			filters={"studio_app": self.studio_app, "name": ["!=", self.name], "route": self.route},
+			pluck="page_title",
 		)
 		if other_pages:
-			frappe.throw(
-				_("Page(s) with duplicate Route or Page Title already exist in this app: {0}").format(
-					", ".join([f"{page.page_title} - {page.route}" for page in other_pages]),
-				)
-			)
+			frappe.throw(_("Route {0} is already used by: {1}").format(self.route, ", ".join(other_pages)))
 
 	def get_folder_path(self, with_filename: bool = False) -> str:
 		# each page exports to its own folder: studio/<app>/studio_page/<scrubbed_title>/
@@ -431,13 +443,14 @@ class StudioPage(Document):
 		return os.path.join(*path)
 
 	def export_components(self):
-		components = get_components_for_blocks(get_blocks(self))
+		components = self.get_components(get_blocks(self))
 		if components:
 			frappe.create_folder(self.get_component_folder_path())
 			mark_components_standard([component.name for component in components])
 		for component in components:
-			doc = frappe.get_doc("Studio Component", component.name)
-			write_document_file(doc, folder=self.get_component_folder_path())
+			frappe.get_doc("Studio Component", component.name).export_to_folder(
+				self.get_component_folder_path()
+			)
 		self.delete_unused_component_files()
 
 	def delete_unused_component_files(self, deleting: bool = False):
@@ -450,10 +463,13 @@ class StudioPage(Document):
 			filters["name"] = ["!=", self.name]
 		pages = frappe.get_all("Studio Page", filters=filters, fields=["blocks", "draft_blocks"])
 		blocks = [block for page in pages for block in get_blocks(page)]
-		used = {frappe.scrub(component.name) for component in get_components_for_blocks(blocks)}
+		used = {frappe.scrub(component.component_id) for component in self.get_components(blocks)}
 		for file in os.listdir(folder):
 			if file.endswith(".json") and file.removesuffix(".json") not in used:
-				delete_file(folder, file)
+				delete_component_files(folder, file.removesuffix(".json"))
+
+	def get_components(self, blocks) -> list[dict]:
+		return get_components_for_blocks(blocks, self.studio_app)
 
 	def get_component_folder_path(self) -> str:
 		return os.path.join(get_export_folder(self.frappe_app, self.studio_app), "studio_components")
@@ -462,7 +478,7 @@ class StudioPage(Document):
 		return f"{self.get_export_docname()}.json"
 
 	def get_script_file_path(self) -> str:
-		return os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+		return find_script_file(self.get_folder_path(), self.get_export_docname())
 
 
 def get_blocks(page) -> list[dict]:
@@ -497,7 +513,7 @@ def keep_variant(app_name: str, page_name: str, block_id: str, option_name: str)
 def keep_component_variant(page: "StudioPage", block_id: str, option_name: str) -> bool:
 	"""The block can live inside a studio component the page uses. Keeping it edits the
 	component, so every instance on every page follows."""
-	for component in get_components_for_blocks(get_blocks(page)):
+	for component in page.get_components(get_blocks(page)):
 		block = parse_json(component["block"])
 		if not block or not replace_variants_block(block, block_id, option_name):
 			continue
@@ -559,7 +575,7 @@ def get_app_page(app_name: str, page_name: str, cached: bool = True) -> "StudioP
 	return page
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def get_page(app_name: str, page_name: str, preview: bool = False) -> dict:
 	"""Serve a page definition to the app renderer in a single call.
 
@@ -592,7 +608,7 @@ def get_page(app_name: str, page_name: str, preview: bool = False) -> dict:
 		"is_standard": page.is_standard,
 		"script": page.script,
 		"blocks": blocks,
-		"components": get_components_for_blocks(blocks),
+		"components": get_components_for_blocks(blocks, page.studio_app),
 		"resources": [
 			{"resource_id": row.name, **{field: row.get(field) for field in PAGE_RESOURCE_FIELDS}}
 			for row in page.resources

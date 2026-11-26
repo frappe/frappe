@@ -597,6 +597,7 @@
   "currency_fraction": "Fen",
   "currency_name": "Yuan Renminbi",
   "currency_fraction_units": 100,
+  "currency_symbol": "\u00a5",
   "smallest_currency_fraction_value": 0.01,
   "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##",
@@ -804,7 +805,7 @@
   "timezones": [
    "America/Santo_Domingo"
   ],
-  "isd": "+1849"
+  "isd": "+1"
  },
  "Ecuador": {
   "code": "ec",
@@ -1010,9 +1011,11 @@
  },
  "Georgia": {
   "code": "ge",
+  "currency": "GEL",
   "currency_fraction": "Tetri",
   "currency_fraction_units": 100,
-  "currency_symbol": "\u10da",
+  "smallest_currency_fraction_value": 0.01,
+  "currency_symbol": "\u20be",
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Tbilisi"
@@ -1297,7 +1300,7 @@
   "currency_fraction": "Fils",
   "currency_fraction_units": 1000,
   "currency_name": "Iraqi Dinar",
-  "currency_symbol": "\u0639.\u062f",
+  "currency_symbol": "\u062f.\u0639",
   "number_format": "#,###.###",
   "timezones": [
    "Asia/Baghdad"
@@ -1640,6 +1643,7 @@
  },
  "Madagascar": {
   "code": "mg",
+  "currency": "MGA",
   "currency_fraction": "Iraimbilanja",
   "currency_fraction_units": 5,
   "currency_symbol": "Ar",
@@ -1737,7 +1741,7 @@
  },
  "Mauritania": {
   "code": "mr",
-  "currency": "MRO",
+  "currency": "MRU",
   "currency_fraction": "Khoums",
   "currency_fraction_units": 5,
   "currency_name": "Ouguiya",
@@ -2351,7 +2355,7 @@
  },
  "Sao Tome and Principe": {
   "code": "st",
-  "currency": "STD",
+  "currency": "STN",
   "currency_fraction": "Cêntimo",
   "currency_fraction_units": 100,
   "currency_name": "Dobra",
@@ -2411,7 +2415,7 @@
  },
  "Sierra Leone": {
   "code": "sl",
-  "currency": "SLL",
+  "currency": "SLE",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_name": "Leone",
@@ -2929,7 +2933,7 @@
  "Venezuela, Bolivarian Republic of": {
   "code": "ve",
   "number_format": "#.###,##",
-  "currency": "VEF",
+  "currency": "VES",
   "currency_symbol": "Bs.",
   "currency_fraction": "Centimos",
   "currency_fraction_units": 100,
@@ -3011,11 +3015,11 @@
  },
  "Zimbabwe": {
   "code": "zw",
-  "currency": "ZWL",
+  "currency": "ZWG",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
-  "currency_name": "Zimbabwe Dollar",
-  "currency_symbol": "ZWL$",
+  "currency_name": "Zimbabwe Gold",
+  "currency_symbol": "ZiG",
   "number_format": "# ###.##",
   "timezones": [
    "Africa/Harare"

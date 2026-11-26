@@ -3,6 +3,7 @@
 
 import itertools
 import json
+import logging
 import random
 import re
 import string
@@ -33,6 +34,7 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
+from frappe.model.utils import is_single_doctype
 from frappe.monitor import TRACE_ID_PATTERN, get_trace_id
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
@@ -57,8 +59,6 @@ if TYPE_CHECKING:
 	from MySQLdb.cursors import Cursor as MySQLdbCursor
 	from psycopg import Connection as PostgresConnection
 	from psycopg import Cursor as PostgresCursor
-	from pymysql.connections import Connection as MariadbConnection
-	from pymysql.cursors import Cursor as MariadbCursor
 
 ALLOWED_TYPES_FOR_VALUES = tuple | list | dict
 
@@ -130,7 +130,9 @@ class Database:
 
 		self.value_cache = recursive_defaultdict()
 		self.logger = frappe.logger("database")
-		self.logger.setLevel("WARNING")
+		# setLevel clears the level cache of all loggers, even when the level does not change.
+		if self.logger.level != logging.WARNING:
+			self.logger.setLevel(logging.WARNING)
 
 		self.before_commit = CallbackManager()
 		self.after_commit = CallbackManager()
@@ -182,10 +184,8 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self._conn: MySQLdbConnection | MariadbConnection | PostgresConnection | SQLiteConnection = (
-			self.get_connection()
-		)
-		self._cursor: MySQLdbCursor | MariadbCursor | PostgresCursor | SQLiteCursor = self._conn.cursor()
+		self._conn: MySQLdbConnection | PostgresConnection | SQLiteConnection = self.get_connection()
+		self._cursor: MySQLdbCursor | PostgresCursor | SQLiteCursor = self._conn.cursor()
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -272,7 +272,7 @@ class Database:
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
 		:param as_iterator: Returns iterator over results instead of fetching all results at once.
-		        This should be used with unbuffered cursor as default cursors used by pymysql and postgres
+		        This should be used with unbuffered cursor as default cursors used by mysqlclient and postgres
 		        buffer the results internally. See `Database.unbuffered_cursor`.
 		Examples:
 
@@ -699,8 +699,6 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 
-		from frappe.model.utils import is_single_doctype
-
 		out = None
 		if isinstance(fieldname, list):
 			fieldname = tuple(fieldname)
@@ -1032,8 +1030,6 @@ class Database:
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
 		"""
-		from frappe.model.utils import is_single_doctype
-
 		if dn is None or dt == dn:
 			if not is_single_doctype(dt):
 				return

@@ -2,11 +2,16 @@
 # License: MIT. See LICENSE
 import hashlib
 import io
+import threading
+import time
 from unittest.mock import MagicMock, patch
 
 import frappe
+from frappe.patches.v17_0 import migrate_s3_blob_keys
 from frappe.storage import gc, relocate
+from frappe.storage.blob import other_site_key_criterion
 from frappe.storage.memory_driver import MemoryDriver
+from frappe.storage.tests.test_s3_driver import StubClientError, make_driver
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
 
@@ -29,11 +34,11 @@ class TestRelocateBlobs(IntegrationTestCase):
 		frappe.db.delete("File Blob", {"name": ("like", self.prefix + "%")})
 		super().tearDown()
 
-	def insert_blob(self, content: bytes, key: str | None = None, driver=None):
+	def insert_blob(self, content: bytes, key: str | None = None, driver=None, is_private: bool = False):
 		driver = driver or self.source
 		name = self.prefix + frappe.generate_hash(length=6)
 		key = (key or f"legacy/{name}.txt").format(name=name)
-		driver.write(key, io.BytesIO(content))
+		driver.write(key, io.BytesIO(content), is_private=is_private)
 		blob = frappe.new_doc("File Blob")
 		blob.name = name
 		blob.update(
@@ -43,7 +48,7 @@ class TestRelocateBlobs(IntegrationTestCase):
 				"file_size": len(content),
 				"mime_type": "application/octet-stream",
 				"driver": driver.name,
-				"is_private": 0,
+				"is_private": int(is_private),
 				"status": "Ready",
 			}
 		)
@@ -67,14 +72,24 @@ class TestRelocateBlobs(IntegrationTestCase):
 	def location(self, blob):
 		return frappe.db.get_value("File Blob", blob.name, ["driver", "key"], as_dict=True)
 
-	def scoped_batch(self, limit: int, after_name: str):
-		return frappe.get_all(
-			"File Blob",
-			filters=[["name", "like", self.prefix + "%"], ["name", ">", after_name]],
-			fields=["name", "key", "checksum", "file_size", "driver", "is_private"],
-			order_by="name asc",
-			limit=limit,
+	def scoped_batch(
+		self, limit: int, after_name: str, source_driver: str | None = None, from_other_sites: bool = False
+	):
+		"""get_relocation_batch limited to this test's rows."""
+		blob = frappe.qb.DocType("File Blob")
+		query = (
+			frappe.qb.from_(blob)
+			.select(blob.name, blob.key, blob.checksum, blob.file_size, blob.driver, blob.is_private)
+			.where(blob.name.like(self.prefix + "%"))
+			.where(blob.name > after_name)
+			.orderby(blob.name)
+			.limit(limit)
 		)
+		if source_driver is not None:
+			query = query.where(blob.driver == source_driver)
+		if from_other_sites:
+			query = query.where(other_site_key_criterion(blob))
+		return query.run(as_dict=True)
 
 	def driver_for(self, name=None):
 		if name in (None, self.target.name):
@@ -90,6 +105,75 @@ class TestRelocateBlobs(IntegrationTestCase):
 			patch.object(relocate, "_commit_batch", side_effect=commit or frappe.db.after_commit.run),
 		):
 			return relocate.relocate_blobs(**kwargs)
+
+	def s3_driver(self, bucket="test-bucket"):
+		driver = make_driver(bucket=bucket, prefix="old-site")
+		client = driver.test_client
+		objects = {}
+
+		def head_object(Bucket, Key):
+			if (Bucket, Key) not in objects:
+				raise StubClientError("404")
+			return {"ContentLength": len(objects[(Bucket, Key)])}
+
+		client.head_object.side_effect = head_object
+		client.upload_fileobj.side_effect = lambda stream, bucket, key: objects.__setitem__(
+			(bucket, key), stream.read()
+		)
+		client.get_object.side_effect = lambda Bucket, Key: {"Body": io.BytesIO(objects[(Bucket, Key)])}
+		client.copy.side_effect = lambda CopySource, Bucket, Key: objects.__setitem__(
+			(Bucket, Key), objects[(CopySource["Bucket"], CopySource["Key"])]
+		)
+		client.delete_object.side_effect = lambda Bucket, Key: objects.pop((Bucket, Key), None)
+		return driver
+
+	def run_renamed_relocation(self, driver):
+		with (
+			patch.object(relocate, "get_relocation_batch", side_effect=self.scoped_batch),
+			patch.object(relocate, "get_driver", return_value=driver),
+			patch.object(relocate, "_commit_batch", side_effect=frappe.db.after_commit.run),
+		):
+			return relocate.relocate_renamed_site_blobs()
+
+	def renamed_blob(self, s3, content: bytes = b"renamed"):
+		"""A blob still stored under the site's former name."""
+		return self.insert_blob(content, key="sites/old.example/storage/{name}/a.txt", driver=s3)
+
+	def own_key(self, blob) -> str:
+		return f"sites/{frappe.local.site}/storage/{blob.name}/a.txt"
+
+	def test_s3_copy_requires_the_same_client_and_bucket(self):
+		with self.set_user("testperm@example.com"):
+			for bucket, same_client, native_copy in (
+				("test-bucket", True, True),
+				("other-bucket", True, False),
+				("test-bucket", False, False),
+			):
+				with self.subTest(bucket=bucket, same_client=same_client):
+					source = self.s3_driver()
+					target = self.s3_driver(bucket=bucket)
+					if same_client:
+						target.client = source.client
+					blob = self.insert_blob(
+						b"copy-conditions", key="old-site/{name}/report.txt", driver=source
+					)
+					source.client.reset_mock()
+					target.client.reset_mock()
+					with patch.object(relocate, "get_driver", return_value=source):
+						plan = relocate.plan_relocation(blob, target)
+					relocate.copy_blob(plan)
+					relocate.repoint_blob(plan, {"errors": 0}, MagicMock())
+					if native_copy:
+						target.client.copy.assert_called_once()
+						source.client.get_object.assert_not_called()
+						target.client.upload_fileobj.assert_not_called()
+					else:
+						source.client.copy.assert_not_called()
+						target.client.copy.assert_not_called()
+						source.client.get_object.assert_called_once()
+						target.client.upload_fileobj.assert_called_once()
+					self.assertEqual(target.read(self.location(blob).key).read(), b"copy-conditions")
+					frappe.db.after_commit.run()
 
 	def test_moves_bytes_to_configured_driver_and_keeps_the_old_url(self):
 		content = b"relocation-configured-driver"
@@ -121,6 +205,109 @@ class TestRelocateBlobs(IntegrationTestCase):
 		self.assertEqual(self.location(blob).key, canonical_key)
 		self.assertEqual(self.target.read(canonical_key).read(), content)
 		self.assertFalse(self.source.exists(blob.key))
+
+	def test_source_driver_filter_leaves_other_drivers_untouched(self):
+		with self.set_user("testperm@example.com"):
+			blob = self.insert_blob(b"filtered-source")
+			other = self.insert_blob(b"filtered-other", driver=self.target)
+			with (
+				patch.object(relocate, "get_driver", side_effect=self.driver_for),
+				patch.object(relocate, "_commit_batch", side_effect=frappe.db.after_commit.run),
+			):
+				stats = relocate.relocate_blobs(source_driver=self.source.name, batch_size=1)
+			self.assertEqual(stats, {"moved": 1, "bytes": blob.file_size, "skipped": 0, "errors": 0})
+			self.assertEqual(self.location(blob).driver, self.target.name)
+			self.assertEqual(self.location(other).key, other.key)
+			self.assertTrue(self.target.exists(other.key))
+
+	def test_s3_key_patch_preserves_urls_and_local_blobs_and_can_be_repeated(self):
+		with self.set_user("testperm@example.com"):
+			self.source = self.target = self.s3_driver()
+			blob = self.insert_blob(b"legacy-s3", key="old-site/{name}/report.pdf")
+			private = self.insert_blob(b"private-s3", key="old-site/{name}/private.txt", is_private=True)
+			file_doc = self.insert_file(blob, f"/files/{blob.name}/report.pdf")
+			local_driver = NamedMemoryDriver("local")
+			local = self.insert_blob(b"keep-local", driver=local_driver)
+			client = self.target.test_client
+			client.upload_fileobj.reset_mock()
+			with (
+				patch.object(relocate, "get_relocation_batch", side_effect=self.scoped_batch),
+				patch.object(relocate, "get_driver", side_effect=self.driver_for),
+				patch.object(relocate, "_commit_batch", side_effect=frappe.db.after_commit.run),
+			):
+				migrate_s3_blob_keys.execute()
+				migrate_s3_blob_keys.execute()
+			client.get_object.assert_not_called()
+			client.upload_fileobj.assert_not_called()
+			self.assertEqual(client.copy.call_count, 2)
+			for old_blob in (blob, private):
+				is_private = bool(old_blob.is_private)
+				client.copy.assert_any_call(
+					CopySource={
+						"Bucket": "test-bucket",
+						"Key": self.target.object_key(old_blob.key, is_private),
+					},
+					Bucket="test-bucket",
+					Key=self.target.object_key(self.location(old_blob).key, is_private),
+				)
+			canonical_key = f"sites/{frappe.local.site}/storage/{blob.name}/report.pdf"
+			self.assertEqual(self.location(blob).key, canonical_key)
+			self.assertEqual(self.target.read(canonical_key).read(), b"legacy-s3")
+			self.assertFalse(self.source.exists(blob.key))
+			private_key = f"sites/{frappe.local.site}/storage/{private.name}/private.txt"
+			self.assertEqual(self.location(private).key, private_key)
+			self.assertEqual(self.target.read(private_key, is_private=True).read(), b"private-s3")
+			self.assertFalse(self.source.exists(private.key, is_private=True))
+			self.assertEqual(frappe.db.get_value("File", file_doc.name, "file_url"), file_doc.file_url)
+			self.assertEqual(self.location(local), {"driver": "local", "key": local.key})
+			self.assertEqual(local_driver.read(local.key).read(), b"keep-local")
+
+	def test_s3_key_patch_reports_failures_and_can_be_retried(self):
+		with self.set_user("testperm@example.com"):
+			self.source = self.target = self.s3_driver()
+			blob = self.insert_blob(b"retry-s3", key="old-site/{name}/retry.txt")
+			with (
+				patch.object(relocate, "get_relocation_batch", side_effect=self.scoped_batch),
+				patch.object(relocate, "get_driver", side_effect=self.driver_for),
+				patch.object(relocate, "_commit_batch", side_effect=frappe.db.after_commit.run),
+			):
+				with patch.object(
+					self.source.test_client, "copy", side_effect=StubClientError("AccessDenied")
+				):
+					self.assertRaisesRegex(
+						frappe.ValidationError, "S3 blob migration failed", migrate_s3_blob_keys.execute
+					)
+				self.assertEqual(self.location(blob).key, blob.key)
+				self.assertTrue(self.source.exists(blob.key))
+				self.source.test_client.delete_object.assert_not_called()
+				migrate_s3_blob_keys.execute()
+			self.assertNotEqual(self.location(blob).key, blob.key)
+			self.assertEqual(self.target.read(self.location(blob).key).read(), b"retry-s3")
+
+	def test_s3_key_patch_reuses_a_copy_after_the_row_update_fails(self):
+		with self.set_user("testperm@example.com"):
+			self.source = self.target = self.s3_driver()
+			blob = self.insert_blob(b"reuse-copy", key="old-site/{name}/retry.txt", is_private=True)
+			client = self.source.test_client
+			client.upload_fileobj.reset_mock()
+			with (
+				patch.object(relocate, "get_relocation_batch", side_effect=self.scoped_batch),
+				patch.object(relocate, "get_driver", side_effect=self.driver_for),
+				patch.object(relocate, "_commit_batch", side_effect=frappe.db.after_commit.run),
+			):
+				with patch.object(relocate, "lock_blob", side_effect=OSError("database unavailable")):
+					self.assertRaisesRegex(
+						frappe.ValidationError, "S3 blob migration failed", migrate_s3_blob_keys.execute
+					)
+				self.assertEqual(self.location(blob).key, blob.key)
+				self.assertTrue(self.source.exists(blob.key, is_private=True))
+				client.delete_object.assert_not_called()
+				migrate_s3_blob_keys.execute()
+			self.assertEqual(client.copy.call_count, 1)
+			client.get_object.assert_not_called()
+			client.upload_fileobj.assert_not_called()
+			self.assertEqual(self.target.read(self.location(blob).key, is_private=True).read(), b"reuse-copy")
+			self.assertFalse(self.source.exists(blob.key, is_private=True))
 
 	def test_failures_keep_the_source_and_the_run_continues(self):
 		unreadable = self.insert_blob(b"driver-error")
@@ -237,3 +424,94 @@ class TestRelocateBlobs(IntegrationTestCase):
 	def test_rejects_nonpositive_batch_size(self):
 		for batch_size in (0, -1):
 			self.assertRaises(frappe.ValidationError, relocate.relocate_blobs, batch_size)
+
+	def test_renamed_site_blobs_move_to_this_sites_prefix(self):
+		"""Rows under a former site name move to this site's prefix; URLs stay, and the old
+		objects stay too because the driver refuses deletes outside this site's prefix."""
+		s3 = self.s3_driver()
+		blob = self.renamed_blob(s3)
+		file_doc = self.insert_file(blob, "/files/a.txt")
+
+		stats = self.run_renamed_relocation(s3)
+
+		self.assertEqual((stats["moved"], stats["errors"]), (1, 0))
+		self.assertEqual(self.location(blob).key, self.own_key(blob))
+		self.assertEqual(s3.read(self.own_key(blob)).read(), b"renamed")
+		self.assertTrue(s3.exists(blob.key))
+		self.assertEqual(frappe.db.get_value("File", file_doc.name, "file_url"), "/files/a.txt")
+		self.assertEqual(self.run_renamed_relocation(s3)["moved"], 0)
+
+	def test_only_rows_under_another_site_are_relocated(self):
+		"""Legacy keys keep their place: moving them deletes bytes old backups still read."""
+		s3 = self.s3_driver()
+		legacy = self.insert_blob(b"legacy", key="old-site/{name}/a.txt", driver=s3)
+
+		stats = self.run_renamed_relocation(s3)
+
+		self.assertEqual(stats["moved"], 0)
+		self.assertEqual(self.location(legacy).key, legacy.key)
+		s3.client.copy.assert_not_called()
+
+	def test_renamed_relocation_is_a_no_op_without_s3(self):
+		"""Sites on another driver have no site-named keys to move."""
+		blob = self.insert_blob(b"local", key="sites/old.example/storage/{name}/a.txt", driver=self.target)
+
+		stats = self.run_renamed_relocation(self.target)
+
+		self.assertEqual(stats, {"moved": 0, "bytes": 0, "skipped": 0, "errors": 0})
+		self.assertEqual(self.location(blob).key, blob.key)
+
+	def test_a_source_outside_this_bucket_is_skipped(self):
+		"""A restored source site's object may live in another bucket; relocation copies only
+		inside this bucket, so the row stays and the run does not fail."""
+		s3 = self.s3_driver()
+		blob = self.renamed_blob(s3)
+		s3.client.delete_object(Bucket=s3.bucket, Key=s3.object_key(blob.key))
+		s3.client.copy.reset_mock()
+
+		stats = self.run_renamed_relocation(s3)
+
+		self.assertEqual((stats["moved"], stats["skipped"], stats["errors"]), (0, 1, 0))
+		self.assertEqual(self.location(blob).key, blob.key)
+		s3.client.copy.assert_not_called()
+
+	def test_server_side_copies_run_in_parallel(self):
+		"""Same-bucket copies run in a thread pool, capped at RELOCATE_WORKERS."""
+		s3 = self.s3_driver()
+		blobs = [self.renamed_blob(s3) for _ in range(relocate.RELOCATE_WORKERS + 4)]
+		copy = s3.client.copy.side_effect
+		active, peak, guard = [0], [0], threading.Lock()
+
+		def slow_copy(**kwargs):
+			with guard:
+				active[0] += 1
+				peak[0] = max(peak[0], active[0])
+			time.sleep(0.05)
+			copy(**kwargs)
+			with guard:
+				active[0] -= 1
+
+		s3.client.copy.side_effect = slow_copy
+		stats = self.run_renamed_relocation(s3)
+
+		self.assertEqual(stats["moved"], len(blobs))
+		self.assertGreater(peak[0], 1)
+		self.assertLessEqual(peak[0], relocate.RELOCATE_WORKERS)
+
+	def test_a_failed_copy_counts_an_error_and_the_rest_still_move(self):
+		"""One failing copy does not stop the batch; its row keeps its source."""
+		s3 = self.s3_driver()
+		failing, other = self.renamed_blob(s3), self.renamed_blob(s3)
+		copy = s3.client.copy.side_effect
+
+		def copy_or_fail(CopySource, Bucket, Key):
+			if failing.name in Key:
+				raise StubClientError("AccessDenied")
+			copy(CopySource=CopySource, Bucket=Bucket, Key=Key)
+
+		s3.client.copy.side_effect = copy_or_fail
+		stats = self.run_renamed_relocation(s3)
+
+		self.assertEqual((stats["moved"], stats["errors"]), (1, 1))
+		self.assertEqual(self.location(failing).key, failing.key)
+		self.assertEqual(self.location(other).key, self.own_key(other))

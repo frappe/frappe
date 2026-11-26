@@ -59,7 +59,24 @@ body {
 	font-family: inherit;
 }
 
+/* a long server error stays a few lines, not a wall over the chat */
+:host [data-sonner-toast] [data-title] {
+	@apply line-clamp-4;
+}
+
 /* the panel's dialogs cover the page, but its toasts keep to the panel */
 :host([data-panel]) [data-sonner-toaster] {
 	position: absolute;
+}
+
+/* Add model's list keeps one width while its results change with the id typed; the marker is on
+   its search box, where the Combobox puts the attributes it is given */
+[data-slot="content"]:has([data-add-model]) {
+	width: min(26rem, calc(100vw - 2rem));
+}
+
+/* the first run's model list is as wide as its box; the marker is on its rows, the only place
+   this Combobox lets one into the list */
+[data-slot="content"]:has([data-pick-model]) {
+	width: var(--reka-combobox-trigger-width);
 }

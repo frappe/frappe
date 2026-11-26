@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import timedelta
 
 import frappe
@@ -39,6 +40,25 @@ class TestTestUtils(IntegrationTestCase):
 		tomorrow = now + timedelta(days=1)
 		with self.freeze_time(tomorrow):
 			self.assertEqual(now_datetime(), tomorrow)
+
+	def test_outer_timeout_fires_after_inner_timeout_exits(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.assertRaisesRegex(Exception, "outer timed out"):
+			with self.timeout_context(1, "outer timed out"):
+				with self.timeout_context(5):
+					pass
+				time.sleep(2)
+
+	def test_outer_timeout_fires_inside_longer_inner_timeout(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.assertRaisesRegex(Exception, "Operation timed out"):
+			with self.timeout_context(1):
+				with self.timeout_context(5):
+					time.sleep(2)
 
 	def test_get_modules_returns_none_for_missing_doctype(self):
 		"""DocTypes from uninstalled apps should resolve to (None, None) instead of raising."""

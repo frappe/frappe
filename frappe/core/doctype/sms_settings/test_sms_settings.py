@@ -3,6 +3,7 @@
 import frappe
 from frappe.core.doctype.sms_settings.sms_settings import check_sms_permission
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestSMSSettings(IntegrationTestCase):
@@ -32,19 +33,20 @@ class TestSMSSettings(IntegrationTestCase):
 		self.sms_settings.flags.ignore_mandatory = True
 		self.sms_settings.save()
 
+		user = get_user_by_email("test@example.com")
 		frappe.set_user("test@example.com")
 		frappe.get_doc(
 			{
 				"doctype": "Has Role",
-				"parent": "test@example.com",
+				"parent": user,
 				"parenttype": "User",
 				"parentfield": "roles",
 				"role": "System Manager",
 			}
 		).db_insert()
-		frappe.clear_cache(user="test@example.com")
+		frappe.clear_cache(user=user)
 
 		check_sms_permission()
 
-		frappe.db.delete("Has Role", {"parent": "test@example.com", "role": "System Manager"})
-		frappe.clear_cache(user="test@example.com")
+		frappe.db.delete("Has Role", {"parent": user, "role": "System Manager"})
+		frappe.clear_cache(user=user)

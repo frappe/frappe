@@ -1,7 +1,22 @@
-<div class="desktop-icon">
+<div class="desktop-icon{% if (icon.folder) { %} has-module-icons{% } %}">
     <!-- The logo and the title are two anchors to the same place, because the subtitle below is a
          link of its own and an anchor cannot nest inside another. The logo is hidden from the
          accessibility tree so the tile offers one link to the app, not two. -->
+    {% if (icon.folder) { %}
+    <button type="button" class="icon-link" tabindex="-1" aria-hidden="true">
+        <div class="icon-container module-folder-face">
+            {% for (let i = 0; i < Math.min(icon.folder.length, 4); i++) { %}
+            <span class="module-folder-mini" data-folder-item="{{ i }}">
+                {% if (icon.folder[i].logo) { %}
+                    <img src="{{ frappe.utils.escape_html(icon.folder[i].logo) }}" alt="" />
+                {% } else { %}
+                    {%= frappe.utils.desktop_icon(icon.folder[i].title, "gray", "md", "Solid") %}
+                {% } %}
+            </span>
+            {% } %}
+        </div>
+    </button>
+    {% } else { %}
     <a class="icon-link" href="#" tabindex="-1" aria-hidden="true">
         {% if (icon.logo_url) { %}
             <div class="icon-container">
@@ -11,10 +26,40 @@
             {%= frappe.utils.desktop_icon(icon.label, "gray", "md", "Solid") %}
         {% } %}
     </a>
+    {% } %}
     <div class="icon-caption">
+        {% if (icon.folder) { %}
+        <button type="button" class="icon-title">{{ frappe.utils.escape_html(__(icon.label)) }}</button>
+        {% } else { %}
         <a class="icon-title" href="#">{{ frappe.utils.escape_html(__(icon.label)) }}</a>
+        {% } %}
         {% if (icon.desk_route) { %}
         <a class="icon-subtitle" href="{{ frappe.utils.escape_html(icon.desk_route) }}">{{ frappe.utils.escape_html(__("Open in Desk")) }}</a>
+        {% } else if (icon.folder) { %}
+        <span class="icon-subtitle">{{ frappe.utils.escape_html(icon.module_icons.map((m) => __(m.title)).join(" · ")) }}</span>
         {% } %}
     </div>
+    {% if (icon.folder) { %}
+    <div class="module-folder-card{% if (icon.folder.length > 4) { %} is-wide{% } %}" role="dialog"
+        aria-label="{{ frappe.utils.escape_html(__(icon.label)) }}" aria-hidden="true" inert>
+        <div class="module-folder-shadow"></div>
+        <div class="module-folder-bg"></div>
+        <div class="module-folder-body">
+            <div class="module-folder-grid">
+                {% for (let i = 0; i < icon.folder.length; i++) { %}
+                <a class="module-folder-app" href="{{ frappe.utils.escape_html(icon.folder[i].route) }}">
+                    <span class="module-folder-logo" data-folder-item="{{ i }}">
+                        {% if (icon.folder[i].logo) { %}
+                            <img src="{{ frappe.utils.escape_html(icon.folder[i].logo) }}" alt="" />
+                        {% } else { %}
+                            {%= frappe.utils.desktop_icon(icon.folder[i].title, "gray", "md", "Solid") %}
+                        {% } %}
+                    </span>
+                    <span class="module-folder-label" data-folder-fade>{{ frappe.utils.escape_html(__(icon.folder[i].title)) }}</span>
+                </a>
+                {% } %}
+            </div>
+        </div>
+    </div>
+    {% } %}
 </div>

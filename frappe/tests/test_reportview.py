@@ -18,6 +18,7 @@ from frappe.desk.reportview import (
 	get_stats,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.utils.logging import get_log_db
 
 
@@ -65,6 +66,25 @@ class TestReportview(IntegrationTestCase):
 		result = get()
 		self.assertIn("keys", result)
 		self.assertIn("values", result)
+
+	def test_get_leaves_out_comments_field(self):
+		with self.set_user("test@example.com"):
+			todo = self.make_todo("Report view comments field")
+			todo.add_comment("Comment", "First comment")
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo",
+				fields=["name", "_comments", "`tabToDo`.`_comments`"],
+				filters={"name": todo.name},
+				with_comment_count=1,
+			)
+			result = get()
+			self.assertEqual(result["keys"], ["name", "_comment_count"])
+			self.assertEqual(result["values"], [[todo.name, 1]])
+
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo", fields=["name"], filters=[["ToDo", "_comments", "like", "%a%"]]
+			)
+			self.assertRaises(frappe.DataError, get)
 
 	def test_get_stats_accepts_native(self):
 		# stats as native list (L738) and filters as native list (L740)
@@ -261,16 +281,17 @@ class TestReportview(IntegrationTestCase):
 		from csv import reader
 		from io import StringIO
 
-		members = ["test_rv_a@example.com", "test_rv_b@example.com", "test_rv_c@example.com"]
-		for email in members:
-			create_user(email)
+		members = [
+			create_user(email).name
+			for email in ("test_rv_a@example.com", "test_rv_b@example.com", "test_rv_c@example.com")
+		]
 		exporter = create_user("test_rv_export@example.com")
 
 		group = frappe.get_doc(
 			{
 				"doctype": "User Group",
 				"name": "Report Export Child Rows",
-				"user_group_members": [{"user": email} for email in members],
+				"user_group_members": [{"user": user} for user in members],
 			}
 		).insert()
 		self.addCleanup(group.delete)
@@ -291,6 +312,45 @@ class TestReportview(IntegrationTestCase):
 
 		exported_members = [cell for row in rows for cell in row if cell in set(members)]
 		self.assertEqual(sorted(exported_members), sorted(members))
+
+	def test_export_query_keeps_child_table_filters(self):
+		from csv import reader
+		from io import StringIO
+
+		members = [
+			create_user(email).name
+			for email in ("test_rv_a@example.com", "test_rv_b@example.com", "test_rv_c@example.com")
+		]
+		exporter = create_user("test_rv_export@example.com")
+
+		group = frappe.get_doc(
+			{
+				"doctype": "User Group",
+				"name": "Report Export Child Filter",
+				"user_group_members": [{"user": user} for user in members],
+			}
+		).insert()
+		self.addCleanup(group.delete)
+
+		for restriction in (
+			{"selected_items": json.dumps([group.name])},
+			{"visible_names": json.dumps([group.name])},
+		):
+			with self.set_user(exporter.name):
+				frappe.local.form_dict = frappe._dict(
+					doctype="User Group",
+					file_format_type="CSV",
+					fields=["`tabUser Group`.`name`", "`tabUser Group Member`.`user`"],
+					filters=[["User Group Member", "user", "=", members[1]]],
+					**restriction,
+				)
+				export_query()
+
+			with StringIO(frappe.response["filecontent"].decode("utf-8")) as buf:
+				rows = list(reader(buf))[1:]
+
+			exported_members = [cell for row in rows for cell in row if cell in set(members)]
+			self.assertEqual(exported_members, [members[1]], restriction)
 
 	def test_extract_fieldname(self):
 		self.assertEqual(
@@ -384,12 +444,13 @@ class TestReportview(IntegrationTestCase):
 	def test_get_sends_link_titles_when_requested(self):
 		self.enable_link_titles("User")
 		with self.set_user("test@example.com"):
+			user = get_user_by_email("test@example.com")
 			todo = self.make_todo("Report view link title task")
 			response = self.get_todo_rows(todo.name, with_link_titles=1)
 
-			full_name = frappe.db.get_value("User", "test@example.com", "full_name")
-			self.assertEqual(frappe.local.response["_link_titles"]["User::test@example.com"], full_name)
-			self.assertIn("test@example.com", response["values"][0])
+			full_name = frappe.db.get_value("User", user, "full_name")
+			self.assertEqual(frappe.local.response["_link_titles"][f"User::{user}"], full_name)
+			self.assertIn(user, response["values"][0])
 
 	def test_get_skips_link_titles_unless_requested(self):
 		self.enable_link_titles("User")
@@ -413,16 +474,17 @@ class TestReportview(IntegrationTestCase):
 
 	def test_get_sends_link_titles_for_aliased_child_table_columns(self):
 		self.enable_link_titles("User")
+		user = get_user_by_email("test@example.com")
 		group = frappe.get_doc(
 			{
 				"doctype": "User Group",
 				"name": "Report Link Titles",
-				"user_group_members": [{"user": "test@example.com"}],
+				"user_group_members": [{"user": user}],
 			}
 		).insert()
-		frappe.get_doc("User", "test@example.com").add_roles("System Manager")
-		full_name = frappe.db.get_value("User", "test@example.com", "full_name")
-		self.assertNotEqual(full_name, "test@example.com")
+		frappe.get_doc("User", user).add_roles("System Manager")
+		full_name = frappe.db.get_value("User", user, "full_name")
+		self.assertNotEqual(full_name, user)
 
 		with self.set_user("test@example.com"):
 			result = self.get_rows(
@@ -436,8 +498,8 @@ class TestReportview(IntegrationTestCase):
 			)
 
 			self.assertEqual(result["keys"], ["name", "User Group Member:user"])
-			self.assertEqual(result["values"][0][1], "test@example.com")
-			self.assertEqual(frappe.local.response["_link_titles"]["User::test@example.com"], full_name)
+			self.assertEqual(result["values"][0][1], user)
+			self.assertEqual(frappe.local.response["_link_titles"][f"User::{user}"], full_name)
 
 	def get_todo_rows(self, name, **extra_params):
 		return self.get_rows(

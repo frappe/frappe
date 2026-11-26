@@ -21,7 +21,7 @@ from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache, reset_metadata_version
 from frappe.database import savepoint
 from frappe.query_builder import Order
-from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils import cint, cstr, get_assets_json, get_user_display_id
 from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.island import get_ui_islands
@@ -158,6 +158,7 @@ def get():
 	"""get session boot info"""
 	from frappe.boot import get_bootinfo
 	from frappe.desk.doctype.note.note import get_unseen_notes
+	from frappe.flow.lib.model import is_enabled as is_flow_enabled
 	from frappe.utils.change_log import get_change_log
 	from frappe.utils.legacy_gravatar_cleanup import (
 		should_show_gravatar_deletion_prompt,
@@ -194,6 +195,7 @@ def get():
 		bootinfo["metadata_version"] = reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
+	bootinfo.flow_enabled = is_flow_enabled()
 	bootinfo.notification_unread_count = frappe.db.count(
 		"Notification Log", {"read": 0, "for_user": frappe.session.user}
 	)
@@ -287,7 +289,9 @@ class Session:
 	def validate_user(self):
 		if not frappe.get_cached_value("User", self.user, "enabled"):
 			frappe.throw(
-				_("User {0} is disabled. Please contact your System Manager.").format(self.user),
+				_("User {0} is disabled. Please contact your System Manager.").format(
+					get_user_display_id(self.user)
+				),
 				frappe.ValidationError,
 			)
 

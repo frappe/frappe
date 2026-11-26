@@ -78,6 +78,11 @@ class FlowTrigger(Document):
 		clear_trigger_cache()
 
 	def _validate_run_as(self):
+		# only System Managers may run a trigger as someone else
+		if "System Manager" not in frappe.get_roles():
+			if self.run_as and self.run_as != frappe.session.user:
+				frappe.throw(_("You can only run a trigger as yourself."), title=_("Invalid Run As"))
+			self.run_as = frappe.session.user
 		# checked only while on, so a trigger whose user is gone can still be switched off
 		if not self.enabled:
 			return
@@ -92,6 +97,13 @@ class FlowTrigger(Document):
 		if not frappe.has_permission("Flow Agent", "read", self.agent, user=account):
 			frappe.throw(
 				_("{0} cannot use agent {1}.").format(account, self.agent),
+				title=_("Invalid Run As"),
+			)
+		if self.event == "DocType Event" and not frappe.has_permission(
+			self.target_doctype, "read", user=account
+		):
+			frappe.throw(
+				_("{0} cannot read {1}.").format(account, _(self.target_doctype)),
 				title=_("Invalid Run As"),
 			)
 

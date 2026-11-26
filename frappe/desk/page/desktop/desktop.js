@@ -109,6 +109,13 @@ class DesktopPage {
 				// `desk_route` on its `add_to_apps_screen` hook. Empty for a desk-native app,
 				// which renders no subtitle.
 				desk_route: app.desk_route,
+				module_icons: app.module_icons,
+				folder: app.module_icons?.length
+					? [
+							{ title: app.app_title, logo: app.app_logo_url, route: app.route },
+							...app.module_icons,
+					  ]
+					: null,
 			};
 			this.add_icon($grid, icon_data, app.route);
 		});
@@ -117,11 +124,20 @@ class DesktopPage {
 		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
 		// The tile is a <div> so the "Open in Desk" subtitle can be its own link; the logo and
 		// the title are the two anchors that lead to the app itself.
-		const $app_links = $icon.find(".icon-link, .icon-title");
+		const $app_links = $icon.find("a.icon-link, a.icon-title");
 		if (route.startsWith("http")) {
 			$app_links.attr("target", "_blank");
 		}
 		$app_links.attr("href", route);
+		$icon
+			.find(".module-folder-app")
+			.filter((_, link) => link.getAttribute("href").startsWith("http"))
+			.attr("target", "_blank");
+		if (icon_data.folder) {
+			frappe
+				.require("module_folder.bundle.js")
+				.then(() => new frappe.ui.ModuleFolder($icon[0]));
+		}
 		$grid.append($icon);
 	}
 	setup() {
@@ -266,9 +282,9 @@ class DesktopPage {
 		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		let menu_items = [
 			{
-				icon: "pencil",
-				label: "Edit Profile",
-				url: `/desk/user/${frappe.session.user}`,
+				icon: "settings",
+				label: "My Settings",
+				onclick: () => frappe.ui.open_user_settings(),
 				order: 10,
 			},
 			{

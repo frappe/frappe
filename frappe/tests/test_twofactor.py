@@ -19,11 +19,12 @@ from frappe.twofactor import (
 	get_otpsecret_for_,
 	get_verification_obj,
 	process_2fa_for_email,
+	reset_otp_secret,
 	set_default,
 	should_run_2fa,
 	two_factor_is_enabled_for_,
 )
-from frappe.utils import cint, set_request
+from frappe.utils import cint, get_email_address, set_request
 
 
 class TestTwoFactor(IntegrationTestCase):
@@ -66,7 +67,7 @@ class TestTwoFactor(IntegrationTestCase):
 		self.assertTrue(verification_obj["prompt"])
 
 		unsubscribe = frappe.get_doc(
-			doctype="Email Unsubscribe", email=self.user, global_unsubscribe=1
+			doctype="Email Unsubscribe", email=get_email_address(self.user), global_unsubscribe=1
 		).insert(ignore_permissions=True)
 		self.addCleanup(unsubscribe.delete, ignore_permissions=True)
 
@@ -135,6 +136,20 @@ class TestTwoFactor(IntegrationTestCase):
 		"""OTP secret should be set for user."""
 		self.assertTrue(get_otpsecret_for_(self.user))
 		self.assertTrue(get_default(self.user + "_otpsecret"))
+
+	def test_reset_otp_secret_logs_out_sessions(self):
+		sessions = frappe.qb.DocType("Sessions")
+		frappe.qb.into(sessions).columns(sessions.user, sessions.sid).insert(self.user, "otp-reset-sid").run()
+
+		with (
+			self.change_settings("System Settings", {"logout_on_password_reset": 1}),
+			self.set_user(self.user),
+		):
+			reset_otp_secret(self.user)
+
+		self.assertFalse(
+			frappe.qb.from_(sessions).select(sessions.sid).where(sessions.sid == "otp-reset-sid").run()
+		)
 
 	def test_confirm_otp_token(self):
 		"""Ensure otp is confirmed"""
@@ -270,9 +285,13 @@ def create_http_request():
 	"""Get http request object."""
 	set_request(method="POST", path="/api/method/login")
 	enable_2fa()
-	frappe.form_dict["usr"] = "test@example.com"
-	frappe.form_dict["pwd"] = "Eastern_43A1W"
-	return HTTPRequest()
+	user = frappe.session.user
+	credentials = {"usr": "test@example.com", "pwd": "Eastern_43A1W"}
+	frappe.form_dict.update(credentials)
+	http_request = HTTPRequest()
+	frappe.set_user(user)
+	frappe.form_dict.update(credentials)
+	return http_request
 
 
 def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):

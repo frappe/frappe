@@ -22,6 +22,7 @@ from frappe.utils import (
 	add_years,
 	date_diff,
 	format_datetime,
+	get_email_address,
 	get_fullname,
 	getdate,
 	month_diff,
@@ -124,7 +125,29 @@ class Event(Document):
 		self.set_participants_email()
 
 	def on_update(self):
+		self.delete_removed_participant_communications()
 		self.sync_communication()
+
+	def delete_removed_participant_communications(self):
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		current = {(p.reference_doctype, p.reference_docname) for p in self.event_participants}
+		for participant in before.event_participants:
+			if (participant.reference_doctype, participant.reference_docname) in current:
+				continue
+			for communication in frappe.get_all(
+				"Communication",
+				filters=[
+					["Communication", "reference_doctype", "=", self.doctype],
+					["Communication", "reference_name", "=", self.name],
+					["Communication Link", "link_doctype", "=", participant.reference_doctype],
+					["Communication Link", "link_name", "=", participant.reference_docname],
+				],
+				pluck="name",
+			):
+				frappe.delete_doc("Communication", communication, force=True, ignore_permissions=True)
 
 	def on_trash(self):
 		communications = frappe.get_all(
@@ -169,7 +192,9 @@ class Event(Document):
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject
 		communication.communication_date = self.starts_on
-		communication.sender = self.owner
+		communication.sender = (
+			self.owner if self.owner in frappe.STANDARD_USERS else get_email_address(self.owner)
+		)
 		communication.sender_full_name = get_fullname(self.owner)
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
@@ -242,44 +267,47 @@ class Event(Document):
 def update_attending_status(event_name: str, attendee: str, status: str):
 	event_doc = frappe.get_doc("Event", event_name)
 	caller = frappe.session.user
+	caller_email = get_email_address(caller)
+	is_caller = attendee in (caller, caller_email)
 
-	if attendee != caller:
+	if not is_caller:
 		if event_doc.owner != caller and not frappe.has_permission("Event", "write", event_name):
 			frappe.throw(
 				_("You are not allowed to update attendance for another user."), frappe.PermissionError
 			)
 
-	if event_doc.owner == caller:
+	if is_caller and event_doc.owner == caller:
 		frappe.db.set_value("Event", event_name, "attending", status)
 		return
 
+	user = caller if is_caller else attendee
+	user_email = get_email_address(user) or user
 	for participant in event_doc.event_participants:
-		if participant.email == attendee:
+		if _is_participant(participant, user, user_email):
 			frappe.db.set_value("Event Participants", participant.name, "attending", status)
 			return
 
 	frappe.throw(_("Attendee not found in this event."))
 
 
-@frappe.whitelist()
-def delete_communication(event: str | dict[str, Any], reference_doctype: str, reference_docname: str | int):
-	event = frappe.parse_json(event)
+def _is_participant(participant, user: str, user_email: str) -> bool:
+	"""Whether the Event Participants row references the user or has their email.
 
-	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
+	`user` can also be an email that isn't a user's.
+	"""
+	if participant.reference_doctype == "User" and participant.reference_docname == user:
+		return True
 
-	comms = frappe.get_list(
-		"Communication",
-		filters=[
-			["Communication", "reference_doctype", "=", event.get("doctype")],
-			["Communication", "reference_name", "=", event.get("name")],
-			["Communication Link", "link_doctype", "=", deleted_participant.reference_doctype],
-			["Communication Link", "link_name", "=", deleted_participant.reference_docname],
-		],
-		pluck="name",
-	)
+	return bool(participant.email and participant.email.lower() == user_email.lower())
 
-	for comm in comms:
-		frappe.delete_doc("Communication", comm)
+
+def _participant_condition(user: str) -> str:
+	"""SQL version of `_is_participant` for the `ep` alias of Event Participants."""
+	condition = f"(ep.reference_doctype='User' and ep.reference_docname={frappe.db.escape(user)})"
+	if user_email := get_email_address(user):
+		condition += f" or lower(ep.email)={frappe.db.escape(user_email.lower())}"
+
+	return f"({condition})"
 
 
 def get_permission_query_conditions(user):
@@ -289,7 +317,7 @@ def get_permission_query_conditions(user):
 	if shared_events := frappe.share.get_shared("Event", user=user):
 		query += f" or `tabEvent`.`name` in ({', '.join([frappe.db.escape(e) for e in shared_events])})"
 
-	query += f" or exists (select 'x' from `tabEvent Participants` ep where ep.parent=`tabEvent`.name and ep.email={frappe.db.escape(user)})"
+	query += f" or exists (select 'x' from `tabEvent Participants` ep where ep.parent=`tabEvent`.name and {_participant_condition(user)})"
 
 	return query
 
@@ -298,8 +326,9 @@ def has_permission(doc, ptype=None, user=None):
 	if doc.event_type == "Public" or doc.owner == user:
 		return True
 
+	user_email = get_email_address(user) or user
 	for participant in doc.event_participants:
-		if participant.email == user:
+		if _is_participant(participant, user, user_email):
 			if ptype in ["write", "create", "delete"]:
 				return False
 			return True
@@ -365,7 +394,7 @@ def get_events(
 	if "`tabEvent Participants`" in filter_condition:
 		tables.append("`tabEvent Participants`")
 
-	event_candidates: list[EventLikeDict] = frappe.db.sql(
+	event_candidates: list[EventLikeDict] = frappe.db.sql(  # nosemgrep
 		"""
 		SELECT `tabEvent`.name,
 				`tabEvent`.subject,
@@ -418,7 +447,7 @@ def get_events(
 					SELECT ep.name
 					FROM `tabEvent Participants` ep
 					WHERE ep.parent=`tabEvent`.name
-						AND ep.email=%(user)s
+						AND {participant_condition}
 				)
 			)
 		AND `tabEvent`.status='Open'
@@ -426,6 +455,7 @@ def get_events(
 			tables=", ".join(tables),
 			filter_condition=filter_condition,
 			reminder_condition="AND `tabEvent`.send_reminder = 1" if for_reminder else "",
+			participant_condition=_participant_condition(target_user),
 		),
 		{
 			"start": start,

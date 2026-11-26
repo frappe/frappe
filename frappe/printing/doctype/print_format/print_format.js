@@ -11,6 +11,12 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 });
 
 frappe.ui.form.on("Print Format", {
+	after_delete: function (frm) {
+		const [page, name] = frappe.get_prev_route();
+		if (page && (page !== "print-format-builder" || name !== frm.docname)) return;
+		frappe.route_flags.replace_route = true;
+		frappe.set_route("List", "Print Format");
+	},
 	before_save: function (frm) {
 		frm._created_this_save = frm.is_new();
 	},
@@ -37,7 +43,7 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.standard === "Yes" && frappe.session.user !== "Administrator") {
 			frm.set_intro(__("Please duplicate this to make changes"));
 		}
-		frm.trigger("render_buttons");
+		frm.trigger("render_buttons").then(() => frm.trigger("render_convert_button"));
 		frm.toggle_display("standard", frappe.boot.developer_mode);
 		frm.trigger("hide_absolute_value_field");
 	},
@@ -75,6 +81,14 @@ frappe.ui.form.on("Print Format", {
 			}
 		}
 	},
+	render_convert_button: function (frm) {
+		if (frm.is_new() || !frm.doc.print_designer || !frappe.user.has_role("System Manager")) {
+			return;
+		}
+		frm.add_custom_button(__("Convert to Editor Format"), () =>
+			frappe.set_route("print-designer-migration", frm.doc.name)
+		);
+	},
 	custom_format: function (frm) {
 		var value = frm.doc.custom_format ? 0 : 1;
 		frm.set_value("align_labels_right", value);
@@ -84,7 +98,7 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.custom_format) {
 			frm.set_value("print_format_builder_beta", 0);
 		}
-		frm.trigger("render_buttons");
+		frm.trigger("render_buttons").then(() => frm.trigger("render_convert_button"));
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");

@@ -18,9 +18,11 @@
 import { onMounted, ref } from "vue"
 import { TextInput } from "frappe-ui/src/components/TextInput"
 
+import { __ } from "../translate.js"
+
 const props = defineProps({
 	value: { type: String, required: true },
-	label: { type: String, default: "Name" },
+	label: { type: String, default: () => __("Name") },
 	// where Enter and Escape return the focus when no control started the edit, as a double click doesn't
 	back: { type: Function, default: null },
 })

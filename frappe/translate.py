@@ -135,7 +135,7 @@ def get_messages_for_boot():
 	return get_all_translations(frappe.local.lang)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 @http_cache(max_age=31536000)
 def get_boot_translations(lang: str | None = None) -> dict[str, str]:
 	"""Return all translations for the current user's language."""
@@ -587,7 +587,7 @@ def get_all_messages_from_js_files(app_name=None):
 	for app in [app_name] if app_name else frappe.get_installed_apps(_ensure_on_bench=True):
 		if os.path.exists(frappe.get_app_path(app, "public")):
 			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):  # noqa: B007
-				if "frappe/public/js/lib" in basepath:
+				if "frappe/public/js/lib" in basepath or "public/dist" in basepath:
 					continue
 
 				for fname in files:
@@ -949,7 +949,7 @@ def update_translations_for_source(source: str | None = None, translation_dict: 
 	return translation_records
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def get_all_languages(with_language_name: bool = False) -> list:
 	"""Return all enabled language codes ar, ch etc."""
 

@@ -1,14 +1,14 @@
 <template>
-	<SettingsPage title="General" description="Defaults for new chats.">
+	<SettingsPage :title="__('General')" :description="__('Defaults for new chats.')">
 		<div class="divide-y divide-outline-gray-1">
-			<SettingsRow title="Approval mode" description="Applies to new chats and the current one.">
+			<SettingsRow :title="__('Approval mode')" :description="__('Applies to new chats and the current one.')">
 				<Select align="start" :model-value="flow.state.prefs.mode" :options="MODES" class="text-ink-gray-8" @update:model-value="flow.setMode($event)" />
 			</SettingsRow>
-			<SettingsRow title="Helper model" description="Does quick side jobs, like chat titles. A cheaper model saves credits.">
+			<SettingsRow :title="__('Helper model')" :description="__('Does quick side jobs, like chat titles. A cheaper model saves credits.')">
 				<Combobox
 					:model-value="flow.state.prefs.smallModel ?? ''"
 					:options="smallModels"
-					placeholder="The chat's model"
+					:placeholder="CHAT_MODEL"
 					align="end"
 					class="w-48"
 					@update:model-value="flow.setSmallModel($event)"
@@ -18,12 +18,12 @@
 					</template>
 				</Combobox>
 			</SettingsRow>
-			<SettingsRow title="Web search" description="The service agents use to search the web.">
+			<SettingsRow :title="__('Web search')" :description="__('The service agents use to search the web.')">
 				<div class="flex items-center gap-2">
 					<KeyButton
 						v-if="provider !== 'duckduckgo'"
 						:key="provider"
-						:label="`${providerOption.label} API key`"
+						:label="__('{0} API key', [providerOption.label])"
 						:link="providerOption.link"
 						:saved="keySaved"
 						@save="saveSearchKey"
@@ -33,16 +33,16 @@
 				</div>
 			</SettingsRow>
 			<div class="py-4">
-				<div class="text-base-medium text-ink-gray-9">Custom instructions</div>
-				<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Added to the prompt of every new chat.</p>
+				<div class="text-base-medium text-ink-gray-9">{{ __("Custom instructions") }}</div>
+				<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">{{ __("Added to the prompt of every new chat.") }}</p>
 				<Textarea
 					v-model="draft"
 					class="mt-4"
 					:rows="8"
-					placeholder="Reply in short sentences. Prefer Python over shell scripts."
+					:placeholder="__('Reply in short sentences. Prefer Python over shell scripts.')"
 				/>
 				<div class="mt-3 flex justify-end">
-					<Button variant="solid" label="Save" :disabled="!dirty" @click="save" />
+					<Button variant="solid" :label="__('Save')" :disabled="!dirty" @click="save" />
 				</div>
 			</div>
 		</div>
@@ -57,14 +57,16 @@ import { Select } from "frappe-ui/src/components/Select"
 import { Textarea } from "frappe-ui/src/components/Textarea"
 
 import { APPROVAL_MODES, modelTitle } from "../transcript.js"
+import { __ } from "../translate.js"
 import KeyButton from "./KeyButton.vue"
 import SettingsPage from "./SettingsPage.vue"
 import SettingsRow from "./SettingsRow.vue"
 
 const flow = inject("flow")
 const MODES = APPROVAL_MODES.map((mode) => ({ label: mode.label, value: mode.id }))
+const CHAT_MODEL = __("The chat's model")
 const smallModels = computed(() => [
-	{ label: "The chat's model", value: "" },
+	{ label: CHAT_MODEL, value: "" },
 	...flow.state.models.map((model) => ({ label: modelTitle(model.name, flow.state.models), value: model.name })),
 ])
 
@@ -99,15 +101,15 @@ function pickProvider(value) {
 	provider.value = value
 	if (value === "duckduckgo") {
 		flow.setWebSearch(null)
-		flow.notify("Web search saved")
+		flow.notify(__("Web search saved"))
 	}
 }
 function saveSearchKey(key) {
 	flow.setWebSearch({ provider: provider.value, api_key: key })
-	flow.notify("Web search saved")
+	flow.notify(__("Web search saved"))
 }
 function save() {
 	flow.setCustomInstructions(draft.value)
-	flow.notify("Custom instructions saved")
+	flow.notify(__("Custom instructions saved"))
 }
 </script>

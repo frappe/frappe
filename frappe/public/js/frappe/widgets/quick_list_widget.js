@@ -228,6 +228,7 @@ export default class QuickListWidget extends Widget {
 
 			let args = {
 				method: "frappe.desk.reportview.get",
+				type: "QUERY",
 				args: {
 					doctype: this.document_type,
 					fields: fields,

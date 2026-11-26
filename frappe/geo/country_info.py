@@ -28,7 +28,7 @@ def get_all():
 	return all_data
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def get_country_timezone_info():
 	return _get_country_timezone_info()
 

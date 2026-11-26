@@ -1,6 +1,6 @@
 import sys
 from collections.abc import Sequence
-from typing import Literal
+from typing import Literal, NoReturn
 
 import frappe
 from frappe import _
@@ -146,7 +146,7 @@ def throw(
 	primary_action=None,
 	*,
 	allow_dangerous_html=False,
-) -> None:
+) -> NoReturn:
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
@@ -168,9 +168,10 @@ def throw(
 		primary_action=primary_action,
 		allow_dangerous_html=allow_dangerous_html,
 	)
+	raise AssertionError("unreachable")
 
 
-def throw_permission_error():
+def throw_permission_error() -> NoReturn:
 	throw(_("Not permitted"), frappe.PermissionError)
 
 

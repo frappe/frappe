@@ -13,6 +13,7 @@ VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
 CONFIGURABLE_DECIMAL_TYPES = ("Currency", "Float", "Percent")
 DEFAULT_DECIMAL_LENGTH = 21
 DEFAULT_DECIMAL_PRECISION = 9
+MAX_DECIMAL_LENGTH = 65
 
 
 class InvalidColumnName(frappe.ValidationError):

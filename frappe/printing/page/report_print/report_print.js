@@ -29,7 +29,6 @@ const PREVIEW_STYLE = `<style>
 	@media screen {
 		:root {
 			margin: 0;
-			background-color: var(--gray-200);
 		}
 		:root body {
 			margin: 0;
@@ -101,7 +100,10 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		this.$iframe = this.$preview.find("iframe");
 		this.preview_bar = new frappe.ui.PrintPreviewBar({
 			parent: this.$preview,
-			get_metrics: (doc) => this.get_page_metrics(doc),
+			get_sheet: (doc) => ({
+				sheet: doc.querySelector(".print-format"),
+				breaks: ".page-break:not(:last-child)",
+			}),
 		});
 
 		this.page.set_primary_action(__("Print"), () => this.print(), "printer");
@@ -137,6 +139,11 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			limit: 100,
 		});
 		const names = formats.map((format) => format.name);
+		const report_name = this.report.report_name;
+		frappe.model.user_settings[report_name] = await frappe.model.user_settings.get(
+			report_name
+		);
+		const saved = frappe.model.user_settings[report_name].print_columns;
 
 		this.sidebar.append(`<div class="print-sidebar-heading">${__("Format")}</div>`);
 		this.format_field = this.add_control({
@@ -202,7 +209,8 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				fieldtype: "Check",
 				fieldname: "pick_columns",
 				label: __("Pick columns"),
-				change: () => this.refresh(),
+				default: saved?.pick_columns ? 1 : 0,
+				change: () => this.save_print_columns(),
 			},
 			$page
 		);
@@ -220,13 +228,23 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				options: this.report.get_visible_columns().map((df) => ({
 					label: __(df.label, null, df.parent),
 					value: df.fieldname,
-					checked: 1,
+					checked: !saved?.unchecked?.includes(df.fieldname),
 				})),
-				on_change: () => this.refresh(),
+				on_change: () => this.save_print_columns(),
 			},
 			this.$columns
 		);
 		this.columns_field.$checkbox_area.css("padding", "");
+	}
+
+	save_print_columns() {
+		const settings = frappe.model.user_settings[this.report.report_name];
+		settings.print_columns = {
+			pick_columns: this.pick_columns_field.get_value(),
+			unchecked: this.columns_field.get_unchecked_options(),
+		};
+		frappe.model.user_settings.update(this.report.report_name, settings);
+		this.refresh();
 	}
 
 	add_control(df, parent) {
@@ -265,10 +283,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			letter_head_name: letter_head || null,
 			letter_head: letter_head ? frappe.boot.letter_heads?.[letter_head] : null,
 			include_filters: this.include_filters_field.get_value(),
-			columns:
-				pick_columns && columns.length < this.report.get_visible_columns().length
-					? columns
-					: null,
+			columns: pick_columns ? columns : null,
 		};
 	}
 
@@ -375,20 +390,6 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				this.print();
 			}
 		});
-	}
-
-	get_page_metrics(doc) {
-		const sheet = doc.querySelector(".print-format");
-		if (!sheet) return null;
-		return {
-			top: sheet.offsetTop,
-			width: sheet.offsetWidth,
-			starts: frappe.ui.PrintPreviewBar.measure_pages({
-				page: sheet,
-				page_height: parseFloat(getComputedStyle(sheet).minHeight),
-				breaks: ".page-break:not(:last-child)",
-			}),
-		};
 	}
 
 	print() {

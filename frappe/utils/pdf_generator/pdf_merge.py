@@ -42,6 +42,9 @@ class PDFTransformer:
 				return output
 			return body
 
+		if not output:
+			body = PdfWriter(clone_from=body)
+
 		body_height = body.pages[0].mediabox.top
 		body_transform = header_height = footer_height = 0
 
@@ -100,12 +103,19 @@ class PDFTransformer:
 				else:
 					p.merge_page(footer.pages[0])
 
-		writer = output or PdfWriter()
-		first_new_page = len(writer.pages)
-		writer.append_pages_from_reader(body)
+		if output:
+			writer = output
+			first_new_page = len(writer.pages)
+			writer.append_pages_from_reader(body)
+		else:
+			writer = body
+			first_new_page = 0
 		for page in writer.pages[first_new_page:]:
 			page.compress_content_streams()
 		self.resolve_internal_links(writer, body, first_new_page, body_transform)
+		if not output:
+			writer.root_object.pop("/Dests", None)
+			writer.root_object.get("/Names", {}).pop("/Dests", None)
 
 		return output or self.get_file_data_from_writer(writer)
 

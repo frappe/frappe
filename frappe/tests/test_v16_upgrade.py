@@ -26,6 +26,7 @@ from frappe.desk.doctype.sidebar.test_sidebar import make_sidebar, no_developer_
 from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
 from frappe.patches.v16_0.sidebar_archive import layer_rows, write_user_layer
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 # in the order `patches.txt` runs them
 CONVERSION = (
@@ -69,6 +70,18 @@ def archive(title, items, module=None, for_user=None, standard=0, ignore_links=F
 				"items": items,
 			}
 		).insert(ignore_permissions=True, ignore_links=ignore_links)
+
+
+def make_user(email: str, first_name: str, *roles: str) -> str:
+	"""The ID of the user with this email, created if missing, with `roles` added."""
+	if user := get_user_by_email(email):
+		user = frappe.get_doc("User", user)
+	else:
+		user = frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": first_name, "send_welcome_email": 0}
+		).insert()
+	user.add_roles(*roles)
+	return user.name
 
 
 def run_conversion() -> list[str]:
@@ -135,15 +148,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		).insert()
 		clear_computed_base_cache(cls.SHIPPED_MODULE)
 
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": cls.USER,
-				"first_name": "V16",
-				"send_welcome_email": 0,
-				"roles": [{"role": "System Manager"}],
-			}
-		).insert(ignore_if_duplicate=True)
+		cls.user = make_user(cls.USER, "V16", "System Manager")
 
 		# The kind of page the private container below hangs off: one a person owns.
 		frappe.get_doc(
@@ -153,7 +158,7 @@ class TestV16Upgrade(IntegrationTestCase):
 				"label": cls.PRIVATE_PAGE,
 				"module": cls.MODULE,
 				"public": 0,
-				"for_user": cls.USER,
+				"for_user": cls.user,
 				"content": "[]",
 			}
 		).insert(ignore_permissions=True)
@@ -176,10 +181,10 @@ class TestV16Upgrade(IntegrationTestCase):
 			standard=1,
 		)
 		archive(
-			"V16 Primary-test-v16-upgrade@example.com",
+			f"V16 Primary-{cls.user}",
 			[{"type": "Link", "link_type": "Report", "link_to": cls.OTHER_REPORT, "label": "Mine"}],
 			module=cls.MODULE,
-			for_user=cls.USER,
+			for_user=cls.user,
 		)
 		archive(
 			"V16 My Workspaces",
@@ -187,10 +192,10 @@ class TestV16Upgrade(IntegrationTestCase):
 			module=cls.MODULE,
 		)
 		archive(
-			f"My Workspaces-{cls.USER}",
+			f"My Workspaces-{cls.user}",
 			[{"type": "Link", "link_type": "Workspace", "link_to": cls.PRIVATE_PAGE}],
 			module=cls.MODULE,
-			for_user=cls.USER,
+			for_user=cls.user,
 		)
 
 		# An app that *has* re-exported: it ships the module's sidebar in the current model, and
@@ -227,7 +232,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		return resolve_sidebar(self.MODULE, user or frappe.session.user)
 
 	def user_layer(self):
-		return frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": self.USER})
+		return frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": self.user})
 
 	def base(self, module=None):
 		return frappe.get_doc("Sidebar", module or self.MODULE)
@@ -381,7 +386,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		any edit, and it is the only thing in the archive nothing derives again.
 		"""
 		layer = self.user_layer()
-		self.assertEqual(layer.user, self.USER)
+		self.assertEqual(layer.user, self.user)
 		self.assertIn(self.OTHER_REPORT, [row.link_to for row in layer.sidebar_items])
 
 	def test_an_item_the_module_already_contains_stays_maintained(self):
@@ -395,7 +400,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		"""A fork is the whole list, so a removal is an absence. A layer is a delta, where an absence
 		says nothing. Converting one into the other is what this row does.
 		"""
-		self.assertNotIn(self.REPORT, [item["link_to"] for item in self.resolved(self.USER).items])
+		self.assertNotIn(self.REPORT, [item["link_to"] for item in self.resolved(self.user).items])
 
 		# ...and it is *this* person's opinion, not the site's
 		self.assertIn(self.REPORT, [item["link_to"] for item in self.resolved("Administrator").items])
@@ -414,7 +419,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		"""
 		layer = self.user_layer()
 		self.assertFalse(layer.label)
-		self.assertNotIn(self.USER, self.resolved(self.USER).label)
+		self.assertNotIn(self.user, self.resolved(self.user).label)
 
 	def test_a_private_workspace_container_is_passed_over(self):
 		"""Every row in one is a link to a page its owner owns, and those are derived on read now, so
@@ -471,7 +476,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		"""One line per user whose arrangement moved, naming the rows it was computed from, every one
 		of which is still there to check it against.
 		"""
-		named = [line for line in self.output if self.USER in line]
+		named = [line for line in self.output if self.user in line]
 		self.assertTrue(named, f"the fork was not named in output: {self.output}")
 
 		merges = [line for line in self.output if "V16 Secondary" in line]
@@ -565,15 +570,7 @@ class TestALinkThatNoLongerResolves(IntegrationTestCase):
 			).insert()
 			clear_computed_base_cache(cls.MODULE)
 
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": cls.USER,
-				"first_name": "V16 Dangling",
-				"send_welcome_email": 0,
-				"roles": [{"role": "System Manager"}],
-			}
-		).insert(ignore_if_duplicate=True)
+		cls.user = make_user(cls.USER, "V16 Dangling", "System Manager")
 
 		# One row that still resolves and one that does not, because a sidebar of nothing but dead
 		# links would convert even if the dead one were quietly dropped.
@@ -582,7 +579,7 @@ class TestALinkThatNoLongerResolves(IntegrationTestCase):
 			{"type": "Link", "link_type": "DocType", "link_to": cls.GONE, "label": "Gone"},
 		]
 		archive("V16 Dangling", items, module=cls.MODULE, standard=1, ignore_links=True)
-		archive(f"V16 Dangling-{cls.USER}", items, module=cls.MODULE, for_user=cls.USER, ignore_links=True)
+		archive(f"V16 Dangling-{cls.user}", items, module=cls.MODULE, for_user=cls.user, ignore_links=True)
 
 		cls.output = run_conversion()
 
@@ -606,7 +603,7 @@ class TestALinkThatNoLongerResolves(IntegrationTestCase):
 	def test_a_fork_holding_one_converts_too(self):
 		"""`write_user_layer` inserts a `Custom Sidebar` off the same rows, so it is exposed the same
 		way and is easy to fix on only one of the two paths."""
-		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": self.USER}))
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": self.user}))
 
 
 class TestRowTypesTheNewSidebarDropped(IntegrationTestCase):
@@ -629,9 +626,7 @@ class TestRowTypesTheNewSidebarDropped(IntegrationTestCase):
 			).insert()
 			clear_computed_base_cache(cls.MODULE)
 
-		frappe.get_doc(
-			{"doctype": "User", "email": cls.USER, "first_name": "V16 Spacer", "send_welcome_email": 0}
-		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+		cls.user = make_user(cls.USER, "V16 Spacer", "Desk User")
 
 		items = [
 			{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"},
@@ -644,7 +639,7 @@ class TestRowTypesTheNewSidebarDropped(IntegrationTestCase):
 		# a second sidebar in the module, merged into the same base, with an unnamed spacer of its own
 		# and a title as long as v16 allowed, which a spacer label must not overflow
 		archive("V16 More Spacers ".ljust(140, "x"), [{"type": "Spacer"}], module=cls.MODULE, standard=1)
-		archive(f"V16 Spacers-{cls.USER}", items, module=cls.MODULE, for_user=cls.USER)
+		archive(f"V16 Spacers-{cls.user}", items, module=cls.MODULE, for_user=cls.user)
 		cls.output = run_conversion()
 
 	@classmethod
@@ -667,12 +662,12 @@ class TestRowTypesTheNewSidebarDropped(IntegrationTestCase):
 		"""Spacers link nowhere, so the permission filter must not drop them, and two of them must
 		not collapse into one as duplicates."""
 		shell = frappe.db.get_value("Sidebar", {"module": self.MODULE})
-		items = resolve_sidebar(shell, self.USER).items
+		items = resolve_sidebar(shell, self.user).items
 		self.assertEqual([item["type"] for item in items].count("Spacer"), 3)
 
 	def test_a_forks_spacers_refer_to_the_sidebar_it_copied(self):
 		"""Not added again with the originals hidden, which is what a fork-specific name would do."""
-		layer = frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": self.USER})
+		layer = frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": self.user})
 		spacers = [row for row in layer.sidebar_items if row.type == "Spacer"]
 		self.assertTrue(spacers)
 		self.assertFalse([row for row in spacers if row.added or row.hidden])
@@ -699,14 +694,12 @@ class TestAnAppThatMovedItsSidebar(IntegrationTestCase):
 				).insert()
 				clear_computed_base_cache(module)
 
-		frappe.get_doc(
-			{"doctype": "User", "email": cls.USER, "first_name": "V16 Moved", "send_welcome_email": 0}
-		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+		cls.user = make_user(cls.USER, "V16 Moved", "Desk User")
 
 		app_sidebar(cls.NEW_MODULE, "V16 Moved", [link("User", "Users")])
 		items = [{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"}]
 		archive("V16 Moved", items, module=cls.OLD_MODULE, standard=1)
-		archive(f"V16 Moved-{cls.USER}", items, module=cls.OLD_MODULE, for_user=cls.USER)
+		archive(f"V16 Moved-{cls.user}", items, module=cls.OLD_MODULE, for_user=cls.user)
 		run_conversion()
 
 	@classmethod
@@ -718,8 +711,8 @@ class TestAnAppThatMovedItsSidebar(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Sidebar", {"module": self.OLD_MODULE}))
 
 	def test_a_fork_follows_the_sidebar_to_its_new_module(self):
-		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.NEW_MODULE, "user": self.USER}))
-		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.OLD_MODULE, "user": self.USER}))
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.NEW_MODULE, "user": self.user}))
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.OLD_MODULE, "user": self.user}))
 
 
 class TestCustomSidebars(IntegrationTestCase):
@@ -764,10 +757,8 @@ class TestCustomSidebars(IntegrationTestCase):
 			).insert()
 			frappe.db.set_value("Module Def", cls.STALE_PLACEMENT, "app_name", cls.REMOVED_APP)
 
-		for user in (cls.USER, cls.OTHER_USER):
-			frappe.get_doc(
-				{"doctype": "User", "email": user, "first_name": "V16 Custom", "send_welcome_email": 0}
-			).insert(ignore_if_duplicate=True).add_roles("Desk User")
+		cls.user = make_user(cls.USER, "V16 Custom", "Desk User")
+		cls.other_user = make_user(cls.OTHER_USER, "V16 Custom", "Desk User")
 
 		# the app's own sidebar for the module the site filed its sidebars under
 		make_sidebar(cls.HOST)
@@ -799,7 +790,7 @@ class TestCustomSidebars(IntegrationTestCase):
 		frappe.get_doc({"doctype": "Role", "role_name": cls.GATED_ROLE, "desk_access": 1}).insert(
 			ignore_if_duplicate=True
 		)
-		frappe.get_doc("User", cls.USER).add_roles(cls.GATED_ROLE)
+		frappe.get_doc("User", cls.user).add_roles(cls.GATED_ROLE)
 		for title in (cls.GATED, cls.OPEN_ICON, cls.IN_FOLDER):
 			archive(title, items, module=cls.HOST)
 		desktop_icon(cls.GATED, link_to=cls.GATED, roles=[cls.GATED_ROLE])
@@ -809,14 +800,7 @@ class TestCustomSidebars(IntegrationTestCase):
 		desktop_icon("V16 Gated Folder", icon_type="Folder", roles=[cls.GATED_ROLE])
 		desktop_icon(cls.IN_FOLDER, link_to=cls.IN_FOLDER, parent_icon="V16 Gated Folder")
 		# frappe's app icon is open to System Managers only
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": cls.SYSTEM_MANAGER,
-				"first_name": "V16 Manager",
-				"send_welcome_email": 0,
-			}
-		).insert(ignore_if_duplicate=True).add_roles("System Manager")
+		cls.system_manager = make_user(cls.SYSTEM_MANAGER, "V16 Manager", "System Manager")
 		archive(cls.IN_APP, items, module=cls.HOST)
 		desktop_icon("V16 App Parent", icon_type="App", app="frappe")
 		desktop_icon(cls.IN_APP, link_to=cls.IN_APP, parent_icon="V16 App Parent")
@@ -840,14 +824,14 @@ class TestCustomSidebars(IntegrationTestCase):
 		with in_patch():
 			old_base.insert(ignore_permissions=True)
 		archive("V16 Old Base", items, module=cls.HOST)
-		archive(f"{cls.SHOWROOM}-{cls.USER}", items[:1], module=cls.HOST, for_user=cls.USER)
+		archive(f"{cls.SHOWROOM}-{cls.user}", items[:1], module=cls.HOST, for_user=cls.user)
 
 		# what v16 built on its own from an app's workspace: neither flag, and no module. The
 		# app's sidebar is titled after the host, not after the workspace, so a personal copy of
 		# the row has only the workspace to say which module it is laid over.
 		standard_workspace(cls.GENERATED, cls.HOST)
 		archive(cls.GENERATED, [home(cls.GENERATED), *items])
-		archive(f"{cls.GENERATED}-{cls.OTHER_USER}", [home(cls.GENERATED), items[0]], for_user=cls.OTHER_USER)
+		archive(f"{cls.GENERATED}-{cls.other_user}", [home(cls.GENERATED), items[0]], for_user=cls.other_user)
 
 		cls.output = run_conversion()
 
@@ -873,7 +857,7 @@ class TestCustomSidebars(IntegrationTestCase):
 	def test_it_is_added_to_its_apps_dock_for_everyone(self):
 		from frappe.desk.doctype.dock.dock import get_app_base
 
-		rail = self.rail_for(self.OTHER_USER)
+		rail = self.rail_for(self.other_user)
 		self.assertIn(self.SHOWROOM, rail)
 		# the app's own entries keep their order, ahead of it
 		shipped = [link for link in (entry["link_to"] for entry in get_app_base("frappe")) if link in rail]
@@ -893,7 +877,7 @@ class TestCustomSidebars(IntegrationTestCase):
 		)
 
 	def test_a_normal_user_sees_its_links(self):
-		items = resolve_sidebar(self.SHOWROOM, self.OTHER_USER).items
+		items = resolve_sidebar(self.SHOWROOM, self.other_user).items
 		self.assertEqual([item["link_to"] for item in items], ["ToDo", "Event"])
 
 	def test_a_title_taken_by_another_module_is_suffixed(self):
@@ -913,8 +897,8 @@ class TestCustomSidebars(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Sidebar", {"merged_from": json.dumps([self.GENERATED])}))
 
 	def test_a_personal_copy_of_it_is_laid_over_the_apps_module(self):
-		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.HOST, "user": self.OTHER_USER}))
-		items = resolve_sidebar(self.HOST, self.OTHER_USER).items
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.HOST, "user": self.other_user}))
+		items = resolve_sidebar(self.HOST, self.other_user).items
 		self.assertIn("ToDo", [item["link_to"] for item in items])
 
 	def test_a_title_with_nothing_routable_still_gets_a_module(self):
@@ -935,25 +919,25 @@ class TestCustomSidebars(IntegrationTestCase):
 			return frappe.get_doc("User", user).get_blocked_modules()
 
 		for module in (self.GATED, self.IN_FOLDER):
-			self.assertIn(module, blocked(self.OTHER_USER))
-			self.assertNotIn(module, blocked(self.USER))
+			self.assertIn(module, blocked(self.other_user))
+			self.assertNotIn(module, blocked(self.user))
 			self.assertNotIn(module, blocked("Administrator"))
 		# under an app icon, shown to whoever the app lets in
-		self.assertIn(self.IN_APP, blocked(self.OTHER_USER))
-		self.assertNotIn(self.IN_APP, blocked(self.SYSTEM_MANAGER))
+		self.assertIn(self.IN_APP, blocked(self.other_user))
+		self.assertNotIn(self.IN_APP, blocked(self.system_manager))
 		# shown to everyone: by an open icon beside a gated one, or by having no icon at all
-		self.assertNotIn(self.OPEN_ICON, blocked(self.OTHER_USER))
-		self.assertNotIn(self.SHOWROOM, blocked(self.OTHER_USER))
+		self.assertNotIn(self.OPEN_ICON, blocked(self.other_user))
+		self.assertNotIn(self.SHOWROOM, blocked(self.other_user))
 
-		self.assertNotIn(self.GATED, self.rail_for(self.OTHER_USER))
-		self.assertIn(self.GATED, self.rail_for(self.USER))
+		self.assertNotIn(self.GATED, self.rail_for(self.other_user))
+		self.assertIn(self.GATED, self.rail_for(self.user))
 
 	def test_running_it_again_blocks_and_docks_nothing_twice(self):
 		run_conversion()
 		self.assertEqual(
-			frappe.db.count("Block Module", {"parent": self.OTHER_USER, "module": self.GATED}), 1
+			frappe.db.count("Block Module", {"parent": self.other_user, "module": self.GATED}), 1
 		)
-		self.assertEqual(self.rail_for(self.USER).count(self.GATED), 1)
+		self.assertEqual(self.rail_for(self.user).count(self.GATED), 1)
 
 	def test_a_custom_module_without_a_sidebar_is_reused(self):
 		self.assertTrue(frappe.db.exists("Sidebar", {"module": self.REUSED}))
@@ -972,10 +956,10 @@ class TestCustomSidebars(IntegrationTestCase):
 		self.assertEqual(get_linked_workspace_modules([icon]), {"icon": self.SHOWROOM})
 
 	def test_a_fork_of_it_is_laid_over_it(self):
-		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.SHOWROOM, "user": self.USER}))
-		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.HOST, "user": self.USER}))
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.SHOWROOM, "user": self.user}))
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.HOST, "user": self.user}))
 
-		items = resolve_sidebar(self.SHOWROOM, self.USER).items
+		items = resolve_sidebar(self.SHOWROOM, self.user).items
 		self.assertEqual([item["link_to"] for item in items], ["ToDo"])
 
 	def test_running_it_again_changes_nothing(self):
@@ -1012,9 +996,7 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		# one module the app ships a sidebar for, one it does not
 		make_sidebar(cls.HELD)
 
-		frappe.get_doc(
-			{"doctype": "User", "email": cls.USER, "first_name": "V16 Cleanup", "send_welcome_email": 0}
-		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+		cls.user = make_user(cls.USER, "V16 Cleanup", "Desk User")
 
 		rows = (
 			(cls.HELD_ROW, cls.HELD),
@@ -1041,9 +1023,9 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 			[link("Event", "Events"), link("ToDo", "Todos")], below, dropped={item_key(link("Note", "Notes"))}
 		)
 		next(row for row in rows if row["link_to"] == "ToDo")["label"] = "My Todos"
-		write_user_layer(held, cls.USER, rows)
+		write_user_layer(held, cls.user, rows)
 		frappe.db.set_value(
-			"Custom Sidebar", {"module": held, "user": cls.USER}, {"label": "Mine", "header_icon": "star"}
+			"Custom Sidebar", {"module": held, "user": cls.user}, {"label": "Mine", "header_icon": "star"}
 		)
 		# and added a second sidebar under one of the modules
 		added = frappe.new_doc("Sidebar")
@@ -1106,7 +1088,7 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		sidebar.append("items", link("ToDo", "Todos"))
 		with in_patch():
 			sidebar.insert(ignore_permissions=True)
-		user = frappe.get_doc("User", cls.USER)
+		user = frappe.get_doc("User", cls.user)
 		user.append("block_modules", {"module": module})
 		user.save(ignore_permissions=True)
 
@@ -1129,14 +1111,14 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 
 	def test_a_module_without_a_sidebar_takes_the_row(self):
 		self.assertEqual(frappe.db.get_value("Sidebar", {"module": self.BARE}), self.BARE_ROW)
-		items = resolve_sidebar(self.BARE_ROW, self.USER).items
+		items = resolve_sidebar(self.BARE_ROW, self.user).items
 		self.assertEqual([item["link_to"] for item in items if item["link_type"] == "DocType"], ["ToDo"])
 
 	def test_its_dock_entry_and_blocks_go(self):
 		self.assertFalse(
 			frappe.db.exists("Dock Item", {"link_type": "Sidebar", "link_to": f"{self.HELD_ROW} (Custom)"})
 		)
-		self.assertNotIn(f"{self.HELD_ROW} (Custom)", frappe.get_doc("User", self.USER).get_blocked_modules())
+		self.assertNotIn(f"{self.HELD_ROW} (Custom)", frappe.get_doc("User", self.user).get_blocked_modules())
 
 	def test_the_sites_arrangement_moves_to_the_apps_module(self):
 		"""What the site added is the site's there too, not every user's own."""
@@ -1147,12 +1129,12 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 	def test_a_users_arrangement_moves_to_the_apps_module(self):
 		"""With their order, what they hid, what they relabelled and what they named the layer: the
 		app's base holds none of these items, so a reference to the old base would name nothing."""
-		layer = frappe.get_doc("Custom Sidebar", {"module": self.HELD, "user": self.USER})
+		layer = frappe.get_doc("Custom Sidebar", {"module": self.HELD, "user": self.user})
 		self.assertEqual((layer.label, layer.header_icon), ("Mine", "star"))
 		# the site's layer shows Todos and Notes now, so the user's rows stay references to them
 		self.assertEqual([row.link_to for row in layer.sidebar_items if row.added], ["Event"])
 
-		items = resolve_sidebar(self.HELD, self.USER).items
+		items = resolve_sidebar(self.HELD, self.user).items
 		links = [item["link_to"] for item in items]
 		self.assertEqual([link for link in links if link in ("ToDo", "Event", "Note")], ["Event", "ToDo"])
 		self.assertEqual(next(item["label"] for item in items if item["link_to"] == "ToDo"), "My Todos")
@@ -1167,7 +1149,7 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		module = f"{self.KEPT_ROW} (Custom)"
 		self.assertTrue(frappe.db.exists("Module Def", module))
 		self.assertTrue(frappe.db.exists("Sidebar", {"module": module}))
-		self.assertIn(module, frappe.get_doc("User", self.USER).get_blocked_modules())
+		self.assertIn(module, frappe.get_doc("User", self.user).get_blocked_modules())
 		self.assertIn(f"Module '{module}': kept, Report V16 Kept Report is filed under it", self.output)
 
 	def test_a_module_holding_a_workspace_is_kept(self):

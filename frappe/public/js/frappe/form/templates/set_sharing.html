@@ -40,9 +40,10 @@ var all_perms = standard_perms.concat(custom_perms);
 
 	{% for (var i=0, l=shared.length; i < l; i++) {
 		var s = shared[i]; %}
-		{% if(s && !s.everyone) { %}
+		{% if(s && !s.everyone) {
+			var display_id = ["Administrator", "Guest"].includes(s.user) ? s.user : frappe.user_info(s.user).email || s.user; %}
 		<div class="shared-user" data-user="{%= s.user %}" data-name="{%= s.name %}" style="display: grid; grid-template-columns: 2fr repeat({%= all_perms.length %}, 1fr); gap: 8px; align-items: center;">
-			<div>{%= s.user %}</div>
+			<div>{%= display_id %}</div>
 			{% for (var j=0; j < all_perms.length; j++) {
 				var perm = all_perms[j];
 				var is_disabled = perm.disable_check && !frm.perm[0][perm.name]; %}
@@ -50,7 +51,7 @@ var all_perms = standard_perms.concat(custom_perms);
 				<input type="checkbox" name="{%= perm.name %}"
 					{% if(cint(s[perm.name])) { %}checked{% } %}
 					{% if (is_disabled) { %}disabled="disabled"{% } %}
-					aria-label="{%= frappe.utils.escape_html(__("{0} for {1}", [perm.label, s.user])) %}"
+					aria-label="{%= frappe.utils.escape_html(__("{0} for {1}", [perm.label, display_id])) %}"
 					class="edit-share">
 			</div>
 			{% } %}

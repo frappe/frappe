@@ -47,7 +47,7 @@ from flow_harness.model.auth import (
 )
 from flow_harness.model.base import Model, ModelRequest
 from flow_harness.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
-from flow_harness.model.content import resolve_tool_images, resolve_user_content
+from flow_harness.model.content import resolve_tool_images, resolve_user_content, tool_result_text
 from flow_harness.model.credentials import OAuthCredential
 from flow_harness.model.errors import (
 	normalize_provider_error,
@@ -794,7 +794,7 @@ def _responses_input(
 			images = resolve_tool_images(
 				message, resolve_attachment=resolve_attachment, supports_images=supports_images
 			)
-			output: str | list[dict] = message.content
+			output: str | list[dict] = tool_result_text(message, supports_images=supports_images)
 			if images:
 				# the Responses API takes image parts inside the tool output itself
 				output = [

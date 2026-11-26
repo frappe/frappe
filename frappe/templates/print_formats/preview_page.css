@@ -1,7 +1,4 @@
 @media screen {
-	html {
-		background-color: var(--gray-200);
-	}
 	body {
 		display: flex;
 		flex-direction: column;

@@ -12,6 +12,7 @@ from frappe.desk.page.workspace_restore.workspace_restore import (
 )
 from frappe.modules.import_file import import_doc
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 BASE_CONTENT = [{"id": "s1", "type": "shortcut", "data": {"shortcut_name": "My ToDos", "col": 4}}]
 MESSAGE_BLOCK = {
@@ -258,7 +259,7 @@ class TestWorkspaceRestore(IntegrationTestCase):
 			frappe.local.request_cache.clear()
 
 	def make_user(self, email, roles):
-		if not frappe.db.exists("User", email):
+		if not get_user_by_email(email):
 			frappe.get_doc(
 				{
 					"doctype": "User",

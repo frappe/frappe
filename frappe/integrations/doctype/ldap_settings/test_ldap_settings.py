@@ -13,6 +13,7 @@ from ldap3 import MOCK_SYNC, OFFLINE_AD_2012_R2, OFFLINE_SLAPD_2_4, Connection, 
 import frappe
 from frappe.exceptions import MandatoryError, ValidationError
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+from frappe.utils import get_user_by_email
 
 
 class LDAP_TestCase:
@@ -52,12 +53,10 @@ class LDAP_TestCase:
 		return wrapped
 
 	def clean_test_users():
-		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "posix.user1@unit.testing").delete()
-		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "posix.user2@unit.testing").delete()
-		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "website_ldap_user@test.com").delete()
+		for email in ("posix.user1@unit.testing", "posix.user2@unit.testing", "website_ldap_user@test.com"):
+			if user := get_user_by_email(email):
+				with contextlib.suppress(Exception):
+					frappe.get_doc("User", user).delete()
 
 	@classmethod
 	def setUpClass(cls):
@@ -173,6 +172,7 @@ class LDAP_TestCase:
 			"ldap_username_field",
 			"ldap_first_name_field",
 			"require_trusted_certificate",
+			"default_role",
 		]  # fields that are required to have ldap functioning need to be mandatory
 
 		for mandatory_field in mandatory_fields:
@@ -337,9 +337,9 @@ class LDAP_TestCase:
 			"phone": "08 1234 5678",
 			"mobile_no": "0421 123 456",
 		}
-		test_user = frappe.get_doc("User", test_user_data["email"])
+		test_user = frappe.get_doc("User", get_user_by_email(test_user_data["email"]))
 		self.test_class.update_user_fields(test_user, test_user_data)
-		updated_user = frappe.get_doc("User", test_user_data["email"])
+		updated_user = frappe.get_doc("User", test_user.name)
 
 		self.assertTrue(updated_user.middle_name == test_user_data["middle_name"])
 		self.assertTrue(updated_user.last_name == test_user_data["last_name"])
@@ -358,7 +358,7 @@ class LDAP_TestCase:
 		}
 		self.test_class.default_user_type = "Website User"
 		self.test_class.create_or_update_user(user_data=new_test_user_data, groups=[])
-		new_user = frappe.get_doc("User", new_test_user_data["email"])
+		new_user = frappe.get_doc("User", get_user_by_email(new_test_user_data["email"]))
 		self.assertEqual(new_user.user_type, "Website User")
 
 	@mock_ldap_connection
@@ -414,13 +414,13 @@ class LDAP_TestCase:
 		}
 
 		# re-create user1 to ensure clean
-		frappe.get_doc("User", "posix.user1@unit.testing").delete()
+		frappe.get_doc("User", get_user_by_email("posix.user1@unit.testing")).delete()
 		user = frappe.get_doc(self.user1doc)
 		user.insert(ignore_permissions=True)
 
 		for test_user in test_user_data:
-			test_user_doc = frappe.get_doc("User", f"{test_user}@unit.testing")
-			test_user_roles = frappe.get_roles(f"{test_user}@unit.testing")
+			test_user_doc = frappe.get_doc("User", get_user_by_email(f"{test_user}@unit.testing"))
+			test_user_roles = frappe.get_roles(test_user_doc.name)
 
 			self.assertTrue(
 				len(test_user_roles) == 2, "User should only be a part of the All and Guest roles"
@@ -428,8 +428,8 @@ class LDAP_TestCase:
 
 			self.test_class.sync_roles(test_user_doc, test_user_data[test_user])  # update user roles
 
-			frappe.get_doc("User", f"{test_user}@unit.testing")
-			updated_user_roles = frappe.get_roles(f"{test_user}@unit.testing")
+			frappe.get_doc("User", test_user_doc.name)
+			updated_user_roles = frappe.get_roles(test_user_doc.name)
 
 			self.assertTrue(
 				len(updated_user_roles) == len(test_user_data[test_user]),
@@ -455,12 +455,10 @@ class LDAP_TestCase:
 		}
 		test_user = "posix.user1"
 
-		frappe.get_doc("User", f"{test_user}@unit.testing").delete()
+		frappe.get_doc("User", get_user_by_email(f"{test_user}@unit.testing")).delete()
 
-		with self.assertRaises(
-			frappe.exceptions.DoesNotExistError
-		):  # ensure user deleted so function can be tested
-			frappe.get_doc("User", f"{test_user}@unit.testing")
+		# ensure user deleted so function can be tested
+		self.assertIsNone(get_user_by_email(f"{test_user}@unit.testing"))
 
 		with mock.patch(
 			"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.update_user_fields"

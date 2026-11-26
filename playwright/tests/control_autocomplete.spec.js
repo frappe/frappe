@@ -77,6 +77,19 @@ test.describe("Control Autocomplete", () => {
 		await expect(input).toHaveValue("Opt");
 	});
 
+	test("should keep the set value when options share a label", async ({ page, desk }) => {
+		const fieldname = "autocomplete_4";
+		const dialog = await get_dialog_with_autocomplete(page, desk, fieldname, [
+			{ label: "Option 1", value: "option_1" },
+			{ label: "Option 1", value: "option_1_copy" },
+		]);
+		const value = await dialog.evaluate(async (d, fieldname) => {
+			await d.set_value(fieldname, "option_1_copy");
+			return d.get_value(fieldname);
+		}, fieldname);
+		expect(value).toBe("option_1_copy");
+	});
+
 	test("passes the form to a get_query function", async ({ page, desk }) => {
 		await desk.new_form("ToDo");
 		const form_passed = await page.evaluate(() => {

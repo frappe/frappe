@@ -6,12 +6,15 @@ import frappe
 from frappe import _, msgprint
 from frappe.utils import cint, cstr, get_url, now_datetime
 from frappe.utils.data import add_to_date, getdate
+from frappe.utils.password import decrypt, encrypt
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 # After this percent of failures in every batch, entire batch is aborted.
 # This usually indicates a systemic failure so we shouldn't keep trying to send emails.
 EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_PERCENT = 0.33
 EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_COUNT = 10
+
+UNSUBSCRIBE_METHOD = "/api/method/frappe.email.queue.unsubscribe"
 
 
 def get_emails_sent_this_month(email_account=None):
@@ -82,8 +85,13 @@ def get_unsubscribe_message(unsubscribe_message: str, expose_recipients: str) ->
 
 
 def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_method, unsubscribe_params):
+	recipient = (
+		{"token": encrypt(cstr(email))}
+		if unsubscribe_method == UNSUBSCRIBE_METHOD
+		else {"email": cstr(email)}
+	)
 	params = {
-		"email": cstr(email),
+		**recipient,
 		"doctype": cstr(reference_doctype),
 		"name": cstr(reference_name),
 	}
@@ -93,11 +101,14 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 	return get_url(unsubscribe_method + "?" + get_signed_params(params))
 
 
-@frappe.whitelist(allow_guest=True)
-def unsubscribe(doctype: str, name: str, email: str):
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
+def unsubscribe(doctype: str, name: str, email: str | None = None, token: str | None = None):
 	# unsubsribe from comments and communications
 	if not frappe.in_test and not verify_request():
 		return
+
+	if token:
+		email = decrypt(token)
 
 	try:
 		frappe.get_doc(

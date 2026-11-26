@@ -3,7 +3,7 @@
 	<nav
 		ref="rail"
 		class="absolute right-3 top-3 z-10 hidden max-h-[72%] md:block"
-		aria-label="Go to prompt"
+		:aria-label="__('Go to prompt')"
 		@mouseleave="hovered = null"
 	>
 		<div ref="list" class="flow-prompt-rail flex max-h-full flex-col overflow-y-auto py-1">
@@ -46,6 +46,7 @@
 import { nextTick, ref, watch } from "vue"
 
 import { layout } from "../layout.js"
+import { __ } from "../translate.js"
 
 const props = defineProps({
 	prompts: { type: Array, required: true }, // [{key, text}]

@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import sqlglot
@@ -37,7 +38,7 @@ from frappe.database.sqlite.query_parameters import (
 )
 from frappe.database.sqlite.schema import SQLiteTable, quote_identifier
 from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifiers
-from frappe.utils import get_datetime, get_table_name, now
+from frappe.utils import CallbackManager, get_datetime, get_table_name, now
 
 _TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
 
@@ -61,10 +62,14 @@ class SQLiteExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: sqlite3.Error) -> bool:
+		if isinstance(e, frappe.QueryDeadlockError):
+			return True
 		return getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY_SNAPSHOT
 
 	@classmethod
 	def is_timedout(cls, e: sqlite3.Error) -> bool:
+		if isinstance(e, frappe.QueryTimeoutError):
+			return True
 		return not cls.is_deadlocked(e) and (
 			getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY or "database is locked" in str(e)
 		)
@@ -175,12 +180,14 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		sqlite3.register_converter("timestamp", lambda x: datetime.fromisoformat(x.decode()))
 		sqlite3.register_converter("date", convert_sqlite_date)
 		sqlite3.register_converter("time", convert_sqlite_time)
+		sqlite3.register_adapter(UUID, str)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",
 				uri=True,
 				detect_types=sqlite3.PARSE_DECLTYPES,
 				timeout=DEFAULT_BUSY_TIMEOUT_SECONDS,
+				check_same_thread=False,
 			)
 		return sqlite3.connect(
 			db_path,
@@ -468,7 +475,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			return
 		original_fields = fields
 		# SQLite indexes the complete value; a MariaDB prefix length is neither needed nor valid here.
-		fields = [re.sub(r"\(\d+\)$", "", field) for field in fields]
+		fields = [re.sub(r"\(\d+\)$", "", field).strip("`") for field in fields]
 		for field in fields:
 			if not re.fullmatch(r"\w+", field):
 				frappe.throw(f"Invalid index column: {field}")
@@ -482,7 +489,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		# via code or console.
 		if (
 			len(fields) == 1
-			and original_fields == fields
+			and [field.strip("`") for field in original_fields] == fields
 			and not (frappe.flags.in_install or frappe.flags.in_migrate)
 		):
 			make_property_setter(
@@ -620,7 +627,17 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		super().sql_ddl(query, *args, **kwargs)
 		self.commit()
 
-	def begin(self, *, read_only=False):
+	@property
+	def is_write_request(self) -> bool:
+		"""Whether the current web request may write.
+
+		Such requests take the writer lock when their transaction begins, so a concurrent writer
+		makes them wait up to the busy timeout instead of failing at their first write.
+		"""
+		request = getattr(frappe.local, "request", None)
+		return request is not None and request.method not in ("GET", "HEAD", "OPTIONS", "QUERY")
+
+	def begin(self, *, read_only=False, defer_writer_lock=False):
 		if read_only or frappe.flags.read_only or self.in_read_only_transaction:
 			if self._conn:
 				self._conn.close()
@@ -635,7 +652,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._read_only_connection = False
 
 		try:
-			self.sql("BEGIN")
+			immediate = (
+				self.is_write_request
+				and not defer_writer_lock
+				and not getattr(self, "_read_only_connection", False)
+			)
+			self.sql("BEGIN IMMEDIATE" if immediate else "BEGIN")
 		except sqlite3.OperationalError as e:
 			if not self.is_nested_transaction_error(e):
 				raise e
@@ -661,9 +683,24 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.transaction_writes = 0
 		self._invalidate_transactional_schema_cache()
 		self._transaction_has_schema_changes = False
-		self.begin()  # explicitly start a new transaction
+		self.start_next_transaction(self.after_commit)
+
+	def start_next_transaction(self, callbacks: CallbackManager) -> None:
+		"""Begin the next transaction and run `callbacks`, then retake the writer lock for a write request.
+
+		The callbacks run before the lock wait, so a busy writer can not stop them after the transaction settled.
+		"""
+		self.begin(defer_writer_lock=True)
 		self.value_cache.clear()
-		self.run_after_transaction_callbacks(self.after_commit)
+		changes_before_callbacks = self._conn.total_changes
+		self.run_after_transaction_callbacks(callbacks)
+		if (
+			self.is_write_request
+			and not getattr(self, "_read_only_connection", False)
+			and self._conn.total_changes == changes_before_callbacks
+		):
+			self._conn.rollback()
+			self.begin()
 
 	def rollback(self, *, save_point=None, chain=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
@@ -682,9 +719,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._conn.rollback()
 			self._invalidate_transactional_schema_cache()
 			self._transaction_has_schema_changes = False
-			self.begin()
-			self.value_cache.clear()
-			self.run_after_transaction_callbacks(self.after_rollback)
+			self.start_next_transaction(self.after_rollback)
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 

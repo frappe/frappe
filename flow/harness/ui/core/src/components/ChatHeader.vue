@@ -13,7 +13,7 @@
 		<template v-if="!sidebarOpen && !history">
 			<!-- a hover floats the sidebar, New chat with it; a click brings it back -->
 			<SidebarPeek :menu="appMenu" :before-switch="beforeSwitch">
-				<Button variant="ghost" icon="lucide-panel-left" class="mr-1.5" title="Show sidebar" @click="emit('open-sidebar')" />
+				<Button variant="ghost" icon="lucide-panel-left" class="mr-1.5" :title="__('Show sidebar')" @click="emit('open-sidebar')" />
 			</SidebarPeek>
 		</template>
 
@@ -21,14 +21,14 @@
 		     chat shows no crumb, title or line under them until its first message goes out -->
 		<div v-if="started" class="flex min-w-0 items-center gap-2" :class="editing && 'flex-1'" :title="editing ? undefined : headerTitle">
 			<span v-if="lead" class="hidden min-w-0 flex-none items-center gap-1.5 text-base text-ink-gray-5 sm:flex">
-				<span class="size-3.5 flex-none" :class="lead.icon" aria-hidden="true" />
+				<span v-if="lead.icon" class="size-3.5 flex-none" :class="lead.icon" aria-hidden="true" />
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
 			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-base text-ink-gray-3 sm:inline">/</span>
 			<TitleField
 				v-if="editing"
 				:value="title"
-				label="Chat name"
+				:label="__('Chat name')"
 				class="w-full min-w-0 max-w-[400px]"
 				:back="composerBox"
 				@save="(name) => rename(renaming, name)"
@@ -53,7 +53,7 @@
 			@rename="renaming = flow.state.sessionId"
 			align="start"
 		>
-			<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
+			<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" :title="__('Chat options')" />
 		</ChatMenu>
 
 		<span class="min-w-2 flex-1" />
@@ -64,10 +64,10 @@
 			<button
 				v-if="!layout.narrow && (contextTokens > 0 || spent > 0)"
 				class="mr-2 flex items-center gap-2 whitespace-nowrap rounded-4 px-1.5 py-1 text-sm font-normal tabular-nums text-ink-gray-5 hover:bg-surface-gray-2"
-				title="Tokens, step by step"
+				:title="__('Tokens, step by step')"
 				@click="flow.setTranscriptOpen(true)"
 			>
-				<span v-if="contextWindow && contextTokens > 0" class="flex items-center gap-1.5" title="Context used">
+				<span v-if="contextWindow && contextTokens > 0" class="flex items-center gap-1.5" :title="__('Context used')">
 					<span class="h-1 w-10 flex-none overflow-hidden rounded-full bg-surface-gray-3">
 						<span
 							class="block h-full rounded-full bg-surface-gray-9"
@@ -76,9 +76,9 @@
 					</span>
 					<span>{{ formatTokens(contextTokens) }} / {{ formatTokens(contextWindow) }}</span>
 				</span>
-				<span v-else-if="contextTokens > 0" title="Current context">{{ formatTokens(contextTokens) }} in context</span>
+				<span v-else-if="contextTokens > 0" :title="__('Current context')">{{ __("{0} in context", [formatTokens(contextTokens)]) }}</span>
 				<!-- a model switch drops the context reading; the session's spend stands in -->
-				<span v-else title="Tokens used so far">{{ formatTokens(spent) }} used</span>
+				<span v-else :title="__('Tokens used so far')">{{ __("{0} used", [formatTokens(spent)]) }}</span>
 				<span v-if="cost > 0" class="flex items-center gap-2 text-ink-gray-4">
 					<span aria-hidden="true" class="text-ink-gray-3">·</span>
 					<span>{{ formatCost(cost) }}</span>
@@ -86,10 +86,10 @@
 			</button>
 
 			<ChatHistory v-if="history" />
-			<Button v-if="history && started" variant="ghost" icon="lucide-plus" title="New chat" @click="flow.startNewChat()" />
+			<Button v-if="history && started" variant="ghost" icon="lucide-plus" :title="__('New chat')" @click="flow.startNewChat()" />
 			<Dropdown v-if="history && manage" align="end" :options="manageOptions">
 				<template #trigger>
-					<Button variant="ghost" icon="lucide-settings" title="Manage" />
+					<Button variant="ghost" icon="lucide-settings" :title="__('Manage')" />
 				</template>
 			</Dropdown>
 			<ChatMenu
@@ -100,13 +100,13 @@
 				@rename="renaming = flow.state.sessionId"
 				align="end"
 			>
-				<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
+				<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" :title="__('Chat options')" />
 			</ChatMenu>
 			<Button
 				v-if="workspace && !workspaceOpen"
 				variant="ghost"
 				class="ml-2"
-				title="Open panel"
+				:title="__('Open panel')"
 				@click="flow.setWorkspaceOpen(true)"
 			>
 				<template #icon>
@@ -125,6 +125,7 @@ import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
 import { layout } from "../layout.js"
 import { conversationTitle, formatCost, formatTokens } from "../transcript.js"
+import { __ } from "../translate.js"
 import ChatHistory from "./ChatHistory.vue"
 import ChatMenu from "./ChatMenu.vue"
 import SidebarPeek from "./SidebarPeek.vue"
@@ -164,7 +165,7 @@ const cwd = computed(() => {
 // no folder to show: fall back to the session's title, or "New chat" (nothing while a chat loads)
 const title = computed(
 	() =>
-		flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? (flow.state.loading ? "" : "New chat"),
+		flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? (flow.state.loading ? "" : __("New chat")),
 )
 // the open chat's folder as the sidebar keeps it, which names it even when reached through a link
 const keptFolder = computed(() => flow.state.sessions.find((s) => s.session_id === flow.state.sessionId)?.workspace)
@@ -186,7 +187,7 @@ const contextWindow = computed(() => flow.state.conversation.contextWindow ?? nu
 // a narrow frame's chat menu opens the transcript in the readout's place
 const menuActions = computed(() => [
 	...(layout.narrow && (contextTokens.value > 0 || spent.value > 0)
-		? [{ label: "Transcript", icon: "lucide-list", onClick: () => flow.setTranscriptOpen(true) }]
+		? [{ label: __("Transcript"), icon: "lucide-list", onClick: () => flow.setTranscriptOpen(true) }]
 		: []),
 	...props.actions,
 ])
@@ -196,7 +197,7 @@ const manageOptions = computed(() => [
 	{
 		group: "settings",
 		hideLabel: true,
-		options: [{ label: "Settings", icon: "lucide-settings", onClick: () => flow.setSettingsOpen(true) }],
+		options: [{ label: __("Settings"), icon: "lucide-settings", onClick: () => flow.setSettingsOpen(true) }],
 	},
 ])
 

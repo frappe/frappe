@@ -20,7 +20,7 @@ from frappe.model.base_document import BaseDocument
 from frappe.model.document import Document, LazyChildTable, LazyDocument, _get_extended_class
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
-from frappe.utils import cint, get_datetime, now_datetime, set_request
+from frappe.utils import cint, get_datetime, get_user_by_email, now_datetime, set_request
 from frappe.website.serve import get_response
 
 
@@ -133,6 +133,33 @@ class TestDocument(IntegrationTestCase):
 		doc.save()
 		self.assertEqual(doc.child_table[-1].some_fieldname, default)
 
+	def test_fetch_from_a_child_row_updated_in_the_same_transaction(self):
+		child_table = new_doctype(istable=1).insert().name
+		parent = new_doctype(
+			fields=[{"fieldtype": "Table", "options": child_table, "fieldname": "child_table"}]
+		).insert()
+		linked = new_doctype(
+			fields=[
+				{"fieldtype": "Link", "options": child_table, "fieldname": "row", "label": "Row"},
+				{
+					"fieldtype": "Data",
+					"fieldname": "row_value",
+					"label": "Row Value",
+					"fetch_from": "row.some_fieldname",
+					"read_only": 1,
+				},
+			]
+		).insert()
+
+		doc = frappe.get_doc({"doctype": parent.name, "child_table": [{"some_fieldname": "old"}]}).insert()
+		link = frappe.get_doc({"doctype": linked.name, "row": doc.child_table[0].name}).insert()
+		self.assertEqual(link.row_value, "old")
+
+		doc.child_table[0].some_fieldname = "new"
+		doc.save()
+		link.save()
+		self.assertEqual(link.row_value, "new")
+
 	def test_insert_with_child(self):
 		d = frappe.get_doc(
 			{
@@ -208,7 +235,8 @@ class TestDocument(IntegrationTestCase):
 
 	def test_mandatory(self):
 		# TODO: recheck if it is OK to force delete
-		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)
+		if user := get_user_by_email("test_mandatory@example.com"):
+			frappe.delete_doc("User", user, force=True)
 
 		d = frappe.get_doc(
 			{
@@ -278,7 +306,8 @@ class TestDocument(IntegrationTestCase):
 		frappe.set_user("Administrator")
 
 	def test_link_validation(self):
-		frappe.delete_doc_if_exists("User", "test_link_validation@example.com", 1)
+		if user := get_user_by_email("test_link_validation@example.com"):
+			frappe.delete_doc("User", user, force=True)
 
 		d = frappe.get_doc(
 			{
@@ -1479,6 +1508,56 @@ class TestDocsCollection(IntegrationTestCase):
 		todo = ToDo.docs.new(description="docs instance access")
 		with self.assertRaises(AttributeError):
 			todo.docs
+
+
+class TestReadDoc(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		role = "Test Read Doc Role"
+		if not frappe.db.exists("Role", role):
+			frappe.get_doc({"doctype": "Role", "role_name": role}).insert()
+		cls.reader = create_user("test_read_doc@example.com", role).name
+
+		cls.doctype = new_doctype(
+			fields=[
+				{"fieldname": "public_info", "fieldtype": "Data", "label": "Public Info"},
+				{"fieldname": "secret_info", "fieldtype": "Data", "label": "Secret Info", "permlevel": 1},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "permlevel": 0},
+				{"role": "System Manager", "read": 1, "write": 1, "permlevel": 1},
+				{"role": role, "read": 1, "write": 1, "permlevel": 0},
+			],
+		).insert()
+
+	def setUp(self):
+		self.docname = (
+			frappe.new_doc(self.doctype.name, public_info="public", secret_info="secret").insert().name
+		)
+
+	def test_removes_fields_without_permlevel_access(self):
+		with self.set_user(self.reader):
+			doc = frappe.read_doc(self.doctype.name, self.docname)
+			self.assertEqual(doc.public_info, "public")
+			self.assertIsNone(doc.get("secret_info"))
+			self.assertIsNone(doc.as_dict()["secret_info"])
+
+	def test_raises_without_read_permission(self):
+		with self.set_user(create_user("test_read_doc_no_access@example.com", "Website Manager").name):
+			self.assertRaises(frappe.PermissionError, frappe.read_doc, self.doctype.name, self.docname)
+
+	def test_document_can_not_be_saved(self):
+		with self.set_user(self.reader):
+			doc = frappe.read_doc(self.doctype.name, self.docname)
+			doc.public_info = "changed"
+			self.assertRaises(frappe.ValidationError, doc.save, ignore_permissions=True)
+
+			doc.reload()
+			doc.public_info = "changed"
+			doc.save()
+
+		self.assertEqual(frappe.db.get_value(self.doctype.name, self.docname, "secret_info"), "secret")
 
 
 def clear_todo_controller_cache():

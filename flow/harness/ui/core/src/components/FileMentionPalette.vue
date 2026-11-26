@@ -35,10 +35,10 @@
 			</button>
 			<LoadingState v-if="rows === null" class="justify-center px-3 py-8 text-base text-ink-gray-5" />
 			<div v-else-if="!rows.length" class="flow-palette-empty">
-				{{ searchActive ? "No matching files" : "No files here" }}
+				{{ searchActive ? __("No matching files") : __("No files here") }}
 			</div>
 			<div v-if="truncated" class="px-3 pb-1 pt-2 text-center text-base text-ink-gray-5">
-				More matches than shown — keep typing to narrow.
+				{{ __("More matches than shown — keep typing to narrow.") }}
 			</div>
 		</div>
 	</PalettePanel>
@@ -48,6 +48,7 @@
 import { computed, inject, ref, toRef, watch } from "vue"
 
 import { useDebouncedValue } from "../debounce.js"
+import { __ } from "../translate.js"
 import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
 
@@ -63,7 +64,7 @@ const loading = ref(true) // the rows answer an older query or folder
 
 const debouncedQuery = useDebouncedValue(toRef(props, "query"), 150)
 const searchActive = computed(() => debouncedQuery.value.trim() !== "")
-const title = computed(() => (searchActive.value ? "Files" : dir.value || "Files"))
+const title = computed(() => (searchActive.value ? __("Files") : dir.value || __("Files")))
 
 function goUp() {
 	dir.value = dir.value.split("/").slice(0, -1).join("/")

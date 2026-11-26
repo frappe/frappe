@@ -10,7 +10,12 @@ const emit = defineEmits<{
 }>();
 
 const avatarLabel = computed(() =>
-	(props.notification.from_user || props.notification.type || "?").charAt(0)
+	(
+		props.notification.from_user_name ||
+		props.notification.from_user ||
+		props.notification.type ||
+		"?"
+	).charAt(0)
 );
 
 // title/description are HTML rendered via v-html. The backend sanitizes this content at write

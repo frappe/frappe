@@ -5,3 +5,4 @@ import "./frappe/ui/keyboard.js";
 import "./frappe/utils/datetime.js";
 import "./frappe/web_form/webform_script.js";
 import "./bootstrap-4-web.bundle.js";
+import "./frappe/request.js";

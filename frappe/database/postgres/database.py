@@ -2,6 +2,7 @@ import datetime
 import re
 from contextlib import contextmanager
 from decimal import Decimal
+from functools import lru_cache
 from itertools import batched
 
 import psycopg
@@ -121,14 +122,13 @@ PLACEHOLDER_PATTERN = re.compile(
 
 LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
-PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
 FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
 # MySQL's REGEXP / NOT REGEXP -> postgres `~*` / `!~*` (case-insensitive, matching MySQL's default
-# collation). The `skip` branch swallows every token whose contents are data rather than code, so
-# the operator is only rewritten where it really is an operator: `SELECT 'a REGEXP b'` keeps its
+# collation), and integers compared against are quoted. The `skip` branch swallows every token whose
+# contents are data rather than code, so only code is rewritten: `SELECT 'a REGEXP b'` keeps its
 # text, and a doctype named "My Regexp Rules" keeps its table name (backticks are rewritten to
 # double quotes before this runs, so every frappe identifier arrives quoted).
-REGEXP_PATTERN = re.compile(
+MYSQL_SYNTAX_PATTERN = re.compile(
 	r"""
 	  (?P<skip>
 	      (?<!\w)[eE]'(?:[^'\\]|''|\\.)*'    # escape string: a \' does not end it
@@ -139,6 +139,7 @@ REGEXP_PATTERN = re.compile(
 	    | /\*.*?\*/                          # block comment
 	  )
 	| \s(?P<negated>NOT\s+)?REGEXP\s
+	| (?P<operator>[=><]+)\s*(?P<integer>[+-]?\d+)(?:\.0)?(?![a-zA-Z.\d])
 	""",
 	flags=re.IGNORECASE | re.DOTALL | re.VERBOSE,
 )
@@ -171,9 +172,11 @@ NONSTANDARD_SQL_TOKEN_PATTERN = re.compile(
 COMMENT_DELIMITER_PATTERN = re.compile(r"/\*|\*/")
 
 
-def _replace_regexp_operator(match: re.Match) -> str:
+def _rewrite_mysql_syntax(match: re.Match) -> str:
 	if (skipped := match.group("skip")) is not None:
 		return skipped
+	if (operator := match.group("operator")) is not None:
+		return f"{operator} '{match.group('integer')}'"
 	return " !~* " if match.group("negated") else " ~* "
 
 
@@ -199,11 +202,13 @@ class PostgresExceptionUtil:
 		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
 		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
 		# retry instead of surfacing as an unhandled query error.
-		return isinstance(e, errors.DeadlockDetected | errors.SerializationFailure)
+		return isinstance(
+			e, errors.DeadlockDetected | errors.SerializationFailure | frappe.QueryDeadlockError
+		)
 
 	@staticmethod
 	def is_timedout(e):
-		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable)
+		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable | frappe.QueryTimeoutError)
 
 	@staticmethod
 	def is_read_only_mode_error(e) -> bool:
@@ -259,7 +264,7 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_statement_timeout(e):
-		return PostgresDatabase.is_timedout(e) or isinstance(e, frappe.QueryTimeoutError)
+		return PostgresDatabase.is_timedout(e)
 
 	@staticmethod
 	def is_data_too_long(e):
@@ -1077,22 +1082,18 @@ def _integral_floats_as_ints(row, integer_positions):
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
+	return _modify_query(str(query))
+
+
+# Values are bound separately, so the same query text repeats across requests
+@lru_cache(maxsize=1024)
+def _modify_query(query: str) -> str:
 	# replace ` with " only where a backtick delimits an identifier
-	query = convert_backtick_identifiers(str(query))
+	query = convert_backtick_identifiers(query)
 	query = replace_locate_with_strpos(query)
-	# MySQL REGEXP operator -> postgres case-insensitive regex match
-	query = REGEXP_PATTERN.sub(_replace_regexp_operator, query)
+	query = MYSQL_SYNTAX_PATTERN.sub(_rewrite_mysql_syntax, query)
 	# select from requires ""
-	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
-
-	# only find int (with/without signs), ignore decimals (with/without signs), ignore hashes (which start with numbers),
-	# drop .0 from decimals and add quotes around them
-	#
-	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =   40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
-	# >>> re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
-	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
-
-	return PG_TRANSFORM_PATTERN.sub(r"\1 '\2'", query)
+	return FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 
 
 def check_single_statement(query: str, standard_strings: bool) -> None:

@@ -5,13 +5,13 @@
 			v-model="value"
 			type="password"
 			autocomplete="new-password"
-			placeholder="Enter it here, not in the chat"
-			description="Saved straight into the field. The assistant and this chat never see it."
+			:placeholder="__('Enter it here, not in the chat')"
+			:description="__('Saved straight into the field. The assistant and this chat never see it.')"
 		/>
 		<ErrorMessage :message="error" />
 		<div class="flex items-center justify-end gap-2">
-			<Button type="button" :disabled="busy" @click="deny">Deny</Button>
-			<Button type="submit" variant="solid" :loading="busy" :disabled="!value">Save</Button>
+			<Button type="button" :disabled="busy" @click="deny">{{ __("Deny") }}</Button>
+			<Button type="submit" variant="solid" :loading="busy" :disabled="!value">{{ __("Save") }}</Button>
 		</div>
 	</form>
 </template>
@@ -19,6 +19,7 @@
 <script setup>
 import { computed, inject, nextTick, onMounted, ref } from "vue";
 import { Button, ErrorMessage, FormControl } from "frappe-ui";
+import { __ } from "@flow/ui-core/translate.js";
 
 // A request_secret card: the value is saved by the site, then the card is approved without it
 const props = defineProps({
@@ -46,7 +47,7 @@ async function save() {
 		// the user switched chats while it saved: its card waits in its own chat
 		if (flow.state.sessionId === sid) await flow.answerApproval(props.call.id, "Approve");
 	} catch (e) {
-		error.value = e?.message || "Couldn't save it. Please try again.";
+		error.value = e?.message || __("Couldn't save it. Please try again.");
 	} finally {
 		busy.value = false;
 	}

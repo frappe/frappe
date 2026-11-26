@@ -54,17 +54,22 @@ frappe.ui.form.Footer = class FormFooter {
 			},
 			on_submit: (comment) => {
 				if (strip_html(comment).trim() != "" || comment.includes("img")) {
+					const docname = this.frm.docname;
 					this.frm.comment_box.disable();
 					frappe
 						.xcall("frappe.desk.form.utils.add_comment", {
 							reference_doctype: this.frm.doctype,
 							reference_name: this.frm.docname,
 							content: comment,
-							comment_email: frappe.session.user,
+							comment_email: frappe.session.user_email,
 							comment_by: frappe.session.user_fullname,
 						})
 						.then(() => {
-							this.frm.comment_box.set_value("");
+							if (this.frm.docname === docname) {
+								this.frm.comment_box.set_value("");
+							} else {
+								delete this.frm.comment_drafts?.[docname];
+							}
 							frappe.utils.play_sound("click");
 						})
 						.finally(() => {

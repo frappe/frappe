@@ -249,7 +249,7 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 		+ comment_log_data.info_logs
 		+ comment_log_data.like_logs
 		+ comment_log_data.workflow_logs
-		+ comment_log_data.shared
+		+ comment_log_data.share_logs
 	)
 	frappe.utils.add_user_info({c.owner for c in all_rows if c.owner}, user_info)
 
@@ -304,7 +304,7 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 		out.append(add_activity_record(c, author, "info", f"{author['fullname']} {activity_text(c.content)}"))
 
 	# docshare.py writes these already naming both the actor and who was shared with.
-	for c in comment_log_data.shared:
+	for c in comment_log_data.share_logs:
 		author = get_author_info(c.owner, user_info)
 		out.append(add_activity_record(c, author, "shared", activity_text(c.content)))
 

@@ -76,6 +76,8 @@ def plutoprint_blockers(print_format=None) -> list[str]:
 	if importlib.util.find_spec("plutoprint") is None:
 		blockers.append(_("PlutoPrint is not installed on this server"))
 	if print_format:
+		if print_format.get("print_designer"):
+			blockers.append(_("Print Designer"))
 		source = "\n".join(cstr(print_format.get(field)) for field in ("html", "css", "format_data"))
 		if SCRIPT.search(JINJA_TAG.sub("", source)):
 			blockers.append(_("JavaScript"))
@@ -170,12 +172,18 @@ class PlutoPage:
 			"isodate": now.isoformat(),
 			"time": format_time(now),
 		}
+		original = copy.copy(template)
 		previous = template
 		for page_no in range(1, total_pages + 1):
-			wrapper = template if page_no == 1 else copy.copy(template)
+			wrapper = template if page_no == 1 else copy.copy(original)
 			for class_name, value in {**values, "page": page_no}.items():
 				for element in wrapper.select(f".{class_name}"):
 					element.string = cstr(value)
+			hidden_on_this_page = [".hidden-first-page" if page_no == 1 else ".visible-first-page"]
+			if page_no != total_pages:
+				hidden_on_this_page.append(".visible-last-page")
+			for element in wrapper.select(",".join(hidden_on_this_page)):
+				element["style"] = f"{element.get('style', '')};visibility: hidden"
 			if page_no > 1:
 				previous.insert_after(wrapper)
 				previous = wrapper
@@ -199,8 +207,10 @@ class PlutoPage:
 		overflow = book.get_document_width() * POINTS_PER_PX * scale
 		if overflow > content_width + 1:
 			scale *= max(content_width / overflow, MAX_SHRINK)
+			del book
 			book = self._layout(width, height, margins, scale)
 		if book.get_page_count() > 1:
+			del book
 			book = self._layout(width, height, margins, scale, MULTI_PAGE_STYLE)
 
 		pdf = self._write(book, width, height, scale)
@@ -288,8 +298,14 @@ def cached_inter_faces(css: str) -> str:
 
 def local_resource_fetcher(block_external_requests=False):
 	import plutoprint
+	from werkzeug.http import parse_options_header
 
-	from frappe.utils.chromium.page import read_local_resource
+	from frappe.core.api.file import get_max_file_size
+	from frappe.utils.chromium.page import (
+		allows_internal_print_urls,
+		read_external_resource,
+		read_local_resource,
+	)
 
 	class Fetcher(plutoprint.ResourceFetcher):
 		def __init__(self):
@@ -298,7 +314,12 @@ def local_resource_fetcher(block_external_requests=False):
 
 		def fetch_url(self, url):
 			if url not in self.cache:
-				self.cache[url] = self.fetch(url)
+				try:
+					self.cache[url] = self.fetch(url)
+				except plutoprint.Error as error:
+					self.cache[url] = error
+			if isinstance(self.cache[url], plutoprint.Error):
+				raise self.cache[url]
 			return self.cache[url]
 
 		def fetch(self, url):
@@ -320,7 +341,18 @@ def local_resource_fetcher(block_external_requests=False):
 				return plutoprint.default_resource_fetcher.fetch_url(f"data:{content_type};base64,{content}")
 			if block_external_requests and not url.startswith("data:"):
 				raise plutoprint.Error(f"Blocked {url}")
-			resource = plutoprint.default_resource_fetcher.fetch_url(url)
+			if url.startswith("data:") or allows_internal_print_urls():
+				resource = plutoprint.default_resource_fetcher.fetch_url(url)
+			elif external := read_external_resource(url, get_max_file_size(), {"User-Agent": "Mozilla/4.0"}):
+				content, headers, _status_code = external
+				mime_type, options = parse_options_header(headers.get("Content-Type"))
+				resource = plutoprint.ResourceData(
+					content,
+					mime_type or mimetypes.guess_type(url.split("?")[0])[0] or "application/octet-stream",
+					options.get("charset", ""),
+				)
+			else:
+				raise plutoprint.Error(f"Cannot read {url}")
 			if resource.get_mime_type() == "text/html":
 				raise plutoprint.Error(f"Not a page resource: {url}")
 			return resource

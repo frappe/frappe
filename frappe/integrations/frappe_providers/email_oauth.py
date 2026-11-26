@@ -13,6 +13,7 @@ from oauthlib.oauth2 import WebApplicationClient
 
 import frappe
 from frappe import _
+from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.integrations.frappe_providers.cloud_settings import PilotClient, is_v2_site
 from frappe.integrations.utils import make_get_request
 from frappe.utils.caching import redis_cache
@@ -75,10 +76,11 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 
 
 @frappe.whitelist()
-def get_one_click_services() -> dict[str, str]:
-	"""Email Account services this site can add in one click now, each with its provider's label:
-	the providers Frappe Cloud has turned on that this site knows. Empty when Frappe Cloud can't be
-	reached, so adding a mailbox falls back to the normal form."""
+def get_one_click_services() -> dict[str, dict]:
+	"""Email Account services this site can add in one click now, each with its provider's label and
+	client ID (Google's only, for a Workspace admin to allow): the providers Frappe Cloud has turned on
+	that this site knows. Empty when Frappe Cloud can't be reached, so adding a mailbox falls back
+	to the normal form."""
 	if not is_v2_site() or not frappe.has_permission("Email Account", "create"):
 		return {}
 	try:
@@ -87,16 +89,19 @@ def get_one_click_services() -> dict[str, str]:
 		frappe.clear_last_message()
 		frappe.log_error("Couldn't get the one-click email providers from Frappe Cloud")
 		return {}
+	if isinstance(active, list):  # Central before it sent client IDs
+		active = dict.fromkeys(active)
 	return {
-		config["service"]: config["label"]
+		config["service"]: {"label": config["label"], "client_id": active[provider]}
 		for provider, config in ONE_CLICK_PROVIDERS.items()
 		if provider in active
 	}
 
 
 @redis_cache(ttl=10 * 60)
-def get_active_providers() -> list[str]:
-	"""The providers Frappe Cloud has turned on; Central is asked at most every 10 minutes."""
+def get_active_providers() -> dict[str, str | None]:
+	"""The providers Frappe Cloud has turned on, with Google's client ID; Central is asked at most
+	every 10 minutes."""
 	return call_central_method("get_active_providers")
 
 
@@ -106,12 +111,14 @@ def initiate_mailbox_connect(
 	redirect_to: str = DEFAULT_LANDING,
 	target_doctype: str | None = None,
 	email_account: str | None = None,
+	email: str | None = None,
 ) -> str | None:
 	"""Start a mailbox Connect; returns the provider's sign-in link, or None when adding a mailbox
 	of `service` can't be done in one click here and needs the normal Email Account form.
 
 	With `email_account`, signing in reconnects that mailbox instead of adding one, with the
-	provider it was connected with; `service` is ignored."""
+	provider it was connected with; `service` is ignored. Otherwise `email` is the address the user
+	means to add: the provider is asked to sign in with it, and another mailbox is refused."""
 	if email_account:
 		frappe.has_permission("Email Account", "write", doc=email_account, throw=True)
 		connected_app, login_hint = frappe.db.get_value(
@@ -128,7 +135,7 @@ def initiate_mailbox_connect(
 				)
 			)
 	else:
-		login_hint = None
+		login_hint = email
 		frappe.has_permission("Email Account", "create", throw=True)
 		provider = next((k for k, v in ONE_CLICK_PROVIDERS.items() if v["service"] == service), None)
 		if not provider or not is_v2_site():
@@ -167,6 +174,7 @@ def initiate_mailbox_connect(
 			"redirect_to": redirect_to,
 			"target_doctype": target_doctype,
 			"email_account": email_account,
+			"email": email,
 		},
 		expires_in_sec=NOTE_TTL,
 	)
@@ -190,7 +198,7 @@ def call_central_method(method: str, **data) -> dict:
 	return client.post(client.site_path(f"central/central.api.email_oauth.{method}"), data)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def callback(
 	state: str | None = None,
 	code: str | None = None,
@@ -222,7 +230,12 @@ def callback(
 	# the provider can only send the browser back with a GET, which is rolled back unless it commits;
 	# the state note above ties this request to the user's own sign-in
 	frappe.db.commit()  # keeps the mailbox or the Error Log  # nosemgrep
-	land(note["redirect_to"], result, account_email if account_name else email, note["provider"])
+	land(
+		note["redirect_to"],
+		result,
+		account_email if account_name else note.get("email") or email,
+		note["provider"],
+	)
 
 
 def connect_mailbox(
@@ -277,22 +290,54 @@ def connect_mailbox(
 			return "failed", email
 		if account_email.casefold() != email.casefold():
 			return "wrong_mailbox", email
+	elif note.get("email") and note["email"].casefold() != email.casefold():
+		return "wrong_mailbox", email
 	elif frappe.db.exists("Email Account", {"email_id": email}):
 		return "already_connected", email
 
 	connected_app = create_relay_app(note, email, token)
-	try:
-		save_email_account(note, email, connected_app, personal)
-	except Exception as e:
-		frappe.db.rollback()
+	receive_only_fallback = (
+		personal
+		and not account_name
+		and bool(
+			frappe.db.exists("Email Account", {"default_outgoing": 1, "enable_outgoing": 1})
+			or EmailAccount.get_account_details_from_site_config()
+		)
+	)
+	result = try_save_email_account(
+		note, email, connected_app, personal, retries_receive_only=receive_only_fallback
+	)
+	if result == "smtp_disabled_personal" and receive_only_fallback:
+		result = try_save_email_account(note, email, connected_app, personal, outgoing=False)
+		if not result:
+			return "connected_receive_only", email
+	if result:
 		delete_relay_app(connected_app)
-		frappe.log_error("Email OAuth connect failed")
-		result = matched_error(provider, "save", str(e)) or "failed"
-		if result == "smtp_disabled" and personal:
-			result = "smtp_disabled_personal"
 		return result, email
 
 	return ("reconnected" if account_name else "connected"), email
+
+
+def try_save_email_account(
+	note: dict,
+	email: str,
+	connected_app: str,
+	personal: bool,
+	outgoing: bool = True,
+	retries_receive_only: bool = False,
+) -> str | None:
+	"""Save the mailbox; return the result code when the mail server refuses it.
+	With `retries_receive_only`, a refused send isn't logged, as the caller saves the mailbox without it."""
+	try:
+		save_email_account(note, email, connected_app, personal, outgoing)
+	except Exception as e:
+		frappe.db.rollback()
+		result = matched_error(note["provider"], "save", str(e)) or "failed"
+		if result == "smtp_disabled" and personal:
+			result = "smtp_disabled_personal"
+		if not (retries_receive_only and result == "smtp_disabled_personal"):
+			frappe.log_error("Email OAuth connect failed")
+		return result
 
 
 def matched_error(provider: str, source: str, message: str | None) -> str | None:
@@ -321,7 +366,9 @@ def create_relay_app(note: dict, email: str, token: dict) -> str:
 	return app.name
 
 
-def save_email_account(note: dict, email: str, connected_app: str, personal: bool) -> None:
+def save_email_account(
+	note: dict, email: str, connected_app: str, personal: bool, outgoing: bool = True
+) -> None:
 	"""Add the mailbox, or point the one being reconnected at `connected_app`.
 	Saving logs in over IMAP and SMTP, and raises if either is refused."""
 	config = ONE_CLICK_PROVIDERS[note["provider"]]
@@ -351,7 +398,7 @@ def save_email_account(note: dict, email: str, connected_app: str, personal: boo
 				"email_account_name": email,
 				"email_id": email,
 				"enable_incoming": 1,
-				"enable_outgoing": 1,
+				"enable_outgoing": int(outgoing),
 				"email_sync_option": "ALL",
 				"initial_sync_count": 100,
 				"create_contact": 1,

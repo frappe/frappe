@@ -43,7 +43,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
-import type { ComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
 import type { SlotScope } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
@@ -77,20 +77,29 @@ const dynamicValueOptions = computed(() => {
 
 	if (canvasStore.editingMode === "component") {
 		// Component context
-		const componentInputs = useComponentEditorStore().componentInputs
-		if (!isObjectEmpty(componentInputs)) {
+		const declaredProps = useComponentEditorStore().declaredProps
+		if (!isObjectEmpty(declaredProps)) {
 			const componentContext: VariableOption[] = []
-			componentInputs.map?.((input: ComponentInput) => {
+			declaredProps.map?.((prop: StudioComponentInput) => {
 				componentContext.push({
-					value: `inputs.${input.input_name}`,
-					label: `inputs.${input.input_name}`,
-					type: input.type,
+					value: `props.${prop.input_name}`,
+					label: `props.${prop.input_name}`,
+					type: prop.type,
 				})
 			})
 			groups.push({
-				group: "Component Inputs",
+				group: "Component Props",
 				options: componentContext,
 			})
+		}
+		const scriptBindings = Object.entries(props.block?.componentContext || {})
+			.filter(([name]) => name !== "props" && name !== "inputs")
+			.map(([name, value]) => {
+				const isFunction = typeof value === "function"
+				return { value: isFunction ? `${name}()` : name, label: name, type: isFunction ? "function" : "ref" }
+			})
+		if (scriptBindings.length > 0) {
+			groups.push({ group: "Component Script", options: scriptBindings })
 		}
 	} else {
 		// Variables group

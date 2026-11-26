@@ -1,0 +1,55 @@
+name: Assign new issues
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+concurrency:
+  group: assign-bug-issues
+
+jobs:
+  assign:
+    if: github.repository == 'frappe/frappe' && !github.event.issue.assignees[0]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const assignees = ["g-sowani", "ruchiigadgil", "rameensh"];
+            const issue = context.payload.issue;
+            const since = Date.now() - 24 * 60 * 60 * 1000;
+            const recent = await github.paginate(
+              github.rest.issues.listForRepo,
+              { ...context.repo, state: "all", sort: "created", direction: "desc", per_page: 100 },
+              (response, done) => {
+                if (response.data.some((other) => Date.parse(other.created_at) <= since)) done();
+                return response.data;
+              },
+            );
+            const issues = recent.filter((other) => !other.pull_request);
+            let next = 0;
+            for (const other of issues) {
+              const last = other.assignees.map((a) => assignees.indexOf(a.login)).find((i) => i >= 0);
+              if (last !== undefined) {
+                next = (last + 1) % assignees.length;
+                break;
+              }
+            }
+            const pending = issues
+              .filter((other) => other.state === "open" && !other.assignees.length && Date.parse(other.created_at) > since)
+              .map((other) => other.number);
+            const { data: current } = await github.rest.issues.get({ ...context.repo, issue_number: issue.number });
+            if (current.state === "open" && !current.assignees.length && !pending.includes(current.number)) {
+              pending.push(current.number);
+            }
+            for (const number of pending.sort((a, b) => a - b)) {
+              await github.rest.issues.addAssignees({
+                ...context.repo,
+                issue_number: number,
+                assignees: [assignees[next]],
+              });
+              next = (next + 1) % assignees.length;
+            }

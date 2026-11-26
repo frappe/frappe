@@ -107,6 +107,7 @@
 		"JsBarcode": true,
 		"L": true,
 		"Chart": true,
+		"AirDatepicker": true,
 		"DataTable": true,
 		"qz": true,
 		"localforage": true,

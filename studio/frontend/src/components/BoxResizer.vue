@@ -28,6 +28,7 @@
 		class="pointer-events-auto absolute bottom-[-5px] right-[-5px] h-[12px] w-[12px] cursor-nwse-resize rounded-full border-[2.5px] border-outline-blue-4 bg-surface-base"
 		:class="{
 			'border-outline-purple-4': targetBlock.isStudioComponent,
+			'border-outline-green-5': targetBlock.isCustomVueComponent,
 		}"
 		v-show="!resizing"
 		@mousedown.stop="handleBottomCornerResize"

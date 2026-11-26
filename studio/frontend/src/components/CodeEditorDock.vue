@@ -5,7 +5,12 @@
 		<!-- z-[25]: above the canvas chrome (pills at z-20, selection ring at z-19), below the toolbar -->
 		<div
 			v-if="visible"
-			class="absolute bottom-0 top-[var(--toolbar-height)] z-[25] flex flex-col border-r border-outline-gray-2 bg-surface-base"
+			class="absolute bottom-0 z-[25] flex flex-col border-r border-outline-gray-2 bg-surface-base"
+			:class="
+				canvasStore.showFragmentCanvas
+					? 'top-[calc(var(--toolbar-height)+2.75rem)]'
+					: 'top-[var(--toolbar-height)]'
+			"
 			:style="{ left: `${panelLeft}px`, width: `${editorWidth}px` }"
 		>
 			<PanelResizer
@@ -53,6 +58,7 @@ import { useWindowSize } from "@vueuse/core"
 import Code from "@/components/Code.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import type { LeftPanelOptions } from "@/types"
 
 const props = withDefaults(
@@ -78,6 +84,8 @@ const props = withDefaults(
 const emit = defineEmits(["update:modelValue", "save"])
 
 const store = useStudioStore()
+// the bar of a component or fragment stays visible above the editor
+const canvasStore = useCanvasStore()
 
 const visible = computed(
 	() => props.open && store.studioLayout.showLeftPanel && store.studioLayout.leftPanelActiveTab === props.tab,

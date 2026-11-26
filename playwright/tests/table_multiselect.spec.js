@@ -20,7 +20,7 @@ test.describe("Table MultiSelect", () => {
 			description: "Automatic Assignment",
 			assign_condition: 'status=="Open"',
 			rule: "Round Robin",
-			users: [{ user: "test@erpnext.com" }],
+			users: [{ user: await admin.user_id("test@erpnext.com") }],
 			assignment_days: [{ day: "Monday" }],
 		});
 	});
@@ -49,7 +49,13 @@ test.describe("Table MultiSelect", () => {
 		);
 		await input.press("Enter");
 		const selected_value = page.locator(`${selected_values} .btn-link-to-form`);
-		await expect(selected_value).toContainText("test@erpnext.com");
+		const full_name = await page.evaluate(
+			async () =>
+				(
+					await frappe.db.get_value("User", { email: "test@erpnext.com" }, "full_name")
+				).message.full_name
+		);
+		await expect(selected_value).toContainText(full_name);
 
 		const saved = page.waitForResponse(
 			(res) =>
@@ -58,7 +64,7 @@ test.describe("Table MultiSelect", () => {
 		);
 		await page.locator(".primary-action:visible").click();
 		expect((await saved).status()).toBe(200);
-		await expect(selected_value).toContainText("test@erpnext.com");
+		await expect(selected_value).toContainText(full_name);
 	});
 
 	test("delete value using backspace", async ({ page, desk }) => {
@@ -76,10 +82,11 @@ test.describe("Table MultiSelect", () => {
 		await expect(existing_value).toHaveCount(0);
 	});
 
-	test("navigate to selected value", async ({ page, desk }) => {
+	test("navigate to selected value", async ({ page, desk, api }) => {
+		const user = encodeURIComponent(await api.user_id("test@erpnext.com"));
 		await open_saved_rule(page, desk);
 		const existing_value = page.locator(selected_values);
 		await existing_value.locator(".btn-link-to-form").click();
-		await expect(page).toHaveURL(/\/user\/test%40erpnext\.com/);
+		await expect(page).toHaveURL((url) => url.pathname.endsWith(`/user/${user}`));
 	});
 });

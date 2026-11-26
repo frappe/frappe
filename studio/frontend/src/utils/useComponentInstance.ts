@@ -1,6 +1,7 @@
 import { ref, watch } from "vue"
 import Block from "@/utils/block"
 import { customVueComponentsRegistry } from "@/utils/customVueComponents"
+import useComponentStore from "@/stores/componentStore"
 
 async function resolveComponent(component: any) {
 	if (!component) return {}
@@ -12,12 +13,22 @@ async function resolveComponent(component: any) {
 
 export default function useComponentInstance(blockGetter: () => Block | undefined) {
 	const componentInstance = ref<any>({})
+	const componentStore = useComponentStore()
 	watch(
-		() => blockGetter()?.componentName,
+		// a Studio Component's emits change when its script loads or changes
+		() => {
+			const block = blockGetter()
+			return [
+				block?.componentName,
+				block?.isStudioComponent && componentStore.getComponentScript(block.componentName),
+			]
+		},
 		async () => {
 			const block = blockGetter()
 			componentInstance.value = {}
-			if (!block?.componentName || block.isStudioComponent) {
+			if (!block?.componentName) return
+			if (block.isStudioComponent) {
+				componentInstance.value = { emits: componentStore.getComponentEmits(block.componentName) }
 				return
 			}
 			if (block?.isCustomVueComponent) {

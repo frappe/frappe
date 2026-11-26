@@ -133,7 +133,7 @@ frappe.db = {
 			{ cache }
 		);
 	},
-	get_link_options(doctype, txt = "", filters = {}, page_length = 0) {
+	get_link_options(doctype, txt = "", filters = {}, page_length = 0, include_image = false) {
 		return new Promise((resolve) => {
 			frappe.call({
 				type: "GET",
@@ -143,6 +143,7 @@ frappe.db = {
 					txt,
 					filters,
 					page_length,
+					include_image: include_image ? 1 : 0,
 				},
 				callback(r) {
 					resolve(r.message);

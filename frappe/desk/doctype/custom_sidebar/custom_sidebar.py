@@ -9,7 +9,11 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	item_key,
 	validate_item_route,
 )
-from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
+from frappe.desk.doctype.workspace.workspace import (
+	check_layer_keeps_its_owner,
+	check_workspace_manager,
+	is_workspace_manager,
+)
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
@@ -76,6 +80,7 @@ class CustomSidebar(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		check_layer_keeps_its_owner(self)
 		self.validate_module()
 		self.validate_unique()
 		self.validate_item_routes()
@@ -418,7 +423,12 @@ def layer_arrangement(module: str, user: str | None) -> list[dict]:
 	where the page is instead of leaving it to the derivation. The site's layer is shown none of
 	them, because it may hold none (`drop_private_workspaces`).
 	"""
-	from frappe.desk.doctype.sidebar.sidebar import PRIVATE_MODULE, filter_sidebar_items, get_module_base
+	from frappe.desk.doctype.sidebar.sidebar import (
+		PRIVATE_MODULE,
+		allowed_added_item,
+		filter_sidebar_items,
+		get_module_base,
+	)
 
 	check_module(module)
 
@@ -435,6 +445,9 @@ def layer_arrangement(module: str, user: str | None) -> list[dict]:
 		items = filter_sidebar_items(base.rows, perm_ctx, check_permission=bool(user))
 
 	resolved, hidden = resolve_arrangement(items, get_layers(module, user))
+	if user:
+		# A row a layer added was never in the base, so the filter above did not see it.
+		resolved = [item for item in resolved if allowed_added_item(item, perm_ctx)]
 
 	own = get_customization(module, user)
 	own_added = {item_key(row) for row in own.sidebar_items if row.added} if own else set()

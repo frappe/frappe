@@ -547,7 +547,8 @@ frappe.ui.form.on("Dashboard Chart", {
 			if (doc_is_table) {
 				let parents = await frappe.xcall(
 					"frappe.desk.doctype.dashboard_chart.dashboard_chart.get_parent_doctypes",
-					{ child_type: document_type }
+					{ child_type: document_type },
+					"GET"
 				);
 
 				frm.set_query("parent_document_type", function () {

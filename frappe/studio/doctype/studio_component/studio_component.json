@@ -2,7 +2,6 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "allow_rename": 1,
- "autoname": "field:component_id",
  "beta": 1,
  "creation": "2025-08-16 20:44:59.726936",
  "doctype": "DocType",
@@ -11,7 +10,9 @@
   "component_name",
   "is_disabled",
   "block",
+  "script",
   "component_id",
+  "studio_app",
   "is_standard",
   "interface_tab",
   "inputs"
@@ -27,7 +28,7 @@
    "fieldtype": "Data",
    "label": "Component ID",
    "no_copy": 1,
-   "unique": 1
+   "read_only": 1
   },
   {
    "fieldname": "interface_tab",
@@ -35,10 +36,12 @@
    "label": "Interface"
   },
   {
+   "description": "Legacy input rows are kept for compatibility. Define new props in the component script.",
    "fieldname": "inputs",
    "fieldtype": "Table",
    "label": "Inputs",
-   "options": "Studio Component Input"
+   "options": "Studio Component Input",
+   "read_only": 1
   },
   {
    "fieldname": "block",
@@ -60,16 +63,32 @@
    "label": "Is Standard",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "description": "The script of the component. Its default export declares the props, the emits and the setup function, as in a Vue component.",
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Script",
+   "options": "JavaScript"
+  },
+  {
+   "description": "The app that owns the component. A component without an app is available in every app.",
+   "fieldname": "studio_app",
+   "fieldtype": "Link",
+   "label": "Studio App",
+   "options": "Studio App",
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-11-16 13:00:16.514778",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
- "naming_rule": "By fieldname",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {

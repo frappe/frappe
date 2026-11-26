@@ -5,11 +5,14 @@ import contextlib
 # imports - standard imports
 import gzip
 import os
+import shlex
 import sqlite3
+import stat
 import sys
+import tarfile
 import tempfile
 from calendar import timegm
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from datetime import datetime
 from glob import glob
 from pathlib import Path
@@ -32,6 +35,7 @@ _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
 
 BACKUP_ENCRYPTION_CONFIG_KEY = "backup_encryption_key"
+REMOTE_BLOB_BATCH_SIZE = 1000
 
 
 def backup_sqlite_database(database_path: str | os.PathLike, backup_path: str | os.PathLike) -> None:
@@ -51,6 +55,11 @@ def backup_sqlite_database(database_path: str | os.PathLike, backup_path: str | 
 			gzip.open(backup_path, "wb") as compressed_backup,
 		):
 			copyfileobj(snapshot, compressed_backup)
+
+
+def get_remote_blob_filters(is_private: bool) -> dict:
+	"""File Blob filters for blobs that are not on local disk."""
+	return {"driver": ("!=", "local"), "status": "Ready", "is_private": is_private}
 
 
 class BackupGenerator:
@@ -82,6 +91,7 @@ class BackupGenerator:
 		verbose=False,
 		old_backup_metadata=False,
 		rollback_callback=None,
+		for_mariadb=False,
 	):
 		global _verbose
 		self.compress_files = compress_files or compress
@@ -103,6 +113,7 @@ class BackupGenerator:
 		self.partial = False
 		self.old_backup_metadata = old_backup_metadata
 		self.rollback_callback = rollback_callback
+		self.for_mariadb = for_mariadb
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -166,7 +177,7 @@ class BackupGenerator:
 			)
 
 		self.set_backup_tables_from_config()
-		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
+		self.partial = bool(self.backup_includes or self.backup_excludes)
 
 	def set_backup_tables_from_config(self):
 		"""Set self.backup_includes, self.backup_excludes based on site config.
@@ -212,7 +223,7 @@ class BackupGenerator:
 		"""
 		# Check if file exists and is less than a day old
 		# If not Take Dump
-		if not force:
+		if not force and not self.for_mariadb:
 			(
 				last_db,
 				last_file,
@@ -259,7 +270,8 @@ class BackupGenerator:
 		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
-		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
+		export = "-mariadb" if self.for_mariadb and self.db_type == "sqlite" else ""
+		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{export}{enc}.sql.gz"
 		for_public_files = f"{self.todays_date}-{self.site_slug}-files{enc}.{ext}"
 		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
 		backup_path = self.backup_path or get_backup_path()
@@ -286,8 +298,8 @@ class BackupGenerator:
 				cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
 				try:
 					command = cmd_string.format(
-						passphrase=get_or_generate_backup_encryption_key(),
-						filelocation=path,
+						passphrase=shlex.quote(get_or_generate_backup_encryption_key()),
+						filelocation=shlex.quote(path),
 					)
 
 					frappe.utils.execute_in_shell(command)
@@ -395,27 +407,92 @@ class BackupGenerator:
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
+			is_private = folder == "private"
+			# a streamed backup writes to a named pipe, which cannot be appended to
+			is_pipe = os.path.exists(backup_path) and stat.S_ISFIFO(os.stat(backup_path).st_mode)
+			should_add_blobs = not is_pipe and self.has_remote_blobs(is_private)
+			archive_path = backup_path
 
-			if self.compress_files:
+			if self.compress_files and not should_add_blobs:
 				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
+				# a .tgz cannot be appended to; gzip runs after the blobs are added
+				if self.compress_files:
+					archive_path = backup_path.removesuffix(".tgz") + ".tar.part"
 
 			try:
-				frappe.utils.execute_in_shell(
-					cmd_string.format(backup_path, files_path),
-					verbose=self.verbose,
-					low_priority=True,
-					check_exit_code=True,
-				)
-			except frappe.CommandFailedError as e:
-				if e.err and "file changed as we read it" in e.err:
-					click.secho(
-						"Ignoring `tar: file changed as we read it` to prevent backup failure",
-						fg="red",
+				try:
+					frappe.utils.execute_in_shell(
+						cmd_string.format(shlex.quote(archive_path), shlex.quote(files_path)),
+						verbose=self.verbose,
+						low_priority=True,
+						check_exit_code=True,
 					)
-				else:
-					raise e
+				except frappe.CommandFailedError as e:
+					if e.err and "file changed as we read it" in e.err:
+						click.secho(
+							"Ignoring `tar: file changed as we read it` to prevent backup failure",
+							fg="red",
+						)
+					else:
+						raise e
+
+				if should_add_blobs:
+					self.add_blobs_to_archive(archive_path, files_path, is_private)
+				if archive_path != backup_path:
+					self.compress_archive(archive_path, backup_path)
+			finally:
+				if archive_path != backup_path and os.path.exists(archive_path):
+					os.remove(archive_path)
+
+	def has_remote_blobs(self, is_private: bool) -> bool:
+		"""True when a Ready blob of this privacy lives on a driver other than ``local``."""
+		return bool(frappe.db.exists("File Blob", get_remote_blob_filters(is_private)))
+
+	def get_remote_blobs(self, is_private: bool) -> Iterator[frappe._dict]:
+		"""Remote blob rows of one privacy, paged by name."""
+		after_name = ""
+		while True:
+			rows = frappe.get_all(
+				"File Blob",
+				filters={**get_remote_blob_filters(is_private), "name": (">", after_name)},
+				fields=["name", "key", "driver", "is_private", "file_size", "creation"],
+				order_by="name asc",
+				limit=REMOTE_BLOB_BATCH_SIZE,
+			)
+			if not rows:
+				return
+			yield from rows
+			after_name = rows[-1].name
+
+	def add_blobs_to_archive(self, archive_path: str, files_path: str, is_private: bool) -> None:
+		"""Append remote blobs to a plain tar, at the path their cached copy would have."""
+		from frappe.storage.cache import get_cache_key
+		from frappe.storage.driver import get_driver
+
+		with tarfile.open(archive_path, "a") as tar:
+			for row in self.get_remote_blobs(is_private):
+				info = tarfile.TarInfo(os.path.join(files_path, get_cache_key(row)))
+				info.size = int(row.file_size)
+				info.mtime = int(row.creation.timestamp())
+				info.mode = 0o644
+				try:
+					stream = get_driver(row.driver).read(row.key, is_private=is_private)
+				except FileNotFoundError:
+					click.secho(f"Skipping blob {row.name}: its object is missing from storage", fg="red")
+					continue
+				with stream:
+					tar.addfile(info, stream)
+
+	def compress_archive(self, archive_path: str, backup_path: str) -> None:
+		"""Gzip a plain tar into the backup path."""
+		frappe.utils.execute_in_shell(
+			f"gzip -c {shlex.quote(archive_path)} > {shlex.quote(backup_path)}",
+			verbose=self.verbose,
+			low_priority=True,
+			check_exit_code=True,
+		)
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
@@ -424,21 +501,8 @@ class BackupGenerator:
 		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
 			n.write(c.read())
 
-	def take_dump(self):
-		if self.db_type == "sqlite":
-			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
-			backup_sqlite_database(db_path, self.backup_path_db)
-			return
-
-		import shlex
-
+	def get_dump_header(self) -> str:
 		from frappe.utils.change_log import get_app_branch
-
-		gzip_exc: str = which("gzip")
-		if not gzip_exc:
-			frappe.throw(
-				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
-			)
 
 		if self.old_backup_metadata:
 			database_header_content = [
@@ -471,10 +535,36 @@ class BackupGenerator:
 				]
 			)
 
-		generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
+		return "\n".join(f"-- {x}" for x in database_header_content) + "\n"
+
+	def take_mariadb_dump(self, db_path: Path) -> None:
+		from frappe.database.sqlite.mariadb_dump import MariaDBDumpWriter
+
+		writer = MariaDBDumpWriter(db_path, self.backup_includes, self.backup_excludes, self.verbose)
+		writer.write(self.backup_path_db, self.get_dump_header())
+
+	def take_dump(self):
+		if self.db_type == "sqlite":
+			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
+			if self.for_mariadb:
+				self.take_mariadb_dump(db_path)
+			else:
+				backup_sqlite_database(db_path, self.backup_path_db)
+			return
+
+		if self.for_mariadb and self.db_type != "mariadb":
+			frappe.throw(_("A MariaDB-compatible backup can only be taken of a SQLite or MariaDB site."))
+		if self.for_mariadb:
+			click.echo("Site already uses MariaDB; ignoring --for-mariadb.")
+
+		gzip_exc: str = which("gzip")
+		if not gzip_exc:
+			frappe.throw(
+				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
+			)
 
 		with gzip.open(self.backup_path_db, "wt") as f:
-			f.write(generated_header)
+			f.write(self.get_dump_header())
 
 		cmd = []
 		extra = []
@@ -510,7 +600,7 @@ class BackupGenerator:
 		cmd.append(bin)
 		cmd.append(shlex.join(args))
 
-		command = " ".join(["set -o pipefail;", *cmd, "|", gzip_exc, ">>", self.backup_path_db])
+		command = " ".join(["set -o pipefail;", *cmd, "|", gzip_exc, ">>", shlex.quote(self.backup_path_db)])
 		if self.verbose:
 			print(command.replace(shlex.quote(self.password), "*" * 10) + "\n")
 
@@ -683,6 +773,7 @@ def scheduled_backup(
 	verbose=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
+	for_mariadb=False,
 ):
 	"""this function is called from scheduler
 	deletes backups older than 7 days
@@ -703,6 +794,7 @@ def scheduled_backup(
 		verbose=verbose,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
+		for_mariadb=for_mariadb,
 	)
 
 
@@ -722,6 +814,7 @@ def new_backup(
 	verbose=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
+	for_mariadb=False,
 ):
 	delete_temp_backups()
 	odb = BackupGenerator(
@@ -744,6 +837,7 @@ def new_backup(
 		compress_files=compress,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
+		for_mariadb=for_mariadb,
 	)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
@@ -823,9 +917,9 @@ def decrypt_backup(file_path: str, passphrase: str):
 
 		cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
 		command = cmd_string.format(
-			passphrase=passphrase,
-			file_location=file_path_with_ext,
-			decrypted_file=file_path,
+			passphrase=shlex.quote(passphrase),
+			file_location=shlex.quote(file_path_with_ext),
+			decrypted_file=shlex.quote(file_path),
 		)
 	frappe.utils.execute_in_shell(command)
 	try:

@@ -9,6 +9,7 @@ from frappe.cache_manager import clear_doctype_map, get_doctype_map
 from frappe.desk.form import assign_to
 from frappe.model import log_types
 from frappe.model.document import Document
+from frappe.utils import get_user_by_email
 from frappe.utils.data import comma_and
 
 
@@ -45,6 +46,7 @@ class AssignmentRule(Document):
 	def validate(self):
 		self.validate_document_types()
 		self.validate_assignment_days()
+		self.validate_users()
 
 	def clear_cache(self):
 		super().clear_cache()
@@ -55,6 +57,13 @@ class AssignmentRule(Document):
 		if self.document_type == "ToDo":
 			frappe.throw(
 				_("Assignment Rule is not allowed on document type {0}").format(frappe.bold(_("ToDo")))
+			)
+
+	def validate_users(self):
+		if not self.disabled and self.rule in ("Round Robin", "Load Balancing") and not self.users:
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("users")))),
+				frappe.MandatoryError,
 			)
 
 	def validate_assignment_days(self):
@@ -171,8 +180,14 @@ class AssignmentRule(Document):
 
 	def get_user_based_on_field(self, doc):
 		val = doc.get(self.field)
+		if not val:
+			return
+
 		if frappe.db.exists("User", val):
 			return val
+
+		# the field can also be a Data field holding the user's email
+		return get_user_by_email(val)
 
 	def get_weighted_user(self):
 		"""
@@ -232,8 +247,8 @@ def get_assignments(doc) -> list[dict]:
 	)
 
 
-@frappe.whitelist()
-def bulk_apply(doctype: str, docnames: str | list[str]):
+@frappe.whitelist(methods=["POST"])
+def bulk_apply(doctype: str, docnames: str | list[str]) -> bool:
 	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
 		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
 
@@ -250,6 +265,8 @@ def bulk_apply(doctype: str, docnames: str | list[str]):
 			)
 		else:
 			apply(doctype=doctype, name=name)
+
+	return background
 
 
 def reopen_closed_assignment(doc):

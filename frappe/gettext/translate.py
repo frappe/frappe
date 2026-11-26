@@ -1,9 +1,11 @@
 import csv
 import multiprocessing
 import os
+import re
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+from string import Formatter
 
 from babel.messages.catalog import Catalog
 from babel.messages.extract import DEFAULT_KEYWORDS, extract_from_dir
@@ -119,15 +121,6 @@ def generate_pot(target_app: str | None = None):
 	:param target_app: If specified, limit to `app`
 	"""
 
-	is_gitignored = get_is_gitignored_function_for_app(target_app)
-
-	def directory_filter(dirpath: str | os.PathLike[str]) -> bool:
-		if is_gitignored(str(dirpath)):
-			return False
-
-		subdir = os.path.basename(dirpath)
-		return not (subdir.startswith(".") or subdir.startswith("_"))
-
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	default_method_map = get_method_map("frappe")
 
@@ -140,6 +133,14 @@ def generate_pot(target_app: str | None = None):
 		# so more specific methods should come first.
 		method_map = [] if app == "frappe" else get_method_map(app)
 		method_map.extend(default_method_map)
+		is_gitignored = get_is_gitignored_function_for_app(app)
+
+		def directory_filter(dirpath: str | os.PathLike[str]) -> bool:
+			if is_gitignored(str(dirpath)):
+				return False
+
+			subdir = os.path.basename(dirpath)
+			return not (subdir.startswith(".") or subdir.startswith("_"))
 
 		for filename, lineno, message, comments, context in extract_from_dir(
 			app_path, method_map, directory_filter=directory_filter, keywords=PYTHON_KEYWORDS
@@ -214,10 +215,17 @@ def get_is_gitignored_function_for_app(app: str | None):
 	if not app:
 		return lambda d: "public/dist" in d
 
-	repo = git.Repo(frappe.get_app_source_path(app), search_parent_directories=True)
+	try:
+		repo = git.Repo(frappe.get_app_source_path(app), search_parent_directories=True)
+	except git.InvalidGitRepositoryError:
+		return lambda d: "public/dist" in d
+
+	submodules = [Path(repo.working_tree_dir, sm.path) for sm in repo.submodules]
 
 	def _check_gitignore(d: str):
 		d = d.rstrip("/")
+		if any(Path(repo.working_tree_dir, d).is_relative_to(sm) for sm in submodules):
+			return True
 		if repo.ignored([d]):  # type: ignore
 			return True
 		return False
@@ -275,9 +283,33 @@ def _compile_translation(app, locale, force=False, verbose=True):
 	with open(po_path, "rb") as f:
 		catalog = read_po(f)
 
+	for message in catalog:
+		if message.id and message.string and not _has_valid_placeholders(message):
+			message.flags.add("fuzzy")
+
 	mo_path = write_binary(app, catalog, locale)
 	if verbose:
 		print(f"MO file created at {mo_path}")
+
+
+def _placeholder_fields(text: str) -> set[str]:
+	fields = [field for _, field, _, _ in Formatter().parse(text) if field is not None]
+	auto = iter(range(len(fields)))
+	names = [re.split(r"[.\[]", field, maxsplit=1)[0] for field in fields]
+	return {name or str(next(auto)) for name in names if not name or name.isdigit() or name.isidentifier()}
+
+
+def _has_valid_placeholders(message) -> bool:
+	ids = message.id if isinstance(message.id, tuple | list) else (message.id,)
+	strings = message.string if isinstance(message.string, tuple | list) else (message.string,)
+	try:
+		allowed = {field for msgid in ids for field in _placeholder_fields(msgid)}
+	except ValueError:
+		return True
+	try:
+		return all(_placeholder_fields(string) <= allowed for string in strings if string)
+	except ValueError:
+		return not allowed
 
 
 def update_po(target_app: str | None = None, locale: str | None = None):

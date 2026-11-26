@@ -165,10 +165,11 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	elif isinstance(datetime_str, datetime.datetime | datetime.timedelta):
+	# PERF: isinstance with a tuple is much faster than with a union type (`X | Y`)
+	elif isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
-	elif isinstance(datetime_str, list | tuple):
+	elif isinstance(datetime_str, (list, tuple)):
 		return datetime.datetime(datetime_str)
 
 	elif isinstance(datetime_str, datetime.date):
@@ -397,6 +398,13 @@ def get_timezone_utc_offset(timezone: str) -> str:
 	sign = "+" if offset_seconds >= 0 else "-"
 	hours, minutes = divmod(abs(offset_seconds) // 60, 60)
 	return f"{sign}{hours:02d}:{minutes:02d}"
+
+
+def validate_time_zone(time_zone: str) -> None:
+	from zoneinfo import available_timezones
+
+	if time_zone not in available_timezones():
+		frappe.throw(frappe._("{0} is not a valid Time Zone").format(frappe.bold(time_zone)))
 
 
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
@@ -1628,6 +1636,8 @@ def in_words(integer: int, in_million=True) -> str:
 		ret = num2words(integer, lang="en")
 	except OverflowError:
 		ret = num2words(integer, lang="en")
+	if locale and locale.startswith("es"):
+		ret = re.sub(r"\b(veinti)?uno(?= mil| bill)", lambda m: "veintiún" if m.group(1) else "un", ret)
 	return ret.replace("-", " ")
 
 
@@ -2625,8 +2635,8 @@ def to_markdown(html: str) -> str:
 		pass
 
 
-def md_to_html(markdown_text: str) -> "UnicodeWithAttrs" | None:
-	"""Convert the given markdown text to HTML and returns it."""
+def md_to_html(markdown_text: str) -> "UnicodeWithAttrs":
+	"""Convert the given markdown text to HTML and returns it. Returns the text unconverted if markdown2 fails."""
 	from markdown2 import MarkdownError
 	from markdown2 import markdown as _markdown
 
@@ -2639,13 +2649,15 @@ def md_to_html(markdown_text: str) -> "UnicodeWithAttrs" | None:
 		"html-classes": {"table": "table table-bordered", "img": "screenshot"},
 	}
 
+	markdown_text = markdown_text or ""
 	try:
-		return UnicodeWithAttrs(_markdown(markdown_text or "", extras=extras))
-	except MarkdownError:
-		pass
+		return UnicodeWithAttrs(_markdown(markdown_text, extras=extras))
+	# markdown2 2.5.5 asserts on HTML tags that span lines: trentm/python-markdown2#686
+	except (MarkdownError, AssertionError):
+		return UnicodeWithAttrs(markdown_text)
 
 
-def markdown(markdown_text: str) -> "UnicodeWithAttrs" | None:
+def markdown(markdown_text: str) -> "UnicodeWithAttrs":
 	"""Convert the given markdown text to HTML and returns it."""
 	return md_to_html(markdown_text)
 
@@ -2690,6 +2702,8 @@ def guess_date_format(date_string: str) -> str:
 		r"%d/%b/%Y",
 		r"%d %b %Y",
 		r"%d %B %Y",
+		r"%d %b %y",
+		r"%d %B %y",
 		r"%d-%b-%Y",
 		r"%d-%b-%y",
 		r"%d-%m-%Y",
@@ -2862,8 +2876,8 @@ def validate_python_code(string: str, fieldname: str | None = None, is_expressio
 
 class UnicodeWithAttrs(str):
 	def __init__(self, text):
-		self.toc_html = text.toc_html
-		self.metadata = text.metadata
+		self.toc_html = getattr(text, "toc_html", None)
+		self.metadata = getattr(text, "metadata", None)
 
 
 def format_timedelta(o: datetime.timedelta | str) -> str:

@@ -18,6 +18,7 @@ from frappe.core.doctype.doctype.doctype import (
 	check_email_append_to,
 	get_fields_not_allowed_in_list_view,
 	validate_autoincrement_autoname,
+	validate_decimal_length,
 	validate_fields_for_doctype,
 	validate_series,
 )
@@ -234,13 +235,18 @@ class CustomizeForm(Document):
 		self.doc_type = doc_type
 		self.name = "Customize Form"
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def save_customization(self):
 		if not self.doc_type:
 			return
 
 		validate_series(self, self.autoname, self.doc_type)
 		validate_autoincrement_autoname(self)
+		fieldnames = [df.fieldname for df in self.fields]
+		meta_fieldnames = [df.fieldname for df in frappe.get_meta(self.doc_type).fields]
+		self.flags.field_order_unchanged = [f for f in fieldnames if f in meta_fieldnames] == [
+			f for f in meta_fieldnames if f in fieldnames
+		]
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.update_custom_fields()
@@ -294,6 +300,9 @@ class CustomizeForm(Document):
 		# action and links
 		self.set_property_setters_for_actions_and_links(meta)
 
+		# field order last, with fresh meta, as the changes above can change the default order
+		self.set_property_setter_for_field_order(frappe.get_meta(self.doc_type, cached=False))
+
 	def set_property_setter_for_field_order(self, meta):
 		new_order = [df.fieldname for df in self.fields]
 		existing_order = getattr(meta, "field_order", None)
@@ -308,6 +317,13 @@ class CustomizeForm(Document):
 			return
 
 		if existing_order and new_order == json.loads(existing_order):
+			return
+
+		if (
+			not existing_order
+			and self.flags.field_order_unchanged
+			and new_order == [df.fieldname for df in meta.fields]
+		):
 			return
 
 		frappe.make_property_setter(
@@ -327,9 +343,8 @@ class CustomizeForm(Document):
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
 
-		self.set_property_setter_for_field_order(meta)
-
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
+		validate_decimal_length(df, meta_df[0])
 		for prop, prop_type in docfield_properties.items():
 			if prop != "idx" and (df.get(prop) or "") != (meta_df[0].get(prop) or ""):
 				if not self.allow_property_change(prop, meta_df, df, meta):
@@ -495,6 +510,9 @@ class CustomizeForm(Document):
 		for prop in docfield_properties:
 			d.set(prop, df.get(prop))
 
+		if df.fieldname and df.fieldname.startswith("custom_"):
+			d.fieldname = "".join(c for c in df.fieldname if c.isalnum() or c == "_")
+
 		if i != 0:
 			d.insert_after = self.fields[i - 1].fieldname
 		d.idx = i
@@ -513,6 +531,7 @@ class CustomizeForm(Document):
 			return
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
+		validate_decimal_length(df, custom_field)
 		changed = False
 		for prop in docfield_properties:
 			if df.get(prop) != custom_field.get(prop):
@@ -548,15 +567,15 @@ class CustomizeForm(Document):
 				frappe.delete_doc("Custom Field", df.name)
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None):
-		delete_property_setter(self.doc_type, prop, fieldname, row_name)
+		if not apply_on:
+			apply_on = "DocField" if fieldname else "DocType"
+
+		delete_property_setter(self.doc_type, prop, fieldname, row_name, apply_on)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
 
 		if property_value == value:
 			return
-
-		if not apply_on:
-			apply_on = "DocField" if fieldname else "DocType"
 
 		# create a new property setter
 		frappe.make_property_setter(

@@ -29,7 +29,7 @@ class SQLiteLogDocument(Document):
 
 	# ============ instance methods ============
 
-	def db_insert(self, *args, **kwargs):
+	def db_insert(self, *args, ignore_if_duplicate=False, **kwargs):
 		"""Insert this document into the log database."""
 		from frappe.model.naming import set_new_name
 
@@ -56,13 +56,16 @@ class SQLiteLogDocument(Document):
 			# Mirrors `Document.db_insert`. Log DocTypes are named by hash, and a collision
 			# has to be retried with a fresh name rather than surfacing -- `_handle_hash_conflict`
 			# clears `name` and calls back in here, giving up after five tries. Anything else is
-			# re-raised as `DuplicateEntryError` so callers that retry on it keep working
-			# (`make_access_log` is decorated with exactly that retry).
+			# skipped with `ignore_if_duplicate` or re-raised as `DuplicateEntryError`, so callers
+			# that retry on it keep working (`make_access_log` is decorated with exactly that retry).
 			if not db.is_primary_key_violation(e):
 				raise
 
-			if self.meta.autoname == "hash":
+			if self._has_hash_name():
 				return self._handle_hash_conflict()
+
+			if ignore_if_duplicate:
+				return
 
 			raise frappe.DuplicateEntryError(self.doctype, self.name, e) from e
 

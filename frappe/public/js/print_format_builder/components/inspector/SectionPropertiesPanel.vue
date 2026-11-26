@@ -37,6 +37,8 @@
 				:base="20"
 				@update:model-value="(v) => (selected_section.gap = v)"
 			/>
+
+			<ZoneShowOnRow v-if="is_zone" :zone="zone" />
 		</InspectorSection>
 
 		<template v-if="!is_zone">
@@ -122,12 +124,14 @@ import ToggleRow from "./ToggleRow.vue";
 import ColorField from "./ColorField.vue";
 import DropdownRow from "./DropdownRow.vue";
 import VisibilitySection from "./VisibilitySection.vue";
+import ZoneShowOnRow from "./ZoneShowOnRow.vue";
 import { set_prop } from "../../utils";
 import { zone_of } from "../../layout";
 
 const store = inject("$store");
 const selected_section = computed(() => store.selected_section.value);
-const is_zone = computed(() => !!zone_of(store.layout.value, selected_section.value));
+const zone = computed(() => zone_of(store.layout.value, selected_section.value));
+const is_zone = computed(() => !!zone.value);
 
 const spacing_props = [
 	{ key: "padding", label: __("Padding") },

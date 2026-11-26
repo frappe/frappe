@@ -12,6 +12,7 @@ from frappe.automation_engine.runner import RUN, _failure_key, execute_automatio
 from frappe.automation_engine.tests.test_actions import FakeResponse, public_dns
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
+from frappe.utils import get_user_by_email
 
 QUEUE = "Automation Trigger Queue"
 
@@ -603,10 +604,11 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 			)
 			auto = make_automation([run_script({"server_script": script.name})], run_as="Triggering User")
 			row = self.queue_row(auto, todo.name)
-			frappe.db.set_value(QUEUE, row, "triggered_by", "test@example.com", update_modified=False)
+			user = get_user_by_email("test@example.com")
+			frappe.db.set_value(QUEUE, row, "triggered_by", user, update_modified=False)
 			execute_automation(row)
 
-		self.assertEqual(frappe.db.get_value(RUN, {"automation": auto}, "user"), "test@example.com")
+		self.assertEqual(frappe.db.get_value(RUN, {"automation": auto}, "user"), user)
 		self.assertEqual(self.run_result(auto)["steps"][0]["detail"], "s3cr3t")
 
 	def test_a_linked_script_is_read_when_the_step_runs_not_when_it_is_saved(self):

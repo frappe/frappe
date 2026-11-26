@@ -23,6 +23,18 @@ async def test_generate_title_returns_a_clean_first_line_or_none():
 		("hi", AssistantMessage(content="\n  `Refactor   store`  "), "Refactor store"),
 		("hi", AssistantMessage(content="<think>hmm</think>Add retry logic"), "Add retry logic"),
 		("hi", AssistantMessage(content="x" * 200), "x" * 50),
+		# an overlong title is cut at a word boundary, never mid-word
+		(
+			"hi",
+			AssistantMessage(content="Fix the login redirect loop, when the session cookie expires"),
+			"Fix the login redirect loop, when the session",
+		),
+		(
+			"hi",
+			AssistantMessage(content="Refactor the session store and the event bus, including tests"),
+			"Refactor the session store and the event bus",
+		),
+		("hi", AssistantMessage(content="- " + "x" * 60), None),
 		("hi", AssistantMessage(content=" \n\t"), None),
 		("   ", AssistantMessage(content="Never asked"), None),  # empty input never reaches the model
 		("hello", AssistantMessage(stop_reason="error"), None),

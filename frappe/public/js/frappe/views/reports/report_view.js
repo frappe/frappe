@@ -206,12 +206,27 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	prepare_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
+		const row_key = this.get_row_key();
+		const checked = this.datatable && new Set(this.get_checked_items().map(row_key));
 
 		if (this.start === 0) {
 			this.data = data;
 		} else {
 			this.data = this.data.concat(data);
 		}
+
+		// datatable tracks checked rows by index; remap them so new row order keeps the same rows
+		if (checked) {
+			this.datatable.rowmanager.checkMap = this.data.map((d) =>
+				d.name && checked.has(row_key(d)) ? 1 : 0
+			);
+		}
+	}
+
+	// a doc spans several rows when child table columns are shown
+	get_row_key() {
+		const cdts = this.get_unique_cdt_in_view();
+		return (d) => JSON.stringify([d.name, ...cdts.map((cdt) => d[`${cdt}:name`])]);
 	}
 
 	render(force) {
@@ -314,6 +329,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			translations: frappe.utils.datatable.get_translations(),
 			checkboxColumn: true,
 			inlineFilters: true,
+			filterMode: "fuzzy",
 			noDataMessage: __("No matching entries in the current results"),
 			cellHeight: 35,
 			direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
@@ -1652,6 +1668,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 						total_data["name"] = __("Total");
 						total_data.is_total_row = true;
+						total_data._is_report_total = true;
 						rows_in_order.push(total_data);
 					}
 
@@ -1753,7 +1770,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					const selected_items = this.get_checked_items(true);
 
 					let extra_fields = [];
-					if (this.list_view_settings.disable_count) {
+					if (
+						this.list_view_settings.disable_count ||
+						(this.count_upper_bound &&
+							(this.total_count == this.count_upper_bound ||
+								this.total_count == null))
+					) {
 						extra_fields = [
 							{
 								fieldtype: "Check",
@@ -1929,8 +1951,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __("User Permissions"),
 				action: () => {
 					const args = {
-						doctype: "Report",
-						name: this.report_name,
+						allow: "Report",
+						for_value: this.report_name,
 					};
 					frappe.set_route("List", "User Permission", args);
 				},

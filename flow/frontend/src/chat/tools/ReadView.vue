@@ -1,5 +1,5 @@
 <template>
-	<RecordTable :columns="columns" :rows="rows" :doctype="doctype" link-column="name" />
+	<RecordTable :columns="columns" :rows="rows" :doctype="doctype" link-column="name" json />
 </template>
 
 <script setup>

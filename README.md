@@ -134,6 +134,7 @@ To setup the repository locally follow the steps mentioned below:
 <div align="center">
 	<a href="https://frappe.io" target="_blank">
 		<picture>
+			<source media="(prefers-color-scheme: light)" srcset="https://frappe.io/files/Frappe-black.png">
 			<source media="(prefers-color-scheme: dark)" srcset="https://frappe.io/files/Frappe-white.png">
 			<img src="https://frappe.io/files/Frappe-black.png" alt="Frappe Technologies" height="28"/>
 		</picture>

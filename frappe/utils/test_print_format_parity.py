@@ -50,6 +50,7 @@ SERVER_ONLY_CLASSES = {
 	"field--breakable",
 }
 CANVAS_ONLY_CLASSES = set()
+DOCUMENT_VALUE_TOKENS = {"data-list", "ql-editor", "ql-ui", *(f"ql-indent-{n}" for n in range(1, 9))}
 
 
 @functools.cache
@@ -87,7 +88,7 @@ def _shared_css_selector_tokens():
 	classes = set(re.findall(r"\.([A-Za-z][\w-]*)", selectors))
 	data_attrs = set(re.findall(r"\[(data-[\w-]+)", selectors))
 	classes.discard("print-format-doc")  # the scope itself is asserted separately
-	return classes, data_attrs
+	return classes - DOCUMENT_VALUE_TOKENS, data_attrs - DOCUMENT_VALUE_TOKENS
 
 
 # Variant suffixes interpolated from field properties on both surfaces

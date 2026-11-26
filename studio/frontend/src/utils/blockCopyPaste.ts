@@ -4,7 +4,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { usePageScope } from "@/stores/codeStore"
 import useComponentStore from "@/stores/componentStore"
 import { studioPages } from "@/data/studioPages"
-import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
+import { hasBuiltPageScript } from "@/data/studioPageScripts"
 import {
 	showPasteConflictDialog,
 	type PasteConflictChoice,
@@ -188,7 +188,7 @@ function getClipboardSource(): ClipboardSource {
 		origin: window.location.origin,
 		app: store.activeApp!.name,
 		page: page.name,
-		hasPageScript: Boolean(page.script?.trim()) || hasCompiledPageScript(page.name),
+		hasPageScript: Boolean(page.script?.trim()) || hasBuiltPageScript(page.name),
 	}
 }
 
@@ -410,7 +410,7 @@ async function createMissingDependencies(
 	)
 	if (store.activePage?.name === pageName) store.syncPageModified(result)
 	if (components?.length && overwriteConflicts) {
-		await Promise.all(components.map(({ name }) => useComponentStore().reloadComponent(name)))
+		await Promise.all(components.map(({ component_id }) => useComponentStore().reloadComponent(component_id)))
 	}
 	if (files?.length) await store.setCustomComponents()
 	if (resources?.length || variables?.length) {

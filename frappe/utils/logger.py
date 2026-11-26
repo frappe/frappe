@@ -16,18 +16,19 @@ stream_logging = os.environ.get("FRAPPE_STREAM_LOGGING")
 def create_handler(module, site=None, max_size=100_000, file_count=20, stream_only=False):
 	"""Create and return a Frappe-specific logging handler."""
 	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
+	sites_path = getattr(frappe.local, "sites_path", None) or "."
 
 	if stream_only:
 		handler = logging.StreamHandler()
 	else:
 		logfile = f"{module}.log"
-		log_filename = os.path.join("..", "logs", logfile)
+		log_filename = os.path.join(sites_path, "..", "logs", logfile)
 		handler = RotatingFileHandler(log_filename, maxBytes=max_size, backupCount=file_count)
 
 	handler.setFormatter(formatter)
 
 	if site and not stream_only:
-		sitelog_filename = os.path.join(site, "logs", logfile)
+		sitelog_filename = os.path.join(sites_path, site, "logs", logfile)
 		site_handler = RotatingFileHandler(sitelog_filename, maxBytes=max_size, backupCount=file_count)
 		site_handler.setFormatter(formatter)
 		return [handler, site_handler]

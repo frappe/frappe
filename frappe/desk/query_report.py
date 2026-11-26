@@ -94,6 +94,7 @@ def get_permitted_report_print_format(print_format: str) -> frappe._dict:
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_print_format_data(print_format: str):
 	pf = get_permitted_report_print_format(print_format)
 
@@ -220,6 +221,7 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_script(report_name: str):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
@@ -412,8 +414,12 @@ def add_custom_column_data(custom_columns, result):
 	return result
 
 
-def get_user_facing_error(traceback: str | None) -> str:
-	"""Return the error message from a traceback, without the exception class."""
+def get_user_facing_error(traceback: str | None, keep_line_breaks: bool = False) -> str:
+	"""
+	Return the error message from a traceback, without the exception class.
+
+	With `keep_line_breaks`, each `<br>` becomes a newline instead of a space.
+	"""
 
 	if not traceback:
 		return ""
@@ -438,8 +444,13 @@ def get_user_facing_error(traceback: str | None) -> str:
 		message_lines = [lines[exception_at].partition(": ")[2], *lines[exception_at + 1 :]]
 		message = " ".join(line for line in message_lines if not re.match(r"LINE \d+: |\s*\^\s*$", line))
 
+	if keep_line_breaks:
+		message = re.sub(r"<br\s*/?>", "\n", message, flags=re.IGNORECASE)
+
 	message = re.sub(r"<[^>]*>", " ", message)
-	return unescape(" ".join(message.split()))
+	message = "\n".join(" ".join(line.split()) for line in message.split("\n"))
+
+	return unescape(message.strip())
 
 
 def get_prepared_report_result(report, filters, dn="", user=None):
@@ -468,7 +479,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 	doc = frappe.get_doc("Prepared Report", dn) if dn else None
 	if doc and doc.status == "Error":
-		error = get_user_facing_error(doc.error_message)
+		error = get_user_facing_error(doc.error_message, keep_line_breaks=True)
 		# the client not requires the full traceback
 		doc.error_message = None
 		return {"prepared_report": True, "doc": doc, "error": error}
@@ -502,6 +513,9 @@ def export_query():
 
 	export_in_background = int(form_params.export_in_background or 0)
 	if export_in_background:
+		if frappe.request and frappe.request.method != "POST":
+			frappe.throw_permission_error()
+
 		user = frappe.session.user
 		user_email = frappe.get_cached_value("User", user, "email")
 		frappe.enqueue(
@@ -664,12 +678,10 @@ def format_filter_value(value):
 
 def build_xlsx_data(
 	data: frappe._dict,
-	visible_idx: list[int] | None = None,
+	*,
 	include_indentation: bool = False,
 	include_filters: bool = False,
-	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
-	*,
 	build_styles: bool = False,
 ) -> tuple[list[list[Any]], list[int], dict | None]:
 	"""
@@ -677,10 +689,8 @@ def build_xlsx_data(
 
 	Args:
 		data: Report data containing columns, result, filters, applied_filters, report_name etc.
-		visible_idx: Deprecated (v17). Row indices to include.
 		include_indentation: Whether to include indentation for tree-like data
 		include_filters: Whether to include filter rows at the top of the Excel sheet
-		ignore_visible_idx: Deprecated (v17). Skips visible_idx filtering.
 		include_hidden_columns: Whether to include columns marked as hidden
 		build_styles: Whether to build style metadata for Excel formatting
 
@@ -705,24 +715,6 @@ def build_xlsx_data(
 		datetime.time,
 		datetime.timedelta,
 	)
-	if visible_idx or ignore_visible_idx:
-		from frappe.deprecation_dumpster import deprecation_warning
-
-		deprecation_warning(
-			"2026-04-19",
-			"v17",
-			"The 'visible_idx' and 'ignore_visible_idx' parameters of build_xlsx_data are deprecated. "
-			"Filter data.result before calling build_xlsx_data instead.",
-		)
-
-	# NOTE: for backwards compatibility. remove in v17.
-	if not visible_idx or len(visible_idx) == len(data.result):
-		# It's not possible to have same length and different content.
-		ignore_visible_idx = True
-	else:
-		# Note: converted for faster lookups
-		visible_idx = set(visible_idx)
-
 	result = []
 	column_data = []
 	column_widths = []
@@ -783,11 +775,7 @@ def build_xlsx_data(
 
 	# build table from result
 	handle_indentation = include_indentation and not build_styles
-	for row_idx, row in enumerate(data.result):
-		# NOTE: for backwards compatibility. remove in v17.
-		if not (ignore_visible_idx or row_idx in visible_idx):
-			continue
-
+	for row in data.result:
 		row_data = []
 		row_is_dict = isinstance(row, dict)
 
@@ -909,8 +897,9 @@ def add_total_row(
 		if isinstance(total_row[col_idx], Decimal):
 			total_row[col_idx] = float(total_row[col_idx])
 
+	row_count = len([row for row in result if not (is_tree and row.get(parent_field))]) or 1
 	for col_idx in has_percent:
-		total_row[col_idx] = flt(total_row[col_idx]) / len(result)
+		total_row[col_idx] = flt(total_row[col_idx]) / row_count
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], str):
@@ -929,6 +918,7 @@ def add_total_row(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_data_for_custom_field(doctype: str, field: str, names: str | list[str] | None = None):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
@@ -1271,8 +1261,6 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 		if field.get("fieldname") in filters and field.get("fieldtype") == "Link":
 			linked_doctype = field.get("options")
 			if not has_permission(
-				doctype=linked_doctype, ptype="read", doc=filters[field.get("fieldname")], user=user
-			) and not has_permission(
 				doctype=linked_doctype, ptype="select", doc=filters[field.get("fieldname")], user=user
 			):
 				frappe.throw(

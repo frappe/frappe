@@ -3,6 +3,7 @@
 		v-if="block.isStudioComponent"
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
+		:listeners="mergedListeners"
 	/>
 	<template v-else-if="block.hasChildren() || block.hasComponentSlots()">
 		<component
@@ -74,6 +75,9 @@ import MissingComponent from "@/components/MissingComponent.vue"
 
 const props = defineProps<{
 	block: Block
+	// The listeners that the user of a Studio Component set on it, for the component's root block.
+	// They run in the user's scope, not in the scope of the component.
+	listeners?: Record<string, Function | Function[]>
 }>()
 
 const componentName = computed(() => {
@@ -115,6 +119,7 @@ const classes = computed(() => {
 const pageScope = usePageScope()
 const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
+const componentScriptContext = inject<ComputedRef | null>("componentScriptContext", null)
 
 const evaluationContext = computed(() => {
 	return {
@@ -148,7 +153,12 @@ const vModelListeners = computed(() => {
 		if (propValue?.$type === "variable") {
 			const eventName = `update:${propName}`
 			listeners[eventName] = (newValue: any) => {
-				pageScope.setValueInVariable(propValue.name, newValue, evaluationContext.value)
+				pageScope.setValueInVariable(
+					propValue.name,
+					newValue,
+					evaluationContext.value,
+					componentScriptContext?.value,
+				)
 			}
 		}
 	})
@@ -207,7 +217,7 @@ function getEventHandler(event: any): Listener | undefined {
 		}
 	} else if (event.action === "Run Script") {
 		return (...eventArgs: any[]) => {
-			pageScope.executeUserScript(event.script, slotScope?.value, componentContext?.value, eventArgs)
+			pageScope.executeUserScript(event.script, slotScope?.value, componentScriptContext?.value, eventArgs)
 		}
 	}
 }
@@ -220,6 +230,10 @@ const mergedListeners = computed(() => {
 	for (const [name, listener] of Object.entries(componentEvents.value)) {
 		const handlers = Array.isArray(listener) ? listener : [listener]
 		handlers.forEach((handler) => addListener(merged, name, handler))
+	}
+	for (const [name, listener] of Object.entries(props.listeners || {})) {
+		const handlers = Array.isArray(listener) ? listener : [listener]
+		handlers.forEach((handler) => addListener(merged, name, handler as Listener))
 	}
 	return merged
 })
@@ -241,7 +255,7 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 			event.on_success_script,
 			data,
 			slotScope?.value,
-			componentContext?.value,
+			componentScriptContext?.value,
 			event.eventArgs,
 		)
 	} else {
@@ -257,7 +271,7 @@ const handleError = (event: any) => (error: any) => {
 			event.on_error_script,
 			error,
 			slotScope?.value,
-			componentContext?.value,
+			componentScriptContext?.value,
 			event.eventArgs,
 		)
 	} else {

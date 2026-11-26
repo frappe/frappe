@@ -78,7 +78,7 @@ def get_files_by_search_text(text: str) -> list[dict]:
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def get_max_file_size() -> int:
 	return (
 		cint(frappe.get_system_settings("max_file_size")) * 1024 * 1024
@@ -93,6 +93,10 @@ def get_max_extract_size() -> int:
 		or cint(frappe.conf.get("max_zip_extract_size"))
 		or 25 * 1024 * 1024
 	)
+
+
+def get_max_extract_members() -> int:
+	return cint(frappe.conf.get("max_zip_extract_members")) or 1000
 
 
 def get_file_chunk_size() -> int:

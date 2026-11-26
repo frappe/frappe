@@ -1,7 +1,9 @@
+import click
+
 import frappe
 from frappe import _
 from frappe.database.schema import DbColumn, DBTable
-from frappe.query_builder.functions import Trim
+from frappe.query_builder.functions import Count, Trim
 from frappe.utils.defaults import get_not_null_defaults
 
 
@@ -81,9 +83,6 @@ class MariaDBTable(DBTable):
 		if alter_pk := self.alter_primary_key():
 			modify_column_query.append(alter_pk)
 
-		modify_column_query.extend(
-			[f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)" for col in self.add_unique]
-		)
 		add_index_query = [
 			f"ADD INDEX `{col.fieldname}_index`(`{col.fieldname}`)"
 			for col in self.add_index
@@ -148,6 +147,44 @@ class MariaDBTable(DBTable):
 		# drop each index only once
 		drop_index_query = list(dict.fromkeys(drop_index_query))
 
+		plain_indexes = {}
+		if self.add_unique:
+			statistics = frappe.qb.Schema("information_schema").statistics
+			plain_indexes = {
+				name.lower(): name
+				for name in frappe.qb.from_(statistics)
+				.select(statistics.index_name)
+				.distinct()
+				.where(
+					(statistics.table_schema == frappe.db.cur_db_name)
+					& (statistics.table_name == self.table_name)
+					& (statistics.non_unique == 1)
+				)
+				.run(pluck=True)
+			}
+
+		for col in self.add_unique:
+			name_clash = plain_indexes.get(col.fieldname.lower())
+			drop_name_clash = f"DROP INDEX `{name_clash}`"
+			if name_clash and drop_name_clash not in drop_index_query:
+				if (
+					frappe.flags.in_migrate
+					and col.fieldname.lower() in self.current_columns
+					and self.has_duplicate_values(col.fieldname)
+				):
+					click.secho(
+						f"Kept plain index {name_clash} on {self.table_name}: {col.fieldname} has duplicate values, so it cannot be set as unique",
+						fg="yellow",
+					)
+					continue
+				modify_column_query.append(
+					f"{drop_name_clash}, ADD UNIQUE INDEX `{col.fieldname}` (`{col.fieldname}`)"
+				)
+			else:
+				modify_column_query.append(
+					f"ADD UNIQUE INDEX IF NOT EXISTS `{col.fieldname}` (`{col.fieldname}`)"
+				)
+
 		for col in self.change_nullability:
 			if col.not_nullable:
 				try:
@@ -198,6 +235,19 @@ class MariaDBTable(DBTable):
 				)
 
 			raise
+
+	def has_duplicate_values(self, fieldname: str) -> bool:
+		table = frappe.qb.DocType(self.doctype)
+		field = table[fieldname]
+		return bool(
+			frappe.qb.from_(table)
+			.select(field)
+			.where(field.isnotnull())
+			.groupby(field)
+			.having(Count("*") > 1)
+			.limit(1)
+			.run()
+		)
 
 	def set_blank_values_to_default(self) -> bool:
 		"""Blank out values that only fail to cast because they are empty, so the conversion

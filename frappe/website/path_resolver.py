@@ -1,8 +1,10 @@
 import os
 import re
+from functools import lru_cache
 
+import orjson
 import werkzeug.routing.exceptions
-from werkzeug.routing import Rule
+from werkzeug.routing import Map, Rule
 
 import frappe
 from frappe.website.page_renderers.document_page import DocumentPage
@@ -13,7 +15,7 @@ from frappe.website.page_renderers.redirect_page import RedirectPage
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.page_renderers.web_form import WebFormPage
-from frappe.website.router import evaluate_dynamic_routes
+from frappe.website.router import evaluate_dynamic_routes, match_route_map
 from frappe.website.utils import can_cache, check_if_webform_exists, get_home_page
 
 
@@ -219,11 +221,15 @@ def resolve_path(path):
 
 def resolve_from_map(path):
 	"""transform dynamic route to a static one from hooks and route defined in doctype"""
-	rules = [
-		Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults")) for r in get_website_rules()
-	]
+	route_map = _get_website_route_map(orjson.dumps(get_website_rules()))
+	return match_route_map(route_map, path) or path
 
-	return evaluate_dynamic_routes(rules, path) or path
+
+@lru_cache(maxsize=64)
+def _get_website_route_map(serialized_rules: bytes) -> Map:
+	"""Keep the compiled Map, because werkzeug compiles each rule into Python code and that is slow."""
+	rules = orjson.loads(serialized_rules)
+	return Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults")) for r in rules])
 
 
 def get_website_rules():

@@ -22,6 +22,15 @@
 	{%- if letterhead and letterhead.custom_css -%}
 	<style>{{ letterhead.custom_css }}</style>
 	{%- endif -%}
+	{%- if print_filename -%}
+	<script data-frappe-print>
+		(() => {
+			const page_title = document.title;
+			window.addEventListener("beforeprint", () => (document.title = {{ print_filename | tojson }}));
+			window.addEventListener("afterprint", () => (document.title = page_title));
+		})();
+	</script>
+	{%- endif -%}
 </head>
 <body class="print-format-doc{% if print_format and print_format.show_label_colon %} show-label-colon{% endif %}{% if is_default_layout %} print-format-doc--standard{% endif %}">
 	{{ action_banner or '' }}
@@ -30,6 +39,7 @@
 	<thead><tr><td>{{ frame_header or '' }}</td></tr></thead>
 	{%- if frame_footer -%}<tfoot><tr><td>{{ frame_footer }}</td></tr></tfoot>{%- endif -%}
 	<tbody><tr><td>
+	{{ once_header or '' }}
 	{%- else -%}
 	{{ header or '' }}
 	{#- Chrome PDF: layout.header rendered once as a body element (page 1 only, reliable height) -#}
@@ -142,6 +152,7 @@
 	{% endfor %}
 	{%- if repeat_frame -%}
 	</td></tr></tbody></table>
+	{%- if once_footer -%}<div class="print-footer-once">{{ once_footer }}</div>{%- endif -%}
 	{%- else -%}
 	{#- Chrome PDF: layout.footer rendered once at the end of body -#}
 	{{ chrome_layout_footer or '' }}
@@ -162,8 +173,6 @@
 	{%- endif -%}
 	{%- endif -%}
 	{%- endif -%}
-	{{ include_script('print.bundle.js') }}
-	<script data-frappe-print>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>
 	{{ trigger_print_script or '' }}
 </body>
 </html>

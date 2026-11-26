@@ -63,6 +63,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	"get_doc": ("frappe.model.document", "get_doc"),
 	"get_docs": ("frappe.model.document", "get_docs"),
 	"get_lazy_doc": ("frappe.model.document", "get_lazy_doc"),
+	"read_doc": ("frappe.model.document", "read_doc"),
 	"copy_doc": ("frappe.model.document", "copy_doc"),
 	"new_doc": ("frappe.model.document", "new_doc"),
 	"get_cached_doc": ("frappe.model.document", "get_cached_doc"),
@@ -155,8 +156,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.concurrency_limiter import concurrent_limit
 	from frappe.config import get_common_site_config, get_conf, get_site_config
 	from frappe.core.doctype.system_settings.system_settings import get_system_settings
-	from frappe.database.mariadb.database import MariaDBDatabase as PyMariaDBDatabase
-	from frappe.database.mariadb.mysqlclient import MariaDBDatabase
+	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.database.sqlite.database import SQLiteDatabase
 	from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
@@ -177,6 +177,7 @@ if TYPE_CHECKING:  # pragma: no cover
 		get_single,
 		get_single_value,
 		new_doc,
+		read_doc,
 	)
 	from frappe.model.meta import get_meta
 	from frappe.modules.utils import (
@@ -242,7 +243,7 @@ type ResponseDict = _dict[str, Any]  # type: ignore[no-any-explicit]
 type FlagsDict = _dict[str, Any]  # type: ignore[no-any-explicit]
 type FormDict = _dict[str, str]
 
-db: LocalProxy["PyMariaDBDatabase" | "MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
+db: LocalProxy["MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
 qb: LocalProxy["MariaDB" | "Postgres" | "SQLite"] = local("qb")
 conf: LocalProxy[ConfType] = local("conf")
 form_dict: LocalProxy[FormDict] = local("form_dict")
@@ -263,7 +264,7 @@ lang: LocalProxy[str] = local("lang")
 if TYPE_CHECKING:  # pragma: no cover
 	# trick because some type checkers fail to follow "RedisWrapper", etc (written as string literal)
 	# trough a generic wrapper; seems to be a bug
-	db: PyMariaDBDatabase | MariaDBDatabase | PostgresDatabase | SQLiteDatabase
+	db: MariaDBDatabase | PostgresDatabase | SQLiteDatabase
 	qb: MariaDB | Postgres
 	conf: ConfType
 	form_dict: FormDict
@@ -523,7 +524,11 @@ def log(msg: str) -> None:
 def set_user(username: str):
 	"""Set current user.
 
-	:param username: **User** name to set as current user."""
+	:param username: **User** name to set as current user.
+
+	Best effort: a value with `@` that isn't a user ID is resolved to the ID of the user with that
+	email. If there's no such user, no DB connection, or the lookup fails, `username` is used as given."""
+	username = _resolve_user_id(username)
 	local.session.user = username
 	local.session.sid = username
 	local.cache = {}
@@ -534,6 +539,25 @@ def set_user(username: str):
 	local.role_permissions = {}
 	local.new_doc_templates = {}
 	local.user_perms = None
+
+
+def _resolve_user_id(user: str) -> str:
+	if not user or user in STANDARD_USERS or "@" not in user or not getattr(local, "db", None):
+		return user
+
+	try:
+		user_ids = get_all(
+			"User",
+			filters={"name": ("not in", STANDARD_USERS)},
+			or_filters={"name": user, "email": user.strip().lower()},
+			pluck="name",
+		)
+	except Exception:
+		return user
+
+	if user in user_ids or not user_ids:
+		return user
+	return user_ids[0]
 
 
 def get_user():
@@ -577,7 +601,7 @@ def _in_request_or_test():
 	return getattr(local, "request", None) or in_test
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None, rate_limit=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
@@ -586,6 +610,8 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	:param methods: Allowed http method to access the method.
 	:param force_types: Method should have type annotations. If unset, defaults to hooks
 						specification.
+	:param rate_limit: Pass `rate_limit=None` on a guest method that is deliberately not rate limited.
+						To rate limit a method, put `@frappe.rate_limiter.rate_limit` below this decorator.
 
 	Use as:
 
@@ -593,6 +619,12 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	        def myfunc(param1, param2):
 	                pass
 	"""
+
+	if rate_limit is not None:
+		raise TypeError(
+			"Use the @rate_limit(...) decorator to rate limit a method; "
+			"rate_limit=None only marks a guest method as deliberately not rate limited."
+		)
 
 	if not methods:
 		methods = ("GET", "POST", "PUT", "DELETE", "QUERY")
@@ -642,7 +674,7 @@ def is_whitelisted(method):
 
 		summary = _("You are not permitted to access this resource. Login to access")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
-		msg = f"<details><summary>{summary}</summary>{detail}</details>"
+		msg = f"<p>{summary}</p><div>{detail}</div>"
 		throw(msg, PermissionError, title=_("Method Not Allowed"))
 
 	if is_guest and method not in xss_safe_methods:
@@ -781,7 +813,7 @@ def has_permission(
 	Raise `frappe.PermissionError` if user isn't permitted and `throw` is truthy
 
 	:param doctype: DocType for which permission is to be check.
-	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
+	:param ptype: Permission type from `frappe.permissions.std_rights` or a custom Permission Type of the DocType. Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
 	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified).
@@ -817,7 +849,7 @@ def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doc
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
-	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
+	:param ptype: Permission type from `frappe.permissions.std_rights`. Default: `read`.
 	:param doc: Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user."""
 
@@ -1039,7 +1071,12 @@ def _load_app_hooks(app_name: str | None = None):
 
 		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
 			if not key.startswith("_"):
-				append_hook(hooks, key, value)
+				try:
+					append_hook(hooks, key, value)
+				except AttributeError as e:
+					raise TypeError(
+						f"Hook {key!r} in app {app!r} has a different type than the same hook in another app"
+					) from e
 	return hooks
 
 
@@ -1278,7 +1315,7 @@ def build_match_conditions(doctype, as_condition=True):
 
 
 def get_list(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will also check for permissions.
+	"""List database query via `frappe.model.qb_query`. Will also check for permissions.
 
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`.
@@ -1301,7 +1338,7 @@ def get_list(doctype, *args, **kwargs):
 
 
 def get_all(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will **not** check for permissions.
+	"""List database query via `frappe.model.qb_query`. Will **not** check for permissions.
 	Parameters are same as `frappe.get_list`
 
 	:param doctype: DocType on which query is to be made.
@@ -1475,7 +1512,7 @@ def is_setup_complete():
 	return setup_complete
 
 
-@whitelist(allow_guest=True)
+@whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)
 def ping():
 	return "pong"
 

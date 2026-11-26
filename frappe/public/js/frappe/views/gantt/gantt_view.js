@@ -198,7 +198,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		this.gantt = new Gantt(this.$result[0], this.tasks, {
 			bar_height: 35,
 			bar_corner_radius: 4,
-			hover_on_date: true,
+			hover_on_date: me.can_create && !frappe.boot.read_only,
 			infinite_padding: false,
 			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
@@ -209,8 +209,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				frappe.set_route("Form", task.doctype, task.id);
 			},
 			on_date_click: (date) => {
-				console.log(date);
-				if (date) frappe.new_doc("ToDo", { date: new Date(date) });
+				if (date) frappe.new_doc(me.doctype, { [field_map.start]: date });
 			},
 			on_date_change: (task, start, end) => {
 				if (!me.can_write) return;

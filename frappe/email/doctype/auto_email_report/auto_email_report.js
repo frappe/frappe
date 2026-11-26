@@ -32,7 +32,7 @@ frappe.ui.form.on("Auto Email Report", {
 				frm.set_value("user", frappe.session.user);
 			}
 			if (!frm.doc.email_to) {
-				frm.set_value("email_to", frappe.session.user);
+				frm.set_value("email_to", frappe.session.user_email);
 			}
 		}
 
@@ -60,6 +60,7 @@ frappe.ui.form.on("Auto Email Report", {
 				args: {
 					report_name: frm.doc.report,
 				},
+				type: "GET",
 				callback: function (r) {
 					frappe.dom.eval(r.message.script);
 					if (r.message.validate_filters) {

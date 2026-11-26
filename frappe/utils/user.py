@@ -41,7 +41,6 @@ class UserPermissions:
 		self.can_get_report = []
 		self.can_import = []
 		self.can_export = []
-		self.can_export_owner_only = []
 		self.can_print = []
 		self.can_email = []
 		self.allow_modules = []
@@ -113,8 +112,6 @@ class UserPermissions:
 			for k in rights:
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
-			if r.get("export") and not r.get("if_owner"):
-				self.perm_map[dt]["export_non_owner"] = True
 
 	def build_permissions(self):
 		"""build lists of what the user can read / write / create
@@ -155,7 +152,7 @@ class UserPermissions:
 						self.can_read.append(dt)
 						if dtp["module"] not in self.permitted_modules:
 							self.permitted_modules.append(dtp["module"])
-			if p.get("submit"):
+			if p.get("submit") and frappe.get_meta(dt).is_submittable:
 				self.can_submit.append(dt)
 
 			if p.get("cancel"):
@@ -184,8 +181,6 @@ class UserPermissions:
 
 				if p.get("export"):
 					self.can_export.append(dt)
-					if not p.get("export_non_owner"):
-						self.can_export_owner_only.append(dt)
 
 		self.can_write += self.can_create
 		self.can_write += self.in_create
@@ -205,7 +200,6 @@ class UserPermissions:
 				self.can_read.remove(dt)
 
 		if "System Manager" in self.get_roles():
-			self.can_export_owner_only = []
 			self.can_import += frappe.get_all("DocType", {"allow_import": 1}, pluck="name")
 			self.can_import += frappe.get_all(
 				"Property Setter",
@@ -308,7 +302,6 @@ class UserPermissions:
 			"can_search",
 			"in_create",
 			"can_export",
-			"can_export_owner_only",
 			"can_import",
 			"can_print",
 			"can_email",
@@ -350,15 +343,17 @@ def get_fullname_and_avatar(user: str) -> _dict:
 	)
 
 
-def get_system_managers(only_name: bool = False) -> list[str]:
+def get_system_managers(only_name: bool = False, *, only_email: bool = False) -> list[str]:
 	"""Return all system manager's user details."""
 	HasRole = DocType("Has Role")
 	User = DocType("User")
 
 	if only_name:
 		fields = [User.name]
+	elif only_email:
+		fields = [User.email]
 	else:
-		fields = [User.full_name, User.name]
+		fields = [User.full_name, User.email]
 
 	system_managers = (
 		frappe.qb.from_(User)
@@ -378,8 +373,10 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 
 	if only_name:
 		return [p.name for p in system_managers]
+	elif only_email:
+		return [p.email for p in system_managers]
 	else:
-		return [formataddr((p.full_name, p.name)) for p in system_managers]
+		return [formataddr((p.full_name, p.email)) for p in system_managers]
 
 
 def add_role(user: str, role: str) -> None:
@@ -447,7 +444,7 @@ def is_system_user(username: str | None = None) -> str | None:
 	return frappe.db.get_value(
 		"User",
 		{
-			"email": username or frappe.session.user,
+			"email": username or frappe.utils.get_email_address(),
 			"enabled": 1,
 			"user_type": "System User",
 		},
@@ -462,11 +459,13 @@ def get_users() -> list[dict]:
 
 	return [
 		{
-			"full_name": get_user_fullname(user),
-			"email": user,
-			"is_system_manager": user in system_managers,
+			"full_name": get_user_fullname(user.name),
+			"email": user.email,
+			"is_system_manager": user.name in system_managers,
 		}
-		for user in get_system_users()
+		for user in frappe.get_all(
+			"User", filters={"name": ("in", get_system_users())}, fields=["name", "email"]
+		)
 	]
 
 

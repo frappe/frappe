@@ -1,7 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import shutil
 from base64 import b64encode
+from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 from urllib.parse import parse_qs, urljoin, urlparse
@@ -12,11 +14,13 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.oauth2 import encode_params, get_openid_configuration, get_resource_url
-from frappe.oauth import OAuthWebRequestValidator
+from frappe.oauth import AUTHORIZATION_CODE_EXPIRY_SECONDS, OAuthWebRequestValidator, get_url_delimiter
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import make_test_records
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+from frappe.utils import get_user_by_email
+from frappe.utils.data import add_to_date, get_datetime
 from frappe.utils.oauth import build_oauth_url
 
 if TYPE_CHECKING:
@@ -38,7 +42,7 @@ class FrappeRequestTestCase(IntegrationTestCase):
 				set_request(path="/")
 				frappe.local.cookie_manager = CookieManager()
 				frappe.local.login_manager = LoginManager()
-				frappe.local.login_manager.login_as("test@example.com")
+				frappe.local.login_manager.login_as(get_user_by_email("test@example.com"))
 				self._sid = frappe.session.sid
 
 		return self._sid
@@ -158,7 +162,7 @@ class TestOAuth20(FrappeRequestTestCase):
 			expires_in=3600,
 			scopes=self.scope,
 			status="Active",
-			user="test@example.com",
+			user=get_user_by_email("test@example.com"),
 		).insert(ignore_permissions=True)
 		return access_token, token
 
@@ -182,7 +186,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 	def test_bearer_token_rejects_disabled_owner(self):
 		access_token, _token = self._make_bearer_token()
-		frappe.db.set_value("User", "test@example.com", "enabled", 0)
+		frappe.db.set_value("User", get_user_by_email("test@example.com"), "enabled", 0)
 		request = frappe._dict()
 
 		self.assertFalse(OAuthWebRequestValidator().validate_bearer_token(access_token, ["openid"], request))
@@ -372,6 +376,23 @@ class TestOAuth20(FrappeRequestTestCase):
 			["client_secret_basic", "client_secret_post"],
 		)
 
+	def test_wellknown_serves_app_files(self):
+		folder = Path(frappe.get_app_path("frappe", "www", ".well-known"))
+		folder.mkdir(exist_ok=True)
+		self.addCleanup(shutil.rmtree, folder)
+		(folder / "test-challenge").write_text("token-123")
+
+		response = self.get("/.well-known/test-challenge")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.get_data(as_text=True), "token-123")
+		self.assertEqual(response.mimetype, "text/plain")
+
+		(folder / "mcp").mkdir()
+		(folder / "mcp" / "server-card.json").write_text("{}")
+		self.assertEqual(self.get("/.well-known/mcp/server-card.json").mimetype, "application/json")
+		self.assertEqual(self.get("/.well-known/missing").status_code, 404)
+		self.assertEqual(self.get("/.well-known/../hooks.py").status_code, 404)
+
 	def test_authorize_post_preserves_parameters_through_login(self):
 		params = {
 			"client_id": self.client_id,
@@ -474,7 +495,7 @@ class TestOAuth20(FrappeRequestTestCase):
 			expires_in=3600,
 			scopes=self.scope,
 			status="Active",
-			user="test@example.com",
+			user=get_user_by_email("test@example.com"),
 		).insert(ignore_permissions=True)
 
 		self.assertFalse(
@@ -721,6 +742,111 @@ class TestOAuth20(FrappeRequestTestCase):
 			},
 		)
 
+	def test_expired_authorization_code_is_rejected(self):
+		update_client_for_auth_code_grant(self.client_id)
+		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
+
+		issued_at = get_datetime("2026-01-01 00:00:00")
+		with self.freeze_time(issued_at):
+			resp = self.get(
+				"/api/method/frappe.integrations.oauth2.authorize",
+				{
+					"client_id": self.client_id,
+					"scope": self.scope,
+					"response_type": "code",
+					"redirect_uri": self.redirect_uri,
+				},
+				follow_redirects=True,
+			)
+		query = parse_qs(resp.request.environ["QUERY_STRING"])
+		auth_code = query.get("code")[0]
+
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		self.assertEqual(
+			frappe.db.get_value("OAuth Authorization Code", auth_code, "expiration_time"),
+			add_to_date(issued_at, seconds=AUTHORIZATION_CODE_EXPIRY_SECONDS, as_datetime=True),
+		)
+
+		# 20 minutes later: past the 10-minute expiry window.
+		with self.freeze_time(add_to_date(issued_at, minutes=20)):
+			token_response = self.post(
+				"/api/method/frappe.integrations.oauth2.get_token",
+				headers=self.get_client_auth_headers(),
+				data={
+					"grant_type": "authorization_code",
+					"code": auth_code,
+					"redirect_uri": self.redirect_uri,
+					"client_id": self.client_id,
+					"scope": self.scope,
+				},
+			)
+
+		self.assertEqual(token_response.status_code, 400)
+		self.assertEqual(token_response.json.get("error"), "invalid_grant")
+		self.assertIsNone(token_response.json.get("access_token"))
+
+		# Refresh this thread's transaction snapshot again: the get_token request
+		# above ran (and committed the validity flip) on its own thread/connection.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		# The expired code must also now be marked Invalid, so it can't be
+		# redeemed later even if a client retries after obtaining a fresh clock.
+		self.assertEqual(frappe.db.get_value("OAuth Authorization Code", auth_code, "validity"), "Invalid")
+
+	def test_authorization_code_rejects_mismatched_redirect_uri(self):
+		client = update_client_for_auth_code_grant(self.client_id)
+		other_redirect_uri = "http://localhost:8001"
+		# Register a second redirect_uri on the same client so both are valid
+		# for the client in general, but the code is only bound to one.
+		client.redirect_uris = get_url_delimiter().join([self.redirect_uri, other_redirect_uri])
+		client.save()
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
+		resp = self.get(
+			"/api/method/frappe.integrations.oauth2.authorize",
+			{
+				"client_id": self.client_id,
+				"scope": self.scope,
+				"response_type": "code",
+				"redirect_uri": self.redirect_uri,
+			},
+			follow_redirects=True,
+		)
+		query = parse_qs(resp.request.environ["QUERY_STRING"])
+		auth_code = query.get("code")[0]
+
+		# Redeeming with a *different but still client-registered* redirect_uri
+		# must fail: the code is bound to the exact URI it was issued for.
+		mismatched_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.get_client_auth_headers(),
+			data={
+				"grant_type": "authorization_code",
+				"code": auth_code,
+				"redirect_uri": other_redirect_uri,
+				"client_id": self.client_id,
+				"scope": self.scope,
+			},
+		)
+		self.assertEqual(mismatched_response.status_code, 400)
+		self.assertIsNone(mismatched_response.json.get("access_token"))
+
+		# Redeeming with the exact issuing redirect_uri still works.
+		correct_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.get_client_auth_headers(),
+			data={
+				"grant_type": "authorization_code",
+				"code": auth_code,
+				"redirect_uri": self.redirect_uri,
+				"client_id": self.client_id,
+				"scope": self.scope,
+			},
+		)
+		self.assertTrue(correct_response.json.get("access_token"))
+
 	def test_revoke_token_with_incorrect_hint(self):
 		bearer_token = self.get_bearer_token()
 		revoke_token_response = self.post(
@@ -750,7 +876,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"expires_in": 3600,
 				"scopes": self.scope,
 				"status": "Active",
-				"user": "test@example.com",
+				"user": get_user_by_email("test@example.com"),
 			}
 		).insert(ignore_permissions=True)
 

@@ -12,6 +12,7 @@ from frappe.query_builder import DocType
 from frappe.query_builder.functions import Cast_
 from frappe.share import add as share
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestDocumentFollow(IntegrationTestCase):
@@ -320,14 +321,14 @@ def get_event():
 		}
 	)
 	doc.insert()
-	frappe.share.add("Event", doc.name, "test@docsub.com", read=1)
+	frappe.share.add("Event", doc.name, get_user_by_email("test@docsub.com"), read=1)
 	return doc
 
 
 def get_user(document_follow=None):
 	frappe.set_user("Administrator")
-	if frappe.db.exists("User", "test@docsub.com"):
-		doc = frappe.delete_doc("User", "test@docsub.com")
+	if user := get_user_by_email("test@docsub.com"):
+		frappe.delete_doc("User", user)
 	doc = frappe.new_doc("User")
 	doc.email = "test@docsub.com"
 	doc.first_name = "Test"
@@ -343,8 +344,8 @@ def get_user(document_follow=None):
 
 def get_web_user():
 	frappe.set_user("Administrator")
-	if frappe.db.exists("User", "webuser@docsub.com"):
-		frappe.delete_doc("User", "webuser@docsub.com")
+	if user := get_user_by_email("webuser@docsub.com"):
+		frappe.delete_doc("User", user)
 	doc = frappe.new_doc("User")
 	doc.email = "webuser@docsub.com"
 	doc.first_name = "Web"

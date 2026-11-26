@@ -6,14 +6,27 @@ import "./setupFrappeUIResource"
 import studio_router from "@/router/studio_router"
 import App from "./App.vue"
 
-import { resourcesPlugin, frappeRequest } from "frappe-ui"
+import { resourcesPlugin, frappeRequest, setConfig, toast } from "frappe-ui"
 import { registerGlobalComponents } from "./globals"
 
 import { COMPONENTS } from "@/data/components"
 import Block from "@/utils/block"
+import { componentHasDefaultSlot } from "@/utils/componentSlots"
 import { initSocket } from "@/socket"
 
 Block.setComponents(COMPONENTS)
+Block.setDefaultSlotLookup(componentHasDefaultSlot)
+
+// Show what the server reports about a request that succeeded, such as a warning on save.
+setConfig("serverMessagesHandler", (messages: string[]) => {
+	// after the caller's own toast, which would cover these
+	setTimeout(() => {
+		for (const { title, message, indicator } of messages.map((entry) => JSON.parse(entry))) {
+			const show = indicator === "orange" ? toast.warning : toast.info
+			show(title || message, { description: title ? message : undefined, duration: 10000 })
+		}
+	})
+})
 
 const studio = createApp(App)
 const pinia = createPinia()

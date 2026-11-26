@@ -92,7 +92,12 @@ export class Desk {
 			await input.press("Enter");
 			await input.blur();
 			await expect(dropdown).toHaveCount(0);
-			await expect(input).toHaveValue(value);
+			// a Link that shows titles displays the title, so check the value it holds
+			await expect
+				.poll(() =>
+					input.evaluate((el) => el.closest(".frappe-control").fieldobj.get_value())
+				)
+				.toBe(value);
 		} else if (fieldtype === "Select") {
 			await input.selectOption(value);
 		} else {
@@ -142,10 +147,9 @@ export class Desk {
 		}
 		await input.click();
 		// the picker rewrites the input from its own selection once its show transition ends
-		await expect(this.page.locator(".datepickers-container .datepicker.active")).toHaveCSS(
-			"opacity",
-			"1"
-		);
+		await expect(
+			this.page.locator(".air-datepicker-global-container .air-datepicker.-active-")
+		).toHaveCSS("opacity", "1");
 		if (fieldtype === "Time") {
 			await input.clear();
 		}

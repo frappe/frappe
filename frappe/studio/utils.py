@@ -15,6 +15,10 @@ def camel_case_to_kebab_case(text, remove_spaces=False):
 	return text
 
 
+# an import of one of the app's own files: `@app/...`, or a relative path
+IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
+
+
 def walk_blocks(blocks):
 	"""Yield all blocks recursively, including children and slots."""
 	if isinstance(blocks, str):
@@ -56,18 +60,83 @@ def has_page_write_perm(message: str | None = None):
 	return decorator
 
 
+def validate_app_viewer_access(app_name: str) -> None:
+	"""Check whether the current session may read an app's source files.
+
+	Studio Page readers can preview unpublished apps. Other logged-in users need a
+	published page. Guests need a published page that allows guests.
+	"""
+	if frappe.has_permission("Studio Page", ptype="read"):
+		return
+	page_filters = {"studio_app": app_name, "published": 1}
+	if frappe.session.user == "Guest":
+		page_filters["allow_guest"] = 1
+	if not frappe.db.exists("Studio Page", page_filters):
+		frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
+
+
 def get_studio_folder(frappe_app: str) -> str:
 	return frappe.get_app_source_path(frappe_app, "studio")
 
 
 def get_export_folder(frappe_app: str, app_name: str) -> str:
+	return os.path.join(get_studio_folder(frappe_app), get_export_folder_name(app_name))
+
+
+def get_export_folder_name(app_name: str) -> str:
 	"""`my-app` exports to `studio/my_app` — app source folders carry scrubbed names, like a doctype's."""
-	return os.path.join(get_studio_folder(frappe_app), frappe.scrub(app_name))
+	return frappe.scrub(app_name)
 
 
 def get_app_file_path(app_folder: str) -> str:
 	"""The folder and its app JSON both carry the scrubbed name (`my-app` exports to `my_app/my_app.json`)."""
 	return os.path.join(app_folder, f"{frappe.scrub(os.path.basename(app_folder))}.json")
+
+
+def script_extension(folder: str, stem: str, default: str = "ts") -> str:
+	"""Return an existing script file's extension, or `default` for a new file."""
+	for extension in ("ts", "js"):
+		if os.path.isfile(os.path.join(folder, f"{stem}.{extension}")):
+			return extension
+	return default
+
+
+def validate_one_script_file(folder: str, filename: str, moved_from: str | None = None) -> None:
+	"""Reject a file whose companion in the other language exists, such as `board.ts` beside
+	`board.js`. `moved_from` is the path a rename frees, so a file can switch language.
+
+	Call it where a user or an agent writes a file, never where Studio reads one: discovery and
+	builds must not fail over a file they do not use.
+	"""
+	stem, extension = os.path.splitext(filename)
+	companion = {".ts": ".js", ".js": ".ts"}.get(extension)
+	if not companion:
+		return
+	path = os.path.join(folder, stem + companion)
+	if path != moved_from and os.path.isfile(path):
+		frappe.throw(
+			frappe._("{0} already has a {1} file. Keep only one script file.").format(stem, companion),
+			title=frappe._("Ambiguous Script"),
+		)
+
+
+def find_script_file(folder: str, stem: str) -> str:
+	return os.path.join(folder, f"{stem}.{script_extension(folder, stem)}")
+
+
+def find_component_scripts(folder: str) -> list[dict]:
+	"""Each exported component that has a script file beside its JSON, as `{component_id, file_path}`."""
+	if not os.path.isdir(folder):
+		return []
+	scripts = []
+	for file in sorted(os.listdir(folder)):
+		file_path = find_script_file(folder, file.removesuffix(".json"))
+		if not file.endswith(".json") or not os.path.exists(file_path):
+			continue
+		component_id = frappe.parse_json(frappe.read_file(os.path.join(folder, file))).get("component_id")
+		if component_id:
+			scripts.append({"component_id": component_id, "file_path": file_path})
+	return scripts
 
 
 def get_exported_app_name(app_folder: str) -> str:

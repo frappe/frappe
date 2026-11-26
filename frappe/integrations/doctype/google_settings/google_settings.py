@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -24,7 +25,16 @@ class GoogleSettings(Document):
 		google_drive_picker_enabled: DF.Check
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		if not self.google_drive_picker_enabled:
+			return
+
+		for fieldname in ("client_id", "app_id"):
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
 
 
 @frappe.whitelist()

@@ -1,7 +1,7 @@
 <template>
-	<div v-if="!rows.length" class="px-3 py-2.5 text-sm text-ink-gray-5">No records</div>
+	<div v-if="!rows.length" class="px-3 py-2.5 text-sm text-ink-gray-5">{{ __("No records") }}</div>
 	<div v-else>
-		<div class="overflow-auto" :class="open.size ? '' : 'max-h-[260px]'">
+		<div class="overflow-auto" :class="open.size || tall ? '' : 'max-h-[260px]'">
 			<table class="w-full border-collapse text-left text-sm">
 				<thead>
 					<tr>
@@ -9,7 +9,7 @@
 							v-if="withStatus"
 							class="sticky top-0 whitespace-nowrap bg-surface-gray-1 px-3 py-1.5 font-medium text-ink-gray-5"
 						>
-							Name
+							{{ __("Name") }}
 						</th>
 						<th
 							v-for="column in columns"
@@ -62,7 +62,7 @@
 									/>
 									{{ cellText(row.cells[column]) }}
 								</button>
-								<ValueView v-else :value="row.cells[column]" />
+								<ValueView v-else :value="row.cells[column]" :json="json" />
 							</td>
 						</tr>
 						<tr
@@ -82,6 +82,7 @@
 									<RecordTable
 										:columns="columnsOf(row.cells[column])"
 										:rows="row.cells[column].map((cells) => ({ cells }))"
+										:json="json"
 									/>
 								</div>
 							</td>
@@ -108,13 +109,14 @@
 			class="w-full border-t border-outline-gray-1 px-3 py-1.5 text-left text-xs text-ink-gray-6 hover:bg-surface-gray-1"
 			@click="visibleCount += PAGE_SIZE"
 		>
-			Show {{ Math.min(hidden, PAGE_SIZE) }} more ({{ hidden }} remaining)
+			{{ __("Show {0} more ({1} remaining)", [Math.min(hidden, PAGE_SIZE), hidden]) }}
 		</button>
 	</div>
 </template>
 
 <script setup>
 import { computed, nextTick, reactive, ref } from "vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import ValueView from "./ValueView.vue";
 import { cellText, columnsOf, deskUrl, humanize, isTable } from "./result.js";
@@ -132,6 +134,10 @@ const props = defineProps({
 	linkColumn: { type: String, default: "" },
 	footer: { type: Object, default: null },
 	labels: { type: Object, default: null },
+	// the cells are a DocType's fields
+	json: { type: Boolean, default: false },
+	// no cap on the height: the box around the table scrolls
+	tall: { type: Boolean, default: false },
 });
 
 const PAGE_SIZE = 20;

@@ -92,6 +92,9 @@ def make(
 			category=DeprecationWarning,
 		)
 
+	if not frappe.permissions.is_system_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 	else:
@@ -101,9 +104,10 @@ def make(
 		frappe.has_permission("Letter Head", doc=letterhead, ptype="read", throw=True)
 
 	if print_format:
-		from frappe.printing.doctype.print_format.print_format import check_print_format_roles_by_name
+		from frappe.utils.print_utils import _print_format_doc_or_none
 
-		check_print_format_roles_by_name(print_format)
+		print_format_doc = _print_format_doc_or_none(print_format, doctype)
+		print_format = print_format_doc.name if print_format_doc else "Standard"
 
 	if raw_html and not (
 		email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
@@ -328,7 +332,7 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 		_file.save(ignore_permissions=True)
 
 
-@frappe.whitelist(allow_guest=True, methods=("GET",))
+@frappe.whitelist(allow_guest=True, methods=("GET",), rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def mark_email_as_seen(name: str | None = None):
 	commit_after_response(lambda: _mark_email_as_seen(name))
 	frappe.response.update(frappe.utils.get_imaginary_pixel_response())

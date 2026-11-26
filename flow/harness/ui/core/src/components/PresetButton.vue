@@ -5,25 +5,25 @@
 			ref="trigger"
 			class="flex h-6 max-w-full items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
 			:class="open ? 'text-ink-gray-9' : ''"
-			title="Agent preset"
+			:title="__('Agent preset')"
 			:aria-expanded="open"
 			:disabled="disabled"
 			@click="open ? close() : show()"
 		>
 			<span class="lucide-layers size-3.5 flex-none" aria-hidden="true" />
-			<span class="truncate">{{ flow.activePreset()?.name ?? "Standard" }}</span>
+			<span class="truncate">{{ flow.activePreset()?.name ?? __("Standard") }}</span>
 			<span
 				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
 				:class="open ? 'rotate-180' : ''"
 				aria-hidden="true"
 			/>
 		</button>
-		<PalettePanel v-if="open" title="Agent preset" dropdown align="left" :below="below" :width="264" :query="search" @close="close">
+		<PalettePanel v-if="open" :title="__('Agent preset')" dropdown align="left" :below="below" :width="264" :query="search" @close="close">
 			<div class="flex flex-none pl-1 pr-2.5 pt-1">
 				<input
 					ref="field"
 					v-model="search"
-					placeholder="Search presets…"
+					:placeholder="__('Search presets…')"
 					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
@@ -43,11 +43,11 @@
 						aria-hidden="true"
 					/>
 				</button>
-				<div v-if="!rows.length" class="flow-palette-empty">No matching presets</div>
+				<div v-if="!rows.length" class="flow-palette-empty">{{ __("No matching presets") }}</div>
 				<!-- a search that finds none: the way to a new one -->
 				<button v-if="!rows.length" data-palette-item class="flow-palette-row" @click="create">
 					<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
-					Create a preset
+					{{ __("Create a preset") }}
 				</button>
 			</div>
 		</PalettePanel>
@@ -58,6 +58,7 @@
 import { computed, inject, nextTick, ref } from "vue"
 
 import { layout } from "../layout.js"
+import { __ } from "../translate.js"
 import PalettePanel from "./PalettePanel.vue"
 
 // A new chat's agent preset: Standard (core tools, the built-in prompt) or one saved in settings
@@ -73,7 +74,7 @@ const current = computed(() => flow.activePreset()?.id ?? null)
 // matched by every word of the search in their name
 const rows = computed(() => {
 	const words = search.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
-	return [{ id: null, name: "Standard" }, ...flow.state.presets].filter((row) =>
+	return [{ id: null, name: __("Standard") }, ...flow.state.presets].filter((row) =>
 		words.every((word) => row.name.toLowerCase().includes(word)),
 	)
 })

@@ -395,19 +395,24 @@ def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes,
 	"""A filter on a fieldname that several child tables share resolves to whichever of them
 	is scanned first, so match the link in any of them and let the client route by name.
 	Past the cap the names are left out and the client filters on the field instead."""
-	names = get_list_unless_timed_out(
-		frappe.get_list,
-		doctype,
-		filters=filters,
-		or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
-		limit=LINK_COUNT_LIMIT,
-		distinct=True,
-		ignore_ifnull=True,
-		order_by=None,
-		pluck="name",
-	)
-	if names is None:
-		return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
+	names = []
+	for child_doctype in child_doctypes:
+		child_names = get_list_unless_timed_out(
+			frappe.get_list,
+			doctype,
+			filters=filters,
+			or_filters=[[child_doctype, fieldname, "=", name]],
+			limit=LINK_COUNT_LIMIT,
+			distinct=True,
+			ignore_ifnull=True,
+			order_by=None,
+			pluck="name",
+		)
+		if child_names is None:
+			return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
+		names = unique(names + child_names)[:LINK_COUNT_LIMIT]
+		if len(names) == LINK_COUNT_LIMIT:
+			break
 
 	open_count = 0
 	if names and (open_count_filters := get_filters_for(doctype)):
@@ -461,7 +466,9 @@ def get_dynamic_link_filters(doctype, links, fieldname):
 	return {doctype_fieldname: doctype_value}
 
 
-def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_name=None):
+def notify_mentions(
+	ref_doctype, ref_name, content, source_doctype=None, source_name=None, previous_content=None
+):
 	"""Notify users mentioned in `content`.
 	`source_doctype` / `source_name` identify the record the mention was
 	written in (e.g. a Comment) when that is not the reference document
@@ -469,6 +476,9 @@ def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_
 	"""
 	if ref_doctype and ref_name and content:
 		mentions = extract_mentions(content)
+		if previous_content:
+			previous_mentions = extract_mentions(previous_content)
+			mentions = [m for m in mentions if m not in previous_mentions]
 
 		if not mentions:
 			return
@@ -476,14 +486,16 @@ def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_
 		sender_fullname = get_fullname(frappe.session.user)
 		title = get_title(ref_doctype, ref_name)
 
-		recipients = [
-			frappe.db.get_value(
-				"User",
-				{"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1},
-				"email",
-			)
-			for name in mentions
-		]
+		recipients = frappe.get_all(
+			"User",
+			filters={
+				"enabled": 1,
+				"name": ("in", mentions),
+				"user_type": "System User",
+				"allowed_in_mentions": 1,
+			},
+			pluck="name",
+		)
 
 		notification_message = _("""{0} mentioned you in a comment in {1} {2}""").format(
 			frappe.bold(sender_fullname), frappe.bold(ref_doctype), get_title_html(title)

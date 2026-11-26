@@ -13,7 +13,7 @@ import frappe
 from frappe.auth import CookieManager, LoginManager
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 from frappe.tests import IntegrationTestCase
-from frappe.utils import set_request
+from frappe.utils import get_user_by_email, set_request
 from frappe.utils.oauth import (
 	OAUTH_LOGIN_BINDING_COOKIE,
 	consume_oauth_state,
@@ -32,7 +32,8 @@ TEST_OFFICE_365_USER = "user@office365test.example"
 class TestSocialLoginKey(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.set_user("Administrator")
-		frappe.delete_doc("User", TEST_GITHUB_USER, force=True)
+		if user := get_user_by_email(TEST_GITHUB_USER):
+			frappe.delete_doc("User", user, force=True)
 		super().setUp()
 		frappe.set_user("Guest")
 
@@ -68,9 +69,9 @@ class TestSocialLoginKey(IntegrationTestCase):
 	def test_normal_signup_and_github_login(self):
 		github_social_login_setup()
 
-		if not frappe.db.exists("User", TEST_GITHUB_USER):
-			user = frappe.new_doc("User", email=TEST_GITHUB_USER, first_name="GitHub Login")
-			user.insert(ignore_permissions=True)
+		if not (user := get_user_by_email(TEST_GITHUB_USER)):
+			new_user = frappe.new_doc("User", email=TEST_GITHUB_USER, first_name="GitHub Login")
+			user = new_user.insert(ignore_permissions=True).name
 
 		mock_session = MagicMock()
 		mock_session.get.side_effect = github_response_for_login
@@ -79,7 +80,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 		simulate_oauth_browser_roundtrip()
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
 			login_via_oauth2("github", "iwriu", state)
-		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+		self.assertEqual(frappe.session.user, user)
 
 	def test_on_social_login_hook_receives_claims_and_can_grant_roles(self):
 		github_social_login_setup()
@@ -96,15 +97,16 @@ class TestSocialLoginKey(IntegrationTestCase):
 		):
 			login_via_oauth2("github", "iwriu", state)
 
+		user = get_user_by_email(TEST_GITHUB_USER)
 		self.assertEqual(len(social_login_hook_calls), 1)
 		hook_call = social_login_hook_calls[0]
-		self.assertEqual(hook_call["user"], TEST_GITHUB_USER)
+		self.assertEqual(hook_call["user"], user)
 		self.assertEqual(hook_call["provider"], "github")
 		self.assertEqual(hook_call["claims"]["login"], "dummy_username")
 		self.assertEqual(hook_call["claims"]["email"], TEST_GITHUB_USER)
 
-		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
-		self.assertIn("Desk User", frappe.get_roles(TEST_GITHUB_USER))
+		self.assertEqual(frappe.session.user, user)
+		self.assertIn("Desk User", frappe.get_roles(user))
 		self.assertEqual(frappe.local.response.get("message"), "Logged In")
 
 	def test_on_social_login_hook_can_refuse_sign_in(self):
@@ -272,7 +274,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
 			login_via_oauth2("github", "iwriu", state)
-		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+		self.assertEqual(frappe.session.user, get_user_by_email(TEST_GITHUB_USER))
 		self.assertEqual(frappe.local.response.get("location"), "/app/some-legit-page")
 
 		frappe.set_user("Guest")
@@ -329,7 +331,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
 			login_via_oauth2("github", "iwriu", state)
 
-		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+		self.assertEqual(frappe.session.user, get_user_by_email(TEST_GITHUB_USER))
 
 	def test_custom_provider_rejects_unverified_email_by_default(self):
 		frappe.set_user("Administrator")

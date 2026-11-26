@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Connected App", "Token Cache"]
 
@@ -9,7 +10,12 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Connected App", "Token Cache"]
 class TestTokenCache(IntegrationTestCase):
 	def setUp(self):
 		self.token_cache = frappe.get_last_doc("Token Cache")
-		self.token_cache.update({"connected_app": frappe.get_last_doc("Connected App").name})
+		self.token_cache.update(
+			{
+				"connected_app": frappe.get_last_doc("Connected App").name,
+				"user": get_user_by_email("test@example.com"),
+			}
+		)
 		self.token_cache.save(ignore_permissions=True)
 
 	def test_get_auth_header(self):

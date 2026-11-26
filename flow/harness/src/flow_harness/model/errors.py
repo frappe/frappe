@@ -48,6 +48,10 @@ _OVERLOADED_MARKERS = (
 )
 # OpenRouter's reset time, in epoch milliseconds, inside its error body
 _RATE_LIMIT_RESET = re.compile(r'"x-ratelimit-reset"\s*:\s*"?(\d{13})\b', re.IGNORECASE)
+# LiteLLM's wrapping of a provider's message: `litellm.APIError: APIError: OpenAIException - <message>`
+_LITELLM_WRAPPING = re.compile(r"^litellm\.(\w+):\s*(?:\1:\s*)?(?:\w+Exception\s*-\s*)?")
+# and the exception it says to catch, after some
+_LITELLM_ADVICE = re.compile(r"\.?\s*Handle with `litellm\.\w+`\.?$")
 
 
 class ProviderError(Exception):
@@ -67,7 +71,7 @@ class ProviderError(Exception):
 		self.retryable = retryable
 		self.status_code = status_code
 		self.provider = provider
-		self.detail = _truncate(detail.strip() or "Unknown provider error")
+		self.detail = _truncate(_unwrapped(detail.strip()) or "Unknown provider error")
 		self.retry_after_seconds = retry_after_seconds
 		status = f" (HTTP {status_code})" if status_code is not None else ""
 		super().__init__(f"{provider} {kind.replace('_', ' ')} error{status}: {self.detail}")
@@ -93,7 +97,7 @@ def provider_error_from_http(
 def normalize_provider_error(error: Exception, *, provider: str) -> ProviderError:
 	"""Normalize native-provider and raw httpx failures."""
 	status_code, headers, detail = _exception_context(error)
-	if isinstance(error, httpx.TimeoutException):
+	if isinstance(error, (TimeoutError, httpx.TimeoutException)):
 		return _provider_error(
 			kind="timeout",
 			retryable=True,
@@ -124,6 +128,9 @@ def normalize_provider_error(error: Exception, *, provider: str) -> ProviderErro
 def normalize_litellm_error(error: Exception, *, provider: str) -> ProviderError:
 	"""Map LiteLLM's public exception hierarchy into Flow's error model."""
 	from litellm import exceptions as litellm_exceptions
+
+	if isinstance(error, litellm_exceptions.MidStreamFallbackError) and error.original_exception is not None:
+		return normalize_litellm_error(error.original_exception, provider=provider)
 
 	status_code, headers, detail = _exception_context(error)
 	kind: ProviderErrorKind
@@ -214,7 +221,8 @@ def provider_error_detail(value: Any) -> str:
 		# and by flow's own HTTP boundary.
 		for key in ("type", "code", "message", "detail"):
 			item = source.get(key)
-			if isinstance(item, str) and item.strip():
+			# Anthropic's envelope types every error body "error": it says nothing
+			if isinstance(item, str) and item.strip() and item.strip() != "error":
 				parts.append(item.strip())
 	return ": ".join(dict.fromkeys(parts))
 
@@ -303,6 +311,16 @@ def _exception_context(
 		or type(error).__name__
 	)
 	return status_code, headers or None, detail
+
+
+def _unwrapped(text: str) -> str:
+	"""The provider's own message out of LiteLLM's wrapping, a JSON body read like any other."""
+	message = _LITELLM_ADVICE.sub("", _LITELLM_WRAPPING.sub("", text, count=1))
+	if message == text:
+		return text
+	if message[:2] in ("b'", 'b"') and message[-1:] == message[1]:
+		message = message[2:-1]  # a body LiteLLM printed as bytes
+	return provider_error_detail(message) or text
 
 
 def _status_code(error: Exception, response: Any) -> int | None:

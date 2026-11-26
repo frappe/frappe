@@ -1,4 +1,11 @@
-import { validated, is_thenable, icon_html, TABBABLE, resolve_content } from "./utils.js";
+import {
+	validated,
+	is_thenable,
+	icon_html,
+	TABBABLE,
+	resolve_content,
+	field_popup_open,
+} from "./utils.js";
 import { normalize_options, build_item } from "./menu.js";
 import { place, VIEWPORT_PAD } from "./position.js";
 
@@ -40,7 +47,8 @@ const SETTLE_MS = 250; // keep in sync with the height transition in bottom_shee
 
 // page-level layers that can be in <body> before a sheet opens and still take
 // focus from it; anything else added to <body> after it opened is allowed too
-const LAYERS = ".es-bottom-sheet-root, .modal, .datepickers-container, .es-toast-container";
+const LAYERS =
+	".es-bottom-sheet-root, .modal, .air-datepicker-global-container, .es-toast-container";
 // the menu layer; a sheet lifted to or past it has to lift what it opens as well
 const MENU_LAYER = 1060;
 // a popover's gap from its anchor, and the least height worth showing when no side fits it
@@ -69,15 +77,6 @@ function layer_above_open_dialogs(root) {
 }
 
 const z_of = (el) => parseInt(getComputedStyle(el).zIndex) || 0;
-
-// a classic Link / Autocomplete suggestion list or the date picker, open on the field
-function field_popup_open(target) {
-	const list = target
-		.closest?.(".awesomplete")
-		?.querySelector(":scope > ul, :scope > [role='listbox']");
-	if (list && !list.hidden && list.children.length) return true;
-	return !!document.querySelector(".datepicker.active");
-}
 
 // a header or footer: one piece of the caller's content, or several side by side
 function slot_parts(content, sheet) {

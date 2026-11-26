@@ -2,14 +2,17 @@ import frappe
 from frappe.studio.ai.session import AISession
 from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 def make_studio_user(email: str) -> str:
-	if not frappe.db.exists("User", email):
-		user = frappe.get_doc({"doctype": "User", "email": email, "first_name": email.split("@")[0]})
-		user.insert(ignore_permissions=True)
-		user.add_roles("Studio User")
-	return email
+	if existing := get_user_by_email(email):
+		return existing
+
+	user = frappe.get_doc({"doctype": "User", "email": email, "first_name": email.split("@")[0]})
+	user.insert(ignore_permissions=True)
+	user.add_roles("Studio User")
+	return user.name
 
 
 class TestPermissions(IntegrationTestCase):

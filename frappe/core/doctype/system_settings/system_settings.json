@@ -116,6 +116,7 @@
   "sync_timeout",
   "background_workers",
   "enable_scheduler",
+  "submission_queue_timeout",
   "dormant_days",
   "telemetry_section",
   "allow_error_traceback",
@@ -240,6 +241,15 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Enable Scheduled Jobs"
+  },
+  {
+   "default": "600",
+   "description": "Maximum time in seconds that a document queued for submission or cancellation can run in the background. Cannot be more than 3600 seconds (1 hour).",
+   "fieldname": "submission_queue_timeout",
+   "fieldtype": "Int",
+   "label": "Submission Queue Timeout",
+   "non_negative": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "permissions",
@@ -908,7 +918,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-11-04 11:19:08.065028",
+ "modified": "2026-11-13 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

@@ -28,11 +28,11 @@ frappe.ui.show_user_settings = async function (default_tab) {
 	frappe.ui._user_settings_dialog?.$wrapper?.remove();
 
 	const d = new frappe.ui.SettingsDialog({
-		title: __("Settings"),
+		title: __("My Settings"),
 		default_tab: default_tab || "profile",
 		tabs: [
 			{
-				group: __("Settings"),
+				group: __("My Settings"),
 				items: [
 					_profile_tab(user_data),
 					_email_tab(user_data),
@@ -69,7 +69,10 @@ frappe.ui.user_settings = {
 
 async function _load_user_data() {
 	if (!frappe.all_timezones) {
-		const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
+		const { message } = await frappe.call({
+			method: "frappe.core.doctype.user.user.get_timezones",
+			type: "GET",
+		});
 		frappe.all_timezones = message?.timezones || [];
 	}
 
@@ -86,7 +89,6 @@ async function _load_user_data() {
 		"time_zone",
 		"notifications",
 		"search_bar",
-		"list_sidebar",
 		"bulk_actions",
 		"view_switcher",
 		"form_sidebar",
@@ -206,11 +208,6 @@ function _switches() {
 		],
 		lists: [
 			{
-				fieldname: "list_sidebar",
-				label: __("Show sidebar"),
-				description: __("Display the filter and group-by sidebar in list views."),
-			},
-			{
 				fieldname: "bulk_actions",
 				label: __("Allow bulk actions"),
 				description: __(
@@ -309,6 +306,13 @@ function _profile_tab(user_data) {
 		title: __("Profile"),
 		description: __("Manage your profile information and display picture."),
 		actions: [
+			{
+				label: __("View Full Profile"),
+				click() {
+					frappe.ui._user_settings_dialog?.hide();
+					frappe.set_route("Form", "User", frappe.session.user);
+				},
+			},
 			{
 				label: __("Save"),
 				variant: "solid",
@@ -412,20 +416,35 @@ function _save_profile(user_data, values) {
 	});
 }
 
-function _upload_user_image(user, on_success) {
+let _opening_uploader = false;
+
+async function _upload_user_image(user, on_success) {
+	// a second click while the User meta loads opens nothing
+	if (_opening_uploader) return;
+	_opening_uploader = true;
+	try {
+		await frappe.model.with_doctype("User");
+	} finally {
+		_opening_uploader = false;
+	}
 	new frappe.ui.FileUploader({
 		doctype: "User",
 		docname: user,
 		fieldname: "user_image",
 		allow_multiple: false,
+		make_attachments_public:
+			frappe.meta.get_docfield("User", "user_image")?.make_attachment_public ||
+			frappe.get_meta("User")?.make_attachments_public,
 		restrictions: {
 			allowed_file_types: ["image/*"],
 		},
 		on_success: (file) => {
-			if (frappe.boot.user_info?.[user]) {
-				frappe.boot.user_info[user].image = file.file_url;
-			}
-			on_success(file);
+			_save_user("user_image", file.file_url).then(() => {
+				if (frappe.boot.user_info?.[user]) {
+					frappe.boot.user_info[user].image = file.file_url;
+				}
+				on_success(file);
+			});
 		},
 	});
 }

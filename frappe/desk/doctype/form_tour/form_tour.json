@@ -71,7 +71,7 @@
    "label": "Is Standard"
   },
   {
-   "depends_on": "eval: doc.ui_tour && doc.is_standard",
+   "depends_on": "eval: doc.is_standard",
    "fetch_from": "reference_doctype.module",
    "fetch_if_empty": 1,
    "fieldname": "module",
@@ -179,7 +179,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-11-17 13:06:48.120836",
+ "modified": "2026-11-23 17:05:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",

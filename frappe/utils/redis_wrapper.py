@@ -48,6 +48,13 @@ class RedisWrapper(redis.Redis):
 
 	def __call__(self):
 		"""WARNING: Added for backward compatibility to support frappe.cache().method(...)"""
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2026-11-20",
+			"v17",
+			"`frappe.cache()` is deprecated, use `frappe.cache` instead.",
+		)
 		return self
 
 	def make_key(self, key, user=None, shared=False):
@@ -130,7 +137,7 @@ class RedisWrapper(redis.Redis):
 					val = generator()
 					size = self.set_value(original_key, val, user=user, shared=shared)
 
-				else:
+				elif use_local_cache:
 					local_cache[key] = val
 
 		return val, size

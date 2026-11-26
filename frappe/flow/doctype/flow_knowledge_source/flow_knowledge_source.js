@@ -4,6 +4,7 @@
 frappe.ui.form.on("Flow Knowledge Source", {
 	refresh(frm) {
 		apply_file_restrictions(frm);
+		show_default_chunking_as_empty(frm);
 
 		if (frm.is_new()) {
 			return;
@@ -61,6 +62,25 @@ frappe.ui.form.on("Flow Knowledge Source", {
 		apply_file_restrictions(frm);
 	},
 });
+
+// 0 is stored for "use the default", so the form shows it as an empty field.
+function show_default_chunking_as_empty(frm) {
+	for (const fieldname of ["chunk_size", "chunk_overlap"]) {
+		const control = frm.get_field(fieldname);
+		control.format_for_input = (value) => value || "";
+		control.change = (e) => {
+			const typed = control.get_input_value();
+			if (control.parse(typed) === 0) {
+				frappe.show_alert({
+					message: __("{0} cannot be 0. Using the default.", [__(control.df.label)]),
+					indicator: "orange",
+				});
+			}
+			control.parse_validate_and_set_in_model(typed, e);
+		};
+		control.refresh();
+	}
+}
 
 // Cap the File picker to the formats the ingest pipeline can actually extract.
 // Types come from frappe.boot

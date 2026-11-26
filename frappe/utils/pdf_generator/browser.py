@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import frappe
 from frappe.utils.data import cint, cstr
 from frappe.utils.pdf import get_host_url
-from frappe.utils.print_utils import _print_format_doc_or_none, convert_uom, parse_float_and_unit
+from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
 RECEIPT_WIDTHS = {"Receipt 80 mm": "80mm", "Receipt 58 mm": "58mm"}
 
@@ -88,8 +88,10 @@ class Browser:
 		self.create_browser_context()
 
 	def create_browser_context(self):
+		from frappe.utils.chromium.page import get_browser_context_params
+
 		# create browser context
-		result, error = self.session.send("Target.createBrowserContext", {"disposeOnDetach": True})
+		result, error = self.session.send("Target.createBrowserContext", get_browser_context_params())
 		if error:
 			raise RuntimeError(f"Error creating browser context: {error}")
 		self.browser_context_id = result["browserContextId"]
@@ -161,6 +163,9 @@ class Browser:
 			"page_info_page",
 			"page_info_frompage",
 			"page_info_topage",
+			"visible-last-page",
+			"visible-first-page",
+			"hidden-first-page",
 		]
 
 		# Loop through the classes to check
@@ -175,8 +180,8 @@ class Browser:
 		soup = self.soup
 		options = self.options
 		if options.get("block-external-requests"):
-			for script in soup.find_all("script"):
-				script.decompose()
+			for element in soup.find_all(["script", "iframe", "frame", "object", "embed"]):
+				element.decompose()
 			for tag in soup.find_all(True):
 				for attr in [attr for attr in tag.attrs if attr.lower().startswith("on")]:
 					del tag[attr]
@@ -238,7 +243,7 @@ class Browser:
 			return
 		if any(el.find(class_=["page", "topage"]) for el in soup.find_all(id=["header-html", "footer-html"])):
 			return
-		if not frappe.db.exists("Print Format", self.print_format):
+		if not frappe.db.exists("Print Format", self.print_format, cache=True):
 			return
 		print_format = frappe.get_cached_doc("Print Format", self.print_format)
 		position = (print_format.page_number or "").lower().replace(" ", "_")
@@ -293,6 +298,14 @@ class Browser:
 			for style in print_format_css
 			if style.name in attrs
 			and (style.name not in PAGE_MARGIN_SIDES or re.fullmatch(f"0|{PAGE_LENGTH}", style.value.strip()))
+			and (
+				style.name not in ("page-width", "page-height")
+				or re.fullmatch(PAGE_LENGTH, style.value.strip())
+			)
+			and (
+				style.name != "header-spacing"
+				or re.fullmatch(rf"{PAGE_LENGTH}|[+-]?(\d*\.)?\d+", style.value.strip())
+			)
 		}
 		self.options.update(options)
 		self._set_page_size_from_print_format()
@@ -301,7 +314,7 @@ class Browser:
 	def _set_page_size_from_print_format(self):
 		if any(self.options.get(key) for key in ("page-size", "page-width", "page-height")):
 			return
-		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format, cache=True):
 			return
 		paper_size, width, height = frappe.get_cached_value(
 			"Print Format", self.print_format, ["paper_size", "paper_width", "paper_height"]
@@ -328,8 +341,10 @@ class Browser:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 		from frappe.www.printview import get_page_rule_margins
 
-		print_format = _print_format_doc_or_none(self.print_format)
-		if not print_format or not print_format.css or uses_beta_renderer(print_format):
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format, cache=True):
+			return {}
+		print_format = frappe.get_cached_doc("Print Format", self.print_format)
+		if not print_format.css or uses_beta_renderer(print_format):
 			return {}
 		return get_page_rule_margins(print_format.css)
 
@@ -430,7 +445,7 @@ class Browser:
 		self.printable_width = 96 * (
 			updated_options["paperWidth"] - updated_options["marginLeft"] - updated_options["marginRight"]
 		)
-		if self.printable_width < 0:
+		if self.printable_width < 1:
 			frappe.throw(
 				frappe._(
 					"Margins leave no room for content on a {0}px wide page. Reduce them or use a larger page size."
@@ -511,7 +526,7 @@ class Browser:
 		)
 
 		body_margins = 96 * (self.body_page.options["marginTop"] + self.body_page.options["marginBottom"])
-		if body_height - body_margins <= 0:
+		if body_height - body_margins < 1:
 			frappe.throw(
 				frappe._(
 					"Header, footer and margins leave no room for content on a {0}px tall page. Reduce their height or use a larger page size."

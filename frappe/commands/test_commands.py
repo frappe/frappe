@@ -38,7 +38,14 @@ from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
+from frappe.utils import (
+	add_to_date,
+	execute_in_shell,
+	get_bench_path,
+	get_bench_relative_path,
+	get_user_by_email,
+	now,
+)
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.logging import get_log_db
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
@@ -315,25 +322,46 @@ class TestCommands(BaseTestCommands):
 				self.assertEqual(result.exit_code, 0)
 				self.assertIn(f"//{site}:8123", result.output)
 
+	def test_get_user_id_finds_a_user_by_id_or_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		get_user_id = frappe.commands.site.get_user_id
+
+		with test_user(roles=[], generated_id=True) as user:
+			self.assertEqual(get_user_id(user.name), user.name)
+			self.assertEqual(get_user_id(f" {user.email.upper()} "), user.name)
+
+		self.assertEqual(get_user_id("Administrator"), "Administrator")
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email") or "admin@example.com"
+
+		for value in (admin_email, "not_a_user"):
+			with self.subTest(value=value), self.assertRaises(SystemExit):
+				get_user_id(value)
+
 	def make_browse_website_user(self):
 		email = "browse-website-user@example.com"
-		if not frappe.db.exists("User", email):
-			frappe.get_doc(
-				doctype="User",
-				email=email,
-				first_name="Browse",
-				user_type="Website User",
-				send_welcome_email=0,
-			).insert(ignore_permissions=True)
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="Browse",
+					user_type="Website User",
+					send_welcome_email=0,
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
 			frappe.db.commit()
-		self.addCleanup(self.delete_browse_user, email)
+		self.addCleanup(self.delete_browse_user, user)
 		self.addCleanup(frappe.set_user, frappe.session.user)
-		return email
+		return user
 
-	def delete_browse_user(self, email):
-		frappe.cache.hdel("home_page", email)
-		frappe.sessions.clear_sessions(email, force=True)
-		frappe.delete_doc("User", email, ignore_permissions=True, force=True)
+	def delete_browse_user(self, user):
+		frappe.cache.hdel("home_page", user)
+		frappe.sessions.clear_sessions(user, force=True)
+		frappe.delete_doc("User", user, ignore_permissions=True, force=True)
 		frappe.db.commit()
 
 	def test_execute(self):

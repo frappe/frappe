@@ -55,7 +55,7 @@ body {
 	}
 }
 
-{%- if (for_chrome and chrome_layout_footer) or not (for_chrome or repeat_frame) %}
+{%- if (for_chrome and chrome_layout_footer) or (repeat_frame and once_footer) or not (for_chrome or repeat_frame) %}
 body {
 	display: flex;
 	flex-direction: column;
@@ -71,6 +71,7 @@ body {
 {%- if repeat_frame %}
 .print-repeating-frame {
 	width: 100%;
+	table-layout: fixed;
 	border-collapse: collapse;
 }
 .print-repeating-frame > thead {
@@ -152,6 +153,11 @@ body::before {
 .print-format-doc .field.left-right .value,
 .print-format-doc .field.field-inline .value {
 	color: {{ print_format.value_color }};
+}
+.print-format-doc .field .value a,
+.print-format-doc .field .value pre,
+.print-format-doc .field .value code {
+	color: inherit;
 }
 {%- endif %}
 

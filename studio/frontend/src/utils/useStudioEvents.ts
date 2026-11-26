@@ -14,6 +14,12 @@ const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
 export function useStudioEvents(saveFragmentMode: () => void) {
+	// frappe-ui's shortcuts read `e.target`, which is the host of a shadow root, not the input
+	// in it. Keys typed in such an input, as in Flow's chat, must not reach them.
+	useEventListener(document.body, "keydown", (e) => {
+		if (e.target !== e.composedPath()[0] && isTargetEditable(e)) e.stopPropagation()
+	})
+
 	useEventListener(document, "copy", (e) => {
 		if (isTargetEditable(e) || window.getSelection()?.toString()) return
 		copyBlocks(e)
@@ -100,6 +106,10 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 			handler: (e: KeyboardEvent) => {
 				// In the context menu, Escape only closes the menu.
 				if ((e.target as Element | null)?.closest?.('[role="menu"]')) return
+				// In a component, the first Escape shows the component's settings.
+				if (canvasStore.editingMode === "component" && blockController.isAnyBlockSelected()) {
+					return blockController.clearSelection()
+				}
 				// Exit after this keypress ends. If the discard dialog opens now, the same
 				// Escape closes it before the user can answer.
 				setTimeout(() => canvasStore.exitFragmentMode())

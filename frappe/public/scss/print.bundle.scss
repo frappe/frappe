@@ -1,5 +1,5 @@
+@import "./print/legacy";
 @import "./desk/variables";
-@import "frappe/public/css/bootstrap.css";
 @import "./common/quill";
 
 @import "~bootstrap/scss/utilities/spacing";
@@ -26,6 +26,10 @@ svg[data-barcode-value] {
 		* {
 			word-break: break-all;
 		}
+	}
+	pre {
+		white-space: pre-wrap;
+		word-break: break-word;
 	}
 }
 

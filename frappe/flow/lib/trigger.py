@@ -11,6 +11,7 @@ import frappe
 from frappe import _
 from frappe.flow.lib.agent import with_app_prefix
 from frappe.flow.utils.system_generated import log_skipped, skip_if_invalid
+from frappe.utils import get_user_by_email
 
 
 def sync_triggers(_app: str | None = None) -> None:
@@ -57,8 +58,8 @@ class Trigger:
 	on: the desk can switch them off, nothing else. Pass `doctype` and `doc_event` to run on a
 	document event, or `cron` to run on a schedule. `agent` is this app's agent by name, or
 	another's as `<app>/<name>`, like ASSISTANT_AGENT_NAME for the built-in Assistant. `run_as`
-	is a user the app creates with only the roles the trigger needs; without it the trigger runs
-	as Administrator.
+	is the email or ID of a user the app creates with only the roles the trigger needs; without it
+	the trigger runs as Administrator.
 	"""
 
 	def __init__(
@@ -106,6 +107,7 @@ class Trigger:
 					"is_system_generated": 1,
 				}
 			)
+		run_as = self.run_as or "Administrator"
 		doc.update(
 			{
 				"agent": self.agent,
@@ -115,7 +117,7 @@ class Trigger:
 				"cron_expression": self.cron,
 				"condition": self.condition,
 				"prompt_template": self.prompt,
-				"run_as": self.run_as or "Administrator",
+				"run_as": get_user_by_email(run_as) or run_as,
 			}
 		)
 		doc.save(ignore_permissions=True)

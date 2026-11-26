@@ -57,7 +57,6 @@
   "dock_mode",
   "list_settings_section",
   "bulk_actions",
-  "list_sidebar",
   "view_switcher",
   "form_settings_section",
   "form_sidebar",
@@ -145,7 +144,8 @@
    "oldfieldname": "email",
    "oldfieldtype": "Data",
    "options": "Email",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "first_name",
@@ -177,7 +177,8 @@
    "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Full Name",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "bold": 1,
@@ -821,12 +822,6 @@
   },
   {
    "default": "1",
-   "fieldname": "list_sidebar",
-   "fieldtype": "Check",
-   "label": "Show sidebar"
-  },
-  {
-   "default": "1",
    "fieldname": "bulk_actions",
    "fieldtype": "Check",
    "label": "Allow bulk actions",
@@ -904,6 +899,7 @@
  "icon": "user-round",
  "idx": 413,
  "image_field": "user_image",
+ "link_display_mode": "Search",
  "links": [
   {
    "group": "Profile",
@@ -952,7 +948,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-10-01 00:45:05.600707",
+ "modified": "2026-11-25 21:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -985,9 +981,10 @@
  "quick_entry": 1,
  "route": "user",
  "row_format": "Dynamic",
- "search_fields": "full_name",
+ "search_fields": "full_name,email",
  "show_image_in_link": 1,
  "show_name_in_global_search": 1,
+ "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

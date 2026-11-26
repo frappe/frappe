@@ -135,6 +135,7 @@ export default class ListSettings {
 		let fields = ``;
 
 		me.listview.columns = me.listview.columns.filter((col) => col.type !== "Tag");
+		const repeated_labels = get_repeated_labels(me.fields.map((f) => f.label));
 		const columnByFieldname = {};
 		me.listview.columns.forEach((col) => {
 			if (col.df?.fieldname) columnByFieldname[col.df.fieldname] = col;
@@ -147,6 +148,9 @@ export default class ListSettings {
 			let is_sortable = idx == 0 ? `` : `sortable`;
 			let show_sortable_handle = idx == 0 ? `hide` : ``;
 			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : `d-flex`;
+			let label = __(me.fields[idx].label, null, me.doctype);
+			if (repeated_labels.has(me.fields[idx].label))
+				label += ` (${me.fields[idx].fieldname})`;
 
 			fields += `
 				<div class="control-input form-control fields_order ${is_sortable} flex"
@@ -161,7 +165,7 @@ export default class ListSettings {
 						</div>
 
 						<div class="col flex align-items-center px-0">
-							${__(me.fields[idx].label, null, me.doctype)}
+							${label}
 						</div>
 
 						<div class="col-2">
@@ -301,6 +305,7 @@ export default class ListSettings {
 
 	column_selector() {
 		let me = this;
+		let field_order = me.fields.map((f) => f.fieldname);
 
 		let d = new frappe.ui.Dialog({
 			title: __("{0} Fields", [__(me.doctype)]),
@@ -309,7 +314,8 @@ export default class ListSettings {
 					label: __("Reset Fields"),
 					fieldtype: "Button",
 					fieldname: "reset_fields",
-					click: () => me.reset_listview_fields(d),
+					click: () =>
+						me.reset_listview_fields(d).then((fields) => (field_order = fields)),
 				},
 				{
 					label: __("Select Fields (Up to {0})", [this.max_number_of_fields]),
@@ -324,7 +330,7 @@ export default class ListSettings {
 			],
 		});
 		d.set_primary_action(__("Save"), (dialog_values) => {
-			let values = dialog_values.fields;
+			let values = frappe.utils.sort_by_order(dialog_values.fields, field_order);
 
 			me.set_removed_fields(
 				me.get_removed_listview_fields(
@@ -363,7 +369,7 @@ export default class ListSettings {
 	reset_listview_fields(dialog) {
 		let me = this;
 
-		frappe
+		return frappe
 			.xcall(
 				"frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
 				{
@@ -374,6 +380,7 @@ export default class ListSettings {
 				let field = dialog.get_field("fields");
 				field.df.options = me.get_doctype_fields(me.meta, fields);
 				dialog.refresh();
+				return fields;
 			});
 	}
 
@@ -384,6 +391,10 @@ export default class ListSettings {
 			me.set_list_view_fields(meta);
 		} else {
 			me.fields = JSON.parse(this.settings.fields);
+			me.fields.forEach((f) => {
+				const df = frappe.meta.get_docfield(me.doctype, f.fieldname);
+				if (df) f.label = __(df.label, null, me.doctype);
+			});
 		}
 
 		me.fields.uniqBy((f) => f.fieldname);
@@ -454,6 +465,11 @@ export default class ListSettings {
 			}
 		});
 
+		const repeated_labels = get_repeated_labels(multiselect_fields.map((f) => f.label));
+		multiselect_fields.forEach((f) => {
+			if (repeated_labels.has(f.label)) f.label = `${f.label} (${f.value})`;
+		});
+
 		return multiselect_fields;
 	}
 
@@ -483,4 +499,8 @@ export default class ListSettings {
 			me.removed_fields = fields;
 		}
 	}
+}
+
+function get_repeated_labels(labels) {
+	return new Set(labels.filter((label, i) => labels.indexOf(label) !== i));
 }

@@ -60,7 +60,10 @@ frappe.ready(function () {
 		web_form_doc.web_form_fields.forEach((df, index) => {
 			df.is_web_form = true;
 			df.fieldname = df.fieldname || `__field_${index}`;
-			df.read_only = df.read_only || (!web_form_doc.is_new && !web_form_doc.in_edit_mode);
+			if (!web_form_doc.is_new && !web_form_doc.in_edit_mode) {
+				df.read_only = 1;
+				delete df.read_only_depends_on;
+			}
 			if (df.fieldtype === "Table") {
 				df.get_data = () => {
 					let data = [];

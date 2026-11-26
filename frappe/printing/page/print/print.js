@@ -62,7 +62,10 @@ frappe.ui.form.PrintView = class {
 		);
 		this.preview_bar = new frappe.ui.PrintPreviewBar({
 			parent: this.print_wrapper.find(".preview-beta-wrapper"),
-			get_metrics: (doc) => this.get_page_metrics(doc),
+			get_sheet: (doc) => ({
+				sheet: doc.body,
+				breaks: ".print-format > .page-break:not(:last-child)",
+			}),
 		});
 
 		const htmlSkeleton = `
@@ -97,6 +100,10 @@ frappe.ui.form.PrintView = class {
 				icon: "download",
 				btn_class: "btn-download-pdf",
 			});
+			this.page.add_button(__("Attach PDF"), () => this.attach_pdf(), {
+				icon: "paperclip",
+				btn_class: "btn-attach-pdf",
+			});
 			this.page.add_button(__("Email"), () => this.email_doc(), { icon: "mail" });
 			this.page.add_button(__("Form"), () => this.go_to_form_view(), {
 				icon: "file-spreadsheet",
@@ -107,6 +114,12 @@ frappe.ui.form.PrintView = class {
 				() => this.render_pdf(),
 				"btn-download-pdf",
 				__("Download PDF")
+			);
+			this.page.add_action_icon(
+				"paperclip",
+				() => this.attach_pdf(),
+				"btn-attach-pdf",
+				__("Attach PDF")
 			);
 			this.page.add_action_icon("mail", () => this.email_doc(), "", __("Email"));
 			this.page.add_action_icon("file-pen", () => this.go_to_form_view(), "", __("Form"));
@@ -132,7 +145,14 @@ frappe.ui.form.PrintView = class {
 					},
 				};
 			},
-			change: () => this.refresh_print_format(),
+			change: () => {
+				frappe.model.user_settings.save(
+					this.frm.doctype,
+					"print_format",
+					this.selected_format()
+				);
+				this.refresh_print_format();
+			},
 		});
 		this.print_format_selector = this.print_format_field.$input;
 
@@ -288,14 +308,16 @@ frappe.ui.form.PrintView = class {
 			this.render_style_options();
 			this.preview();
 		});
-		frappe.xcall("frappe.printing.page.print.print.get_print_styles").then((names) => {
-			const rank = (name) =>
-				STANDARD_PRINT_STYLES.includes(name)
-					? STANDARD_PRINT_STYLES.indexOf(name)
-					: STANDARD_PRINT_STYLES.length;
-			this.print_styles = names.sort((a, b) => rank(a) - rank(b));
-			this.render_style_options();
-		});
+		frappe
+			.xcall("frappe.printing.page.print.print.get_print_styles", undefined, "GET")
+			.then((names) => {
+				const rank = (name) =>
+					STANDARD_PRINT_STYLES.includes(name)
+						? STANDARD_PRINT_STYLES.indexOf(name)
+						: STANDARD_PRINT_STYLES.length;
+				this.print_styles = names.sort((a, b) => rank(a) - rank(b));
+				this.render_style_options();
+			});
 	}
 
 	render_style_options() {
@@ -600,29 +622,6 @@ frappe.ui.form.PrintView = class {
 		doc.addEventListener("keydown", (e) => this.handle_print_keys(e));
 	}
 
-	get_page_metrics(doc) {
-		const body = doc.body;
-		const body_rect = body.getBoundingClientRect();
-		const scale = body.offsetHeight / (body_rect.height || 1);
-		const bottom_of = (el) => (el.getBoundingClientRect().bottom - body_rect.top) * scale;
-		const height_of = (el) => (el ? el.getBoundingClientRect().height * scale : 0);
-		const header = doc.querySelector(".document-header-content");
-		const repeated = this.print_settings?.repeat_header_footer
-			? (header ? bottom_of(header) - parseFloat(getComputedStyle(body).paddingTop) : 0) +
-			  height_of(doc.querySelector(".document-footer-content"))
-			: 0;
-		return {
-			top: body.offsetTop,
-			width: body.offsetWidth,
-			starts: frappe.ui.PrintPreviewBar.measure_pages({
-				page: body,
-				page_height: parseFloat(getComputedStyle(body).minHeight) || body.offsetHeight,
-				breaks: ".section.page-break, .print-format > .page-break:not(:last-child)",
-				repeated,
-			}),
-		};
-	}
-
 	handle_print_keys(e) {
 		if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
 		const key = e.key.toLowerCase();
@@ -721,6 +720,12 @@ frappe.ui.form.PrintView = class {
 		const is_raw_printing = this.is_raw_printing();
 		this.wrapper.find(".btn-print-preview").toggle(!is_raw_printing);
 		this.wrapper.find(".btn-download-pdf").toggle(!is_raw_printing);
+		this.wrapper
+			.find(".btn-attach-pdf")
+			.toggle(
+				!is_raw_printing &&
+					frappe.perm.has_perm(this.frm.doctype, 0, "write", this.frm.doc)
+			);
 	}
 
 	renders_via_generator(print_format) {
@@ -983,10 +988,23 @@ frappe.ui.form.PrintView = class {
 				14
 			);
 			me.printer_setting_dialog();
-		} else if (cint(me.print_settings.print_generated_pdf)) {
+		} else if (cint(me.print_settings.print_generated_pdf) || me.has_page_specific_zone()) {
 			me.print_pdf();
 		} else {
 			me.render_page("/printview?", true);
+		}
+	}
+
+	has_page_specific_zone() {
+		const print_format = this.get_print_format();
+		if (!this.renders_via_generator(print_format)) return false;
+		try {
+			const layout = JSON.parse(print_format.format_data || "{}");
+			return [layout?.header, layout?.footer].some(
+				(zone) => zone?.show_on && zone.show_on !== "every_page"
+			);
+		} catch (_) {
+			return false;
 		}
 	}
 
@@ -1013,6 +1031,7 @@ frappe.ui.form.PrintView = class {
 	network_printer_setting_dialog(callback) {
 		frappe.call({
 			method: "frappe.printing.doctype.network_printer_settings.network_printer_settings.get_network_printer_settings",
+			type: "GET",
 			callback: function (r) {
 				if (r.message) {
 					let d = new frappe.ui.Dialog({
@@ -1045,6 +1064,18 @@ frappe.ui.form.PrintView = class {
 		if (!w) {
 			frappe.msgprint(__("Please enable pop-ups"));
 		}
+	}
+
+	attach_pdf() {
+		const settings = this.get_print_settings_param();
+		frappe.ui.form.attach_pdf(this.frm.doc.doctype, this.frm.doc.name, {
+			format: this.selected_format(),
+			no_letterhead: this.with_letterhead() ? 0 : 1,
+			letterhead: this.get_letterhead(),
+			settings: Object.keys(settings).length ? JSON.stringify(settings) : undefined,
+			language: this.lang_code,
+			style: this.get_print_style() || undefined,
+		});
 	}
 
 	get_pdf_url() {
@@ -1238,10 +1269,18 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_default_print_format() {
+		const remembered = frappe.model.user_settings[this.frm.doctype]?.print_format;
+		const usable = frappe.meta.get_print_formats(this.frm.doctype).includes(remembered);
 		const default_format =
-			this.frm._layout_print_format || this.frm.meta.default_print_format || "";
+			this.frm._layout_print_format ||
+			(usable ? remembered : this.frm.meta.default_print_format) ||
+			"";
 		const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
-		this.set_print_format_value(restricted.includes(default_format) ? "" : default_format);
+		this.set_print_format_value(
+			restricted.includes(default_format) || default_format === "Standard"
+				? ""
+				: default_format
+		);
 	}
 
 	// apps like Print Designer replace setup_sidebar and only provide

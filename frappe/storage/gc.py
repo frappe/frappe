@@ -2,17 +2,23 @@
 # License: MIT. See LICENSE
 """Daily garbage collection of unreferenced blobs and stale upload sessions. See "Lifecycle" in SPEC.md."""
 
+import json
+from collections.abc import Collection
+
 from pypika.queries import QueryBuilder, Table
 from pypika.terms import Criterion, ExistsCriterion
 
 import frappe
 import frappe.storage
 from frappe.model.rename_doc import get_link_fields
+from frappe.storage.blob import other_site_key_criterion
+from frappe.storage.cache import delete_cached
 from frappe.storage.upload import expire_stale_upload_sessions
 from frappe.utils import add_to_date, get_datetime, now_datetime
 
 BATCH_SIZE = 500
 MIN_AGE_HOURS = 24
+BACKUP_INDEX_SUFFIX = "-files-index.json"
 
 
 def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
@@ -30,7 +36,8 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 	try:
 		columns = blob_reference_columns()
 		_warn_unindexed_reference_columns(columns, logger)
-		orphans = get_orphan_blobs(cutoff, batch_size, columns)
+		kept_blobs = get_backup_index_blobs()
+		orphans = get_orphan_blobs(cutoff, batch_size, columns, kept_blobs)
 	except Exception:
 		# An incomplete set of references must fail closed. Upload expiry is
 		# independent and remains useful even when blob collection cannot run.
@@ -50,7 +57,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 			frappe.db.commit()  # nosemgrep
 		if deleted == 0 or len(orphans) < batch_size:
 			break
-		orphans = get_orphan_blobs(cutoff, batch_size, columns)
+		orphans = get_orphan_blobs(cutoff, batch_size, columns, kept_blobs)
 
 	stats["upload_sessions_expired"] = expire_upload_sessions(logger)
 
@@ -111,17 +118,50 @@ def _warn_unindexed_reference_columns(columns: list[dict], logger) -> None:
 			)
 
 
-def get_orphan_blobs(cutoff, limit: int, columns: list[dict]) -> list[dict]:
-	"""Blobs no discovered Link column references, untouched since ``cutoff``."""
+def get_orphan_blobs(
+	cutoff, limit: int, columns: list[dict], kept_blobs: Collection[str] = frozenset()
+) -> list[dict]:
+	"""Blobs no discovered Link column references, untouched since ``cutoff``, except ``kept_blobs``.
+
+	Skips keys under another site's prefix: the driver refuses to delete those bytes."""
 	blob = frappe.qb.DocType("File Blob").as_("blob")
-	return (
+	query = (
 		frappe.qb.from_(blob)
 		.select(blob.name, blob.key, blob.driver, blob.is_private)
 		.where(blob.modified < cutoff)
 		.where(orphan_criterion(blob, columns))
+		.where(other_site_key_criterion(blob).negate())
 		.limit(limit)
-		.run(as_dict=True)
 	)
+	if kept_blobs:
+		query = query.where(blob.name.notin(list(kept_blobs)))
+	return query.run(as_dict=True)
+
+
+def get_backup_index_blobs() -> set[str]:
+	"""Blobs listed by the site's backup File indexes, so those backups stay restorable.
+
+	Reads ``sites/<site>/backups_metadata/*-files-index.json`` in the S3 storage bucket.
+	Backups kept in another bucket are not seen, and do not keep any blob."""
+	if not (frappe.conf.storage_driver_config or {}).get("bucket"):
+		return set()
+	driver = frappe.storage.get_driver("s3")
+	pages = driver.client.get_paginator("list_objects_v2").paginate(
+		Bucket=driver.bucket, Prefix=f"sites/{frappe.local.site}/backups_metadata/"
+	)
+	blobs = set()
+	for page in pages:
+		for entry in page.get("Contents", []):
+			if entry["Key"].endswith(BACKUP_INDEX_SUFFIX):
+				blobs.update(get_indexed_blobs(driver, entry["Key"]))
+	return blobs
+
+
+def get_indexed_blobs(driver, key: str) -> set[str]:
+	"""The ``file_blob`` values of one backup File index."""
+	index = json.load(driver.client.get_object(Bucket=driver.bucket, Key=key)["Body"])
+	items = index["files_index"] + index["private_files_index"]
+	return {item["file_blob"] for item in items if item.get("file_blob")}
 
 
 def delete_blob(blob, cutoff, logger, stats: dict, *, columns: list[dict] | None = None) -> bool:
@@ -137,6 +177,7 @@ def delete_blob(blob, cutoff, logger, stats: dict, *, columns: list[dict] | None
 	try:
 		driver = frappe.storage.get_driver(current.driver)
 		driver.delete(current.key, is_private=bool(current.is_private))
+		delete_cached(blob)
 	except Exception:
 		stats["bytes_delete_errors"] += 1
 		logger.warning(

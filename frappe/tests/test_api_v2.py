@@ -15,7 +15,7 @@ from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_test_client, set_request
+from frappe.utils import get_test_client, get_user_by_email, set_request
 
 authorization_token = None
 
@@ -277,12 +277,17 @@ class TestApiV2UpdatePermissions(FrappeAPITestCase):
 	def setUp(self):
 		super().setUp()
 		frappe.set_user("Administrator")
-		self.user = "api.permissions@example.com"
-		self.created_user = not frappe.db.exists("User", self.user)
+		email = "api.permissions@example.com"
+		self.user = get_user_by_email(email)
+		self.created_user = not self.user
 		if self.created_user:
-			frappe.get_doc(
-				doctype="User", email=self.user, first_name="API Permissions", send_welcome_email=0
-			).insert()
+			self.user = (
+				frappe.get_doc(
+					doctype="User", email=email, first_name="API Permissions", send_welcome_email=0
+				)
+				.insert()
+				.name
+			)
 		keys = generate_keys(self.user)
 		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
 		self.names = []
@@ -344,15 +349,20 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 	def setUp(self):
 		super().setUp()
 		frappe.set_user("Administrator")
-		self.user = "api.fieldlevel@example.com"
-		if not frappe.db.exists("User", self.user):
-			frappe.get_doc(
-				doctype="User",
-				email=self.user,
-				first_name="API Field Level",
-				roles=[{"role": "Desk User"}],
-				send_welcome_email=0,
-			).insert()
+		email = "api.fieldlevel@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="API Field Level",
+					roles=[{"role": "Desk User"}],
+					send_welcome_email=0,
+				)
+				.insert()
+				.name
+			)
+		self.user = user
 		keys = generate_keys(self.user)
 		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
 		self.doctype = (
@@ -953,8 +963,9 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 
 	@classmethod
 	def tearDownClass(cls):
-		for user in (cls.DESK_USER, cls.WEBSITE_USER):
-			frappe.delete_doc_if_exists("User", user, force=True)
+		for email in (cls.DESK_USER, cls.WEBSITE_USER):
+			if user := get_user_by_email(email):
+				frappe.delete_doc("User", user, force=True)
 		frappe.db.commit()
 		super().tearDownClass()
 
@@ -971,7 +982,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
-		if not frappe.db.exists("User", email):
+		if not (user_id := get_user_by_email(email)):
 			user = frappe.get_doc(
 				{
 					"doctype": "User",
@@ -982,13 +993,14 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			)
 			user.append_roles(*roles)
 			user.insert(ignore_permissions=True)
+			user_id = user.name
 			# HTTP requests use another connection and must see this user.
 			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		set_request(path="/")
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as(email)
+		frappe.local.login_manager.login_as(user_id)
 		return frappe.session.sid
 
 	def discovery_paths(self):

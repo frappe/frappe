@@ -12,7 +12,19 @@ import { text_field_paths } from "../../utils";
 const props = defineProps(["df", "style"]);
 const store = inject("$store");
 
-const paths = computed(() => text_field_paths(props.df.text, store.meta.value));
+const paths = ref([]);
+watchEffect(async (onCleanup) => {
+	let stale = false;
+	onCleanup(() => (stale = true));
+	const value = props.df.text || "";
+	const meta = store.meta.value;
+	const links = (meta?.fields || []).filter(
+		(f) => f.fieldtype === "Link" && f.options && value.includes(`{${f.fieldname}.`)
+	);
+	paths.value = text_field_paths(value, meta);
+	await Promise.allSettled(links.map((f) => frappe.model.with_doctype(f.options)));
+	if (!stale) paths.value = text_field_paths(value, meta);
+});
 
 const linked = ref({});
 watchEffect(() => {

@@ -10,6 +10,7 @@ from frappe.contacts.doctype.address.address import (
 	get_address_list,
 	get_list_context,
 )
+from frappe.core.doctype.user.test_user import test_user
 from frappe.permissions import add_permission, update_permission_property
 from frappe.tests import IntegrationTestCase
 
@@ -143,3 +144,60 @@ class TestAddress(IntegrationTestCase):
 		with self.set_user(user.name):
 			results = address_query("Address", address.name, "name", 0, 10, filters)
 		self.assertEqual(results[0][0], address.name)
+
+	def test_portal_user_reads_addresses_linked_to_their_contacts_with_their_email(self):
+		with test_user(roles=[], generated_id=True) as user:
+			contact = frappe.get_doc("Contact", {"user": user.name})
+			contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+			contact.save()
+			second_contact = frappe.get_doc(
+				doctype="Contact",
+				first_name="_Test Second Contact",
+				user=user.name,
+				links=[{"link_doctype": "User", "link_name": "Guest"}],
+			)
+			second_contact.add_email(user.email, is_primary=True)
+			second_contact.insert()
+			frappe.get_doc(
+				doctype="Contact",
+				first_name="_Test Stale Contact",
+				user=user.name,
+				email_ids=[{"email_id": "_test_stale@example.com", "is_primary": 1}],
+				links=[{"link_doctype": "User", "link_name": "test1@example.com"}],
+			).insert()
+
+			first, second, stale, other = (
+				frappe.get_doc(
+					doctype="Address",
+					address_line1="1",
+					city="Mumbai",
+					country="India",
+					links=[{"link_doctype": "User", "link_name": link_name}],
+				).insert()
+				for link_name in ("Administrator", "Guest", "test1@example.com", "test@example.com")
+			)
+
+			with self.set_user(user.name):
+				self.assertTrue(frappe.has_website_permission(first))
+				self.assertTrue(frappe.has_website_permission(second))
+				self.assertFalse(frappe.has_website_permission(stale))
+				self.assertFalse(frappe.has_website_permission(other))
+
+	def test_guest_gets_nothing_from_a_contact_linked_to_guest(self):
+		frappe.get_doc(
+			doctype="Contact",
+			first_name="_Test Guest Contact",
+			user="Guest",
+			email_ids=[{"email_id": frappe.db.get_value("User", "Guest", "email"), "is_primary": 1}],
+			links=[{"link_doctype": "User", "link_name": "test1@example.com"}],
+		).insert()
+		address = frappe.get_doc(
+			doctype="Address",
+			address_line1="1",
+			city="Mumbai",
+			country="India",
+			links=[{"link_doctype": "User", "link_name": "test1@example.com"}],
+		).insert()
+
+		with self.set_user("Guest"):
+			self.assertFalse(frappe.has_website_permission(address))

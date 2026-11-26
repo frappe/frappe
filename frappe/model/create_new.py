@@ -138,7 +138,7 @@ def set_dynamic_default_values(doc, parent_doc, parentfield):
 	user_permissions = get_user_permissions()
 
 	for df in frappe.get_meta(doc["doctype"]).get("fields"):
-		if df.get("default"):
+		if df.default:
 			if cstr(df.default).startswith(":"):
 				default_value = get_default_based_on_another_field(df, user_permissions, parent_doc)
 				if default_value is not None and not doc.get(df.fieldname):

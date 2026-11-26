@@ -3,16 +3,16 @@
 	<div v-if="draft" class="flex min-h-0 flex-1 flex-col">
 		<div class="min-h-0 flex-1 overflow-y-auto px-4 pt-3 sm:px-8 md:pt-8">
 			<div class="flex items-center gap-2">
-				<Button v-if="!headerBack" variant="ghost" icon="lucide-arrow-left" class="-my-1 -ml-1.5" title="Back to presets" @click="back" />
-				<h2 class="text-md-semibold text-ink-gray-9">{{ draft.default ? "Standard preset" : draft.id ? "Edit preset" : "New preset" }}</h2>
+				<Button v-if="!headerBack" variant="ghost" icon="lucide-arrow-left" class="-my-1 -ml-1.5" :title="__('Back to presets')" @click="back" />
+				<h2 class="text-md-semibold text-ink-gray-9">{{ draft.default ? __("Standard preset") : draft.id ? __("Edit preset") : __("New preset") }}</h2>
 			</div>
 
 			<div class="mt-6 flex flex-col gap-5 pb-6">
-				<TextInput v-if="!draft.default" v-model="draft.name" label="Name" placeholder="Reviewer" autofocus />
+				<TextInput v-if="!draft.default" v-model="draft.name" :label="__('Name')" :placeholder="__('Reviewer')" autofocus />
 
 				<div>
-					<div class="text-base-medium text-ink-gray-9">Tools</div>
-					<p v-if="!flow.state.tools.length" class="mt-1.5 text-sm text-ink-gray-5">The daemon did not report any tools.</p>
+					<div class="text-base-medium text-ink-gray-9">{{ __("Tools") }}</div>
+					<p v-if="!flow.state.tools.length" class="mt-1.5 text-sm text-ink-gray-5">{{ __("The daemon did not report any tools.") }}</p>
 					<div v-else class="mt-2 max-h-64 divide-y divide-outline-gray-1 overflow-y-auto rounded-6 border border-outline-gray-2">
 						<template v-for="group in toolGroups" :key="group.key">
 							<div v-if="group.label" class="bg-surface-gray-1 px-4 py-1.5 text-xs-medium text-ink-gray-5">{{ group.label }}</div>
@@ -34,7 +34,7 @@
 				</div>
 
 				<div v-if="!draft.default">
-					<div class="text-base-medium text-ink-gray-9">Prompt</div>
+					<div class="text-base-medium text-ink-gray-9">{{ __("Prompt") }}</div>
 					<div class="mt-2 grid grid-cols-2 gap-2">
 						<button
 							v-for="option in PROMPT_MODES"
@@ -51,16 +51,16 @@
 						v-model="draft.prompt"
 						class="mt-3"
 						:rows="7"
-						placeholder="You are a careful reviewer."
+						:placeholder="__('You are a careful reviewer.')"
 					/>
 				</div>
 			</div>
 		</div>
 
 		<div class="flex items-center justify-end gap-3 border-t border-outline-gray-1 px-4 py-4 sm:px-8">
-			<span v-if="dirty" class="text-sm text-ink-gray-5">Unsaved changes</span>
-			<Button v-if="draft.id" label="Delete" variant="ghost" theme="red" @click="confirmDelete" />
-			<Button variant="solid" label="Save" :disabled="!dirty || (!draft.default && !draft.name.trim())" @click="save" />
+			<span v-if="dirty" class="text-sm text-ink-gray-5">{{ __("Unsaved changes") }}</span>
+			<Button v-if="draft.id" :label="__('Delete')" variant="ghost" theme="red" @click="confirmDelete" />
+			<Button variant="solid" :label="__('Save')" :disabled="!dirty || (!draft.default && !draft.name.trim())" @click="save" />
 		</div>
 	</div>
 
@@ -68,12 +68,12 @@
 	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-3 sm:px-8 md:pt-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="text-md-semibold text-ink-gray-9">Agent presets</h2>
+				<h2 class="text-md-semibold text-ink-gray-9">{{ __("Agent presets") }}</h2>
 				<p class="mt-1 text-sm leading-5 text-ink-gray-6">
-					{{ inSession ? "This chat keeps the preset it started with. Start a new chat to switch." : "Saved setups for new chats. Pick the one to use." }}
+					{{ inSession ? __("This chat keeps the preset it started with. Start a new chat to switch.") : __("Saved setups for new chats. Pick the one to use.") }}
 				</p>
 			</div>
-			<Button v-if="!layout.narrow" variant="solid" label="New preset" @click="draft = blank()" />
+			<Button v-if="!layout.narrow" variant="solid" :label="__('New preset')" @click="draft = blank()" />
 		</div>
 
 		<div class="mt-6 divide-y divide-outline-gray-1 rounded-6 border border-outline-gray-2">
@@ -97,11 +97,11 @@
 						<span class="mt-1 block truncate text-sm text-ink-gray-6">{{ row.summary }}</span>
 					</span>
 				</button>
-				<Button variant="ghost" icon="lucide-square-pen" title="Edit preset" @click="row.preset ? edit(row.preset) : editDefault()" />
+				<Button variant="ghost" icon="lucide-square-pen" :title="__('Edit preset')" @click="row.preset ? edit(row.preset) : editDefault()" />
 			</div>
 		</div>
 		<!-- a narrow frame has no room beside the heading: the button ends the page -->
-		<Button v-if="layout.narrow" class="mt-4" variant="solid" label="New preset" @click="draft = blank()" />
+		<Button v-if="layout.narrow" class="mt-4" variant="solid" :label="__('New preset')" @click="draft = blank()" />
 	</div>
 </template>
 
@@ -115,12 +115,13 @@ import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { layout } from "../layout.js"
 import { useSettingsBack } from "../settingsBack.js"
+import { __ } from "../translate.js"
 
 const flow = inject("flow")
 
 const PROMPT_MODES = [
-	{ value: "append", label: "Add to the default prompt", desc: "Keeps Flow's built-in guidance and adds yours." },
-	{ value: "replace", label: "Replace the default prompt", desc: "Drops the built-in guidance. Project context and skills stay." },
+	{ value: "append", label: __("Add to the default prompt"), desc: __("Keeps Flow's built-in guidance and adds yours.") },
+	{ value: "replace", label: __("Replace the default prompt"), desc: __("Drops the built-in guidance. Project context and skills stay.") },
 ]
 
 // a preset is read once, when a chat is created, so switching is only offered on a blank chat
@@ -134,7 +135,7 @@ const extensionNames = computed(() => flow.state.tools.filter((t) => t.extension
 const toolGroups = computed(() =>
 	[
 		{ key: "tools", tools: flow.state.tools.filter((t) => !t.extension) },
-		{ key: "extensionTools", label: "Extensions", tools: flow.state.tools.filter((t) => t.extension) },
+		{ key: "extensionTools", label: __("Extensions"), tools: flow.state.tools.filter((t) => t.extension) },
 	].filter((group) => group.tools.length),
 )
 // the Default preset always has the core tools; only bundled and extension tools are a choice there
@@ -147,22 +148,22 @@ const listRows = computed(() => {
 	const wanted = inSession.value ? flow.state.session?.config?.preset : flow.state.prefs.activePreset
 	const active = flow.state.presets.some((p) => p.id === wanted) ? wanted : null
 	return [
-		{ id: null, name: "Standard", summary: defaultSummary(), active: !active },
+		{ id: null, name: __("Standard"), summary: defaultSummary(), active: !active },
 		...flow.state.presets.map((p) => ({ id: p.id, name: p.name, summary: summary(p), active: p.id === active, preset: p })),
 	]
 })
 
 // without a tool list there is nothing to count, so describe the daemon's defaults instead
 function defaultSummary() {
-	return flow.state.tools.length ? summary(defaultPreset()) : "Core tools and the built-in prompt."
+	return flow.state.tools.length ? summary(defaultPreset()) : __("Core tools and the built-in prompt.")
 }
 
 function summary(preset) {
 	const total = flow.state.tools.length
 	const enabled = preset.tools.length + (preset.extensionTools ?? extensionNames.value).length
 	return [
-		total ? `${enabled} of ${total} tools` : `${enabled} tools`,
-		preset.prompt?.trim() ? (preset.promptMode === "replace" ? "Replaces prompt" : "Adds to prompt") : null,
+		total ? __("{0} of {1} tools", [enabled, total]) : __("{0} tools", [enabled]),
+		preset.prompt?.trim() ? (preset.promptMode === "replace" ? __("Replaces prompt") : __("Adds to prompt")) : null,
 	]
 		.filter(Boolean)
 		.join(" · ")
@@ -219,7 +220,7 @@ function save() {
 		const id = flow.savePreset({ ...draft.value, name: draft.value.name.trim() })
 		edit(flow.state.presets.find((p) => p.id === id))
 	}
-	flow.notify("Preset saved")
+	flow.notify(__("Preset saved"))
 }
 
 function back() {
@@ -228,12 +229,12 @@ function back() {
 		return
 	}
 	dialog.confirm({
-		title: "Discard changes?",
+		title: __("Discard changes?"),
 		size: "lg",
-		message: "Your edits to this preset have not been saved.",
+		message: __("Your edits to this preset have not been saved."),
 		actions: [
-			{ label: "Keep editing", variant: "outline" },
-			{ label: "Discard", variant: "solid", theme: "red", onClick: () => (draft.value = null) },
+			{ label: __("Keep editing"), variant: "outline" },
+			{ label: __("Discard"), variant: "solid", theme: "red", onClick: () => (draft.value = null) },
 		],
 	})
 }
@@ -241,19 +242,19 @@ function back() {
 function confirmDelete() {
 	const { id, name } = draft.value
 	dialog.confirm({
-		title: "Delete preset?",
+		title: __("Delete preset?"),
 		size: "lg",
-		message: `“${name}” will be removed.`,
+		message: __("“{0}” will be removed.", [name]),
 		actions: [
-			{ label: "Cancel", variant: "outline" },
+			{ label: __("Cancel"), variant: "outline" },
 			{
-				label: "Delete",
+				label: __("Delete"),
 				variant: "solid",
 				theme: "red",
 				onClick: () => {
 					flow.deletePreset(id)
 					draft.value = null
-					flow.notify("Preset deleted")
+					flow.notify(__("Preset deleted"))
 				},
 			},
 		],

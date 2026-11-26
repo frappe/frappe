@@ -35,19 +35,19 @@ export function onPageScriptHotUpdate(listener: HotUpdateListener) {
 /**
  * Register the available page-script importers. The dev/editor path builds these from filesystem
  * discovery (Vite-served); the production per-app build entry calls this with its code-split
- * chunks. Either way the importer is lazy — nothing downloads until loadPageScriptModule() runs it.
+ * chunks. Either way the importer is lazy — nothing downloads until loadBuiltPageScript() runs it.
  */
 export function setPageScriptImporters(importers: Record<string, PageScriptImporter>) {
 	pageScriptImporters.value = importers
 }
 
 /** Whether a compiled page script exists for this page (i.e. the page is in code mode). */
-export function hasPageScript(pageName: string): boolean {
+export function hasBuiltPageScript(pageName: string): boolean {
 	return Boolean(pageScriptImporters.value[pageName])
 }
 
 /** Load a page's compiled module; its default export is the `setup()` function. */
-export async function loadPageScriptModule(pageName: string): Promise<ModuleNamespace | null> {
+export async function loadBuiltPageScript(pageName: string): Promise<ModuleNamespace | null> {
 	// Prefer the latest HMR-refreshed setup so navigating back to a page picks up edits made while
 	// it wasn't active (a stable import URL would otherwise hand back the browser-cached original).
 	const cached = latestPageSetups[pageName]

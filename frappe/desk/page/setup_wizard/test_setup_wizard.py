@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import frappe
+import frappe.client
 from frappe.desk.page.setup_wizard import setup_wizard
 from frappe.tests import IntegrationTestCase, UnitTestCase, set_user
 from frappe.utils.synchronization import LockTimeoutError
@@ -139,6 +140,70 @@ class TestCompleteAppSetup(IntegrationTestCase):
 			enqueue_after_commit=True,
 		)
 
+	def test_a_site_without_a_region_still_gets_the_site_defaults(self):
+		# Like a Frappe Cloud v2 site: no region, so no time zone or formats saved either.
+		fields = [
+			"backup_limit",
+			"language",
+			"time_zone",
+			"date_format",
+			"number_format",
+			"rounding_method",
+			"enable_telemetry",
+		]
+		before = frappe.db.get_singles_dict("System Settings")
+
+		def restore():
+			# A field that had no row falls back to its default; a NULL row would not.
+			for field in fields:
+				if field in before:
+					frappe.db.set_single_value("System Settings", field, before[field])
+				else:
+					frappe.db.delete("Singles", {"doctype": "System Settings", "field": field})
+
+		self.addCleanup(restore)
+		frappe.db.set_single_value(
+			"System Settings",
+			{
+				"backup_limit": 1,
+				"language": None,
+				"time_zone": None,
+				"date_format": None,
+				"number_format": None,
+			},
+		)
+		# The time zone it falls back to is read through the System Settings caches.
+		frappe.local.system_settings = None
+		frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
+
+		setup_wizard.update_system_settings({})
+
+		self.assertEqual(frappe.db.get_single_value("System Settings", "backup_limit"), 3)
+		self.assertEqual(
+			frappe.db.get_single_value("System Settings", "rounding_method"), "Banker's Rounding"
+		)
+		self.assertEqual(frappe.db.get_single_value("System Settings", "language"), "en")
+		self.assertEqual(frappe.db.get_single_value("System Settings", "time_zone"), "Asia/Kolkata")
+		self.assertEqual(frappe.db.get_single_value("System Settings", "date_format"), "yyyy-mm-dd")
+		self.assertEqual(frappe.db.get_single_value("System Settings", "number_format"), "#,###.##")
+		# An app's setup saves a single setting, like the telemetry choice, through the doc.
+		frappe.client.set_value("System Settings", "System Settings", "enable_telemetry", 0)
+
+	def test_a_failed_prefilled_setup_is_not_tried_again(self):
+		with (
+			patch.object(setup_wizard, "get_prefilled_setup_args", return_value={"country": "India"}),
+			patch.object(setup_wizard, "complete_app_setup", side_effect=RuntimeError("boom")),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe, "log_error"),
+		):
+			setup_wizard.complete_prefilled_setup()
+		self.addCleanup(frappe.defaults.clear_default, setup_wizard.PREFILLED_SETUP_FAILED)
+
+		self.assertTrue(frappe.db.get_default(setup_wizard.PREFILLED_SETUP_FAILED))
+		self.assertIsNone(setup_wizard.get_prefilled_setup_args())
+		# Kept even when the login was a GET, like an email link.
+		self.assertTrue(frappe.local.flags.commit)
+
 	def test_post_setup_does_not_commit_before_completion_marker(self):
 		with (
 			patch.object(setup_wizard, "disable_future_access"),
@@ -149,6 +214,15 @@ class TestCompleteAppSetup(IntegrationTestCase):
 			setup_wizard.run_post_setup_complete({})
 
 		commit.assert_not_called()
+
+	def test_setup_user_cannot_be_administrator(self):
+		admin = frappe.db.get_value("User", "Administrator", ["email", "first_name"], as_dict=True)
+		self.assertRaises(
+			frappe.UniqueValidationError,
+			setup_wizard.create_or_update_user,
+			{"email": admin.email.upper(), "full_name": "Taken Over", "password": "Some_pass_123"},
+		)
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "first_name"), admin.first_name)
 
 	def test_needs_system_manager(self):
 		with set_user("Guest"):
@@ -178,3 +252,82 @@ class TestCompleteAppSetup(IntegrationTestCase):
 				self.assertRaises(frappe.ValidationError, setup_wizard.complete_app_setup)
 			with patch.object(frappe, "is_setup_complete", return_value=True):
 				self.assertEqual(setup_wizard.complete_app_setup(), {"status": "ok"})
+
+
+# An app that wants setup finished at login.
+OPTED_IN = {"setup_wizard_auto_complete": [True]}
+
+
+class TestPrefilledSetup(IntegrationTestCase):
+	def setUp(self):
+		patcher = patch.object(frappe, "is_setup_complete", return_value=False)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def args(self, apps=None):
+		apps = apps or {"frappe": {}, "suite": OPTED_IN}
+		with (
+			patch.object(frappe, "get_active_apps", return_value=list(apps)),
+			patch.object(frappe, "get_hooks", side_effect=fake_hooks(apps)),
+		):
+			return setup_wizard.get_prefilled_setup_args()
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_uses_the_region_frappe_cloud_saved(self):
+		args = self.args()
+		self.assertEqual(
+			(args["country"], args["timezone"], args["currency"]), ("India", "Asia/Kolkata", "INR")
+		)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_keeps_the_wizard_unless_an_app_opts_in(self):
+		self.assertIsNone(self.args({"frappe": {}, "raven": {"setup_wizard_success": ["raven.setup"]}}))
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_a_hook_set_to_false_does_not_opt_in(self):
+		self.assertIsNone(self.args({"frappe": {}, "suite": {"setup_wizard_auto_complete": [False]}}))
+
+	@IntegrationTestCase.change_settings("System Settings", country=None)
+	def test_a_site_without_a_saved_region_keeps_the_wizard(self):
+		self.assertIsNone(self.args())
+
+	@IntegrationTestCase.change_settings("System Settings", country=None)
+	def test_frappe_cloud_v2_saves_no_region(self):
+		with patch.dict(
+			frappe.conf, {"pilot_endpoint": "https://pilot.example.com", "pilot_auth_token": "t"}
+		):
+			self.assertIsNotNone(self.args())
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_an_app_with_wizard_stages_keeps_the_wizard(self):
+		self.assertIsNone(
+			self.args(
+				{
+					"suite": OPTED_IN,
+					"erpnext": {
+						"setup_wizard_stages": ["erpnext.setup.setup_wizard.setup_wizard.get_setup_stages"]
+					},
+				}
+			)
+		)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_an_app_with_its_own_setup_page_keeps_it(self):
+		self.assertIsNone(self.args({"suite": {**OPTED_IN, "setup_wizard_url": ["/suite/setup"]}}))
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_only_a_system_manager_login_finishes_setup(self):
+		with set_user("Guest"):
+			self.assertIsNone(self.args())

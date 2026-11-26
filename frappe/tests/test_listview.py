@@ -3,7 +3,12 @@
 import json
 
 import frappe
-from frappe.desk.listview import get_group_by_count, get_list_settings, set_list_settings
+from frappe.desk.listview import (
+	get_assignee_groups,
+	get_group_by_count,
+	get_list_settings,
+	set_list_settings,
+)
 from frappe.desk.reportview import get
 from frappe.tests import IntegrationTestCase
 
@@ -87,7 +92,24 @@ class TestListView(IntegrationTestCase):
 		frappe.db.set_value("ToDo", other_todo.name, "reference_type", "MapReduce Task")
 
 		data = get_group_by_count("MapReduce Job", [["name", "=", job.name]], "assigned_to")
-		self.assertEqual(data, [{"name": "Administrator", "count": 1}])
+		full_name = frappe.db.get_value("User", "Administrator", "full_name")
+		self.assertEqual(data, [{"name": "Administrator", "count": 1, "title": full_name}])
+
+	def test_assigned_to_count_leaves_out_closed_assignments(self):
+		job = frappe.get_doc(
+			doctype="MapReduce Job", job_name="Test closed assignment", map="m", reduce="r", data="[]"
+		).insert()
+		frappe.get_doc(
+			doctype="ToDo",
+			description="Test closed assignment",
+			allocated_to="Administrator",
+			reference_type="MapReduce Job",
+			reference_name=job.name,
+			status="Closed",
+		).insert()
+
+		data = get_group_by_count("MapReduce Job", [["name", "=", job.name]], "assigned_to")
+		self.assertEqual(data, [])
 
 	def test_get_group_by_invalid_field(self):
 		self.assertRaises(
@@ -97,6 +119,92 @@ class TestListView(IntegrationTestCase):
 			'[["Note Seen By","user","=","Administrator"]]',
 			"invalid_field",
 		)
+
+	def _assigned_jobs(self, *assignees: list[str]) -> list[str]:
+		"""One MapReduce Job per list of users, each assigned to those users; returns the names."""
+		names = []
+		for users in assignees:
+			job = frappe.get_doc(
+				doctype="MapReduce Job", job_name="Test assignee groups", map="m", reduce="r", data="[]"
+			).insert()
+			for user in users:
+				frappe.get_doc(
+					doctype="ToDo",
+					description="Test assignee groups",
+					allocated_to=user,
+					reference_type="MapReduce Job",
+					reference_name=job.name,
+				).insert()
+			names.append(job.name)
+		return names
+
+	def test_assignee_groups_count_a_record_under_each_assignee(self):
+		names = self._assigned_jobs(["Administrator", "Guest"], ["Administrator"], [])
+		rows = get_assignee_groups(
+			"MapReduce Job",
+			["_assign", {"COUNT": "name", "as": "_aggregate_0"}],
+			"_assign",
+			[["name", "in", names]],
+		)
+		self.assertCountEqual(
+			rows,
+			[
+				{"_assign": "Administrator", "_aggregate_0": 2},
+				{"_assign": "Guest", "_aggregate_0": 1},
+				{"_assign": None, "_aggregate_0": 1},
+			],
+		)
+
+	def test_assignee_groups_leave_out_closed_assignments(self):
+		names = self._assigned_jobs(["Administrator"], ["Guest"])
+		frappe.db.set_value(
+			"ToDo", {"reference_name": names[1], "reference_type": "MapReduce Job"}, "status", "Closed"
+		)
+		rows = get_assignee_groups("MapReduce Job", ["_assign"], "_assign", [["name", "in", names]])
+		self.assertCountEqual(rows, [{"_assign": "Administrator"}, {"_assign": None}])
+
+	def test_assignee_groups_leave_out_tasks_without_an_assignee(self):
+		names = self._assigned_jobs(["Administrator"])
+		frappe.get_doc(
+			doctype="ToDo",
+			description="Test assignee groups",
+			reference_type="MapReduce Job",
+			reference_name=names[0],
+		).insert()
+		rows = get_assignee_groups("MapReduce Job", ["_assign"], "_assign", [["name", "in", names]])
+		self.assertEqual(rows, [{"_assign": "Administrator"}])
+
+	def test_assignee_groups_sort_and_page_in_the_query(self):
+		names = self._assigned_jobs(["Guest"], ["Administrator", "Guest"])
+		rows = get_assignee_groups(
+			"MapReduce Job",
+			["job_name", "_assign", {"COUNT": "name", "as": "_aggregate_0"}],
+			"job_name, _assign",
+			[["name", "in", names]],
+			"_aggregate_0 desc, _assign asc",
+			limit_page_length=1,
+		)
+		self.assertEqual(rows, [{"job_name": "Test assignee groups", "_assign": "Guest", "_aggregate_0": 2}])
+		next_page = get_assignee_groups(
+			"MapReduce Job",
+			["_assign"],
+			"_assign",
+			[["name", "in", names]],
+			"_assign desc",
+			limit_start=1,
+			limit_page_length=1,
+		)
+		self.assertEqual(next_page, [{"_assign": "Administrator"}])
+
+	def test_assignee_groups_reject_unsafe_input(self):
+		for fields, group_by, order_by in (
+			(["status"], "status", None),
+			([{"SLEEP": "name", "as": "x"}], "_assign", None),
+			([{"COUNT": "name", "as": "x y"}], "_assign", None),
+			(["_assign"], "_assign", "creation desc"),
+		):
+			with self.assertRaises(frappe.ValidationError):
+				get_assignee_groups("MapReduce Job", fields, group_by, order_by=order_by)
 
 	def test_list_view_comment_count(self):
 		frappe.form_dict.doctype = "DocType"

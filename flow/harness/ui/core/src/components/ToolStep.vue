@@ -2,13 +2,12 @@
 	<div>
 		<component
 			:is="expandable || link ? 'button' : 'div'"
-			class="flex w-full items-baseline gap-2.5 py-2 text-left md:py-2.5"
+			class="flex w-full items-baseline gap-2.5 py-1.5 text-left"
 			:class="[expandable || link ? 'group cursor-pointer' : '', live ? 'flow-tool-live' : '']"
 			@click="link ? flow.openSubagent(subagentId(step.call)) : expandable && (open = !open)"
 		>
-			<!-- leading slot doubles as the disclosure control: the tool icon yields
-			     to a chevron on hover, and to the rotated (close) chevron while open -->
-			<span class="relative h-3.5 w-3.5 flex-none self-center text-ink-gray-5">
+			<!-- the icon gives way to a chevron on hover, and to the turned chevron while open -->
+			<span class="relative size-3.5 flex-none self-center text-ink-gray-5">
 				<span
 					class="size-3.5 transition-opacity"
 					:class="[icon, open ? 'opacity-0' : expandable || link ? 'group-hover:opacity-0' : '']"
@@ -21,33 +20,42 @@
 					aria-hidden="true"
 				/>
 			</span>
-			<!-- template text renders like a label, argument values like a subject -->
-			<span v-if="displaySegments.length" class="min-w-0 flex-1 truncate text-base">
-				<span
-					v-for="(segment, j) in displaySegments"
-					:key="j"
-					:class="
-						!segment.arg
-							? 'font-medium text-ink-gray-9'
-							: step.call.name === 'bash'
-								? 'font-mono text-sm text-ink-gray-5 group-hover:text-ink-gray-7'
-								: 'text-ink-gray-5 group-hover:text-ink-gray-7'
-					"
-				>{{ segment.text }}</span>
+			<!-- one sentence in one colour: what ran, on what, and what came of it -->
+			<span class="flex min-w-0 items-baseline text-base text-ink-gray-6 group-hover:text-ink-gray-8">
+				<span class="min-w-0 truncate">
+					<template v-if="displaySegments.length">
+						<span
+							v-for="(segment, j) in displaySegments"
+							:key="j"
+							:class="
+								segment.sep
+									? 'text-ink-gray-4'
+									: step.call.name === 'bash' && segment.arg === 'command'
+										? 'font-mono text-sm'
+										: ''
+							"
+						>{{ segment.text }}</span>
+					</template>
+					<template v-else>
+						<span>{{ label }}</span>
+						<template v-if="subject">
+							<span class="text-ink-gray-4"> · </span>
+							<span :class="step.call.name === 'bash' || meta.codeSubject ? 'font-mono text-sm' : ''">{{ subject }}</span>
+						</template>
+					</template>
+				</span>
+				<!-- edits get a Codex-style colored diffstat; everything else the plain stat. Beside
+				     the text that shortens, not in it: a long row still says it failed -->
+				<span v-if="diffStat" class="flex-none">
+					<span class="whitespace-pre text-ink-gray-4"> · </span>
+					<span class="font-mono text-ink-green-6">+{{ diffStat.added }}</span>
+					<span class="ml-1 font-mono text-ink-red-6">-{{ diffStat.removed }}</span>
+				</span>
+				<span v-else-if="rowStat" class="flex-none">
+					<span class="whitespace-pre text-ink-gray-4"> · </span>
+					<span :class="statClass">{{ rowStat }}</span>
+				</span>
 			</span>
-			<template v-else>
-				<span class="flex-none text-base-medium text-ink-gray-9">{{ label }}</span>
-				<span
-					class="min-w-0 flex-1 truncate text-base text-ink-gray-5 group-hover:text-ink-gray-7"
-					:class="step.call.name === 'bash' ? 'font-mono text-sm' : ''"
-				>{{ subject }}</span>
-			</template>
-			<!-- edits get a Codex-style colored diffstat; everything else the plain stat -->
-			<span v-if="diffStat" class="flex-none font-mono text-base">
-				<span class="text-ink-green-6">+{{ diffStat.added }}</span>
-				<span class="ml-1 text-ink-red-6">-{{ diffStat.removed }}</span>
-			</span>
-			<span v-else-if="stat" class="flex-none text-base" :class="statClass">{{ stat }}</span>
 		</component>
 
 		<div
@@ -109,6 +117,11 @@
 					class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
 				>{{ output }}</pre>
 			</template>
+
+			<pre
+				v-else-if="command"
+				class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
+			>$ {{ command }}</pre>
 		</div>
 	</div>
 </template>
@@ -119,6 +132,7 @@ import { computed, inject, ref, watch } from "vue"
 import { usePanelOpen } from "../panels.js"
 import {
 	compactDisplayText,
+	liveLabelText,
 	pageName,
 	stepDecision,
 	stepIcon,
@@ -127,6 +141,7 @@ import {
 	stepSubject,
 	subagentId,
 } from "../transcript.js"
+import { __ } from "../translate.js"
 import CopyButton from "./CopyButton.vue"
 
 const props = defineProps({
@@ -140,10 +155,10 @@ const open = usePanelOpen(() => props.step.call.id)
 const flow = inject("flow", null)
 const cwd = computed(() => flow?.state?.session?.config?.cwd ?? null)
 
-// a page reads by its host and path, as a file does by its name
+// a page reads by its host and path, as a file does by its name; a " · " in the template is a faint separator
 const displaySegments = computed(() =>
-	(props.step.call.display ?? []).map((segment) => {
-		if (!segment.arg) return segment
+	(props.step.call.display ?? []).flatMap((segment) => {
+		if (!segment.arg) return segment.text.split(/( · )/).filter(Boolean).map((text) => ({ text, sep: text === " · " }))
 		const page = props.step.call.name === "web_fetch" && segment.arg === "url"
 		return { ...segment, text: page ? pageName(segment.text) : compactDisplayText(segment.text, cwd.value) }
 	}),
@@ -159,6 +174,10 @@ const icon = computed(() => meta.value.icon ?? stepIcon(props.step.call.name))
 const label = computed(() => meta.value.label ?? stepLabel(props.step.call.name))
 const subject = computed(() =>
 	compactDisplayText(meta.value.subject ?? stepSubject(props.step.call), cwd.value),
+)
+// the whole command, once its call has streamed in: the row opens to it before its output lands
+const command = computed(() =>
+	props.step.call.name === "bash" && !props.step.streaming ? (args.value.command ?? "") : "",
 )
 const failed = computed(() => props.step.result?.is_error === true)
 const details = computed(() => props.step.result?.details ?? {})
@@ -177,25 +196,40 @@ const decision = computed(() => stepDecision(props.step.result))
 const decisionTitle = computed(
 	() =>
 		({
-			denied: "Denied by user",
-			cancelled: "Cancelled by user",
-			redirect: "User asked for changes",
+			denied: __("Denied by user"),
+			cancelled: __("Cancelled by user"),
+			redirect: __("User asked for changes"),
 		})[decision.value?.status] ?? "",
 )
 
 const stat = computed(() => {
-	if (props.step.aborted && !props.step.result) return "aborted"
+	if (props.step.aborted && !props.step.result) return __("aborted")
 	// a running sub-agent's row carries what the child is doing right now
 	const child = props.step.subagent
-	if (child?.running && !props.step.result) return child.liveLabel ?? "Working"
+	if (child?.running && !props.step.result) return liveLabelText(child.liveLabel) ?? __("Working")
 	// a host describes its own tool, like icon and label — but what the user decided
 	// about the call outranks anything the tool says about itself
 	if (decision.value) return stepStat(props.step)
 	return meta.value.stat || stepStat(props.step) || ""
 })
+// the row names only what needs a look (a failure, a decision, a stop, a non-zero exit) and a
+// sub-agent's state; counts stay in the result
+const rowStat = computed(() => {
+	const notable =
+		decision.value ||
+		failed.value ||
+		props.step.call.name === "subagent" ||
+		(props.step.aborted && !props.step.result) ||
+		(details.value.exit_code ?? 0) !== 0
+	// an error has no count of its own, so a failed call says so
+	const text = notable ? stat.value || (failed.value ? __("failed") : "") : ""
+	// a status reads as a word ("Failed"); a sub-agent's agent keeps its name as written
+	return text && props.step.call.name !== "subagent" ? text[0].toUpperCase() + text.slice(1) : text
+})
 const statClass = computed(() => {
-	if (decision.value) return decision.value.status === "redirect" ? "text-ink-amber-6" : "text-ink-red-6"
-	return failed.value ? "text-ink-red-6" : "text-ink-gray-4"
+	// red-5: calmer than red-6 on a dark page, the same red on a light one
+	if (decision.value) return decision.value.status === "redirect" ? "text-ink-amber-6" : "text-ink-red-5"
+	return failed.value ? "text-ink-red-5" : "text-ink-gray-4"
 })
 
 const resultView = computed(() =>
@@ -235,6 +269,7 @@ const expandable = computed(() => {
 	if (link.value) return false
 	if (failed.value || decision.value) return true
 	if (meta.value.expandable === false) return false
+	if (command.value) return true
 	// its arguments may still be streaming in: the row opens once the call has ended
 	if (!props.step.result && !props.step.aborted) return false
 	if (meta.value.argsComponent) return true
@@ -248,19 +283,20 @@ const duration = computed(() =>
 	details.value.duration_seconds != null ? `${details.value.duration_seconds.toFixed(2)}s` : "",
 )
 const exitChip = computed(() =>
-	details.value.exit_code != null ? `exit ${details.value.exit_code}` : "",
+	details.value.exit_code != null ? __("exit {0}", [details.value.exit_code]) : "",
 )
 const panelNote = computed(() => {
 	if (diffLines.value) {
 		const n = details.value.edits
-		return n != null ? `${n} edit${n === 1 ? "" : "s"}` : "diff"
+		if (n == null) return __("diff")
+		return n === 1 ? __("1 edit") : __("{0} edits", [n])
 	}
 	const parts = []
-	if (details.value.total_lines != null) parts.push(`${details.value.total_lines} lines`)
-	if (details.value.matches != null) parts.push(`${details.value.matches} matches`)
-	if (details.value.truncation?.truncated) parts.push("truncated")
-	if (details.value.full_output_path) parts.push(`full output: ${details.value.full_output_path}`)
-	return parts.join(" · ") || "output"
+	if (details.value.total_lines != null) parts.push(__("{0} lines", [details.value.total_lines]))
+	if (details.value.matches != null) parts.push(__("{0} matches", [details.value.matches]))
+	if (details.value.truncation?.truncated) parts.push(__("truncated"))
+	if (details.value.full_output_path) parts.push(__("full output: {0}", [details.value.full_output_path]))
+	return parts.join(" · ") || __("output")
 })
 
 function lineClass(line) {

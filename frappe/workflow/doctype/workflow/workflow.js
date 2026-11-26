@@ -3,6 +3,11 @@ frappe.provide("frappe.core");
 frappe.ui.form.on("Workflow", {
 	onload: function (frm) {
 		frm.set_query("document_type", { issingle: 0, istable: 0 });
+		const get_states_query = () => ({
+			filters: { name: ["in", frm.doc.states.map((row) => row.state)] },
+		});
+		frm.set_query("state", "transitions", get_states_query);
+		frm.set_query("next_state", "transitions", get_states_query);
 	},
 	refresh: function (frm) {
 		frm.layout.message.empty();
@@ -210,7 +215,7 @@ frappe.ui.form.on("Workflow", {
 		});
 	},
 	get_orphaned_states_and_count: function (frm) {
-		if (frm.is_new()) return;
+		if (frm.is_new() || !frm.perm[0].write) return;
 		let states_list = [];
 		frm.doc.states.map((state) => states_list.push(state.state));
 		return frappe

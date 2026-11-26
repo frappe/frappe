@@ -5,12 +5,14 @@
 		aria-hidden="true"
 	>
 		<span class="lucide-check size-3.5" aria-hidden="true" />
-		Saved
+		{{ __("Saved") }}
 	</span>
 </template>
 
 <script setup>
 import { onBeforeUnmount, ref, watch } from "vue"
+
+import { __ } from "../translate.js"
 
 // "Saved" beside a setting that applies as it changes, as there's no Save button: it shows
 // whenever `value` changes and fades a moment after the last change

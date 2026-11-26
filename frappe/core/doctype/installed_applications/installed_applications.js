@@ -6,6 +6,9 @@ frappe.ui.form.on("Installed Applications", {
 		frm.add_custom_button(__("Update Hooks Resolution Order"), () => {
 			frm.trigger("show_update_order_dialog");
 		});
+		frm.add_custom_button(__("Generate SBOM"), () => {
+			frappe.call({ method: "frappe.utils.sbom.generate_sbom", freeze: true });
+		});
 	},
 
 	show_update_order_dialog() {

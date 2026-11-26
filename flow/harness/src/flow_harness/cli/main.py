@@ -276,8 +276,6 @@ def _serve(args) -> None:
 		print(f"{GREEN}flow daemon{RESET} on {base_url}  {DIM}(data: {args.data_dir}){RESET}")
 		return
 
-	_warm_litellm()
-
 	from flow_harness.server import create_app
 	from flow_harness.server.logs import setup_terminal_logging
 	from flow_harness.session.store import SessionStore
@@ -339,8 +337,6 @@ def _web(args) -> None:
 		raise DaemonError(
 			"web UI assets not found — build them first: cd ui && npm install && npm run build -w app"
 		)
-	_warm_litellm()
-
 	import threading
 	import webbrowser
 
@@ -397,18 +393,6 @@ def _webui_dist() -> str | None:
 
 	path = os.path.join(os.path.dirname(flow_harness.server.__file__), "webui")
 	return path if os.path.isfile(os.path.join(path, "index.html")) else None
-
-
-def _warm_litellm() -> None:
-	"""Import litellm before serving so the first model call doesn't block the event loop."""
-	# not in a thread: litellm 1.104+ breaks when another thread logs during its import
-	try:
-		import litellm
-
-		# silence the "Provider List / Give Feedback" lines litellm prints on errors
-		litellm.suppress_debug_info = True
-	except Exception:
-		pass  # the request path imports it again and reports the real error
 
 
 def _is_loopback(host: str) -> bool:

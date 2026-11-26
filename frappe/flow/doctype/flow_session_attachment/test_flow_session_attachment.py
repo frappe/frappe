@@ -22,6 +22,7 @@ from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import 
 	staged_attachment,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 MODULE = "frappe.flow.doctype.flow_session_attachment.flow_session_attachment"
 VISION = "flow_harness.model.catalog.model_supports_images"
@@ -63,18 +64,21 @@ def png_bytes(text: str | None = None) -> bytes:
 
 
 def _ensure_user(email):
-	if frappe.db.exists("User", email):
-		return email
-	frappe.get_doc(
-		{
-			"doctype": "User",
-			"email": email,
-			"first_name": email.split("@")[0],
-			"send_welcome_email": 0,
-			"enabled": 1,
-		}
-	).insert(ignore_permissions=True)
-	return email
+	if user := get_user_by_email(email):
+		return user
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"send_welcome_email": 0,
+				"enabled": 1,
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 class TestLoadAttachment(IntegrationTestCase):

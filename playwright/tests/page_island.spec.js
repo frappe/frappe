@@ -72,7 +72,10 @@ async function visit_page(page, desk, { build = true, route = [] } = {}) {
 
 test.describe("Frappe UI page", () => {
 	test.beforeEach(async ({ page }) => {
-		await page.route(`**${GETPAGE}`, (route) => route.fulfill({ json: page_doc() }));
+		await page.route(
+			(url) => url.pathname === GETPAGE,
+			(route) => route.fulfill({ json: page_doc() })
+		);
 	});
 
 	test("mounts the island the page names, inside the page content", async ({ page, desk }) => {

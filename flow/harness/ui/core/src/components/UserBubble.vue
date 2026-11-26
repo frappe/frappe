@@ -9,7 +9,7 @@
 					:key="item.id"
 					class="h-[72px] w-[72px] flex-none cursor-zoom-in overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
 					:title="item.name"
-					:aria-label="`View ${item.name}`"
+					:aria-label="__('View {0}', [item.name])"
 					@click="viewer = item"
 				>
 					<img :src="previews[item.id]" :alt="item.name" class="h-full w-full object-cover" />
@@ -47,7 +47,7 @@
 				class="mt-1.5 text-sm-medium text-ink-gray-5 hover:text-ink-gray-8"
 				@click="expanded = !expanded"
 			>
-				{{ expanded ? "Show less" : "Show more" }}
+				{{ expanded ? __("Show less") : __("Show more") }}
 			</button>
 		</div>
 		<span class="absolute bottom-0 right-0.5 flex items-center gap-1">
@@ -56,7 +56,7 @@
 				v-if="rewindable"
 				variant="ghost"
 				size="xs"
-				title="Rewind to this message"
+				:title="__('Rewind to this message')"
 				class="flow-hover-reveal group/rewind"
 				@click="confirmRewind"
 			>
@@ -89,6 +89,7 @@ import {
 	userAttachments,
 	userText,
 } from "../transcript.js"
+import { __ } from "../translate.js"
 import CopyButton from "./CopyButton.vue"
 import ImageViewer from "./ImageViewer.vue"
 
@@ -130,7 +131,12 @@ const chips = computed(() => [
 		.map((item) => ({ key: item.id, icon: item.kind === "image" ? "lucide-image" : "lucide-file-text", label: item.name, title: item.name })),
 ])
 
-const previews = ref({}) // attachment id → object URL of the stored image
+// attachment id → object URL: a picture just sent is its own file from the start, kept by the store;
+// the rest load the stored copy, which this bubble owns
+const sent = Object.fromEntries(
+	attachments.value.flatMap((item) => (flow.sentPreview?.(item.id) ? [[item.id, flow.sentPreview(item.id)]] : [])),
+)
+const previews = ref({ ...sent })
 const viewer = ref(null)
 let disposed = false
 
@@ -138,7 +144,7 @@ onMounted(() => {
 	const sid = flow.state.sessionId
 	if (!sid) return
 	for (const item of attachments.value) {
-		if (item.kind !== "image" || !item.id) continue
+		if (item.kind !== "image" || !item.id || previews.value[item.id]) continue
 		flow.attachmentPreview(sid, item.id).then((url) => {
 			if (!url) return
 			if (disposed) URL.revokeObjectURL(url)
@@ -148,7 +154,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
 	disposed = true
-	for (const url of Object.values(previews.value)) URL.revokeObjectURL(url)
+	for (const [id, url] of Object.entries(previews.value)) if (url !== sent[id]) URL.revokeObjectURL(url)
 })
 
 // show the toggle only when the 12-line clamp actually truncated, measured again when the
@@ -171,14 +177,14 @@ onBeforeUnmount(() => resizer?.disconnect())
 
 function confirmRewind() {
 	dialog.confirm({
-		title: "Rewind to this message?",
+		title: __("Rewind to this message?"),
 		size: "lg",
 		message:
-			"Everything from this point is removed from the conversation. Changes made by tools are not reverted.",
+			__("Everything from this point is removed from the conversation. Changes made by tools are not reverted."),
 		actions: [
-			{ label: "Cancel", variant: "outline" },
+			{ label: __("Cancel"), variant: "outline" },
 			{
-				label: "Rewind",
+				label: __("Rewind"),
 				variant: "solid",
 				theme: "red",
 				onClick: () => flow.rewindToMessage(props.entry),

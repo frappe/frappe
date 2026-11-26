@@ -57,6 +57,12 @@ def get_provider(provider_id: str) -> ProviderSpec | None:
 	return _PROVIDERS_BY_ID.get(provider_id)
 
 
+def provider_label(provider_id: str) -> str:
+	"""A provider as people name it: its display name, else its id."""
+	provider = get_provider(provider_id)
+	return provider.display_name if provider else provider_id
+
+
 def provider_for_model(model: str) -> ProviderSpec | None:
 	return _PROVIDERS_BY_MODEL_PREFIX.get(model.split("/", 1)[0])
 
@@ -111,19 +117,21 @@ def model_supports_images(name: str) -> bool | None:
 		from flow_harness.model.providers.opencode import opencode_go_supports_images
 
 		return opencode_go_supports_images(remote)
-	if prefix not in _PROVIDERS_BY_MODEL_PREFIX:
+	provider = _PROVIDERS_BY_MODEL_PREFIX.get(prefix)
+	if provider is None:
 		# A custom gateway may expose a familiar remote model id with different
 		# capabilities; provider metadata cannot safely be borrowed across surfaces.
 		return None
 	try:
-		import litellm
+		litellm = load_litellm()
 
 		# LiteLLM returns False for unknown names as well as known text-only models.
 		# Read explicit catalog metadata first; unlike ``get_model_info``, this is not
 		# affected by LiteLLM's alias/cache resolution.
 		for candidate in (name, remote):
 			spec = litellm.model_cost.get(candidate)
-			if not isinstance(spec, dict):
+			# a gateway's remote id may be another provider's key, as deepseek/x in openrouter/deepseek/x
+			if not isinstance(spec, dict) or spec.get("litellm_provider") != provider.id:
 				continue
 			return spec.get("supports_vision") is True
 		return None
@@ -135,7 +143,7 @@ def _litellm_chat_models() -> Iterator[tuple[str, str]]:
 	"""(flow model name, provider id) pairs from `litellm.model_cost`. Chat models with
 	function calling only — the agent loop needs tools. `ft:` fine-tune templates are
 	placeholders, not callable ids."""
-	import litellm
+	litellm = load_litellm()
 
 	for key, spec in litellm.model_cost.items():
 		if not isinstance(spec, dict):
@@ -149,3 +157,14 @@ def _litellm_chat_models() -> Iterator[tuple[str, str]]:
 			continue
 		name = key if key.split("/", 1)[0] == provider_id else f"{provider_id}/{key}"
 		yield name, provider_id
+
+
+def load_litellm():
+	"""litellm, imported on first use: it is most of the server's memory, and a bench
+	that never runs a model never pays for it."""
+	# this can run in a worker thread: litellm 1.104+ breaks when another thread logs during its import
+	import litellm
+
+	# silence the "Provider List / Give Feedback" lines litellm prints on errors
+	litellm.suppress_debug_info = True
+	return litellm

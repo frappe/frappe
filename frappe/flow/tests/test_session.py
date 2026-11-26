@@ -13,21 +13,25 @@ from frappe.flow.tests.test_fake_daemon import FakeDaemon
 from frappe.flow.tests.test_live_server import LiveServerCase
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 OTHER = "session-other@example.com"
 
 
-def _ensure_other() -> None:
-	if not frappe.db.exists("User", OTHER):
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": OTHER,
-				"first_name": "Other",
-				"send_welcome_email": 0,
-				"roles": [{"role": FLOW_USER_ROLE}],
-			}
-		).insert(ignore_permissions=True)
+def _ensure_other() -> str:
+	if user := get_user_by_email(OTHER):
+		return user
+
+	user = frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": OTHER,
+			"first_name": "Other",
+			"send_welcome_email": 0,
+			"roles": [{"role": FLOW_USER_ROLE}],
+		}
+	).insert(ignore_permissions=True)
+	return user.name
 
 
 class ServerCase(IntegrationTestCase):
@@ -109,9 +113,9 @@ class TestNewSession(ServerCase):
 		session = new_session()
 		self.assertEqual(session.agent, ASSISTANT_AGENT_NAME)
 		self.assertIn(session.name, self.daemon.configs)
-		_ensure_other()
+		other = _ensure_other()
 		frappe.get_doc(
-			{"doctype": "User Permission", "user": OTHER, "allow": "Flow Agent", "for_value": self.agent.name}
+			{"doctype": "User Permission", "user": other, "allow": "Flow Agent", "for_value": self.agent.name}
 		).insert()
 		# the agent's model is for System Managers only: others are refused, by name, until they pick another
 		self.model.append("roles", {"role": "System Manager"})
@@ -161,7 +165,7 @@ class TestLoadSession(ServerCase):
 					"set_model",
 					session.name,
 					"openai/gpt-4o",
-					{"api_key": None, "api_base": None, "model_params": None, "reasoning_effort": None},
+					{"api_key": None, "api_base": None, "model_params": None},
 				)
 			],
 		)

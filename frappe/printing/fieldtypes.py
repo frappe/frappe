@@ -6,6 +6,7 @@ import frappe.utils
 IMAGE_FIELDTYPES = frozenset({"Attach Image", "Image"})
 CONTENT_FIELDTYPES = frozenset({"HTML", "Divider", "Spacer", "Field Template", "Image", "Barcode"})
 MERGE_IMAGE_FIELDTYPES = frozenset({"Attach Image", "Attach"})
+BREAKABLE_FIELDTYPES = frozenset({"Text Editor", "Text", "Long Text", "Small Text", "Code", "HTML Editor"})
 
 
 def is_image_column(fieldtype: str | None, src) -> bool:

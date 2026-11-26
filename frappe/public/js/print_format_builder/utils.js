@@ -129,15 +129,6 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		if (node.fieldtype === "HTML") add(__("HTML block"));
 		if (node.fieldtype === "Field Template") add(__("Field Template block"));
-		if (node.fieldtype === "Barcode") {
-			if (node.custom) {
-				if (node.barcode_format !== "QR") add(__("Barcode that is not a QR code"));
-			} else {
-				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
-				if (!meta_df || !is_qr_barcode_options(meta_df.options))
-					add(__("Barcode that is not a QR code"));
-			}
-		}
 		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
 			add(__("Image loaded from a web address"));
 		for (const key of ["label_color", "value_color"]) {
@@ -405,7 +396,7 @@ export const FIELD_PLUCK_KEYS = [
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
 	(key) => key !== "table_cell_padding" && key !== "table_radius"
 );
-export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation"];
+export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation", "show_on"];
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections
@@ -452,7 +443,9 @@ export function serialize_layout(layout) {
 export function parse_inline_style(css) {
 	const style = {};
 	if (!css || typeof css !== "string") return style;
-	for (const decl of css.split(";")) {
+	const el = document.createElement("div");
+	el.setAttribute("style", css);
+	for (const decl of split_declarations(el.style.cssText)) {
 		const idx = decl.indexOf(":");
 		if (idx === -1) continue;
 		const prop = decl.slice(0, idx).trim();
@@ -460,6 +453,32 @@ export function parse_inline_style(css) {
 		if (prop && value) style[prop] = value;
 	}
 	return style;
+}
+
+function split_declarations(text) {
+	const decls = [];
+	let quote = null;
+	let depth = 0;
+	let start = 0;
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i];
+		if (c === "\\") {
+			i++;
+		} else if (quote) {
+			if (c === quote) quote = null;
+		} else if (c === '"' || c === "'") {
+			quote = c;
+		} else if (c === "(") {
+			depth++;
+		} else if (c === ")") {
+			depth--;
+		} else if (c === ";" && !depth) {
+			decls.push(text.slice(start, i));
+			start = i + 1;
+		}
+	}
+	decls.push(text.slice(start));
+	return decls;
 }
 
 // Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
@@ -553,6 +572,7 @@ const SAFE_HTML_ATTRS = new Set([
 	"cite",
 	"class",
 	"colspan",
+	"data-list",
 	"datetime",
 	"dir",
 	"height",
@@ -562,6 +582,7 @@ const SAFE_HTML_ATTRS = new Set([
 	"scope",
 	"span",
 	"src",
+	"style",
 	"title",
 	"width",
 	"align",
@@ -569,6 +590,21 @@ const SAFE_HTML_ATTRS = new Set([
 	"border",
 	"cellpadding",
 	"cellspacing",
+]);
+
+const SAFE_STYLE_PROPERTIES = new Set([
+	"background-color",
+	"color",
+	"direction",
+	"font-family",
+	"font-size",
+	"text-align",
+]);
+
+const SAFE_STYLE_VALUES = new Map([
+	["display", "block"],
+	["margin-left", "auto"],
+	["margin-right", "auto"],
 ]);
 
 const UNSAFE_HTML_TAGS = "iframe, frame, frameset, object, embed, applet, form, base, meta, link";
@@ -632,6 +668,16 @@ export function sanitize_html(html) {
 						child.removeAttribute(attr.name);
 				} else if (name === "href") {
 					if (!/^https?:/i.test(attr.value.trim())) child.removeAttribute(attr.name);
+				} else if (name === "style") {
+					for (const property of [...child.style]) {
+						if (
+							!SAFE_STYLE_PROPERTIES.has(property) &&
+							SAFE_STYLE_VALUES.get(property) !==
+								child.style.getPropertyValue(property)
+						)
+							child.style.removeProperty(property);
+					}
+					if (!child.style.length) child.removeAttribute(attr.name);
 				}
 			}
 			clean(child);
@@ -660,10 +706,12 @@ export function text_field_paths(text, meta) {
 		.filter((path) => {
 			const [fieldname, target] = path.split(".");
 			const df = meta?.fields?.find((f) => f.fieldname === fieldname);
-			if (!target) return !!df || fieldname === "name";
+			if (!target) return (!!df && df.fieldtype !== "Table") || fieldname === "name";
 			return (
 				df?.fieldtype === "Link" &&
-				!!frappe.get_meta(df.options)?.fields?.some((f) => f.fieldname === target)
+				!!frappe
+					.get_meta(df.options)
+					?.fields?.some((f) => f.fieldname === target && f.fieldtype !== "Table")
 			);
 		});
 }
