@@ -849,6 +849,12 @@ def use(site, sites_path="."):
 @click.option("--verbose", default=False, is_flag=True, help="Add verbosity")
 @click.option("--compress", default=False, is_flag=True, help="Compress private and public files")
 @click.option("--old-backup-metadata", default=False, is_flag=True, help="Use older backup metadata")
+@click.option(
+	"--for-mariadb",
+	default=False,
+	is_flag=True,
+	help="On a SQLite site, write the database as MariaDB SQL that can be restored on a MariaDB site",
+)
 @pass_context
 def backup(
 	context: CliCtxObj,
@@ -864,6 +870,7 @@ def backup(
 	include="",
 	exclude="",
 	old_backup_metadata=False,
+	for_mariadb=False,
 ):
 	"Backup"
 
@@ -893,6 +900,7 @@ def backup(
 				force=True,
 				old_backup_metadata=old_backup_metadata,
 				rollback_callback=rollback_callback,
+				for_mariadb=for_mariadb,
 			)
 		except Exception:
 			click.secho(

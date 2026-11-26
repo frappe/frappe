@@ -6,8 +6,10 @@ from email import message_from_bytes, message_from_string
 from unittest.mock import MagicMock, patch
 
 import frappe
+from frappe.database import get_db
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 
 
 class TestEmailQueue(IntegrationTestCase):
@@ -96,6 +98,48 @@ class TestEmailQueue(IntegrationTestCase):
 		q2 = frappe.new_doc("Email Queue", email_account="_Test Email Account 1")
 		self.assertIsNot(get_server(frappe.new_doc("Email Queue")), get_server(q1))
 		self.assertIs(get_server(q1), get_server(q2))
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_send_records_result_when_another_connection_commits_during_send(self):
+		email_record = frappe.new_doc(
+			"Email Queue",
+			sender="Test <test@example.com>",
+			show_as_cc="",
+			message="Test message",
+			status="Not Sent",
+			priority=1,
+			recipients=[{"recipient": "test_concurrent@example.com"}],
+		).insert()
+		frappe.db.commit()  # frees the SQLite writer lock for the other connection; nosemgrep
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "Email Queue", email_record.name, force=True)
+		self.addCleanup(frappe.db.delete, "DefaultValue", {"defkey": "email_queue_concurrent_write"})
+		other = get_db(cur_db_name=frappe.conf.db_name)
+		other.connect()
+		self.addCleanup(other.close)
+
+		def commit_elsewhere(**kwargs):
+			frappe.db.sql("select name from `tabEmail Queue` limit 1")  # as building the message does
+			other.sql(
+				"insert into `tabDefaultValue` (name, parent, defkey, defvalue) values (%s, '__default', %s, 'x')",
+				(frappe.generate_hash(), "email_queue_concurrent_write"),
+			)
+			other.commit()
+
+		mock_smtp_server = MagicMock()
+		mock_smtp_server.session.has_extn.return_value = False
+		mock_smtp_server.session.sendmail.side_effect = commit_elsewhere
+
+		frappe.flags.testing_email = True
+		try:
+			email_record.send(smtp_server_instance=mock_smtp_server)
+		finally:
+			frappe.flags.testing_email = False
+
+		self.assertEqual(frappe.db.get_value("Email Queue", email_record.name, "status"), "Sent")
+		self.assertEqual(
+			frappe.db.get_value("Email Queue Recipient", {"parent": email_record.name}, "status"), "Sent"
+		)
 
 	def test_redacts_message_only_once_sent(self):
 		"""A failed send must keep the message intact, it is the only copy the retry has."""

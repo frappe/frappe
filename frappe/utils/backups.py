@@ -82,6 +82,7 @@ class BackupGenerator:
 		verbose=False,
 		old_backup_metadata=False,
 		rollback_callback=None,
+		for_mariadb=False,
 	):
 		global _verbose
 		self.compress_files = compress_files or compress
@@ -103,6 +104,7 @@ class BackupGenerator:
 		self.partial = False
 		self.old_backup_metadata = old_backup_metadata
 		self.rollback_callback = rollback_callback
+		self.for_mariadb = for_mariadb
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -151,7 +153,7 @@ class BackupGenerator:
 		self.backup_excludes = _get_tables(self.exclude_doctypes.strip().split(","), self._existing_tables)
 
 		self.set_backup_tables_from_config()
-		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
+		self.partial = bool(self.backup_includes or self.backup_excludes)
 
 	def set_backup_tables_from_config(self):
 		"""Set self.backup_includes, self.backup_excludes based on site config"""
@@ -186,7 +188,7 @@ class BackupGenerator:
 		"""
 		# Check if file exists and is less than a day old
 		# If not Take Dump
-		if not force:
+		if not force and not self.for_mariadb:
 			(
 				last_db,
 				last_file,
@@ -233,7 +235,8 @@ class BackupGenerator:
 		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
-		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
+		export = "-mariadb" if self.for_mariadb and self.db_type == "sqlite" else ""
+		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{export}{enc}.sql.gz"
 		for_public_files = f"{self.todays_date}-{self.site_slug}-files{enc}.{ext}"
 		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
 		backup_path = self.backup_path or get_backup_path()
@@ -397,21 +400,8 @@ class BackupGenerator:
 		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
 			n.write(c.read())
 
-	def take_dump(self):
-		if self.db_type == "sqlite":
-			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
-			backup_sqlite_database(db_path, self.backup_path_db)
-			return
-
-		import shlex
-
+	def get_dump_header(self) -> str:
 		from frappe.utils.change_log import get_app_branch
-
-		gzip_exc: str = which("gzip")
-		if not gzip_exc:
-			frappe.throw(
-				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
-			)
 
 		if self.old_backup_metadata:
 			database_header_content = [
@@ -444,10 +434,38 @@ class BackupGenerator:
 				]
 			)
 
-		generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
+		return "\n".join(f"-- {x}" for x in database_header_content) + "\n"
+
+	def take_mariadb_dump(self, db_path: Path) -> None:
+		from frappe.database.sqlite.mariadb_dump import MariaDBDumpWriter
+
+		writer = MariaDBDumpWriter(db_path, self.backup_includes, self.backup_excludes, self.verbose)
+		writer.write(self.backup_path_db, self.get_dump_header())
+
+	def take_dump(self):
+		if self.db_type == "sqlite":
+			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
+			if self.for_mariadb:
+				self.take_mariadb_dump(db_path)
+			else:
+				backup_sqlite_database(db_path, self.backup_path_db)
+			return
+
+		if self.for_mariadb and self.db_type != "mariadb":
+			frappe.throw(_("A MariaDB-compatible backup can only be taken of a SQLite or MariaDB site."))
+		if self.for_mariadb:
+			click.echo("Site already uses MariaDB; ignoring --for-mariadb.")
+
+		import shlex
+
+		gzip_exc: str = which("gzip")
+		if not gzip_exc:
+			frappe.throw(
+				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
+			)
 
 		with gzip.open(self.backup_path_db, "wt") as f:
-			f.write(generated_header)
+			f.write(self.get_dump_header())
 
 		cmd = []
 		extra = []
@@ -596,6 +614,7 @@ def scheduled_backup(
 	verbose=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
+	for_mariadb=False,
 ):
 	"""this function is called from scheduler
 	deletes backups older than 7 days
@@ -616,6 +635,7 @@ def scheduled_backup(
 		verbose=verbose,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
+		for_mariadb=for_mariadb,
 	)
 
 
@@ -635,6 +655,7 @@ def new_backup(
 	verbose=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
+	for_mariadb=False,
 ):
 	delete_temp_backups()
 	odb = BackupGenerator(
@@ -657,6 +678,7 @@ def new_backup(
 		compress_files=compress,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
+		for_mariadb=for_mariadb,
 	)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
