@@ -67,13 +67,6 @@ frappe.listview_settings["Web Form"] = {
 					reqd: !can_create_doctype,
 				},
 				{
-					label: __("Module"),
-					fieldname: "module",
-					fieldtype: "Link",
-					options: "Module Def",
-					mandatory_depends_on: "is_standard",
-				},
-				{
 					label: __("Is standard"),
 					fieldname: "is_standard",
 					fieldtype: "Check",
@@ -81,6 +74,14 @@ frappe.listview_settings["Web Form"] = {
 						frappe.meta.get_docfield("Web Form", "is_standard")?.description || ""
 					),
 					hidden: !frappe.boot.developer_mode,
+				},
+				{
+					label: __("Module"),
+					fieldname: "module",
+					fieldtype: "Link",
+					options: "Module Def",
+					depends_on: "eval:doc.is_standard",
+					mandatory_depends_on: "eval:doc.is_standard",
 				},
 				{
 					label: __("Banner Image"),
