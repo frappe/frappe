@@ -247,8 +247,12 @@ class TestSiteKeyProvider(IntegrationTestCase):
 
 	def test_two_accepts_at_once_add_grove_once(self):
 		self._accept()
-		# the other accept checked before this one's rows were there
-		with patch.object(frappe.db, "exists", return_value=False):
+		# the other accept checked before this one's rows were there; later checks see them
+		exists = frappe.db.exists
+		checks = iter([lambda *args, **kwargs: False])
+		with patch.object(
+			frappe.db, "exists", side_effect=lambda *args, **kwargs: next(checks, exists)(*args, **kwargs)
+		):
 			self._accept()
 		self.assertEqual(frappe.db.count("Flow Model", {"provider": "grove"}), 1)
 
