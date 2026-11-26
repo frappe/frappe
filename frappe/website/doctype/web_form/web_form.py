@@ -122,12 +122,8 @@ class WebForm(WebsiteGenerator):
 
 		super().validate()
 
-		if self.is_standard and not self.module and not self.doc_type:
-			frappe.throw(
-				_("Select a Module for a standard Web Form"),
-				frappe.MandatoryError,
-				title=_("Module Required"),
-			)
+		if self.is_standard:
+			self.validate_standard_module()
 
 		if not self.module:
 			self.module = (
@@ -176,6 +172,23 @@ class WebForm(WebsiteGenerator):
 		frappe.has_permission("DocType", "create", throw=True)
 		if self.created_doctype_deleted():
 			self.create_new_doctype(keep_web_form=True)
+
+	def validate_standard_module(self):
+		"""A standard form exports into its module's app. "Custom" is only a default here, and
+		would put the form and the DocType it creates into the frappe app."""
+		owns_doctype = not self.doc_type or self.created_new_doctype
+		if owns_doctype and self.module in (None, "", "Custom"):
+			frappe.throw(
+				_("Select the module this standard Web Form belongs to."),
+				frappe.MandatoryError,
+				title=_("Module Required"),
+			)
+
+		if self.module and frappe.db.get_value("Module Def", self.module, "custom"):
+			frappe.throw(
+				_("A standard Web Form needs a module that belongs to an app."),
+				title=_("Invalid Module"),
+			)
 
 	def needs_new_doctype(self):
 		return not self.doc_type and any(d.fieldtype not in LAYOUT_FIELDTYPES for d in self.web_form_fields)
@@ -550,9 +563,7 @@ def get_context(context):
 			)
 		elif not frappe.has_permission("DocType", "delete", self.doc_type):
 			message = _("DocType {0} was kept, because you do not have permission to delete it.")
-		elif not frappe.db.get_value("DocType", self.doc_type, "custom") and not (
-			frappe.conf.developer_mode and frappe.session.user == "Administrator"
-		):
+		elif not frappe.db.get_value("DocType", self.doc_type, "custom"):
 			message = _("DocType {0} was kept, because it is a standard DocType.")
 		else:
 			frappe.delete_doc("DocType", self.doc_type)

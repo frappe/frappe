@@ -2273,8 +2273,9 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.assertEqual(frappe.get_meta(web_form.doc_type).get_field("int").label, "Int")
 
 	def test_standard_web_form_needs_module(self):
-		with self.assertRaisesRegex(frappe.MandatoryError, "Select a Module"):
-			self.new_web_form("Test WF Issue 8 Standard", module=None, is_standard=1)
+		for module in (None, "Custom"):
+			with self.assertRaisesRegex(frappe.MandatoryError, "Select the module"):
+				self.new_web_form("Test WF Issue 8 Standard", module=module, is_standard=1)
 
 		self.assertFalse(frappe.db.exists("DocType", "webform-test-wf-issue-8-standard"))
 
@@ -2350,16 +2351,40 @@ class TestWebFormNewDocType(IntegrationTestCase):
 
 		self.assert_doctype_exported(web_form)
 
-	def test_delete_web_form_keeps_standard_doctype_outside_developer_mode(self):
+	def test_delete_web_form_keeps_standard_doctype(self):
 		self.enable_developer_mode("test-wf-issue-7-delete")
 		web_form = self.new_web_form("Test WF Issue 7 Delete", is_standard=1)
 		web_form.reload()
 
-		frappe.local.conf.developer_mode = 0
 		frappe.delete_doc("Web Form", web_form.name)
-		frappe.local.conf.developer_mode = 1
 
 		self.assertTrue(frappe.db.exists("DocType", web_form.doc_type))
+
+	def test_ticking_is_standard_with_custom_module_asks_for_module(self):
+		web_form = self.new_web_form("Test WF Standard Custom Module", module="Custom")
+		web_form.reload()
+		web_form.is_standard = 1
+
+		with self.assertRaisesRegex(frappe.MandatoryError, "Select the module"):
+			web_form.save()
+
+		self.assertEqual(frappe.db.get_value("DocType", web_form.doc_type, "custom"), 1)
+
+	def test_standard_web_form_needs_an_app_module(self):
+		module = frappe.get_doc(
+			{
+				"doctype": "Module Def",
+				"module_name": "Test WF Appless Module",
+				"custom": 1,
+				"app_name": "frappe",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Module Def", module.name, force=True)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "belongs to an app"):
+			self.new_web_form("Test WF Appless Module Form", module=module.name, is_standard=1)
+
+		self.assertFalse(frappe.db.exists("DocType", "webform-test-wf-appless-module-form"))
 
 	def test_deleted_created_doctype_can_be_recreated(self):
 		web_form = self.new_web_form("Test Web Form Recreate Deleted DocType")
