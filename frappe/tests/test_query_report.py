@@ -1247,6 +1247,29 @@ data = columns, result
 
 		self.assertEqual(result["result"], [])
 
+	def test_saved_columns_cannot_retarget_columns_that_skip_user_permissions(self):
+		from frappe.desk.query_report import generate_report_result, get_report_doc
+
+		viewer, assigner = self.restrict_to_own_user()
+		report = self.make_assigned_by_report({"assigned_by": assigner})
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Assigned By Custom Report " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"is_standard": "No",
+				"json": json.dumps(
+					{"columns": [{"fieldname": "assigned_by", "fieldtype": "Link", "options": "Role"}]}
+				),
+			}
+		).insert(ignore_permissions=True)
+
+		result = generate_report_result(get_report_doc(custom_report.name), user=viewer)
+
+		self.assertNotIn("ignore_user_permissions", result["columns"][0])
+
 	def test_link_titles_skip_user_permissions_for_columns_that_ignore_them(self):
 		viewer, assigner = self.restrict_to_own_user()
 		column = {"fieldname": "assigned_by", "fieldtype": "Link", "options": "User"}
@@ -1267,6 +1290,31 @@ data = columns, result
 		add_user_permission("User", viewer, viewer, ignore_permissions=True)
 		self.addCleanup(frappe.cache.hdel, "user_permissions", viewer)
 		return viewer, other
+
+	def make_assigned_by_report(self, row):
+		"""Script report returning `row` under an `assigned_by` column that ignores user permissions."""
+		columns = [
+			dict(
+				fieldname="assigned_by",
+				label="Assigned By",
+				fieldtype="Link",
+				options="User",
+				ignore_user_permissions=1,
+			)
+		]
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Assigned By Report " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+		report.report_script = f"data = {columns!r}, [{row!r}]"
+		report.save()
+		return report
 
 	def make_link_column_report(self):
 		"""Script report with an ID column and a User link column, returning one row."""
