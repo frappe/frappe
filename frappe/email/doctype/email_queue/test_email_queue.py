@@ -237,38 +237,79 @@ class TestEmailQueue(FrappeTestCase):
 					["multipart/mixed", "multipart/alternative", "text/plain", "text/html", "text/plain"],
 				)
 
-	def test_plain_text_part_has_urls_and_words_of_html_part(self):
+	def test_plain_text_part_has_urls_of_html_part(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
-		body = (
+		unsubscribe = {
+			"reference_doctype": "User",
+			"reference_name": "Administrator",
+			"unsubscribe_message": "Unsubscribe",
+		}
+		body_links = (
 			'<p>Read <a href="https://example.com/docs">the docs</a>.</p>'
 			'<p><a href="https://example.com/raw">https://example.com/raw</a></p>'
 			'<p><a href="mailto:jane@example.com">jane@example.com</a></p>'
 		)
+		for case, kwargs, url_count in (
+			("no URLs", {}, 0),
+			("masthead", {"brand_name": "Example"}, 1),
+			("brand logo", {"brand_logo": "https://example.com/logo.png"}, 2),
+			("body links", {"message": body_links}, 2),
+			("unsubscribe link", unsubscribe, 1),
+			("tracker", {"email_read_tracker_url": "/api/method/frappe.ping"}, 1),
+			(
+				"all",
+				{
+					"brand_name": "Example",
+					"brand_logo": "https://example.com/logo.png",
+					"message": body_links,
+					"email_read_tracker_url": "/api/method/frappe.ping",
+					**unsubscribe,
+				},
+				6,
+			),
+		):
+			with self.subTest(case=case):
+				text, html = self.get_sent_parts(**kwargs)
+				soup = BeautifulSoup(html, "html.parser")
+				html_urls = [link["href"] for link in soup.find_all("a", href=re.compile("^https?://"))]
+				html_urls += [image["src"] for image in soup.find_all("img", src=re.compile("^https?://"))]
+
+				self.assertEqual(len(html_urls), url_count)
+				self.assertCountEqual(re.findall(r"https?://[^\s()]+", text), html_urls)
+				self.assertNotIn("<!--", text)
+
+	def test_plain_text_part_has_words_of_html_part(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(
+			frappe.db.set_default, "email_footer_address", frappe.db.get_default("email_footer_address")
+		)
+		frappe.db.set_default("email_footer_address", "Example Technologies\nMumbai, India")
+		frappe.set_user("test@example.com")
+
+		text, html = self.get_sent_parts(
+			brand_name="Example", header=["Assignment Update", "blue"], message="<p>Your task is due.</p>"
+		)
+		html_words = BeautifulSoup(html, "html.parser").body.get_text(" ").split()
+
+		self.assertIn("Mumbai,", html_words)
+		self.assertEqual([word for word in text.split() if "://" not in word], html_words)
+
+	def get_sent_parts(self, brand_name=None, brand_logo=None, message="<p>Hello</p>", **kwargs):
+		"""Return the decoded plain-text and HTML parts of a message sent to customer@example.com."""
 		with (
-			patch("frappe.email.email_body.get_brand_name", return_value="Example"),
-			patch("frappe.email.email_body.get_brand_logo", return_value="https://example.com/logo.png"),
+			patch("frappe.email.email_body.get_brand_name", return_value=brand_name),
+			patch("frappe.email.email_body.get_brand_logo", return_value=brand_logo),
 		):
 			queue = frappe.sendmail(
 				recipients=["customer@example.com"],
-				subject="URLs",
-				message=body,
-				header=["Assignment Update", "blue"],
-				reference_doctype="User",
-				reference_name="Administrator",
-				unsubscribe_message="Unsubscribe",
-				email_read_tracker_url="/api/method/frappe.ping",
+				subject="Parts",
+				message=message,
+				with_container=True,
+				**kwargs,
 			)
 		message = message_from_bytes(SendMailContext(queue).build_message("customer@example.com"))
-		text, html = (part.get_payload(decode=True).decode() for part in message.get_payload())
-		soup = BeautifulSoup(html, "html.parser")
-		html_urls = [link["href"] for link in soup.find_all("a", href=re.compile("^https?://"))]
-		html_urls += [image["src"] for image in soup.find_all("img", src=re.compile("^https?://"))]
-
-		self.assertEqual(len(html_urls), 6)
-		self.assertCountEqual(re.findall(r"https?://[^\s()]+", text), html_urls)
-		self.assertIn("Assignment Update", text)
-		self.assertNotIn("<!--", text)
+		return [part.get_payload(decode=True).decode() for part in message.get_payload()]
 
 	def test_reply_to_address_matching(self):
 		for reply_to, recipient, is_kept in (
