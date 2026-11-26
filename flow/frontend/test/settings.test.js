@@ -224,6 +224,25 @@ test("a picked value outside the search results shows its label, not its name", 
 	}
 });
 
+test("a pick keeps its label when a later search leaves it out", async (t) => {
+	transport.calls.length = 0;
+	transport.answers["frappe.desk.search.search_link"] = ({ txt }) =>
+		txt === "Zelda Quill" ? [] : [{ value: "z1", label: "Zelda Quill" }];
+	const doc = reactive({ doctype: "Flow Trigger", run_as: "" });
+	const el = mount(t, FieldControl, {
+		field: { name: "run_as", type: "link", label: "Run as", link: "User" },
+		doc,
+	});
+	await until(() => el.textContent.includes("Zelda Quill"));
+	doc.run_as = "z1";
+	type(el, "Zelda Quill");
+	await until(() => transport.calls.some(([, args]) => args.txt === "Zelda Quill"));
+	await new Promise((resolve) => setTimeout(resolve, 20));
+	assert.ok(el.textContent.includes("Zelda Quill"));
+	assert.ok(!el.textContent.includes("z1"));
+	assert.ok(!transport.calls.some(([, args]) => args.filters?.name));
+});
+
 test("a read-only multilink still opens, showing only its picks and nothing to change, by name where its records can't be read", async (t) => {
 	transport.answers["frappe.desk.search.search_link"] = () => [
 		{ value: "tool-1", label: "Tool One" },

@@ -279,15 +279,20 @@ const options = computed(() => {
 			.map((name) => ({ value: name, label: labels.value[name] ?? name })),
 	];
 });
-// picks the search results leave out are labelled once, by title; each shows its name meanwhile
+// each pick keeps the label it was picked by, as later searches may leave it out;
+// picks no search has shown are labelled once, by title, each showing its name meanwhile
 const labels = ref({});
 watch(
 	() => [searched.value, props.doc[props.field.name]],
 	async ([doctype, value]) => {
 		const selected = Array.isArray(value) ? value : value ? [value] : [];
-		const missing = selected.filter(
-			(name) => !(name in labels.value) && !links.value.some((option) => option.value === name)
-		);
+		const missing = [];
+		for (const name of selected) {
+			if (name in labels.value) continue;
+			const option = links.value.find((option) => option.value === name);
+			if (option) labels.value[name] = option.label;
+			else missing.push(name);
+		}
 		if (!doctype || !missing.length) return;
 		missing.forEach((name) => (labels.value[name] = name));
 		for (const option of await labelLinks(doctype, missing, props.doc.doctype)) {
