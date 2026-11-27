@@ -355,38 +355,61 @@ class TestKnowledgeSettings(IntegrationTestCase):
 
 		self.assertEqual(self._save_settings(embedding_model="").embedding_dimension, 0)
 
-	def test_the_model_cannot_change_while_chunks_exist(self):
+	def test_a_new_model_embeds_every_source_again(self):
 		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
-		self._make_chunk()
-		for model in (self.alt_model.name, ""):
-			with (
-				self.subTest(embedding_model=model),
-				self.assertRaisesRegex(frappe.ValidationError, "Delete all knowledge sources"),
-			):
-				self._save_settings(embedding_model=model)
+		chunk = self._make_chunk()
+		with self.assertRaisesRegex(frappe.ValidationError, "Delete all knowledge sources"):
+			self._save_settings(embedding_model="")
 
 		# a rename keeps the model and its dimension
-		with patch("frappe.flow.knowledge.embedder.probe_dimension") as probe:
+		with (
+			patch("frappe.flow.knowledge.embedder.probe_dimension") as probe,
+			patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as enqueue,
+		):
 			# Frappe trims the name
 			frappe.rename_doc("Flow Model", self.model.name, " Embed Model Renamed ", rebuild_search=False)
 		probe.assert_not_called()
+		enqueue.assert_not_called()
 		settings = frappe.get_doc("Flow Knowledge Settings")
 		self.assertEqual(
 			(settings.embedding_model, settings.embedding_dimension), ("Embed Model Renamed", 1536)
 		)
 
-		# merging it into another model is still a change
-		with self.assertRaisesRegex(frappe.ValidationError, "Delete all knowledge sources"):
+		# merging it into another model is a change
+		with (
+			patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=3072),
+			patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as enqueue,
+		):
 			frappe.rename_doc("Flow Model", "Embed Model Renamed", self.alt_model.name, merge=True)
-
-		# a rebuild's flag lifts the guard
+		enqueue.assert_called_once_with(chunk.source, rebuild=True)
+		self.assertEqual(frappe.db.get_value("Flow Knowledge Source", chunk.source, "status"), "Pending")
+		self.assertIn(store.drop_table, frappe.db.after_commit._functions)
+		self.assertIn(attachment_store.drop_table, frappe.db.after_commit._functions)
 		settings = frappe.get_doc("Flow Knowledge Settings")
-		settings.embedding_model = self.alt_model.name
-		settings.flags.allow_embedding_model_change = True
-		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=3072):
-			settings.save()
-		self.assertEqual(settings.embedding_dimension, 3072)
+		self.assertEqual(
+			(settings.embedding_model, settings.embedding_dimension), (self.alt_model.name, 3072)
+		)
+
+	def test_a_new_model_rebuilds_the_memory_index_in_the_background(self):
+		frappe.get_doc(
+			{
+				"doctype": "Flow Agent Memory",
+				"name": "settings-test-memory",
+				"agent": "Any Agent",
+				"scope": "Agent",
+				"content": "hello",
+				"status": "Active",
+			}
+		).db_insert()
+		with (
+			patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536),
+			patch("frappe.enqueue") as enqueue,
+		):
+			self._save_settings(embedding_model=self.model.name)
+		enqueue.assert_called_once_with(
+			"frappe.flow.memory.store.ensure_table", queue="long", enqueue_after_commit=True
+		)
 
 	def test_chunk_size_and_overlap_are_validated(self):
 		for values, error in (
@@ -796,6 +819,26 @@ class TestDoctypeSync(IntegrationTestCase):
 		with embed as mock, patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
 			ingest_source(source_name, rebuild=rebuild)
 		return mock
+
+	def test_a_sync_stops_when_the_model_changes_under_it(self):
+		self._todo("SYNCTEST alpha")
+		source = self._source()
+		other = _make_model(title="Embed Model Other", model_id="openai/text-embedding-3-large")
+
+		def fake(input, **kwargs):
+			# saved while this page was being embedded
+			frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", other.name)
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("litellm.embedding", side_effect=fake),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+		):
+			ingest_source(source.name)
+		self.assertEqual(frappe.db.count("Flow Knowledge Chunk", {"source": source.name}), 0)
+		self.assertFalse(store.table_exists())
+		self.assertNotEqual(frappe.db.get_value("Flow Knowledge Source", source.name, "status"), "Failed")
 
 	def test_a_source_syncs_under_its_own_lock(self):
 		from frappe.utils.file_lock import LockTimeoutError
