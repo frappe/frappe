@@ -92,6 +92,21 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		creations = [row["creation"] for row in response.json["data"]]
 		self.assertEqual(creations, sorted(creations, reverse=True))
 
+	def test_get_list_filters_match_empty_values_v2(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "no reference"}).insert()
+		frappe.db.commit()
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "ToDo", todo.name)
+		self.assertIsNone(frappe.db.get_value("ToDo", todo.name, "reference_type"))
+
+		for value in ("", ["!=", "User"], ["not in", ["User"]]):
+			filters = {"name": todo.name, "reference_type": value}
+			response = self.get(
+				self.resource(self.DOCTYPE), {"sid": self.sid, "filters": frappe.as_json(filters)}
+			)
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual([row["name"] for row in response.json["data"]], [todo.name], value)
+
 	def test_get_list_fields_v2(self):
 		# test 6: fetch response with fields
 		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'})

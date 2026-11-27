@@ -200,6 +200,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		limit=limit + 1,  # Fetch one extra to check if there's a next page
 		group_by=group_by,
 		ignore_permissions=False,
+		db_query_compat=True,
 	)
 
 	# Check if the doctype controller has a static get_list method
