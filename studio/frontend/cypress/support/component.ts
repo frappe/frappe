@@ -1,5 +1,6 @@
 import "./commands"
-import "@/index.css"
+import "@/runtime/index.css"
+import "@/styles/codemirror.css"
 
 import { createPinia, setActivePinia } from "pinia"
 import { mount } from "cypress/vue"

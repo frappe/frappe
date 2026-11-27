@@ -1,4 +1,5 @@
-import "./index.css"
+import "@/runtime/index.css"
+import "@/styles/codemirror.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
