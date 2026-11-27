@@ -911,7 +911,7 @@ frappe.views.CommunicationComposer = class {
 	async get_signature(sender_email) {
 		let signature = frappe.boot.user.email_signature;
 
-		if (!signature) {
+		if (!signature && frappe.model.can_read("Email Account")) {
 			let filters = {
 				add_signature: 1,
 			};
