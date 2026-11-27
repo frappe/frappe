@@ -7,7 +7,7 @@ from functools import cache
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address
+from frappe.utils import get_file_items, validate_email_address
 
 DOMAIN_PATTERN = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$")
 
@@ -41,9 +41,8 @@ class EmailBlocklist(Document):
 
 @cache
 def get_shipped_blocked_domains() -> frozenset[str]:
-	with open(frappe.get_app_path("frappe", "email", "blocked_email_domains.txt")) as file:
-		lines = (line.strip().lower() for line in file)
-		return frozenset(line for line in lines if line and not line.startswith("#"))
+	path = frappe.get_app_path("frappe", "email", "blocked_email_domains.txt")
+	return frozenset(domain.lower() for domain in get_file_items(path, raise_not_found=True))
 
 
 def get_domain_with_parents(email: str) -> list[str]:
