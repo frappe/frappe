@@ -211,9 +211,10 @@ def stop_task(task_id: str):
 		rq_job_id = create_job_id(task.job_id or task.task_id)
 		job = Job.fetch(rq_job_id, connection=conn)
 
-		if job.get_status(refresh=True) == JobStatus.STARTED:
+		status = job.get_status(refresh=True)
+		if status == JobStatus.STARTED:
 			send_stop_job_command(connection=conn, job_id=rq_job_id)
-		else:
+		elif status != JobStatus.STOPPED:
 			job.cancel()
 
 	task.db_set("status", "Cancelled")
