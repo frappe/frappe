@@ -114,6 +114,7 @@ def sync_contacts_from_google_contacts(g_contact):
 
 	results = []
 	contacts_updated = 0
+	contacts_failed = 0
 
 	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
 	contacts = frappe._dict()
@@ -143,11 +144,6 @@ def sync_contacts_from_google_contacts(g_contact):
 
 		results.extend(contact for contact in contacts.get("connections", []))
 		if not contacts.get("nextPageToken"):
-			if contacts.get("nextSyncToken"):
-				frappe.db.set_value(
-					"Google Contacts", account.name, "next_sync_token", contacts.get("nextSyncToken")
-				)
-				frappe.db.commit()
 			break
 
 	frappe.db.set_value("Google Contacts", account.name, "last_sync_on", frappe.utils.now_datetime())
@@ -163,7 +159,6 @@ def sync_contacts_from_google_contacts(g_contact):
 
 		for name in connection.get("names"):
 			if name.get("metadata").get("primary"):
-				contacts_updated += 1
 				contact = frappe.get_doc(
 					{
 						"doctype": "Contact",
@@ -189,13 +184,32 @@ def sync_contacts_from_google_contacts(g_contact):
 						is_primary_phone=1 if phone.get("metadata").get("primary") else 0,
 					)
 
-				contact.insert(ignore_permissions=True)
+				messages = len(frappe.message_log)
+				frappe.db.savepoint("google_contact")
+				try:
+					contact.insert(ignore_permissions=True)
+				except frappe.ValidationError:
+					frappe.db.rollback(save_point="google_contact")
+					del frappe.message_log[messages:]
+					contacts_failed += 1
+					account.log_error(_("Google Contacts - Could not import a contact"))
+				else:
+					contacts_updated += 1
 
-	return (
+	if contacts.get("nextSyncToken"):
+		frappe.db.set_value("Google Contacts", account.name, "next_sync_token", contacts.get("nextSyncToken"))
+
+	message = (
 		_("{0} Google Contacts synced.").format(contacts_updated)
 		if contacts_updated > 0
 		else _("No new Google Contacts synced.")
 	)
+	if contacts_failed:
+		message += " " + _("{0} Google Contacts could not be imported, see the Error Log.").format(
+			contacts_failed
+		)
+
+	return message
 
 
 def insert_contacts_to_google_contacts(doc, method=None):

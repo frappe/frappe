@@ -1174,6 +1174,42 @@ class TestDocType(IntegrationTestCase):
 		)
 		self.assertRaises(frappe.ValidationError, doctype.insert)
 
+	def test_decimal_field_length_outside_allowed_range(self):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		for length in (10, 70):
+			doctype = new_doctype(
+				fields=[{"fieldname": "decimal_field", "fieldtype": "Currency", "length": length}]
+			)
+			self.assertRaises(frappe.ValidationError, doctype.insert)
+
+		doctype = new_doctype(
+			fields=[{"fieldname": "decimal_field", "fieldtype": "Currency", "length": 30}]
+		).insert()
+		frappe.db.set_value("DocField", {"parent": doctype.name, "fieldname": "decimal_field"}, "length", 10)
+		doctype.reload()
+		doctype.description = "Unrelated change"
+		doctype.save()
+
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": doctype.name,
+				"label": "Custom Amount",
+				"fieldname": "custom_amount",
+				"fieldtype": "Float",
+				"length": 10,
+			}
+		)
+		self.assertRaises(frappe.ValidationError, custom_field.insert)
+		custom_field.length = 30
+		custom_field.insert()
+
+		self.assertRaises(
+			frappe.ValidationError, make_property_setter, doctype.name, "decimal_field", "length", 11, "Int"
+		)
+		make_property_setter(doctype.name, "decimal_field", "length", 30, "Int")
+
 	def test_delete_doc_clears_cache(self):
 		dt = new_doctype(
 			fields=[{"fieldname": "test_fdname", "fieldtype": "Data", "label": "Test Field"}],

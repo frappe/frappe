@@ -3,14 +3,15 @@ import { pinia } from "../support/component"
 import { setActivePinia } from "pinia"
 import { computed, defineComponent, h, onUnmounted, reactive, ref } from "vue"
 
-import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
-import { setComponentScriptImporters, unregisterStudioComponentScripts } from "@/data/studioComponentScripts"
-import { registerGlobalComponents } from "@/globals"
-import useComponentStore from "@/stores/componentStore"
+import AppComponent from "@/runtime/components/AppComponent.vue"
+import StudioComponentRenderer from "@/runtime/components/StudioComponentRenderer.vue"
+import { setComponentScriptImporters, unregisterStudioComponentScripts } from "@/runtime/data/studioComponentScripts"
+import { registerGlobalComponents } from "@/runtime/globals"
+import useComponentStore from "@/runtime/stores/componentStore"
 import getBlockTemplate from "@/utils/blockTemplate"
-import { getEditorProps, validateComponentScript, type ComponentScript } from "@/utils/componentScript"
+import { getEditorProps, validateComponentScript, type ComponentScript } from "@/runtime/utils/componentScript"
 import { getPropReadOnlyReason, getPropsReadOnlyReason, setScriptProp } from "@/utils/componentScriptProps"
-import { getBlockInstance } from "@/utils/serializer"
+import { getBlockInstance } from "@/runtime/utils/serializer"
 
 const COMPONENT_ID = "cypress_counter"
 
@@ -175,6 +176,31 @@ describe("component scripts", () => {
 			const store = useComponentStore()
 			expect(store.componentScriptErrors.get(COMPONENT_ID)).to.include('cannot use "data"')
 			expect(store.getComponentProps(COMPONENT_ID)).to.deep.equal(doc.inputs)
+		})
+	})
+
+	it("shows a component that cannot be fetched as missing, in the preview only", () => {
+		const missingId = "cypress_missing"
+		const mountMissing = (isPreview: boolean) => {
+			;(window as any).is_preview = isPreview
+			const block = getBlockInstance({ componentName: missingId, componentId: "missing-1", isStudioComponent: true })
+			cy.mount(
+				defineComponent({ setup: () => () => h(AppComponent, { block }) }),
+				{ global },
+			)
+		}
+		cy.intercept("POST", "**/api/method/frappe.studio.api.get_studio_component", { statusCode: 404 }).as(
+			"getComponent",
+		)
+		cy.then(() => mountMissing(true))
+		cy.wait("@getComponent")
+		cy.contains(`Component Missing: ${missingId}`)
+
+		cy.then(() => mountMissing(false))
+		cy.contains("Component Missing").should("not.exist")
+		cy.then(() => {
+			delete (window as any).is_preview
+			useComponentStore().removeCachedComponent(missingId)
 		})
 	})
 

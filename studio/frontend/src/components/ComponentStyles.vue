@@ -53,13 +53,13 @@
 </template>
 
 <script setup lang="ts">
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import OptionToggle from "@/components/OptionToggle.vue"
 import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
 import { getEspressoTokens } from "@/utils/espressoTokens"
 import { getStylePropertiesWithoutControls } from "@/utils/stylePropertiesWithoutControls"
-import { kebabToCamelCase, toTitleCase } from "@/utils/helpers"
+import { toTitleCase, kebabToCamelCase } from "@/utils/helpers"
 import { CSSProperties, computed, toValue } from "vue"
 
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"

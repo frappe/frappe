@@ -7,7 +7,7 @@ emits a `reload` event so the canvas re-reads variables and `{{ <name> }}` bindi
 resolve. Bind a block to a variable with the client tool `bind_prop`.
 
 `initial_value` is stored the way the frontend decodes it per type (see
-studio/frontend/src/utils/helpers.ts `getInitialVariableValue`): Number as a bare
+studio/frontend/src/runtime/utils/helpers.ts `getInitialVariableValue`): Number as a bare
 number, Boolean as 'true'/'false', and Object AND String as JSON — so a String's
 stored value is JSON-encoded (`"hi"`, with quotes). `_encode_initial_value` handles
 that, so the model just passes a plain value.

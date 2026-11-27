@@ -1,7 +1,7 @@
 import { ref, Ref } from "vue";
-import Block from "@/utils/block";
+import Block from "@/runtime/utils/block";
 import { generateId } from "@/utils/helpers";
-import { getBlockString, getBlockInstance } from "@/utils/serializer"
+import { getBlockString, getBlockInstance } from "@/runtime/utils/serializer"
 import { debounceFilter, pausableFilter, watchIgnorable } from "@vueuse/core";
 
 type CanvasState = {

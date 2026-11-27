@@ -17,6 +17,9 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database import savepoint
 from frappe.database.schema import (
+	CONFIGURABLE_DECIMAL_TYPES,
+	DEFAULT_DECIMAL_LENGTH,
+	MAX_DECIMAL_LENGTH,
 	validate_column_length,
 	validate_column_name,
 	validate_table_name_length,
@@ -233,12 +236,12 @@ class DocType(Document):
 		self.set("can_change_name_type", validate_autoincrement_autoname(self))
 		self.validate_document_type()
 		validate_fields(self)
+		self.validate_decimal_lengths()
 		self.check_indexing_for_dashboard_links()
 		if not self.istable:
 			validate_permissions(self)
 
 		self.make_amendable()
-		self.make_repeatable()
 		self.validate_nestedset()
 		self.validate_child_table()
 		self.validate_website()
@@ -574,6 +577,8 @@ class DocType(Document):
 			print(f"\n\nThere was an issue while migrating the DocType: {self.name}\n")
 			raise e
 
+		if not self.flags.ignore_validate:
+			self.make_repeatable()
 		self.change_modified_of_parent()
 		make_module_and_roles(self)
 
@@ -929,6 +934,12 @@ class DocType(Document):
 
 		if "field_order" in docdict:
 			del docdict["field_order"]
+
+	def validate_decimal_lengths(self):
+		previous = self.get_doc_before_save()
+		old_fields = {df.fieldname: df for df in previous.fields} if previous else {}
+		for df in self.fields:
+			validate_decimal_length(df, old_fields.get(df.fieldname))
 
 	def warn_on_module_change(self):
 		"""Warn that the old module folder is left behind after a module change, since export only writes to the new one."""
@@ -1374,6 +1385,25 @@ def validate_fields_for_doctype(doctype):
 	validate_fields(meta)
 
 
+def validate_decimal_length(df, old_df=None):
+	if df.fieldtype not in CONFIGURABLE_DECIMAL_TYPES or not cint(df.length):
+		return
+
+	if old_df and old_df.fieldtype == df.fieldtype and cint(old_df.length) == cint(df.length):
+		return
+
+	if frappe.flags.in_install or frappe.flags.in_migrate:
+		return
+
+	if not DEFAULT_DECIMAL_LENGTH <= cint(df.length) <= MAX_DECIMAL_LENGTH:
+		frappe.throw(
+			_("Length of {0} must be between {1} and {2}").format(
+				frappe.bold(df.label or df.fieldname), DEFAULT_DECIMAL_LENGTH, MAX_DECIMAL_LENGTH
+			),
+			title=_("Invalid Length"),
+		)
+
+
 # this is separate because it is also called via custom field
 def validate_fields(meta: Meta):
 	"""Validate doctype fields. Checks
@@ -1409,7 +1439,7 @@ def validate_fields(meta: Meta):
 				title=_("Invalid Fieldname"),
 			)
 
-		if fieldname in RESERVED_DOCFIELD_NAMES and docname != "DocType":
+		if fieldname in RESERVED_DOCFIELD_NAMES and docname not in ("DocType", "Customize Form"):
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved field {1} in DocType").format(
 					frappe.bold(docname),
@@ -1767,6 +1797,14 @@ def validate_fields(meta: Meta):
 			return
 		if docfield.fieldtype not in ["Table MultiSelect", "Table"]:
 			return
+
+		if docfield.fieldtype == "Table" and meta.istable:
+			frappe.throw(
+				_("Child Table {0} cannot have a Table field {1}").format(
+					frappe.bold(meta.name), frappe.bold(docfield.fieldname)
+				),
+				title=_("Invalid Field Type"),
+			)
 
 		doctype = docfield.options
 		child_doctype_meta = frappe.get_meta(doctype)

@@ -353,10 +353,44 @@ frappe.ui.PrintPages = class PrintPages {
 
 	static paginate({ sheet, breaks }) {
 		const doc = sheet.ownerDocument;
-		const layout = this.find_breaks({ sheet, breaks });
-		if (!layout || layout.pages.length < 2) return [];
-
 		const style = getComputedStyle(sheet);
+		const inline_style = sheet.style.cssText;
+		const start_padding = parseFloat(
+			style.direction === "rtl" ? style.paddingRight : style.paddingLeft
+		);
+		const content_width =
+			sheet.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+		let shrink =
+			sheet.scrollWidth > sheet.clientWidth + 1
+				? Math.max(0.5, content_width / (sheet.scrollWidth - start_padding))
+				: 1;
+		if (shrink < 1) {
+			[
+				"width",
+				"min-width",
+				"max-width",
+				"min-height",
+				"padding-top",
+				"padding-right",
+				"padding-bottom",
+				"padding-left",
+			]
+				.map((prop) => [prop, style.getPropertyValue(prop)])
+				.filter(([, value]) => value.endsWith("px"))
+				.forEach(([prop, value]) =>
+					sheet.style.setProperty(prop, `${parseFloat(value) / shrink}px`, "important")
+				);
+			if (shrink > 0.5 && sheet.scrollWidth > sheet.clientWidth + 1) {
+				sheet.style.cssText = inline_style;
+				shrink = 1;
+			}
+		}
+		const layout = this.find_breaks({ sheet, breaks });
+		if (!layout || (layout.pages.length < 2 && shrink === 1)) {
+			sheet.style.cssText = inline_style;
+			return [];
+		}
+
 		const layers = ["::before", "::after"]
 			.map((pseudo) => getComputedStyle(sheet, pseudo))
 			.filter((layer) => layer.content !== "none" && layer.backgroundImage !== "none");
@@ -416,6 +450,7 @@ frappe.ui.PrintPages = class PrintPages {
 				boxShadow: style.boxShadow,
 				borderRadius: style.borderRadius,
 				overflow: "clip",
+				zoom: shrink,
 				position: "relative",
 				isolation: "isolate",
 				contentVisibility: "auto",
@@ -489,6 +524,7 @@ frappe.ui.PrintPages = class PrintPages {
 			}
 			@media print { .preview-pages { display: none; } }
 		`;
+		sheet.style.cssText = inline_style;
 		return pages;
 	}
 };

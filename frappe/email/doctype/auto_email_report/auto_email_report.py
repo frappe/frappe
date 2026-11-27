@@ -21,6 +21,7 @@ from frappe.utils import (
 	get_link_to_form,
 	get_quarter_start,
 	get_url_to_report,
+	get_user_display_id,
 	get_year_start,
 	getdate,
 	global_date_format,
@@ -95,7 +96,7 @@ class AutoEmailReport(Document):
 
 		frappe.throw(
 			_("{0} is not allowed to generate this report based on the permissions of {1}.").format(
-				frappe.bold(user), frappe.bold(self.user)
+				frappe.bold(get_user_display_id(user)), frappe.bold(get_user_display_id(self.user))
 			),
 			frappe.PermissionError,
 			title=_("Not Permitted"),

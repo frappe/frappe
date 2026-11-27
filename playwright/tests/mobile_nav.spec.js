@@ -31,12 +31,12 @@ test.describe("Phone tab bar", () => {
 		for (const todo of todos) await admin.remove_doc("ToDo", todo.name);
 	};
 
-	test.beforeAll(async ({ admin }) => {
+	test.beforeAll(async ({ admin, test_user_id: user }) => {
 		await remove_todos(admin);
 		for (let i = 0; i < TODO_COUNT; i++) {
 			await admin.insert_doc("ToDo", {
 				description: `${TODO_TAG} ${i}`,
-				allocated_to: TEST_USER,
+				allocated_to: user,
 			});
 		}
 	});
@@ -138,11 +138,15 @@ test.describe("Phone tab bar", () => {
 		await expect(header.locator(".desktop-avatar")).toBeHidden();
 	});
 
-	test("profile settings show when the language name lookup fails", async ({ page, admin }) => {
+	test("profile settings show when the language name lookup fails", async ({
+		page,
+		admin,
+		test_user_id,
+	}) => {
 		// with no language set there is no lookup to fail
-		await admin.set_value("User", TEST_USER, { language: "en" });
-		const failed_lookup = page.waitForRequest(/frappe\.client\.get_value\?.*doctype=Language/);
-		await page.route(/frappe\.client\.get_value\?.*doctype=Language/, (route) =>
+		await admin.set_value("User", test_user_id, { language: "en" });
+		const failed_lookup = page.waitForRequest(/\/api\/v2\/document\/Language\?/);
+		await page.route(/\/api\/v2\/document\/Language\?/, (route) =>
 			route.fulfill({ status: 500, contentType: "application/json", body: "{}" })
 		);
 
@@ -157,11 +161,12 @@ test.describe("Phone tab bar", () => {
 	test("profile loads the name again on return, so a save keeps a change made elsewhere", async ({
 		page,
 		admin,
+		test_user_id,
 	}) => {
 		const name_fields = ["middle_name", "last_name"];
 		const { message: before } = await admin.call("frappe.client.get_value", {
 			doctype: "User",
-			filters: TEST_USER,
+			filters: { email: TEST_USER },
 			fieldname: name_fields,
 		});
 		const field = (label) => page.getByLabel(label);
@@ -194,12 +199,12 @@ test.describe("Phone tab bar", () => {
 
 			const { message: after } = await admin.call("frappe.client.get_value", {
 				doctype: "User",
-				filters: TEST_USER,
+				filters: { email: TEST_USER },
 				fieldname: name_fields,
 			});
 			expect(after).toEqual({ middle_name: "Middle", last_name: "Changed Elsewhere" });
 		} finally {
-			await admin.set_value("User", TEST_USER, {
+			await admin.set_value("User", test_user_id, {
 				middle_name: before.middle_name || "",
 				last_name: before.last_name || "",
 			});

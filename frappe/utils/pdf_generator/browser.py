@@ -566,6 +566,8 @@ class Browser:
 		rendered = BeautifulSoup(html, "html5lib")
 		if wrapper := rendered.select_one(".wrapper.print-format-doc"):
 			wrapper["class"] = list(dict.fromkeys(wrapper["class"] + body_class))
+			if "print-format" in wrapper.parent.get("class", []):
+				wrapper.parent["class"].remove("print-format")
 		return str(rendered)
 
 	def update_header_footer_page(self):

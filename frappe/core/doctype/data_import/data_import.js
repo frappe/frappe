@@ -1473,6 +1473,7 @@ frappe.ui.form.on("Data Import", {
 			args: {
 				data_import_name: frm.doc.name,
 			},
+			type: "GET",
 			callback: function (r) {
 				let successful_records = cint(r.message.success);
 				let failed_records = cint(r.message.failed);
@@ -1577,6 +1578,7 @@ frappe.ui.form.on("Data Import", {
 			frappe.call({
 				method: "frappe.core.doctype.data_import.data_import.get_import_fields",
 				args: { doctype },
+				type: "GET",
 			})
 		);
 
@@ -2961,6 +2963,7 @@ frappe.ui.form.on("Data Import", {
 					data_import: frm.doc.name,
 					status: active_filter,
 				},
+				type: "QUERY",
 				callback: function (r) {
 					render_logs(r.message || [], status_summary);
 				},
@@ -2972,6 +2975,7 @@ frappe.ui.form.on("Data Import", {
 			args: {
 				data_import_name: frm.doc.name,
 			},
+			type: "GET",
 			callback: function (r) {
 				const m = r.message || {};
 				frm._import_log_status_summary = {
@@ -3143,6 +3147,7 @@ frappe.ui.form.on("Data Import", {
 			args: {
 				data_import_name: frm.doc.name,
 			},
+			type: "GET",
 			callback: function (r) {
 				const m = r.message || {};
 				const previous = frm._wizard_import_progress || {};

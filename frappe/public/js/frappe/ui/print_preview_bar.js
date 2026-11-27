@@ -82,7 +82,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 			const scroll = doc.scrollingElement.scrollTop;
 			return {
 				doc,
-				width: this.pages[0].offsetWidth,
+				width: this.pages[0].offsetWidth * parseFloat(this.pages[0].style.zoom),
 				starts: this.pages.map((page) => page.getBoundingClientRect().top + scroll),
 			};
 		}
@@ -127,7 +127,8 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 			const style = getComputedStyle(container);
 			const rect = container.getBoundingClientRect();
 			const rtl = style.direction === "rtl";
-			const width = parseFloat(this.pages[0].style.width);
+			const width =
+				parseFloat(this.pages[0].style.width) * parseFloat(this.pages[0].style.zoom);
 			const frame_width = doc.documentElement.clientWidth;
 			const scroll = doc.scrollingElement.scrollLeft;
 			const offset = rtl

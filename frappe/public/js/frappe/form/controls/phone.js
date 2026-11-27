@@ -14,13 +14,20 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 	async setup_country_codes() {
 		const key = "country_code_info";
-		let data = await localforage.getItem(key);
-		if (data) {
-			this.country_codes = data;
+		const cached = await localforage.getItem(key);
+		if (cached?.version && cached.version === window._version_number) {
+			this.country_codes = cached.country_codes;
 		} else {
-			const data = await frappe.xcall("frappe.geo.country_info.get_country_timezone_info");
+			const data = await frappe.xcall(
+				"frappe.geo.country_info.get_country_timezone_info",
+				undefined,
+				"GET"
+			);
 			this.country_codes = data?.country_info;
-			localforage.setItem(key, this.country_codes);
+			localforage.setItem(key, {
+				version: window._version_number,
+				country_codes: this.country_codes,
+			});
 		}
 	}
 

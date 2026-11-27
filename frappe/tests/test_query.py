@@ -83,6 +83,11 @@ class TestQuery(IntegrationTestCase):
 		elif not should_have and had_role:
 			user_doc.remove_roles("System Manager")
 
+	def delete_doctype_on_cleanup(self, doctype):
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f"DROP TABLE IF EXISTS `tab{doctype.name}`")
+		self.addCleanup(doctype.delete)
+
 	def test_multiple_tables_in_filters(self):
 		query = "SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'"
 		query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
@@ -107,6 +112,24 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn('CAST("DOCSTATUS" AS VARCHAR) ILIKE', query.get_sql().upper())
 		else:
 			self.assertNotIn("CAST(", query.get_sql().upper())
+
+	def test_like_filter_escapes_wildcards_with_backslash(self):
+		names = {
+			description: frappe.get_doc(doctype="ToDo", description=description).insert().name
+			for description in ("100% _Ltd", "100x yLtd")
+		}
+
+		def matching(operator, pattern):
+			found = frappe.get_all("ToDo", filters={"description": [operator, pattern]}, pluck="name")
+			return {description for description, name in names.items() if name in found}
+
+		self.assertEqual(matching("like", "%100_ _Ltd%"), {"100% _Ltd", "100x yLtd"})
+		self.assertEqual(matching("like", "%100\\% \\_Ltd%"), {"100% _Ltd"})
+		self.assertEqual(matching("not like", "%100\\% \\_Ltd%"), {"100x yLtd"})
+
+		todo = frappe.qb.DocType("ToDo")
+		query = frappe.qb.from_(todo).select(todo.name).where(todo.description.like("100\\% \\_Ltd"))
+		self.assertEqual(query.run(pluck=True), [names["100% _Ltd"]])
 
 	def test_string_fields(self):
 		self.assertEqual(
@@ -1291,6 +1314,7 @@ class TestQuery(IntegrationTestCase):
 		doctype = new_doctype(
 			fields=[{"fieldname": fieldnames[fieldtype], "fieldtype": fieldtype} for fieldtype in values]
 		).insert()
+		self.delete_doctype_on_cleanup(doctype)
 		filled = frappe.get_doc(
 			{"doctype": doctype.name, **{fieldnames[fieldtype]: value for fieldtype, value in values.items()}}
 		).insert()
@@ -1314,6 +1338,7 @@ class TestQuery(IntegrationTestCase):
 				for fieldtype, fieldname in fieldnames.items()
 			]
 		).insert()
+		self.delete_doctype_on_cleanup(doctype)
 		filled = frappe.get_doc({"doctype": doctype.name, **dict.fromkeys(fieldnames.values(), 1)}).insert()
 		empty = frappe.get_doc({"doctype": doctype.name}).insert()
 
@@ -1392,11 +1417,13 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn(self.user, names)
 
 	def test_match_conditions_escape_hook_values(self):
+		self.addCleanup(frappe.db.delete, "ToDo", {"description": "_Test Unrelated"})
 		frappe.get_doc(doctype="ToDo", description="_Test Unrelated").insert()
 		self.assertEqual(self.get_todos_matching("frappe.tests.test_query.todo_breakout_hook"), [])
 
 	def test_match_conditions_keep_hook_values(self):
 		todo = frappe.get_doc(doctype="ToDo", description="back\\slash' 100%").insert()
+		self.addCleanup(frappe.db.delete, "ToDo", todo.name)
 		self.assertEqual(self.get_todos_matching("frappe.tests.test_query.todo_backslash_hook"), [todo.name])
 
 	def get_todos_matching(self, hook):
@@ -2234,9 +2261,11 @@ class TestQuery(IntegrationTestCase):
 		user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
 		add_permission(parent_dt.name, role.name, 0, ptype="read")
 		user.add_roles(role.name)
+		self.addCleanup(frappe.db.commit)
 		self.addCleanup(frappe.delete_doc, "Role", role.name, force=True)
-		self.addCleanup(child_dt.delete)
-		self.addCleanup(parent_dt.delete)
+		self.addCleanup(frappe.db.delete, "Custom DocPerm", {"parent": parent_dt.name})
+		self.delete_doctype_on_cleanup(child_dt)
+		self.delete_doctype_on_cleanup(parent_dt)
 		self.addCleanup(user.remove_roles, role.name)
 
 		def build_child_query(query):
@@ -2647,6 +2676,7 @@ class TestQuery(IntegrationTestCase):
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
 	def test_order_by_expression_alias_with_group_by(self):
+		self.addCleanup(frappe.db.delete, "ToDo", {"description": "_Test alias order"})
 		with self.set_user("test2@example.com"):
 			for priority, count in (("Low", 1), ("Medium", 2), ("High", 3)):
 				for _ in range(count):
@@ -3334,6 +3364,7 @@ class TestQuery(IntegrationTestCase):
 		)
 
 		trial_dt.insert(ignore_if_duplicate=True)
+		self.delete_doctype_on_cleanup(trial_dt)
 
 		indexes = frappe.db.get_column_index("tabTrial Doctype", "field_two", unique=True)
 		self.assertTrue(indexes)
@@ -3372,6 +3403,7 @@ class TestQuery(IntegrationTestCase):
 		)
 
 		trial_dt.insert(ignore_if_duplicate=True)
+		self.delete_doctype_on_cleanup(trial_dt)
 
 		index_exists = frappe.db.sql(
 			"""
@@ -3475,6 +3507,7 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn("OFFSET 10", query)
 
 	def test_get_list_with_offset_and_no_limit(self):
+		self.addCleanup(frappe.db.delete, "ToDo", {"description": "_Test offset without limit"})
 		with self.set_user("test2@example.com"):
 			for _ in range(12):
 				frappe.get_doc({"doctype": "ToDo", "description": "_Test offset without limit"}).insert()

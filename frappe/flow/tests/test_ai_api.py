@@ -346,8 +346,8 @@ class TestPasswordBox(ApiCase):
 		frappe.db.set_single_value("Google Settings", "enable", 1)
 		self.agent.append("tools", {"tool": "frappe/request_secret"})
 		self.agent.save()
-		_ensure_user(BOX_USER)
-		frappe.db.set_value("User", BOX_USER, "user_type", "System User")
+		user = _ensure_user(BOX_USER)
+		frappe.db.set_value("User", user, "user_type", "System User")
 		frappe.set_user(BOX_USER)
 		self.contacts = frappe.get_doc({"doctype": "Google Contacts", "email_id": "box@example.com"}).insert()
 

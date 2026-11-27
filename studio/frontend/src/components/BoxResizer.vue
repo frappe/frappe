@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import { pxToNumber } from "@/utils/helpers"
 import { computed, onMounted, ref, watch, inject } from "vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import guidesTracker from "@/utils/guidesTracker"
 import useCanvasStore from "@/stores/canvasStore"
 

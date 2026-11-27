@@ -4,29 +4,30 @@ import router from "@/router/studio_router"
 import { createEditorAppRouter } from "@/router/editor_app_router"
 import { defineStore } from "pinia"
 
-import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariables } from "@/utils/helpers"
-import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
+import { fetchApp, fetchPage, confirm, getRouteVariables, getInitialVariableValue } from "@/utils/helpers"
+import { getBlockInstance, getBlockCopyWithoutParent, jsToJson } from "@/runtime/utils/serializer"
+import { getRootBlock } from "@/utils/blockTemplate"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
-import { studioVariables } from "@/data/studioVariables"
+import { studioVariables } from "@/runtime/data/studioVariables"
 
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import useCodeStore, { usePageScope } from "@/stores/codeStore"
-import { reloadCustomVueComponents } from "@/utils/customVueComponents"
-import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
+import useCodeStore, { usePageScope } from "@/runtime/stores/codeStore"
+import { reloadCustomVueComponents } from "@/runtime/utils/customVueComponents"
+import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/runtime/data/studioPageScripts"
 import {
 	registerStudioComponentScripts,
 	unregisterStudioComponentScripts,
-} from "@/data/studioComponentScripts"
-import useComponentStore from "@/stores/componentStore"
+} from "@/runtime/data/studioComponentScripts"
+import useComponentStore from "@/runtime/stores/componentStore"
 import { loadStudioComponents } from "@/data/studioComponents"
-import { loadAppRuntime, reloadAppRuntime, unloadAppRuntime } from "@/browserRuntime/appRuntime"
+import { loadAppRuntime, reloadAppRuntime, unloadAppRuntime } from "@/runtime/browserRuntime/appRuntime"
 import { registerCustomComponentPaths } from "@/utils/componentSlots"
-import type { CustomVueComponentMeta } from "@/types/vue"
+import type { CustomVueComponentMeta } from "@/runtime/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 import type { PageCopy } from "@/utils/blockCopyPaste"
 import type {
 	BlockOptions,
@@ -38,7 +39,7 @@ import type {
 } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type ComponentLayers from "@/components/ComponentLayers.vue"
-import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
+import type { Variable, VariableOption } from "@/runtime/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
 

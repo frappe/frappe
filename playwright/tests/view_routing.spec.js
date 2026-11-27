@@ -1,4 +1,4 @@
-import { test, expect, TEST_USER } from "../support";
+import { test, expect } from "../support";
 
 const pathname = (page) => new URL(page.url()).pathname;
 
@@ -11,22 +11,20 @@ function setup_default_view(api, args) {
 }
 
 function list_loaded(page) {
-	return page.waitForResponse(
-		(res) =>
-			res.request().method() === "POST" &&
-			res.url().includes("/api/method/frappe.desk.reportview.get")
+	return page.waitForResponse((res) =>
+		res.url().includes("/api/method/frappe.desk.reportview.get")
 	);
 }
 
 test.describe("View", () => {
-	test.afterAll(async ({ admin }) => {
+	test.afterAll(async ({ admin, test_user_id }) => {
 		await admin.remove_doc("Property Setter", "Event-main-default_view", true);
 		await admin.remove_doc(
 			"Property Setter",
 			"Event-main-force_re_route_to_default_view",
 			true
 		);
-		await admin.update_doc("User", TEST_USER, { user_emails: [] });
+		await admin.update_doc("User", test_user_id, { user_emails: [] });
 		await admin.remove_doc("Email Account", "Email Linking", true);
 	});
 
@@ -159,9 +157,9 @@ test.describe("View", () => {
 		await expect.poll(() => pathname(page)).toMatch(/\/event$/);
 	});
 
-	test("Route to Form", async ({ page }) => {
-		await page.goto(`/desk/user/${TEST_USER}`);
-		await expect.poll(() => page.evaluate(() => window.cur_frm?.doc.name)).toBe(TEST_USER);
+	test("Route to Form", async ({ page, test_user_id: user }) => {
+		await page.goto(`/desk/user/${user}`);
+		await expect.poll(() => page.evaluate(() => window.cur_frm?.doc.name)).toBe(user);
 	});
 
 	test("Route to Website Workspace", async ({ page }) => {

@@ -101,6 +101,7 @@ Object.assign(frappe.automation_flow, {
 		frappe.call({
 			method: "frappe.automation_engine.api.get_automation_capabilities",
 			args,
+			type: "QUERY",
 			callback: ({ message }) => {
 				// A slower response for an earlier selection must not replace the current options.
 				const current = frm.doc.document_type === args.doctype;

@@ -148,7 +148,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 						)
 					);
 				}
-				let html = `<span>${__(d.label || d.value)}</span>`;
+				let html = `<kbd class="awesomebar-enter-hint float-right">↵</kbd><span>${__(
+					d.label || d.value
+				)}</span>`;
 
 				if (d.description && d.value !== d.description) {
 					html +=
@@ -424,7 +426,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			label: `
 				<span class="flex justify-between text-medium">
 					<span class="ellipsis">${__("Search for {0}", [frappe.utils.xss_sanitise(txt).bold()])}</span>
-					<kbd>↵</kbd>
 				</span>
 			`,
 			value: __("Search for {0}", [frappe.utils.xss_sanitise(txt)]),

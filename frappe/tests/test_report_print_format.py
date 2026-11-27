@@ -294,17 +294,22 @@ def make_letter_head(name, letter_head_for, content):
 
 
 def make_user_without_access():
+	if get_user_by_email(NO_ACCESS_USER):
+		return
 	user = frappe.new_doc("User")
 	user.email = NO_ACCESS_USER
 	user.first_name = "No Access"
 	user.send_welcome_email = 0
-	user.insert(ignore_permissions=True, ignore_if_duplicate=True)
+	user.insert(ignore_permissions=True)
 
 
 def make_report_user():
-	user = frappe.new_doc("User")
-	user.email = REPORT_USER
-	user.first_name = "Report User"
-	user.send_welcome_email = 0
-	user.insert(ignore_permissions=True, ignore_if_duplicate=True)
+	if name := get_user_by_email(REPORT_USER):
+		user = frappe.get_doc("User", name)
+	else:
+		user = frappe.new_doc("User")
+		user.email = REPORT_USER
+		user.first_name = "Report User"
+		user.send_welcome_email = 0
+		user.insert(ignore_permissions=True)
 	user.add_roles("System Manager")

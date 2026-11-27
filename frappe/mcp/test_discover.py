@@ -8,6 +8,15 @@ import frappe
 from frappe.api import discovery
 from frappe.mcp.test_utils import McpTestCase
 from frappe.mcp.tools.discover import LAYOUT_FIELDTYPES, PERMISSION_TYPES, SEARCH_LIMIT
+from frappe.tests.utils import whitelist_for_tests
+
+
+@whitelist_for_tests()
+def replaced_mcp_probe() -> str:
+	return "replaced"
+
+
+replaced_mcp_probe.replaced_by = "frappe.client.get_count"
 
 
 class TestDiscover(McpTestCase):
@@ -105,6 +114,15 @@ class TestDiscover(McpTestCase):
 			)
 			result = self.result("search_methods", {"query": "get_count"})
 			self.assertIn("frappe.client.get_count", [method["path"] for method in result["result"]])
+
+	def test_replaced_method_is_described_but_not_searched(self):
+		discovery.build_cache()
+		with self.manager():
+			self.assertEqual(self.result("search_methods", {"query": "replaced_mcp_probe"})["result"], [])
+			result = self.result(
+				"get_method_schema", {"method": "frappe.mcp.test_discover.replaced_mcp_probe"}
+			)
+		self.assertEqual(result["replaced_by"], "frappe.client.get_count")
 
 	def test_manager_document_contract_and_list(self):
 		with self.manager():

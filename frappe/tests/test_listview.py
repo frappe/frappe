@@ -92,8 +92,51 @@ class TestListView(IntegrationTestCase):
 		frappe.db.set_value("ToDo", other_todo.name, "reference_type", "MapReduce Task")
 
 		data = get_group_by_count("MapReduce Job", [["name", "=", job.name]], "assigned_to")
-		full_name = frappe.db.get_value("User", "Administrator", "full_name")
-		self.assertEqual(data, [{"name": "Administrator", "count": 1, "title": full_name}])
+		full_name, email = frappe.db.get_value("User", "Administrator", ["full_name", "email"])
+		self.assertEqual(
+			data,
+			[
+				{
+					"name": "Administrator",
+					"count": 1,
+					"title": full_name,
+					"description": f"Administrator, {email}",
+				}
+			],
+		)
+
+	def test_owner_count_describes_the_user(self):
+		frappe.get_doc({"doctype": "Note", "title": "Test owner search text", "public": 1}).insert()
+
+		data = get_group_by_count("Note", [["title", "=", "Test owner search text"]], "owner")
+		email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertEqual(data[0].description, f"Administrator, {email}")
+
+	def test_link_count_describes_values_by_the_linked_doctype_search_fields(self):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		self.addCleanup(frappe.clear_cache, doctype="Role")
+		self.addCleanup(frappe.db.rollback)
+		make_property_setter("Role", None, "search_fields", "home_page", "Data", for_doctype=True)
+		role = frappe.get_doc(
+			{"doctype": "Role", "role_name": "Quick Filter Role", "home_page": "/qf-home"}
+		).insert()
+		website_user = frappe.get_doc(
+			{"doctype": "User", "email": "qf-website-user@example.com", "first_name": "QF"}
+		).insert()
+		todo = frappe.get_doc(
+			doctype="ToDo", description="Quick filter role", allocated_to=website_user.name, role=role.name
+		).insert()
+		filters = [["name", "=", todo.name]]
+
+		data = get_group_by_count("ToDo", filters, "role")
+		self.assertEqual(data[0].description, "/qf-home")
+
+		# a user who may not select roles gets the value without its search fields
+		with self.set_user(website_user.name):
+			data = get_group_by_count("ToDo", filters, "role")
+		self.assertEqual(data[0].name, role.name)
+		self.assertIsNone(data[0].get("description"))
 
 	def test_assigned_to_count_leaves_out_closed_assignments(self):
 		job = frappe.get_doc(

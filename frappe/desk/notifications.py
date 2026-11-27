@@ -395,19 +395,24 @@ def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes,
 	"""A filter on a fieldname that several child tables share resolves to whichever of them
 	is scanned first, so match the link in any of them and let the client route by name.
 	Past the cap the names are left out and the client filters on the field instead."""
-	names = get_list_unless_timed_out(
-		frappe.get_list,
-		doctype,
-		filters=filters,
-		or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
-		limit=LINK_COUNT_LIMIT,
-		distinct=True,
-		ignore_ifnull=True,
-		order_by=None,
-		pluck="name",
-	)
-	if names is None:
-		return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
+	names = []
+	for child_doctype in child_doctypes:
+		child_names = get_list_unless_timed_out(
+			frappe.get_list,
+			doctype,
+			filters=filters,
+			or_filters=[[child_doctype, fieldname, "=", name]],
+			limit=LINK_COUNT_LIMIT,
+			distinct=True,
+			ignore_ifnull=True,
+			order_by=None,
+			pluck="name",
+		)
+		if child_names is None:
+			return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
+		names = unique(names + child_names)[:LINK_COUNT_LIMIT]
+		if len(names) == LINK_COUNT_LIMIT:
+			break
 
 	open_count = 0
 	if names and (open_count_filters := get_filters_for(doctype)):

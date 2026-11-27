@@ -74,7 +74,7 @@ function user_cell(row) {
 	const name = row.full_name || row.user;
 	const avatar = frappe.ui.avatar.html({ label: name, image: row.user_image, size: "lg" });
 	const email = row.full_name
-		? `<div class="text-ink-gray-5 text-xs truncate">${esc(row.user)}</div>`
+		? `<div class="text-ink-gray-5 text-xs truncate">${esc(row.email || row.user)}</div>`
 		: "";
 	return `<div class="flex items-center gap-2">
 		${avatar}

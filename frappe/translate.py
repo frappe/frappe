@@ -587,7 +587,7 @@ def get_all_messages_from_js_files(app_name=None):
 	for app in [app_name] if app_name else frappe.get_installed_apps(_ensure_on_bench=True):
 		if os.path.exists(frappe.get_app_path(app, "public")):
 			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):  # noqa: B007
-				if "frappe/public/js/lib" in basepath:
+				if "frappe/public/js/lib" in basepath or "public/dist" in basepath:
 					continue
 
 				for fname in files:

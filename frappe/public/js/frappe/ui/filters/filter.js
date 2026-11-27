@@ -498,7 +498,10 @@ frappe.ui.Filter = class {
 			}
 		}
 		if (RECORD_PICKERS.includes(df.fieldtype)) {
-			df.get_data = (txt) => frappe.db.get_link_options(df.options, txt, {}, 20);
+			const link_filters = JSON.parse(df.link_filters || "[]").filter(
+				(filter) => !String(filter[3]).startsWith("eval:")
+			);
+			df.get_data = (txt) => frappe.db.get_link_options(df.options, txt, link_filters, 20);
 			df.change = () => this.on_change();
 		}
 		let f = frappe.ui.form.make_control({
@@ -731,8 +734,7 @@ frappe.ui.filter_utils = {
 	get_default_condition(df) {
 		const meta = frappe.get_meta(df.parent);
 		if (["_assign", "_liked_by"].includes(df.fieldname)) {
-			// stored as a JSON array, so an exact match can never hit
-			return "like";
+			return "=";
 		} else if (df.fieldtype == "Data" && !meta?.is_large_table) {
 			return "like";
 		} else if (df.fieldtype == "Date" || df.fieldtype == "Datetime") {

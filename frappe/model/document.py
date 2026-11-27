@@ -1381,13 +1381,18 @@ class Document(_DocumentBase):
 
 	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
-		self.modified = now()
-		self.modified_by = frappe.session.user
+		keep = self.flags.keep_user_and_timestamp
+		if not (keep and self.modified):
+			self.modified = now()
+			self.modified_by = frappe.session.user
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
 		if self.is_new() and not (
-			frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate
+			frappe.flags.in_install
+			or frappe.flags.in_patch
+			or frappe.flags.in_migrate
+			or (keep and self.creation)
 		):
 			self.creation = self.modified
 			self.owner = self.modified_by
@@ -1433,7 +1438,7 @@ class Document(_DocumentBase):
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
-			d._sanitize_content()
+			d._sanitize_content(getattr(self, "_action", None))
 			d._save_passwords()
 			d._validate_length()
 		if self.is_new():
@@ -2579,7 +2584,7 @@ class Document(_DocumentBase):
 			{
 				"doctype": "Comment",
 				"comment_type": comment_type,
-				"comment_email": comment_email or frappe.utils.get_email_address(),
+				"comment_email": comment_email,
 				"comment_by": comment_by,
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
@@ -2709,6 +2714,8 @@ class Document(_DocumentBase):
 		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
 		if enqueue_after_commit is None:
 			enqueue_after_commit = True
+		if enqueue_after_commit:
+			frappe.db.after_rollback.add(self.unlock)
 
 		return enqueue(
 			"frappe.model.document.execute_action",
@@ -2817,7 +2824,10 @@ class Document(_DocumentBase):
 
 		from frappe.deferred_insert import deferred_insert
 
+		creation, owner = self.creation, self.owner
 		self.set_user_and_timestamp()
+		self.creation = creation or self.modified
+		self.owner = owner or self.modified_by
 
 		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 		deferred_insert(doctype=self.doctype, records=doc)
@@ -3166,6 +3176,15 @@ class Document(_DocumentBase):
 					getattr(df, "unique", False) and cstr(value).strip() == ""
 				):
 					value = None
+
+				elif (
+					convert_dates_to_str
+					and fieldtype in ("Datetime", "Date")
+					and isinstance(value, str)
+					and frappe.db.db_type == "sqlite"
+				):
+					# SQLite keeps the text as given; the other databases cast it to the column's type
+					value = get_datetime(value) if fieldtype == "Datetime" else getdate(value)
 
 			if convert_dates_to_str and isinstance(value, DatetimeTypes):
 				value = str(value)
@@ -3952,13 +3971,15 @@ class Document(_DocumentBase):
 						title=_("Cannot Update After Submit"),
 					)
 
-	def _sanitize_content(self):
+	def _sanitize_content(self, action=None):
 		"""Sanitize HTML and Email in field values. Used to prevent XSS.
 
 		- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
 		if frappe.flags.in_install:
 			return
+
+		action = action or getattr(self, "_action", None)
 
 		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			if not value or not isinstance(value, str):
@@ -3981,9 +4002,9 @@ class Document(_DocumentBase):
 				df.get("ignore_xss_filter")
 				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options") == "Email")
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code", "JSON")
-				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()
-				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))
+				# fields locked after submit can't change, so leave them as stored
+				or (action == "update_after_submit" and not df.get("allow_on_submit") and not self.is_new())
 			):
 				continue
 

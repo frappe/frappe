@@ -32,8 +32,8 @@ test.describe("Control Link", () => {
 		await admin.remove_doc("Property Setter", "ToDo-main-show_preview_popup", true);
 	});
 
-	test.afterAll(async ({ admin }) => {
-		await admin.set_value("User", TEST_USER, { language: "en" });
+	test.afterAll(async ({ admin, test_user_id }) => {
+		await admin.set_value("User", test_user_id, { language: "en" });
 	});
 
 	async function get_dialog_with_link(desk) {
@@ -103,7 +103,7 @@ test.describe("Control Link", () => {
 		const r = await api.call("frappe.client.get_value", {
 			doctype: "User",
 			filters: {
-				name: TEST_USER,
+				email: TEST_USER,
 			},
 			fieldname: "full_name",
 		});
@@ -158,7 +158,7 @@ test.describe("Control Link", () => {
 			el.dispatchEvent(new Event("change", { bubbles: true }));
 			el.dispatchEvent(new FocusEvent("blur"));
 		});
-		await page.evaluate(() => frappe.xcall("ping"));
+		await page.evaluate(() => frappe.xcall("ping", undefined, "GET"));
 
 		expect(validated).toBe(false);
 		await expect(input).toHaveValue("invalid value");
@@ -241,16 +241,21 @@ test.describe("Control Link", () => {
 			.toEqual({ value: todo, label: todo_description });
 	});
 
-	test("should update dependant fields (via fetch_from)", async ({ page, desk, api }) => {
+	test("should update dependant fields (via fetch_from)", async ({
+		page,
+		desk,
+		api,
+		test_user_id: user,
+	}) => {
 		await page.goto(`/desk/todo/${todo}`);
 		const full_name = page.locator(
 			".frappe-control[data-fieldname=assigned_by_full_name] .control-value"
 		);
 		const get_assigned_by = () => page.evaluate(() => cur_frm.doc.assigned_by);
 
-		const input = await desk.fill_field("assigned_by", TEST_USER, "Link");
+		const input = await desk.fill_field("assigned_by", user, "Link");
 		await expect(full_name).toContainText(await get_full_name(api));
-		await expect.poll(get_assigned_by).toBe(TEST_USER);
+		await expect.poll(get_assigned_by).toBe(user);
 
 		await input.clear();
 		await input.pressSequentially("invalid input", { delay: 100 });
@@ -262,10 +267,10 @@ test.describe("Control Link", () => {
 		await input.focus();
 		await expect(get_dropdown(input)).toBeVisible();
 		const validated = wait_for_link_validation(page);
-		await input.pressSequentially(TEST_USER, { delay: 100 });
+		await input.pressSequentially(user, { delay: 100 });
 		await input.blur();
 		await validated;
-		await expect.poll(get_assigned_by).toBe(TEST_USER);
+		await expect.poll(get_assigned_by).toBe(user);
 
 		await input.clear();
 		await input.blur();
@@ -273,7 +278,7 @@ test.describe("Control Link", () => {
 		await expect.poll(get_assigned_by).toBe("");
 	});
 
-	test("should set default values", async ({ page, desk, api }) => {
+	test("should set default values", async ({ page, desk, api, test_user_id }) => {
 		await api.insert_doc(
 			"Property Setter",
 			{
@@ -282,7 +287,7 @@ test.describe("Control Link", () => {
 				field_name: "assigned_by",
 				property: "default",
 				property_type: "Text",
-				value: TEST_USER,
+				value: test_user_id,
 			},
 			true
 		);
@@ -312,9 +317,10 @@ test.describe("Control Link", () => {
 		page,
 		desk,
 		api,
+		test_user_id,
 	}) => {
 		await api.call("frappe.tests.ui_test_helpers.insert_translations");
-		await api.set_value("User", TEST_USER, { language: "de" });
+		await api.set_value("User", test_user_id, { language: "de" });
 		await clear_cache(page, desk);
 
 		const dialog = await get_dialog_with_gender_link(desk);
@@ -327,8 +333,13 @@ test.describe("Control Link", () => {
 			.toEqual({ value: "Other", label: "Sonstiges" });
 	});
 
-	test("show text for Gender link field with language en", async ({ page, desk, api }) => {
-		await api.set_value("User", TEST_USER, { language: "en" });
+	test("show text for Gender link field with language en", async ({
+		page,
+		desk,
+		api,
+		test_user_id,
+	}) => {
+		await api.set_value("User", test_user_id, { language: "en" });
 		await clear_cache(page, desk);
 
 		const dialog = await get_dialog_with_gender_link(desk);

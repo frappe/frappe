@@ -5,7 +5,7 @@ import {
 	FRAPPE_UI_CHARTS,
 	STUDIO_COMPONENTS,
 	FRAMEWORK_UI_COMPONENTS,
-} from "../utils/constants.js"
+} from "../runtime/utils/constants.js"
 import { writeFileSync } from "fs"
 import fs from "fs"
 import { build } from "vite"
@@ -211,7 +211,7 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 			: ""
 	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
 	const studioImports = studioComponents
-		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
+		.map((comp) => `import ${comp} from "@/runtime/components/core/${comp}/${comp}.vue"`)
 		.join("\n")
 	const customComponentNames = Object.keys(customComponents)
 	const customImports = customComponentNames
@@ -235,7 +235,7 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 	// Rollup chunk each page script (and the modules it imports); codeStore loads them on
 	// navigation.
 	const pageScriptImport = pageScripts.length
-		? `import { setPageScriptImporters } from "@/data/studioPageScripts"`
+		? `import { setPageScriptImporters } from "@/runtime/data/studioPageScripts"`
 		: ""
 	const pageScriptSetup = pageScripts.length
 		? `setPageScriptImporters({
@@ -249,7 +249,7 @@ ${pageScripts
 	// that uses the component loads.
 	const componentScriptEntries = Object.entries(componentScripts)
 	const componentScriptImport = componentScriptEntries.length
-		? `import { setComponentScriptImporters } from "@/data/studioComponentScripts"`
+		? `import { setComponentScriptImporters } from "@/runtime/data/studioComponentScripts"`
 		: ""
 	const componentScriptSetup = componentScriptEntries.length
 		? `setComponentScriptImporters({
@@ -265,15 +265,15 @@ ${componentScriptEntries
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : ""
 
-	const rendererContent = `import "@/index.css"
+	const rendererContent = `import "@/runtime/index.css"
 import { createApp, defineAsyncComponent } from "vue"
 import { createPinia } from "pinia"
-import "@/setupFrappeUIResource"
-import { createAppRouter } from "@/router/app_router"
-import ErrorPage from "@/pages/ErrorPage.vue"
-import AppRenderer from "@/AppRenderer.vue"
+import "@/runtime/setupFrappeUIResource"
+import { createAppRouter } from "@/runtime/router/app_router"
+import ErrorPage from "@/runtime/pages/ErrorPage.vue"
+import AppRenderer from "@/runtime/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
-import { initSocket } from "@/socket"
+import { initSocket } from "@/runtime/socket"
 ${routerImport}
 
 ${frappeUIImports}
@@ -374,8 +374,8 @@ async function buildWithVite(
 				...frameworkUIAlias(APPS_DIR),
 				// Built apps use compiled source and do not need the browser compiler or registry.
 				{
-					find: /^@\/browserRuntime\/appRuntime$/,
-					replacement: path.resolve(__dirname, "../browserRuntime/noBrowserRuntime.ts"),
+					find: /^@\/runtime\/browserRuntime\/appRuntime$/,
+					replacement: path.resolve(__dirname, "../runtime/browserRuntime/noBrowserRuntime.ts"),
 				},
 				{ find: "@", replacement: path.resolve(__dirname, "../") },
 			],

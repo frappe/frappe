@@ -185,9 +185,11 @@ class TestAuth(IntegrationTestCase):
 
 	def test_user_without_a_password_checks_a_password_hash(self):
 		email = "no_password_auth@example.com"
-		frappe.delete_doc("User", email, force=True)
-		frappe.get_doc(doctype="User", email=email, first_name="No Password", send_welcome_email=0).insert()
-		self.addCleanup(frappe.delete_doc, "User", email, force=True)
+		if user := get_user_by_email(email):
+			frappe.delete_doc("User", user, force=True)
+		user = frappe.get_doc(doctype="User", email=email, first_name="No Password", send_welcome_email=0)
+		user.insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
 
 		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
 			with self.assertRaises(frappe.AuthenticationError):
@@ -697,7 +699,7 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 		self._request_with(self.api_key, "x")
 		frappe.db.savepoint("failed_key_lookup")
 		with self.assertRaises(frappe.AuthenticationError):
-			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
+			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="Missing DocType")
 		frappe.db.rollback(save_point="failed_key_lookup")
 
 		self.assertEqual(self._entries(), [])

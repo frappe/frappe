@@ -1116,6 +1116,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			".list-row-head .list-col-resize-handle",
 			(e) => {
 				e.preventDefault();
+				if (this.list_view_settings?.disable_scrolling) {
+					frappe.show_alert({
+						message: __(
+							"Column width cannot be saved because Disable Scrolling is enabled in List Settings"
+						),
+						indicator: "orange",
+					});
+					return;
+				}
 				const $col = $(e.target).closest(".list-row-col");
 				fieldname = $col.attr("data-fieldname");
 				if (!fieldname || fieldname === "undefined") return;
@@ -1957,7 +1966,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					label: fullname,
 					image,
 					css_class: "filterable",
-					attrs: { "data-filter": `_assign,like,%${user}%` },
+					attrs: { "data-filter": `_assign,=,${user}` },
 				};
 			});
 			assigned_to = `<div class="list-assignments d-flex align-items-center">
@@ -2621,12 +2630,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			$this.toggleClass("liked");
 
 			if ($this.hasClass("liked")) {
-				this.filter_area.add(
-					this.doctype,
-					"_liked_by",
-					"like",
-					"%" + frappe.session.user + "%"
-				);
+				this.filter_area.add(this.doctype, "_liked_by", "=", frappe.session.user);
 			} else {
 				this.filter_area.remove("_liked_by");
 			}
@@ -2728,6 +2732,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				// let's remove it manually
 				this.data = this.data.filter((d) => !names.includes(d.name));
 				this.remove_list_items(names);
+				this.render_count();
 				return;
 			}
 
@@ -2766,6 +2771,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 			this.toggle_result_area();
 			this.render_list();
+			this.render_count();
 		});
 	}
 
@@ -3041,7 +3047,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				fieldname: "tags",
 			},
 		];
-		fields = fields.concat(default_fields_dict);
+		if (!this.meta.is_virtual) fields = fields.concat(default_fields_dict);
 
 		group_by_fields.push({
 			label: __(this.doctype),
@@ -3655,9 +3661,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 				} else if (Array.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
-				} else if (["_assign", "_liked_by"].includes(field)) {
-					// stored as a JSON array, so an exact match can never hit
-					filters.push([doctype, field, "like", `%${value}%`]);
 				} else {
 					filters.push([doctype, field, "=", value]);
 				}

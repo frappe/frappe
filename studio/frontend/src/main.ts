@@ -2,20 +2,22 @@ import "./index.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import "./setupFrappeUIResource"
+import "@/runtime/setupFrappeUIResource"
 import studio_router from "@/router/studio_router"
 import App from "./App.vue"
 
 import { resourcesPlugin, frappeRequest, setConfig, toast } from "frappe-ui"
-import { registerGlobalComponents } from "./globals"
+import { registerGlobalComponents } from "@/runtime/globals"
 
 import { COMPONENTS } from "@/data/components"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import { componentHasDefaultSlot } from "@/utils/componentSlots"
-import { initSocket } from "@/socket"
+import useCanvasStore from "@/stores/canvasStore"
+import { initSocket } from "@/runtime/socket"
 
 Block.setComponents(COMPONENTS)
 Block.setDefaultSlotLookup(componentHasDefaultSlot)
+Block.setActiveCanvasLookup(() => useCanvasStore().activeCanvas)
 
 // Show what the server reports about a request that succeeded, such as a warning on save.
 setConfig("serverMessagesHandler", (messages: string[]) => {

@@ -65,6 +65,15 @@ class TestPreview(IntegrationTestCase):
 
 		self.assert_image(get_preview_from_html(self.HTML, format="webp"), "WEBP")
 
+	def test_get_preview_leaves_no_chromium_running(self):
+		from frappe.utils.chromium import ChromiumManager
+		from frappe.utils.preview import get_preview_from_html
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		get_preview_from_html(self.HTML)
+		self.assertIsNone(ChromiumManager._instance)
+
 	def test_get_preview_from_url_renders_content(self):
 		"""URL navigation must load real content, not the empty navigation stub
 		used by the HTML flow."""

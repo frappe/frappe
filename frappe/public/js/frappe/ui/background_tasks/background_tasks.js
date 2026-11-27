@@ -160,6 +160,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 			.call({
 				method: "frappe.core.doctype.background_task.background_task.get_recent_tasks",
 				args: { limit: 15 },
+				type: "GET",
 			})
 			.then((r) => {
 				this.db_tasks = r.message || [];

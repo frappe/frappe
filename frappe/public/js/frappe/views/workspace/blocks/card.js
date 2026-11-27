@@ -16,12 +16,15 @@ export default class Card extends Block {
 		this.sections = {};
 		this.col = this.data.col ? this.data.col : "4";
 		this.allow_customization = !this.readOnly;
+		this.is_generated_card = ["Custom Documents", "Custom Reports"].includes(
+			this.data.card_name
+		);
 		this.options = {
-			allow_sorting: this.allow_customization,
+			allow_sorting: this.allow_customization && !this.is_generated_card,
 			allow_create: this.allow_customization,
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
-			allow_edit: true,
+			allow_edit: !this.is_generated_card,
 			allow_resize: true,
 		};
 	}
@@ -37,7 +40,7 @@ export default class Card extends Block {
 
 		if (!this.readOnly) {
 			$(this.wrapper).find(".widget").addClass("links edit-mode");
-			this.add_settings_button();
+			!this.is_generated_card && this.add_settings_button();
 			this.add_new_block_button();
 		}
 

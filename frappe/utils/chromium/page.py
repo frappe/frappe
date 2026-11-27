@@ -501,7 +501,7 @@ class Page:
 
 		# Start listening for requestPaused event
 		self.session.start_listener(
-			"Fetch.requestPaused", on_request_paused_event, self.session_id, self.target_id, self.frame_id
+			"Fetch.requestPaused", on_request_paused_event, self.session_id, self.target_id
 		)
 
 		# Enable request interception for the specified URL pattern

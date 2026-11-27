@@ -11,10 +11,15 @@ from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
 	QueryBuilder,
 	_SetOperation,
 )
-from pypika.terms import PseudoColumn, Term
+from pypika.terms import PseudoColumn, Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
 import frappe
-from frappe.query_builder.terms import EscapedValueWrapper, NamedParameterWrapper, PostgresAwareCriterion
+from frappe.query_builder.terms import (
+	EscapedValueWrapper,
+	LikeCriterion,
+	NamedParameterWrapper,
+	PostgresAwareCriterion,
+)
 
 # Frappe's public query-builder helpers are installed on Base below. This is the
 # existing framework extension mechanism rather than an app overriding Frappe.
@@ -336,10 +341,10 @@ def patch_like_operators():
 	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
 	def like(self, expr: str):
-		return PostgresAwareCriterion(Matching.like, Matching.ilike, self, self.wrap_constant(expr))
+		return LikeCriterion(Matching.like, Matching.ilike, self, self.wrap_constant(expr))
 
 	def not_like(self, expr: str):
-		return PostgresAwareCriterion(Matching.not_like, Matching.not_ilike, self, self.wrap_constant(expr))
+		return LikeCriterion(Matching.not_like, Matching.not_ilike, self, self.wrap_constant(expr))
 
 	Term.like = like  # nosemgrep: frappe-monkey-patching-not-allowed
 	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed

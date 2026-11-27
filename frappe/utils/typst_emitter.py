@@ -554,6 +554,10 @@ def _text_value(html_ish: str) -> str:
 	return re.sub(r"^[^\S\u2002\u2003]+", "", unescape_html(value).rstrip())
 
 
+def _ltr_email(value: str, df) -> str:
+	return f"\u2066{value}\u2069" if value and df and df.get("options") == "Email" else value
+
+
 class TypstEmitter:
 	def __init__(self, generator):
 		self.generator = generator
@@ -1050,7 +1054,7 @@ class TypstEmitter:
 
 	def _formatted_value(self, df):
 		if df.get("fieldtype") == "Linked Field" or df.get("_value") is not None:
-			return _text_value(df.get("_value") or "")
+			return _ltr_email(_text_value(df.get("_value") or ""), df)
 		fieldname = df.get("fieldname")
 		if not fieldname:
 			return ""
@@ -1062,7 +1066,7 @@ class TypstEmitter:
 			return _("Yes") if frappe.utils.cint(value) else _("No")
 		if df.get("fieldtype") == "Attach":
 			return frappe.utils.cstr(value).rsplit("/", 1)[-1]
-		return _text_value(self.doc.get_formatted(fieldname))
+		return _ltr_email(_text_value(self.doc.get_formatted(fieldname)), df)
 
 	def _label_color(self, df=None) -> str:
 		return (
@@ -1309,7 +1313,8 @@ class TypstEmitter:
 					if not isinstance(tok, dict):
 						continue
 					if tok.get("t") == "f":
-						parts.append(_text_value(row.get_formatted(tok.get("v"))))
+						value = _text_value(row.get_formatted(tok.get("v")))
+						parts.append(_ltr_email(value, row.meta.get_field(tok.get("v"))))
 					else:
 						parts.append(str(tok.get("v") or ""))
 				text = "".join(parts)
@@ -1438,6 +1443,7 @@ class TypstEmitter:
 				value = _text_value("" if raw is None else str(raw))
 				if not value.strip():
 					continue
+				value = _ltr_email(value, row.meta.get_field(fieldname))
 				label = ""
 				if mf.get("show_label"):
 					doctype = row.get("doctype")
@@ -1480,7 +1486,9 @@ class TypstEmitter:
 			if not name:
 				return ""
 			return f'#box(width: 100%, height: 75pt)[#image("{name}", width: 100%, height: 100%, fit: "contain")]'
-		return f"#text({q(_text_value(format_field_value(row, col)))})"
+		email_df = col if col.get("options") else getattr(row, "meta", None) and row.meta.get_field(fieldname)
+		value = _ltr_email(_text_value(format_field_value(row, col)), email_df)
+		return f"#text({q(value)})"
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:
 		size = pt(frappe.utils.cint(col.get("image_size")), 40)

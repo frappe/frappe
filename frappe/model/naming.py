@@ -256,6 +256,11 @@ def set_naming_from_document_naming_rule(doc):
 	"""
 	Evaluate rules based on "Document Naming Series" doctype
 	"""
+	if rule := get_document_naming_rule(doc):
+		rule.apply(doc)
+
+
+def get_document_naming_rule(doc):
 	from frappe.model.document import DOCTYPES_FOR_DOCTYPE
 
 	IGNORED_DOCTYPES = {*log_types, *DOCTYPES_FOR_DOCTYPE, "DefaultValue", "Patch Log"}
@@ -271,9 +276,9 @@ def set_naming_from_document_naming_rule(doc):
 	)
 
 	for d in document_naming_rules:
-		frappe.get_cached_doc("Document Naming Rule", d.name).apply(doc)
-		if doc.name:
-			break
+		rule = frappe.get_cached_doc("Document Naming Rule", d.name)
+		if rule.matches(doc):
+			return rule
 
 
 def set_name_by_naming_series(doc):
@@ -500,6 +505,8 @@ def revert_series_if_last(key, name, doc=None):
 		count = cint(name[boundary:])
 		prefix = name[:boundary]
 	else:
+		if not name.startswith(prefix):
+			return
 		count = cint(name.replace(prefix, ""))
 	series = DocType("Series")
 	current = (frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")).run()
@@ -567,9 +574,12 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 		)
 
 		if last:
-			count = str(cint(last[0][0].rsplit(separator, 1)[1]) + 1)
+			count = cint(last[0][0].rsplit(separator, 1)[1]) + 1
 		else:
-			count = "1"
+			count = 1
+
+		while frappe.db.exists(doctype, {fieldname: f"{value}{separator}{count}"}):
+			count += 1
 
 		value = f"{value}{separator}{count}"
 

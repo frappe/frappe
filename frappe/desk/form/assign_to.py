@@ -95,7 +95,9 @@ def _add(
 			if not frappe.db.exists(
 				"User", {"name": assign_to, "enabled": 1, "user_type": ("!=", "Website User")}
 			):
-				frappe.throw(_("{0} is not an enabled System User").format(frappe.bold(assign_to)))
+				frappe.throw(
+					_("{0} is not an enabled System User").format(frappe.bold(get_user_display_id(assign_to)))
+				)
 
 		if frappe.get_all("ToDo", filters=filters):
 			users_with_duplicate_todo.append(assign_to)

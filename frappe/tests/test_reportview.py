@@ -313,6 +313,45 @@ class TestReportview(IntegrationTestCase):
 		exported_members = [cell for row in rows for cell in row if cell in set(members)]
 		self.assertEqual(sorted(exported_members), sorted(members))
 
+	def test_export_query_keeps_child_table_filters(self):
+		from csv import reader
+		from io import StringIO
+
+		members = [
+			create_user(email).name
+			for email in ("test_rv_a@example.com", "test_rv_b@example.com", "test_rv_c@example.com")
+		]
+		exporter = create_user("test_rv_export@example.com")
+
+		group = frappe.get_doc(
+			{
+				"doctype": "User Group",
+				"name": "Report Export Child Filter",
+				"user_group_members": [{"user": user} for user in members],
+			}
+		).insert()
+		self.addCleanup(group.delete)
+
+		for restriction in (
+			{"selected_items": json.dumps([group.name])},
+			{"visible_names": json.dumps([group.name])},
+		):
+			with self.set_user(exporter.name):
+				frappe.local.form_dict = frappe._dict(
+					doctype="User Group",
+					file_format_type="CSV",
+					fields=["`tabUser Group`.`name`", "`tabUser Group Member`.`user`"],
+					filters=[["User Group Member", "user", "=", members[1]]],
+					**restriction,
+				)
+				export_query()
+
+			with StringIO(frappe.response["filecontent"].decode("utf-8")) as buf:
+				rows = list(reader(buf))[1:]
+
+			exported_members = [cell for row in rows for cell in row if cell in set(members)]
+			self.assertEqual(exported_members, [members[1]], restriction)
+
 	def test_extract_fieldname(self):
 		self.assertEqual(
 			extract_fieldnames("count(distinct `tabPhoto`.name) as total_count")[0], "tabPhoto.name"
@@ -461,6 +500,32 @@ class TestReportview(IntegrationTestCase):
 			self.assertEqual(result["keys"], ["name", "User Group Member:user"])
 			self.assertEqual(result["values"][0][1], user)
 			self.assertEqual(frappe.local.response["_link_titles"][f"User::{user}"], full_name)
+
+	def test_get_sends_link_titles_for_fields_that_ignore_user_permissions(self):
+		self.enable_link_titles("User")
+		viewer = get_user_by_email("test@example.com")
+		assigner = get_user_by_email("test1@example.com")
+		user_permission = frappe.get_doc(
+			doctype="User Permission", user=viewer, allow="User", for_value=viewer
+		).insert()
+		self.addCleanup(user_permission.delete)
+
+		with self.set_user(viewer):
+			todo = frappe.get_doc(
+				doctype="ToDo",
+				description="Assigned by another user",
+				allocated_to=viewer,
+				assigned_by=assigner,
+			).insert()
+			self.get_rows(
+				doctype="ToDo",
+				fields=["name", "assigned_by"],
+				filters={"name": todo.name},
+				with_link_titles=1,
+			)
+
+		full_name = frappe.db.get_value("User", assigner, "full_name")
+		self.assertEqual(frappe.local.response["_link_titles"][f"User::{assigner}"], full_name)
 
 	def get_todo_rows(self, name, **extra_params):
 		return self.get_rows(

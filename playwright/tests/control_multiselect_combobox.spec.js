@@ -13,18 +13,21 @@ test.describe("Control MultiSelect (combobox)", () => {
 			enable_combobox_link_field: 1,
 		});
 		// a second user to pick; the search leaves out Administrator and Guest
-		await admin.insert_doc(
-			"User",
-			{ email: OTHER_USER, first_name: "Multiselect", send_welcome_email: 0 },
-			true
-		);
+		if (!(await admin.user_id(OTHER_USER))) {
+			await admin.insert_doc(
+				"User",
+				{ email: OTHER_USER, first_name: "Multiselect", send_welcome_email: 0 },
+				true
+			);
+		}
 	});
 
 	test.afterAll(async ({ admin }) => {
 		await admin.set_value("System Settings", "System Settings", {
 			enable_combobox_link_field: original_setting,
 		});
-		await admin.remove_doc("User", OTHER_USER, true);
+		const other = await admin.user_id(OTHER_USER);
+		if (other) await admin.remove_doc("User", other, true);
 	});
 
 	test.beforeEach(async ({ page, desk }) => {
@@ -44,7 +47,10 @@ test.describe("Control MultiSelect (combobox)", () => {
 	test("Table MultiSelect: ticks rows into child rows, keeps the panel open and removes a pill", async ({
 		page,
 		desk,
+		api,
+		test_user_id: me,
 	}) => {
+		const other = await api.user_id(OTHER_USER);
 		await desk.new_form("User Group");
 		const members = () =>
 			page.evaluate(() => (cur_frm.doc.user_group_members || []).map((r) => r.user));
@@ -55,13 +61,13 @@ test.describe("Control MultiSelect (combobox)", () => {
 		// a tick keeps the panel open
 		await expect(panel(page)).toBeVisible();
 		await expect(option(page, OTHER_USER)).toHaveAttribute("aria-selected", "true");
-		await expect.poll(members).toEqual([OTHER_USER]);
+		await expect.poll(members).toEqual([other]);
 
 		// Enter ticks the highlighted row
 		await search(page).fill(TEST_USER);
 		await expect(panel(page).locator(".es-combobox__list [role='option']")).toHaveCount(1);
 		await search(page).press("Enter");
-		await expect.poll(members).toEqual([OTHER_USER, TEST_USER]);
+		await expect.poll(members).toEqual([other, me]);
 		await expect(pills(page, "user_group_members")).toHaveCount(2);
 		await expect(panel(page).locator(".es-combobox__status")).toContainText("2 selected");
 
@@ -77,7 +83,7 @@ test.describe("Control MultiSelect (combobox)", () => {
 			.first()
 			.locator(".es-combobox__pill-remove")
 			.click();
-		await expect.poll(members).toEqual([TEST_USER]);
+		await expect.poll(members).toEqual([me]);
 		await expect(panel(page)).toBeVisible();
 		await search(page).press("Escape");
 		await expect(panel(page)).toHaveCount(0);

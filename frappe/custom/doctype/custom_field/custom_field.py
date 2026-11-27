@@ -178,7 +178,7 @@ class CustomField(Document):
 
 	def validate(self):
 		# these imports have been added to avoid cyclical import, should fix in future
-		from frappe.core.doctype.doctype.doctype import check_fieldname_conflicts
+		from frappe.core.doctype.doctype.doctype import check_fieldname_conflicts, validate_decimal_length
 		from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 
 		# don't always get meta to improve performance
@@ -226,6 +226,7 @@ class CustomField(Document):
 			self.allow_in_quick_entry = 0
 
 		check_fieldname_conflicts(self)
+		validate_decimal_length(self, self.get_doc_before_save())
 
 	def on_update(self):
 		# validate field

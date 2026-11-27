@@ -1001,7 +1001,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		value = data.get(fieldname, "")
 
 		if df and df.fieldtype in ("Attach", "Attach Image"):
-			if value and "data:" and "base64" in value:
+			if value and "data:" in value and "base64" in value:
 				files.append((fieldname, value))
 				if not doc.name:
 					doc.set(fieldname, "")

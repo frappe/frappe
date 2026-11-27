@@ -182,7 +182,7 @@ class MariaDBTable(DBTable):
 				)
 			else:
 				modify_column_query.append(
-					f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)"
+					f"ADD UNIQUE INDEX IF NOT EXISTS `{col.fieldname}` (`{col.fieldname}`)"
 				)
 
 		for col in self.change_nullability:

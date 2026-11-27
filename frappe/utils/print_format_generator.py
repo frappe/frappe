@@ -1450,6 +1450,7 @@ class PrintFormatGenerator:
 			df["renderer"] = "Code"
 			df["_value"] = value
 			return
+		df["options"] = target_df.options
 		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
 
 	def resolve_linked_path(self, path):

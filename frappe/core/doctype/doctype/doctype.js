@@ -48,6 +48,11 @@ frappe.ui.form.on("DocType", {
 				frm.set_value("custom", 1);
 			}
 			frm.toggle_enable("custom", 0);
+			frm.set_df_property(
+				"custom",
+				"description",
+				__("Only Administrator can change this, in developer mode")
+			);
 			frm.toggle_enable("is_virtual", 0);
 			frm.toggle_enable("beta", 0);
 			frm.toggle_enable("deprecated", 0);

@@ -136,6 +136,24 @@ class TestBuildWindow(IntegrationTestCase):
 
 		self.assertEqual(carried, [expected])
 
+	def test_a_continuation_redoes_a_fresh_build_that_failed_during_setup(self):
+		note = frappe.get_doc(doctype="Note", title="Setup Failed", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		temp_path = self.search._get_db_path(is_temp=True)
+		self.addCleanup(lambda: os.path.exists(temp_path) and os.unlink(temp_path))
+
+		failing = BuildWindowSearch()
+		failing.schema = {**failing.schema, "tokenizer": "no_such_tokenizer"}
+		with self.assertRaises(sqlite3.OperationalError):
+			failing.build_index()
+		self.assertTrue(os.path.exists(temp_path))
+
+		BuildWindowSearch().build_index(is_continuation=True)
+
+		self.assertFalse(os.path.exists(temp_path))
+		self.assertEqual(self.indexed_title(note.name), "Setup Failed")
+
 	def test_the_index_reports_complete_without_the_vocabulary_pass(self):
 		"""_is_indexing_complete waits on the vocabulary flag, which the skipped pass never sets."""
 		self.search.build_index()

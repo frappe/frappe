@@ -1,5 +1,5 @@
 import { CSSProperties } from "vue"
-import Block from "./block"
+import Block from "@/runtime/utils/block"
 
 import type { StyleValue } from "@/types"
 import useCanvasStore from "@/stores/canvasStore"

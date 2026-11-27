@@ -171,6 +171,13 @@ class TestComment(IntegrationTestCase):
 			visible = [c["name"] for c in get_comment_list("Web Page", web_page.name)]
 		self.assertNotIn(to_guest.name, visible)
 
+	def test_standard_users_comment_as_their_id(self):
+		test_doc = frappe.get_doc(doctype="ToDo", description="test").insert()
+		for user in ("Guest", "Administrator"):
+			with set_user(user):
+				comment = test_doc.add_comment("Info", f"by {user}")
+			self.assertEqual(comment.comment_email, user)
+
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 

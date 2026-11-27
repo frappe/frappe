@@ -889,7 +889,8 @@ def _use(site, sites_path="."):
 def use(site, sites_path="."):
 	from frappe.installer import update_site_config
 
-	if os.path.exists(os.path.join(sites_path, site)):
+	site = os.path.basename(os.path.normpath(site))
+	if os.path.exists(os.path.join(sites_path, site, "site_config.json")):
 		sites_path = os.getcwd()
 		conifg = os.path.join(sites_path, "common_site_config.json")
 		update_site_config("default_site", site, validate=False, site_config_path=conifg)
@@ -1658,15 +1659,18 @@ def get_standard_tables():
 	import re
 
 	tables = []
-	sql_file = os.path.join(
-		"..",
-		"apps",
-		"frappe",
-		"frappe",
-		"database",
-		frappe.conf.db_type,
-		f"framework_{frappe.conf.db_type}.sql",
-	)
+	database_folder = os.path.join("..", "apps", "frappe", "frappe", "database", frappe.conf.db_type)
+	if frappe.conf.db_type == "sqlite":
+		import sqlite3
+		from contextlib import closing
+
+		framework_db = os.path.join(database_folder, "framework_sqlite.db")
+		with closing(sqlite3.connect(f"file:{framework_db}?immutable=1", uri=True)) as connection:
+			return [
+				row[0] for row in connection.execute("select name from sqlite_master where type = 'table'")
+			]
+
+	sql_file = os.path.join(database_folder, f"framework_{frappe.conf.db_type}.sql")
 	content = open(sql_file).read().splitlines()
 
 	for line in content:

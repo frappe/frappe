@@ -369,7 +369,7 @@ class SQLiteSearch(ABC):
 
 		try:
 			# Setup tables if needed (for fresh builds or when temp DB was just created)
-			if not is_continuation or (temp_db_path and not self._tables_exist()):
+			if not is_continuation or (temp_db_path and not self._get_index_progress()):
 				self._update_progress("Setting up search tables", 0, 100, absolute=True)
 				self._ensure_fts_table()
 
@@ -377,9 +377,7 @@ class SQLiteSearch(ABC):
 				if temp_db_path and not is_continuation:
 					self._with_connection(lambda cursor: cursor.execute("DELETE FROM search_fts"))
 
-				# Initialize progress tracking (only for completely fresh builds)
-				if not is_continuation:
-					self._initialize_index_progress()
+				self._initialize_index_progress()
 
 			# Get current progress
 			progress = self._get_index_progress()
@@ -901,10 +899,6 @@ class SQLiteSearch(ABC):
 			return 0, 0
 		except sqlite3.Error:
 			return 0, 0
-
-	def _tables_exist(self):
-		"""Check if the required tables exist in the current database."""
-		return self._table_exists("search_fts")
 
 	# Private Implementation Methods
 
@@ -1978,6 +1972,9 @@ def update_doc_index(doc: Document, method=None):
 	for SearchClass in search_classes:
 		search = SearchClass()
 
+		if doc.doctype not in search.doc_configs:
+			continue
+
 		if not (search.is_search_enabled() and search.index_exists()):
 			continue
 
@@ -2003,6 +2000,9 @@ def delete_doc_index(doc: Document, method=None):
 
 	for SearchClass in search_classes:
 		search = SearchClass()
+
+		if doc.doctype not in search.doc_configs:
+			continue
 
 		if not (search.is_search_enabled() and search.index_exists()):
 			continue

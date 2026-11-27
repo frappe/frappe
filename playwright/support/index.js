@@ -49,6 +49,11 @@ export const test = base.extend({
 		},
 		{ scope: "worker" },
 	],
+
+	test_user_id: [
+		async ({ admin }, use) => await use(await admin.user_id(TEST_USER)),
+		{ scope: "worker" },
+	],
 });
 
 export function use_shared_page({ user = TEST_USER, teardown } = {}) {

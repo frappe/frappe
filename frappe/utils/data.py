@@ -1636,6 +1636,8 @@ def in_words(integer: int, in_million=True) -> str:
 		ret = num2words(integer, lang="en")
 	except OverflowError:
 		ret = num2words(integer, lang="en")
+	if locale and locale.startswith("es"):
+		ret = re.sub(r"\b(veinti)?uno(?= mil| bill)", lambda m: "veintiún" if m.group(1) else "un", ret)
 	return ret.replace("-", " ")
 
 
@@ -2700,6 +2702,8 @@ def guess_date_format(date_string: str) -> str:
 		r"%d/%b/%Y",
 		r"%d %b %Y",
 		r"%d %B %Y",
+		r"%d %b %y",
+		r"%d %B %y",
 		r"%d-%b-%Y",
 		r"%d-%b-%y",
 		r"%d-%m-%Y",

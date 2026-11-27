@@ -291,6 +291,10 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 				item.name = frappe.get_value(group_by_field_field.options, item.name, meta.title_field)
 			elif meta.translated_doctype:
 				item.name = _(item.get("name", "Not Specified"))
+	elif data and group_by_field_field.fieldtype == "Select":
+		for item in data:
+			if item.name:
+				item.name = _(item.name)
 
 	if data:
 		empty_label = (

@@ -125,9 +125,13 @@ frappe.report_utils = {
 		}
 
 		return frappe
-			.xcall("frappe.desk.query_report.get_script", {
-				report_name: report_name,
-			})
+			.xcall(
+				"frappe.desk.query_report.get_script",
+				{
+					report_name: report_name,
+				},
+				"GET"
+			)
 			.then((r) => {
 				if (!frappe.query_reports[r.custom_report_name || report_name]) {
 					frappe.dom.eval(r.script);
@@ -177,7 +181,9 @@ frappe.report_utils = {
 				fieldname: row.fieldname,
 				label: __(row.label),
 				fieldtype: row.fieldtype,
-				options: row.options || js_filter?.options,
+				options: Array.isArray(js_filter?.options)
+					? js_filter.options
+					: row.options || js_filter?.options,
 				reqd: row.mandatory,
 				wildcard_filter: row.wildcard_filter,
 			};

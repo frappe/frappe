@@ -247,6 +247,7 @@ frappe.ui.form.on("Notification", {
 				args: {
 					notification: frm.doc.name,
 				},
+				type: "GET",
 				callback: function (r) {
 					if (r.message && r.message.length > 0) {
 						frappe.msgprint(r.message.toString());

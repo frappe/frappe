@@ -549,7 +549,7 @@ def _shares(doc: FlowSession) -> list[dict[str, Any]]:
 	return frappe.get_all(
 		"User",
 		filters={"name": ("in", users)},
-		fields=["name", "full_name", "user_image"],
+		fields=["name", "full_name", "email", "user_image"],
 		order_by="full_name asc",
 	)
 
@@ -562,11 +562,13 @@ def _flow_users(text: str = "", user: str | None = None) -> list[dict[str, Any]]
 		filters.append(["name", "=", user])
 	if text:
 		person = frappe.qb.DocType("User")
-		filters.append(_contains(person.name, text) | _contains(person.full_name, text))
+		filters.append(
+			_contains(person.name, text) | _contains(person.email, text) | _contains(person.full_name, text)
+		)
 	return frappe.get_all(
 		"User",
 		filters=filters,
-		fields=["name", "full_name", "user_image"],
+		fields=["name", "full_name", "email", "user_image"],
 		distinct=True,
 		order_by="full_name asc",
 		limit=20,

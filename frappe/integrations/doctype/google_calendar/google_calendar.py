@@ -151,7 +151,7 @@ def authorize_access(g_calendar: str, reauthorize: bool = False):
 
 	redirect_uri = (
 		f"{get_request_site_address(full_address=True)}"
-		f"?cmd={google_callback.__module__}.{google_callback.__qualname__}"
+		f"/api/method/{google_callback.__module__}.{google_callback.__qualname__}"
 	)
 
 	if not google_calendar.authorization_code or reauthorize:

@@ -25,6 +25,24 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		)
 			.prependTo(me.input_area)
 			.toggle(false);
+		this.$value.find(".attached-file-link").on("click", (event) => {
+			const file_url = event.currentTarget.getAttribute("href");
+			if (
+				!this.frm?.attachments ||
+				!file_url ||
+				event.metaKey ||
+				event.ctrlKey ||
+				event.shiftKey ||
+				event.button !== 0
+			) {
+				return;
+			}
+			event.preventDefault();
+			this.frm.attachments.show_attachment_preview(
+				{ file_name: event.currentTarget.textContent },
+				file_url
+			);
+		});
 		this.input = this.$input.get(0);
 		this.set_input_attributes();
 		this.has_input = true;

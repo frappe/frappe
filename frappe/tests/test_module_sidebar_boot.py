@@ -132,7 +132,7 @@ class TestTheResolverSeam(IntegrationTestCase):
 			get_module_landing_route(
 				[{"type": "Link", "link_type": "DocType", "link_to": "System Settings"}]
 			),
-			"/desk/system-settings/System Settings",
+			"/desk/system-settings",
 		)
 
 	def test_a_child_table_is_not_somewhere_to_land(self):

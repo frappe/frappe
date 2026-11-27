@@ -28,7 +28,7 @@ frappe.ui.form.Attachments = class Attachments {
 		});
 
 		this.add_attachment_wrapper = this.parent.find(".attachments-actions");
-		this.attachments_label = this.parent.find(".attachments-label");
+		this.attachments_label = this.parent.find(".explore-link");
 		this.setup_preview_area();
 	}
 	max_reached(raise_exception = false) {
@@ -118,10 +118,7 @@ frappe.ui.form.Attachments = class Attachments {
 			});
 		}
 
-		if (!attachments.length) {
-			// If no attachments in totality
-			this.attachments_label.removeClass("has-attachments");
-		}
+		this.attachments_label.toggleClass("has-attachments", attachments.length > 0);
 	}
 
 	add_attachment(attachment) {

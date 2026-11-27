@@ -13,6 +13,10 @@ inputs:
     required: false
     description: 'Whether to build assets'
     default: true
+  prebuilt-assets:
+    required: false
+    description: 'Download the assets built for the base commit instead of building, when the pull request changes no frontend file'
+    default: false
   enable-coverage:
     required: false
     default: false
@@ -237,6 +241,9 @@ runs:
       DB: ${{ inputs.db }}
       BUILD_ASSETS: ${{ inputs.build-assets }}
       ASSETS_RESTORED: ${{ steps.built-assets-restore.outputs.cache-hit }}
+      PREBUILT_ASSETS: ${{ inputs.prebuilt-assets }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      BASE_REF: ${{ github.base_ref }}
       ENABLE_SERVER_SCRIPTS: ${{ inputs.enable-server-scripts }}
     run: |
       # Create Site (asset build is CPU-bound and independent of the DB, so
@@ -267,6 +274,21 @@ runs:
         bench set-config -g server_script_enabled 1 --parse
       fi
 
+      # The assets of every commit on the base branch are published to its assets release.
+      # They match this checkout as long as the pull request changes no frontend file.
+      use_prebuilt_assets() {
+        [ "$PREBUILT_ASSETS" == "true" ] && [ -n "$BASE_SHA" ] || return 1
+        git -C apps/frappe fetch --quiet --depth 1 upstream "$BASE_SHA" || return 1
+        if git -C apps/frappe diff --name-only "$BASE_SHA" HEAD | grep -qE '\.(js|ts|vue|scss|css|less|html|svg)$|(^|/)package\.json$|(^|/)yarn\.lock$|^esbuild/|^island-toolchain/'; then
+          return 1
+        fi
+        curl -fsSL --retry 2 -o "$RUNNER_TEMP/assets.tar.gz" \
+          "https://github.com/${GITHUB_REPOSITORY}/releases/download/assets-${BASE_REF}/frappe-${BASE_SHA}.tar.gz" || return 1
+        tar -xzf "$RUNNER_TEMP/assets.tar.gz" -C apps/frappe --exclude manifest.json
+        # The build that is skipped also installs these; the Studio tests build an app with them.
+        yarn --cwd apps/frappe/studio/frontend install --frozen-lockfile --silent
+      }
+
       build_pid=""
       if [ "$ASSETS_RESTORED" == "true" ]; then
         (cd sites && ../env/bin/python -c "import frappe; frappe.init(''); from frappe.bundler import make_asset_dirs, setup; setup(); make_asset_dirs()")
@@ -278,7 +300,12 @@ runs:
         ) &> ${GITHUB_WORKSPACE}/build_assets.log &
         build_pid=$!
       elif [ "$BUILD_ASSETS" == "true" ]; then
-        CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
+        build_options="--force --production"
+        if use_prebuilt_assets; then
+          echo "Using the assets built for $BASE_SHA"
+          build_options="--production --using-cached"
+        fi
+        CI=Yes bench build $build_options &> ${GITHUB_WORKSPACE}/build_assets.log &
         build_pid=$!
       fi
 

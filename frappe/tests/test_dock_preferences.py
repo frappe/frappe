@@ -183,6 +183,11 @@ def dock_for(email=None, among=TRIO, app=APP):
 	return [row for row in rows if row.get("link_type") == "Sidebar" and row.get("link_to") in set(among)]
 
 
+def delete_user(email):
+	if user := get_user_by_email(email):
+		frappe.delete_doc("User", user, force=True, ignore_permissions=True)
+
+
 def clear_arrangements():
 	"""Delete the site's layer and every user's own, at every app.
 
@@ -374,7 +379,7 @@ class TestDockPreferences(DockTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
-		if not frappe.db.exists("User", USER):
+		if not get_user_by_email(USER):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -389,7 +394,7 @@ class TestDockPreferences(DockTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
-		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
+		delete_user(USER)
 
 	def test_order_round_trips(self):
 		save_user_dock(APP, payload(GAMMA, ALPHA, BETA))
@@ -460,10 +465,10 @@ class TestDockPreferences(DockTestCase):
 	def test_curation_cannot_resurface_a_blocked_module(self):
 		"""A dock arrangement is a preference, never a way around module visibility."""
 		frappe.set_user("Administrator")
-		user = frappe.get_doc("User", USER)
+		user = frappe.get_doc("User", get_user_by_email(USER))
 		user.append("block_modules", {"module": GAMMA})
 		user.save(ignore_permissions=True)
-		frappe.clear_cache(user=USER)
+		frappe.clear_cache(user=user.name)
 		frappe.set_user(USER)
 
 		save_user_dock(APP, payload(ALPHA, GAMMA))
@@ -499,26 +504,29 @@ class TestDockSiteLayer(DockTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.make_user(self.MANAGER, ["Desk User", "Workspace Manager"])
-		self.make_user(self.DESK_USER, ["Desk User"])
+		self.desk_user = self.make_user(self.DESK_USER, ["Desk User"])
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
 		for email in (self.MANAGER, self.DESK_USER):
-			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+			delete_user(email)
 
 	def make_user(self, email, roles):
-		if frappe.db.exists("User", email):
-			frappe.delete_doc("User", email, force=True, ignore_permissions=True)
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": email,
-				"first_name": email.split("@")[0],
-				"send_welcome_email": 0,
-				"roles": [{"role": role} for role in roles],
-			}
-		).insert(ignore_permissions=True)
+		delete_user(email)
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@")[0],
+					"send_welcome_email": 0,
+					"roles": [{"role": role} for role in roles],
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
 
 	def set_site_order(self, *rows):
 		"""The site layer as a Workspace Manager would leave it. Administrator holds every role."""
@@ -528,10 +536,10 @@ class TestDockSiteLayer(DockTestCase):
 		frappe.set_user(user)
 
 	def block_module(self, email, module):
-		user = frappe.get_doc("User", email)
+		user = frappe.get_doc("User", get_user_by_email(email))
 		user.append("block_modules", {"module": module})
 		user.save(ignore_permissions=True)
-		frappe.clear_cache(user=email)
+		frappe.clear_cache(user=user.name)
 
 	# -- the merge ----------------------------------------------------------------------
 
@@ -663,7 +671,7 @@ class TestDockSiteLayer(DockTestCase):
 		frappe.set_user("Administrator")
 
 		self.assertEqual(get_site_dock(APP), [stored(sidebar(BETA))])
-		self.assertEqual(get_user_dock(APP, self.DESK_USER), [stored(added(sidebar(ALPHA)), added=1)])
+		self.assertEqual(get_user_dock(APP, self.desk_user), [stored(added(sidebar(ALPHA)), added=1)])
 
 	def test_boot_carries_the_resolved_dock(self):
 		from frappe.boot import get_bootinfo
@@ -687,7 +695,7 @@ class TestDockSiteLayer(DockTestCase):
 		# The two writable layers, which is what one shape per layer means. The app's own row is
 		# in this same table and is told apart by `standard`.
 		layers = frappe.get_all("Dock", filters={"standard": 0}, fields=["app", "user"])
-		self.assertEqual(sorted(row.user or "" for row in layers), ["", self.DESK_USER])
+		self.assertEqual(sorted(row.user or "" for row in layers), ["", self.desk_user])
 		self.assertEqual({row.app for row in layers}, {APP})
 		self.assertEqual(frappe.get_meta("Dock").get_field("items").options, "Dock Item")
 
@@ -721,7 +729,7 @@ class TestTheAppLayer(DockTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
-		if not frappe.db.exists("User", self.USER):
+		if not get_user_by_email(self.USER):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -735,7 +743,7 @@ class TestTheAppLayer(DockTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
-		frappe.delete_doc("User", self.USER, force=True, ignore_missing=True)
+		delete_user(self.USER)
 
 	def ship(self, *items, app=None):
 		"""One app's fragment, declared for the length of the `with` block."""
@@ -810,7 +818,9 @@ class TestTheAppLayer(DockTestCase):
 			frappe.set_user("Administrator")
 
 			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA, GAMMA])
-			self.assertEqual([row["added"] for row in get_user_dock(self.APP, self.USER)], [1, 0])
+			self.assertEqual(
+				[row["added"] for row in get_user_dock(self.APP, get_user_by_email(self.USER))], [1, 0]
+			)
 
 	def test_a_module_the_app_added_later_waits_in_the_manager(self):
 		"""What a saved layer being exactly the rail costs. An entry no layer names is off the rail
@@ -1026,12 +1036,14 @@ class TestWhatACustomisationMayDo(DockTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		user_ids = {}
 		for email, roles in (
 			(self.MANAGER, ["Desk User", "Workspace Manager"]),
 			(self.PERSON, ["Desk User"]),
 		):
-			if not frappe.db.exists("User", email):
-				frappe.get_doc(
+			user_ids[email] = (
+				get_user_by_email(email)
+				or frappe.get_doc(
 					{
 						"doctype": "User",
 						"email": email,
@@ -1039,13 +1051,17 @@ class TestWhatACustomisationMayDo(DockTestCase):
 						"send_welcome_email": 0,
 						"roles": [{"role": role} for role in roles],
 					}
-				).insert(ignore_permissions=True)
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
+		self.person = user_ids[self.PERSON]
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
 		for email in (self.MANAGER, self.PERSON):
-			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+			delete_user(email)
 
 	def make_workspace(self, title, module, roles=None):
 		doc = frappe.get_doc(
@@ -1109,7 +1125,7 @@ class TestWhatACustomisationMayDo(DockTestCase):
 		save_user_dock(APP, payload(ALPHA, added(workspace(page))))
 		frappe.set_user("Administrator")
 
-		self.assertEqual(names(get_user_dock(APP, self.PERSON)), [ALPHA])
+		self.assertEqual(names(get_user_dock(APP, self.person)), [ALPHA])
 
 	def test_a_persons_add_and_a_later_identical_app_row_merge_into_one_entry(self):
 		"""A useful property of identity being the destination. A user pins a workspace and the app
@@ -1213,7 +1229,7 @@ class TestWhatACustomisationMayDo(DockTestCase):
 		frappe.set_user(self.MANAGER)
 		save_site_dock(APP, payload(BETA))
 		doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": APP, "user": ""}))
-		doc.user = self.PERSON
+		doc.user = self.person
 		return doc
 
 	def test_a_layer_cannot_be_moved_by_naming_a_new_owner(self):
@@ -1229,7 +1245,7 @@ class TestWhatACustomisationMayDo(DockTestCase):
 		doc = self.moved_site_layer()
 		doc.save()
 
-		self.assertEqual(frappe.db.get_value("Dock", doc.name, "user"), self.PERSON)
+		self.assertEqual(frappe.db.get_value("Dock", doc.name, "user"), self.person)
 
 	def test_reset_for_everyone_is_workspace_manager_only(self):
 		from frappe.desk.doctype.dock.dock import reset_dock_for_everyone
@@ -1273,7 +1289,7 @@ class TestTheRowShape(DockTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
-		if not frappe.db.exists("User", self.USER):
+		if not get_user_by_email(self.USER):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -1392,10 +1408,10 @@ class TestTheRowShape(DockTestCase):
 		page = self.make_workspace("Test Dock Shape Gated", GAMMA)
 
 		frappe.set_user("Administrator")
-		user = frappe.get_doc("User", self.USER)
+		user = frappe.get_doc("User", get_user_by_email(self.USER))
 		user.append("block_modules", {"module": GAMMA})
 		user.save(ignore_permissions=True)
-		frappe.clear_cache(user=self.USER)
+		frappe.clear_cache(user=user.name)
 
 		save_site_dock(APP, payload(added(sidebar(GAMMA)), added(workspace(page))))
 
@@ -1473,7 +1489,7 @@ class TestTheCompanionMount(DockTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
-		if not frappe.db.exists("User", self.USER):
+		if not get_user_by_email(self.USER):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -1487,7 +1503,7 @@ class TestTheCompanionMount(DockTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
-		frappe.delete_doc("User", self.USER, force=True, ignore_missing=True)
+		delete_user(self.USER)
 
 	def host_and_companion(self, host_rows=None, companion_rows=None, mount_on=None):
 		return shipped_dock(
@@ -1623,7 +1639,7 @@ class TestAnAppWithNoDock(DockTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
-		if not frappe.db.exists("User", self.USER):
+		if not get_user_by_email(self.USER):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -1922,7 +1938,7 @@ class TestTheExportRoad(IntegrationTestCase):
 
 		"""
 		frappe.set_user("Administrator")
-		frappe.delete_doc("User", self.DESK_USER, force=True, ignore_missing=True)
+		delete_user(self.DESK_USER)
 		clear_arrangements_for(self.APP)
 		self.drop_modules()
 		frappe.db.commit()  # nosemgrep
@@ -1947,7 +1963,7 @@ class TestTheExportRoad(IntegrationTestCase):
 		Made on demand rather than in `setUp`: two tests want it and the rest would pay for it.
 		`tearDown` deletes it before the commit, for the reason written there.
 		"""
-		if not frappe.db.exists("User", self.DESK_USER):
+		if not get_user_by_email(self.DESK_USER):
 			frappe.get_doc(
 				{
 					"doctype": "User",
