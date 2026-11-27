@@ -2168,7 +2168,7 @@ def attach_print(
 
 	if print_letterhead and not letterhead:
 		if not doc:
-			doc = get_cached_doc(doctype, name)
+			doc = get_doc(doctype, name)
 		letterhead = doc.get("letter_head") or get_cached_value("Letter Head", {"is_default": 1}, "name")
 
 	kwargs = dict(
