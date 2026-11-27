@@ -58,7 +58,7 @@ import {
 	SettingsBody,
 	SettingsRow,
 } from "frappe-ui"
-import { Calendar, CommandPalette, CommandPaletteItem, ListView } from "frappe-ui/experimental"
+import { Calendar, ListView } from "frappe-ui/experimental"
 import { FRAPPE_UI_CHARTS } from "@/runtime/utils/constants"
 import {
 	List,
@@ -110,8 +110,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("Tooltip", Tooltip)
 	app.component("Tree", Tree)
 	app.component("ListView", ListView)
-	app.component("CommandPalette", CommandPalette)
-	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)
 	app.component("ContextMenu", ContextMenu)
 	app.component("Duration", Duration)
