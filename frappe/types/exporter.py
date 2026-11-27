@@ -84,7 +84,10 @@ class TypeExporter:
 			# Regex by default will only match till line ends, span end is when we need to stop
 			if class_def := re.search(rf"class {despaced_name}\(.*", code):  # )
 				class_definition_end = class_def.span()[1] + 1
-				code = code[:class_definition_end] + new_code + "\n" + code[class_definition_end:]
+				rest = code[class_definition_end:]
+				if rest.strip() == "pass":  # untouched boilerplate body
+					rest = ""
+				code = code[:class_definition_end] + new_code + "\n" + rest
 
 		if self._validate_code(code):
 			self.controller_path.write_text(code)
