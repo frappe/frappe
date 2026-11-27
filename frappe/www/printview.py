@@ -620,11 +620,12 @@ def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
 
 
 def run_before_print(doc: "Document", print_settings: dict) -> None:
-	"""Prepare Link titles and fire the document's ``before_print`` hook."""
+	"""Prepare Link titles and markdown values and fire the document's ``before_print`` hook."""
 	doc.flags.in_print = True
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
+	convert_markdown(doc)
 
 
 def has_share_key(doc: "Document | dict | None") -> bool:
