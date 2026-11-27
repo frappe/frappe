@@ -426,6 +426,7 @@ def remove_from_installed_apps(app_name):
 			"DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps)
 		)
 		_clear_cache("__global")
+		frappe.client_cache.delete_value("app_hooks")
 		frappe.local.doc_events_hooks = None
 		with filelock(APP_STATE_LOCK):
 			if app_name in frappe.get_disabled_apps():
