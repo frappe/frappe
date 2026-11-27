@@ -192,6 +192,84 @@ class TestAccessLog(IntegrationTestCase):
 
 		self.assertGreaterEqual(get_doc_count("Access Log", {"user": frappe.session.user}), 1)
 
+	def test_list_reads_linked_fields_from_the_primary_database(self):
+		ensure_log_table("Access Log")
+		reader = self._make_user("access-log-reader@example.com", "System Manager")
+		log = frappe.get_doc({"doctype": "Access Log", "user": reader.name})
+		log.db_insert()
+		self.addCleanup(self._delete_log, log.name)
+		filters = {"name": log.name}
+
+		with self.set_user(reader.name):
+			listed = frappe.get_list(
+				"Access Log", filters=filters, fields=["name", "user", "user.full_name as user_full_name"]
+			)
+			self.assertEqual(
+				listed, [{"name": log.name, "user": reader.name, "user_full_name": "Log Reader"}]
+			)
+			self.assertEqual(
+				frappe.get_list("Access Log", filters=filters, fields=["user.full_name"])[0].full_name,
+				"Log Reader",
+			)
+			self.assertEqual(
+				frappe.get_list(
+					"Access Log", filters=filters, fields=["user.full_name", "name"], as_list=True
+				),
+				[["Log Reader", log.name]],
+			)
+			self.assertEqual(
+				frappe.get_list("Access Log", filters=filters, pluck="user.full_name"), ["Log Reader"]
+			)
+
+	def test_linked_fields_need_permission_on_the_linked_doctype(self):
+		ensure_log_table("Access Log")
+		existing_perms = frappe.get_all("Custom DocPerm", {"parent": "Access Log"}, pluck="name")
+		role = frappe.get_doc(
+			{"doctype": "Role", "role_name": "_Test Access Log Reader", "desk_access": 0}
+		).insert()
+		self.addCleanup(self._remove_role, role.name, existing_perms)
+		frappe.permissions.add_permission("Access Log", role.name)
+		reader = self._make_user("access-log-website-user@example.com", role.name, "Website User")
+		log = frappe.get_doc({"doctype": "Access Log", "user": "Administrator"})
+		log.db_insert()
+		self.addCleanup(self._delete_log, log.name)
+
+		with self.set_user(reader.name):
+			listed = frappe.get_list(
+				"Access Log", filters={"name": log.name}, fields=["user", "user.full_name as user_full_name"]
+			)
+			self.assertEqual(listed, [{"user": "Administrator", "user_full_name": None}])
+
+	def _make_user(self, email, role, user_type="System User"):
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "Log",
+				"last_name": "Reader",
+				"user_type": user_type,
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(self._remove_user, user.name)
+		user.add_roles(role)
+		return user
+
+	@staticmethod
+	def _remove_user(user):
+		frappe.set_user("Administrator")
+		frappe.delete_doc("User", user, force=True, ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+
+	@staticmethod
+	def _remove_role(role, existing_perms):
+		frappe.set_user("Administrator")
+		frappe.db.delete(
+			"Custom DocPerm", {"parent": "Access Log", "name": ("not in", existing_perms or [""])}
+		)
+		frappe.delete_doc("Role", role, force=True, ignore_permissions=True)
+		frappe.clear_cache(doctype="Access Log")
+		frappe.db.commit()  # nosemgrep
+
 	def test_track_seen_is_recorded_in_the_log_database(self):
 		"""`track_seen` is declared on this DocType, so opening the form must record the reader.
 
