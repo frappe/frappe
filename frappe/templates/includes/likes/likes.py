@@ -10,9 +10,9 @@ from frappe.website.utils import clear_cache
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="reference_name", limit=get_like_limit, seconds=60 * 60)
-def like(reference_doctype, reference_name, like, route=""):
+def like(reference_doctype: str, reference_name: str, like, route: str = ""):
 	like = frappe.parse_json(like)
-	ref_doc = frappe.get_doc(reference_doctype, reference_name)
+	ref_doc = get_likeable_doc(reference_doctype, reference_name)
 	if ref_doc.disable_likes == 1:
 		return
 
@@ -44,6 +44,22 @@ def like(reference_doctype, reference_name, like, route=""):
 		)
 
 	return liked
+
+
+def get_likeable_doc(reference_doctype, reference_name):
+	"""Return the published document that can receive likes.
+
+	Missing, unpublished and non-likeable documents all give the same error."""
+	try:
+		if frappe.get_meta(reference_doctype).has_field("disable_likes"):
+			ref_doc = frappe.get_doc(reference_doctype, reference_name)
+			if ref_doc.get("published"):
+				return ref_doc
+	except frappe.DoesNotExistError:
+		# drop the "not found" message so it matches the other cases
+		frappe.clear_last_message()
+
+	frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 
 def add_like(reference_doctype, reference_name):
