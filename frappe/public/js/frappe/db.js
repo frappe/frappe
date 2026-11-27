@@ -40,18 +40,23 @@ frappe.db = {
 		});
 	},
 	get_value: function (doctype, filters, fieldname, callback, parent_doc) {
-		return frappe.call({
-			method: "frappe.client.get_value",
-			type: "GET",
-			args: {
-				doctype: doctype,
-				fieldname: fieldname,
-				filters: filters,
-				parent: parent_doc,
-			},
-			callback: function (r) {
-				callback && callback(r.message);
-			},
+		const fields = Array.isArray(fieldname) ? fieldname : [fieldname];
+		let request;
+		if (parent_doc) {
+			// v2 lists have no parent doctype for child-table queries
+			request = frappe.xcall(
+				"frappe.client.get_value",
+				{ doctype, fieldname, filters, parent: parent_doc },
+				"GET"
+			);
+		} else if (frappe.model.is_single(doctype) || locals.DocType[doctype]?.issingle) {
+			request = call_v2_api("GET", document_path(doctype, doctype), { fields });
+		} else {
+			request = get_first_match(doctype, filters, fields).then((row) => row || {});
+		}
+		return request.then((message) => {
+			callback && callback(message);
+			return { message };
 		});
 	},
 	get_single_value: (doctype, field) => {
@@ -80,19 +85,22 @@ frappe.db = {
 		});
 	},
 	get_doc: function (doctype, name, filters) {
-		return new Promise((resolve, reject) => {
-			frappe
-				.call({
-					method: "frappe.client.get",
-					type: "GET",
-					args: { doctype, name, filters },
-					callback: (r) => {
-						frappe.model.sync(r.message);
-						resolve(r.message);
-					},
-				})
-				.fail(reject);
-		});
+		let find_name = Promise.resolve(name || doctype);
+		if (!name && filters) {
+			find_name = get_first_match(doctype, filters, ["name"]).then((row) => {
+				if (!row) {
+					frappe.throw(__("{0} not found", [__(doctype)]));
+				}
+				return row.name;
+			});
+		}
+		return find_name
+			.then((docname) => call_v2_api("GET", document_path(doctype, docname)))
+			.then((doc) => {
+				doc = drop_nulls(doc);
+				frappe.model.sync(doc);
+				return doc;
+			});
 	},
 	insert: function (doc) {
 		// v2 inserts a child row on its own, without saving the parent
@@ -104,8 +112,7 @@ frappe.db = {
 		});
 	},
 	delete_doc: function (doctype, name) {
-		const path = `document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/`;
-		return call_v2_api("DELETE", path).then(() => {
+		return call_v2_api("DELETE", document_path(doctype, name)).then(() => {
 			frappe.model.delete_from_locals(doctype, name);
 		});
 	},
@@ -148,6 +155,32 @@ frappe.db = {
 		});
 	},
 };
+
+function get_first_match(doctype, filters, fields) {
+	if (filters !== undefined && (filters === null || typeof filters !== "object")) {
+		filters = { name: filters ?? "" };
+	}
+	const args = { fields, limit: 1, ...(filters && { filters }) };
+	return call_v2_api("GET", `document/${encodeURIComponent(doctype)}`, args).then(
+		(rows) => rows[0]
+	);
+}
+
+// as frappe.client.get, which returns as_dict(no_nulls=True)
+function drop_nulls(doc) {
+	const out = {};
+	for (const [key, value] of Object.entries(doc)) {
+		if (value === null) continue;
+		out[key] = Array.isArray(value)
+			? value.map((row) => (row && typeof row === "object" ? drop_nulls(row) : row))
+			: value;
+	}
+	return out;
+}
+
+function document_path(doctype, name) {
+	return `document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/`;
+}
 
 function call_v2_api(type, path, args = {}, opts = {}) {
 	return new Promise((resolve, reject) => {
