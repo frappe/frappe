@@ -120,16 +120,46 @@ describe("InviteStep", () => {
 		expect(done).toHaveBeenCalledWith({ invited: 4, roles: ["Manager", "Member"] });
 	});
 
-	it("will not send an invalid or repeated email", async () => {
+	it("flags an invalid email only once sending is tried", async () => {
 		const { el, send } = await mountStep();
 		await type(el, 0, "not-an-email");
-		expect(el.textContent).toContain("Enter a valid email address");
-		expect(button(el, "Send invites")!.disabled).toBe(true);
+		expect(el.textContent).not.toContain("Enter a valid email address");
 
+		button(el, "Send invites")!.click();
+		await settle();
+		expect(el.textContent).toContain("Enter a valid email address");
+		expect(send).not.toHaveBeenCalled();
+	});
+
+	it("flags an invalid email when its field loses focus", async () => {
+		const { el } = await mountStep();
+		await type(el, 0, "jannat@e");
+		expect(el.textContent).not.toContain("Enter a valid email address");
+
+		emails(el)[0].dispatchEvent(new FocusEvent("blur"));
+		await nextTick();
+		expect(el.textContent).toContain("Enter a valid email address");
+	});
+
+	it("flags a repeated email at once and will not send it", async () => {
+		const { el, send } = await mountStep();
 		await type(el, 0, "a@example.com");
 		await type(el, 1, "A@example.com");
 		expect(el.textContent).toContain("This email is already in the list");
-		expect(button(el, "Send invites")!.disabled).toBe(true);
+
+		button(el, "Send invites")!.click();
+		await settle();
+		expect(send).not.toHaveBeenCalled();
+	});
+
+	it("checks emails with the app's own rule", async () => {
+		const { el, send } = await mountStep({
+			validate: (email: string) => email.endsWith("@acme.com"),
+		});
+		await type(el, 0, "a@example.com");
+		button(el, "Send invites")!.click();
+		await settle();
+		expect(el.textContent).toContain("Enter a valid email address");
 		expect(send).not.toHaveBeenCalled();
 	});
 
@@ -143,8 +173,54 @@ describe("InviteStep", () => {
 
 		await type(el, 0, "b@example.com");
 		expect(el.textContent).toContain("This email is already in the list");
-		expect(button(el, "Send invites")!.disabled).toBe(true);
+		button(el, "Send invites")!.click();
+		await settle();
 		expect(send).toHaveBeenCalledTimes(1);
+	});
+
+	it("marks people who already have access and does not count them", async () => {
+		const send = vi.fn().mockResolvedValue({ invited: 1, existing: ["B@example.com"] });
+		const { el, done } = await mountStep({ send, finishDelay: 30 });
+		await type(el, 0, "a@example.com");
+		await type(el, 1, "b@example.com");
+		button(el, "Send invites")!.click();
+		await settle();
+
+		expect(el.textContent).toContain("Already added");
+		expect(done).not.toHaveBeenCalled();
+		await new Promise((resolve) => setTimeout(resolve, 40));
+		expect(done).toHaveBeenCalledWith({ invited: 1, roles: ["Member"] });
+	});
+
+	it("points at an unfinished row instead of adding another", async () => {
+		const { el } = await mountStep();
+		await type(el, 0, "not-an-email");
+		button(el, "Add another")!.click();
+		await nextTick();
+		expect(emails(el)).toHaveLength(2);
+		expect(el.textContent).toContain("Enter a valid email address");
+		expect(document.activeElement).toBe(emails(el)[0]);
+
+		await type(el, 0, "a@example.com");
+		button(el, "Add another")!.click();
+		await nextTick();
+		expect(el.textContent).toContain("Enter an email first");
+		expect(emails(el)).toHaveLength(2);
+	});
+
+	it("adds a row on Enter in the last row", async () => {
+		const { el } = await mountStep();
+		await type(el, 0, "a@example.com");
+		await type(el, 1, "b@example.com");
+		emails(el)[1].dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+		await nextTick();
+		expect(emails(el)).toHaveLength(3);
+	});
+
+	it("stops adding rows at the limit", async () => {
+		const { el } = await mountStep({ maxRows: 2 });
+		expect(button(el, "Add another")!.disabled).toBe(true);
+		expect(el.textContent).toContain("You can invite up to 2 at a time");
 	});
 
 	it("keeps one empty row when the last one is removed", async () => {

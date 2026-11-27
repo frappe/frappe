@@ -135,6 +135,7 @@ export default class ListSettings {
 		let fields = ``;
 
 		me.listview.columns = me.listview.columns.filter((col) => col.type !== "Tag");
+		const repeated_labels = get_repeated_labels(me.fields.map((f) => f.label));
 		const columnByFieldname = {};
 		me.listview.columns.forEach((col) => {
 			if (col.df?.fieldname) columnByFieldname[col.df.fieldname] = col;
@@ -147,6 +148,9 @@ export default class ListSettings {
 			let is_sortable = idx == 0 ? `` : `sortable`;
 			let show_sortable_handle = idx == 0 ? `hide` : ``;
 			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : `d-flex`;
+			let label = __(me.fields[idx].label, null, me.doctype);
+			if (repeated_labels.has(me.fields[idx].label))
+				label += ` (${me.fields[idx].fieldname})`;
 
 			fields += `
 				<div class="control-input form-control fields_order ${is_sortable} flex"
@@ -161,7 +165,7 @@ export default class ListSettings {
 						</div>
 
 						<div class="col flex align-items-center px-0">
-							${__(me.fields[idx].label, null, me.doctype)}
+							${label}
 						</div>
 
 						<div class="col-2">
@@ -461,6 +465,11 @@ export default class ListSettings {
 			}
 		});
 
+		const repeated_labels = get_repeated_labels(multiselect_fields.map((f) => f.label));
+		multiselect_fields.forEach((f) => {
+			if (repeated_labels.has(f.label)) f.label = `${f.label} (${f.value})`;
+		});
+
 		return multiselect_fields;
 	}
 
@@ -490,4 +499,8 @@ export default class ListSettings {
 			me.removed_fields = fields;
 		}
 	}
+}
+
+function get_repeated_labels(labels) {
+	return new Set(labels.filter((label, i) => labels.indexOf(label) !== i));
 }

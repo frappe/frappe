@@ -25,7 +25,7 @@ def run_benchmarks(ctx, benchargs):
 	benchargs = ("--site", site, *benchargs)
 
 	frappe.init(site)
-	frappe.cache.flushall()
+	frappe.cache.flushdb()
 
 	# pyperf expects the benchmark script to be the process entry point.
 	subprocess.check_call([sys.executable, benchmark_runner.__file__, *benchargs])

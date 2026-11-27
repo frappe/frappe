@@ -28,9 +28,9 @@ frappe.ui.form.on("Workflow", {
 		}
 
 		let message = `
-		<div class="flex">
-			<div class="mr-3"><img style="border-radius: var(--radius-md)" width="600" src="/assets/frappe/images/workflow-builder.gif"></div>
-			<div>
+		<div class="flex flex-wrap gap-3">
+			<div style="flex: 1 1 320px; max-width: 600px"><img style="border-radius: var(--radius-md); width: 100%" src="/assets/frappe/images/workflow-builder.gif"></div>
+			<div style="flex: 1 1 260px">
 				<p style="font-size: var(--text-xl)">${title}</p>
 				<p>${msg}</p>
 				<p class="mb-3">${note || ""}</p>

@@ -1,8 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from urllib.parse import urlparse
 
 import frappe
+
+NON_WEB_URL_SCHEMES = ("cid", "data", "javascript", "mailto", "tel")
 
 
 def get_parent_doc(doc):
@@ -91,8 +94,11 @@ def html2text(html: str, strip_links=False, wrap=True) -> str:
 	return md(html, heading_style="ATX", strip=strip, wrap=wrap)
 
 
-def html_to_plain_text(html: str) -> str:
-	"""Return the given `html` as plain text."""
+def html_to_plain_text(html: str, exclude: str | None = None) -> str:
+	"""Return the given `html` as plain text, with the URLs of its links and images.
+
+	`exclude` is a CSS selector of elements to leave out.
+	"""
 
 	if not html:
 		return ""
@@ -101,8 +107,20 @@ def html_to_plain_text(html: str) -> str:
 
 	soup = BeautifulSoup(html, "html.parser")
 
-	for element in soup(["script", "style"]):
+	for element in soup(["head", "script", "style"]):
 		element.decompose()
+
+	if exclude:
+		for element in soup.select(exclude):
+			element.decompose()
+
+	for image in soup.find_all("img", src=_is_web_url):
+		image.replace_with(_join_label_and_url(image.get("alt", ""), image["src"]))
+
+	for link in soup.find_all("a", href=_is_web_url):
+		link.replace_with(_join_label_and_url(link.get_text(" ", strip=True), link["href"]))
+
+	soup.smooth()
 
 	# Introduce explicit newlines for block-level elements while keeping inline content on the same line.
 	for br in soup.find_all("br"):
@@ -128,3 +146,11 @@ def html_to_plain_text(html: str) -> str:
 			previous_blank = True
 
 	return "\n".join(cleaned).strip()
+
+
+def _is_web_url(url: str | None) -> bool:
+	return bool(url) and not url.startswith("#") and urlparse(url).scheme not in NON_WEB_URL_SCHEMES
+
+
+def _join_label_and_url(label: str, url: str) -> str:
+	return f"{label} ({url})" if label and label != url else url

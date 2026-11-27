@@ -4,12 +4,15 @@
 import base64
 import os
 import re
+from email import charset
+from email.mime.multipart import MIMEMultipart
 
 import frappe
 from frappe import safe_decode
 from frappe.core.doctype.communication.communication import Communication
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
 from frappe.email.email_body import (
+	add_attachment,
 	get_email,
 	get_header,
 	inline_style_in_html,
@@ -370,6 +373,30 @@ Hello <script>alert(1)</script> world.
 		self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", communication.content)
 		self.assertNotIn("<script>", communication.content)
 		frappe.db.rollback()
+
+	def use_default_utf8_charset(self):
+		"""Reset the global `utf-8` charset to the Python default for this test."""
+		self.addCleanup(charset.CHARSETS.__setitem__, "utf-8", charset.CHARSETS["utf-8"])
+		charset.add_charset("utf-8", charset.SHORTEST, charset.BASE64, "utf-8")
+
+	def test_text_attachment_does_not_depend_on_global_charset(self):
+		self.use_default_utf8_charset()
+		parent = MIMEMultipart()
+
+		add_attachment("README.md", "# Notes\nPlain ASCII text.\n", parent=parent)
+
+		part = parent.get_payload(0)
+		self.assertEqual(part["Content-Type"], 'text/markdown; charset="utf-8"')
+		self.assertEqual(part["Content-Transfer-Encoding"], "quoted-printable")
+		self.assertEqual(part.get_payload(decode=True), b"# Notes\nPlain ASCII text.\n")
+
+	def test_email_does_not_change_global_charset(self):
+		self.use_default_utf8_charset()
+		default_utf8_charset = charset.CHARSETS["utf-8"]
+
+		get_email(recipients=["test@example.com"], sender="me@example.com", msg="<p>Hello</p>")
+
+		self.assertEqual(charset.CHARSETS["utf-8"], default_utf8_charset)
 
 
 def fixed_column_width(string, chunk_size):

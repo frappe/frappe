@@ -95,8 +95,9 @@ jobs:
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
           git diff --exit-code yarn.lock studio/frontend/yarn.lock flow/yarn.lock
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
+      - name: Restore Playwright browsers
+        id: playwright-cache
+        uses: actions/cache/restore@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('frappe/commands/testing.py') }}
@@ -131,6 +132,13 @@ jobs:
         env:
           SELECTED_SPECS: ${{ needs.checkrun.outputs.specs }}
           UI_IMPACT_MAP_DIR: ${{ github.event_name == 'schedule' && format('{0}/ui-impact-map', github.workspace) || '' }}
+
+      - name: Save Playwright browsers
+        if: ${{ !cancelled() && github.ref == 'refs/heads/develop' && steps.playwright-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ steps.playwright-cache.outputs.cache-primary-key }}
 
       - name: Upload UI test impact map
         if: ${{ github.event_name == 'schedule' }}

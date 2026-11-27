@@ -3035,6 +3035,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				// let's remove it manually
 				this.data = this.data.filter((d) => !names.includes(d.name));
 				this.remove_list_items(names);
+				this.render_count();
 				return;
 			}
 
@@ -3073,6 +3074,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 			this.toggle_result_area();
 			this.render_list();
+			this.render_count();
 		});
 	}
 
@@ -3588,7 +3590,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				fieldname: "tags",
 			},
 		];
-		fields = fields.concat(default_fields_dict);
+		if (!this.meta.is_virtual) fields = fields.concat(default_fields_dict);
 
 		group_by_fields.push({
 			label: __(this.doctype),

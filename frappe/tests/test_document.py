@@ -438,6 +438,32 @@ class TestDocument(IntegrationTestCase):
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
 
+		# inserted as submitted
+		xss = '<img src="x" onerror="alert(1)">'
+		submitted = frappe.new_doc(self.test_submittable_insert().doctype)
+		submitted.test_field = xss
+		submitted.docstatus = 1
+		submitted.insert()
+		self.assertEqual(submitted.test_field, '<img src="x">')
+
+		# edited and submitted in one save
+		draft = self.test_submittable_insert()
+		draft.test_field = xss
+		draft.submit()
+		self.assertEqual(draft.test_field, '<img src="x">')
+
+		# row added after submit to an allow on submit table
+		child = new_doctype(istable=1).insert().name
+		parent = new_doctype(
+			is_submittable=1,
+			fields=[{"fieldtype": "Table", "options": child, "fieldname": "items", "allow_on_submit": 1}],
+		).insert()
+		doc = frappe.new_doc(parent.name).insert()
+		doc.submit()
+		doc.append("items", {"some_fieldname": xss})
+		doc.save()
+		self.assertEqual(doc.items[0].some_fieldname, '<img src="x">')
+
 	def test_naming_series(self):
 		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
 
@@ -1544,7 +1570,7 @@ class TestReadDoc(IntegrationTestCase):
 			self.assertIsNone(doc.as_dict()["secret_info"])
 
 	def test_raises_without_read_permission(self):
-		with self.set_user(create_user("test_read_doc_no_access@example.com", "Blogger").name):
+		with self.set_user(create_user("test_read_doc_no_access@example.com", "Website Manager").name):
 			self.assertRaises(frappe.PermissionError, frappe.read_doc, self.doctype.name, self.docname)
 
 	def test_document_can_not_be_saved(self):

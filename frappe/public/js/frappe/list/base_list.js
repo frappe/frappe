@@ -741,7 +741,10 @@ class FilterArea {
 		this.user_setting_fields =
 			frappe.get_user_settings(this.list_view.doctype)?.group_by_fields || [];
 
-		if (["assigned_to", "owner", "tags"].some((v) => this.user_setting_fields.includes(v))) {
+		if (
+			!this.list_view.meta.is_virtual &&
+			["assigned_to", "owner", "tags"].some((v) => this.user_setting_fields.includes(v))
+		) {
 			this.render_non_standard_fields_filter();
 		}
 	}
@@ -1029,6 +1032,13 @@ class FilterArea {
 				<span class="group-by-value ellipsis" data-name="${field.name}">
 					${applied_html}
 					${label}
+					${
+						field.description
+							? `<br><span class="small text-muted">${frappe.utils.escape_html(
+									field.description
+							  )}</span>`
+							: ""
+					}
 				</span>
 				<span class="group-by-count">${field.count}</span>
 			</a>

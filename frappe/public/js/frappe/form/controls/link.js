@@ -408,10 +408,18 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	 * @returns {boolean} - True if input matches the label, value, or description.
 	 */
 	input_matches_item(input, item) {
+		const parts = input.split("%");
 		return (
 			input &&
 			[this.get_translated(item.label ?? item.value), item.value, item.description].some(
-				(value) => cstr(value).toLowerCase().includes(input)
+				(value) => {
+					let text = cstr(value).toLowerCase();
+					return parts.every((part) => {
+						const index = text.indexOf(part);
+						text = text.slice(index + part.length);
+						return index !== -1;
+					});
+				}
 			)
 		);
 	}

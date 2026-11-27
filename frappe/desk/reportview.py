@@ -792,6 +792,7 @@ def get_field_info(fields, parent_doctype, group_by: str | None = None):
 
 		doctype = doctype or parent_doctype
 		options = None
+		ignore_user_permissions = 0
 
 		# Special-case the primary `name` column on the parent doctype
 		if doctype == parent_doctype and fieldname == "name":
@@ -811,6 +812,7 @@ def get_field_info(fields, parent_doctype, group_by: str | None = None):
 				fieldtype = df.fieldtype
 				translatable = df.translatable or False
 				options = df.options
+				ignore_user_permissions = df.ignore_user_permissions or 0
 
 				if df.fieldtype == "Link" and options and frappe.get_meta(options).translated_doctype:
 					translatable = True
@@ -831,6 +833,7 @@ def get_field_info(fields, parent_doctype, group_by: str | None = None):
 				"fieldtype": fieldtype,
 				"translatable": translatable,
 				"options": options,
+				"ignore_user_permissions": ignore_user_permissions,
 			}
 		)
 

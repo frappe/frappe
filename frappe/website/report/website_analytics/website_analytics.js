@@ -5,32 +5,14 @@ frappe.query_reports["Website Analytics"] = {
 	filters: [
 		{
 			fieldname: "from_date",
-			label: __("From Date"),
-			fieldtype: "Date",
 			default: frappe.datetime.add_days(frappe.datetime.now_date(), -100),
 		},
 		{
 			fieldname: "to_date",
-			label: __("To Date"),
-			fieldtype: "Date",
 			default: frappe.datetime.now_date(),
 		},
 		{
-			fieldname: "range",
-			label: __("Range"),
-			fieldtype: "Select",
-			options: [
-				{ value: "Daily", label: __("Daily") },
-				{ value: "Weekly", label: __("Weekly") },
-				{ value: "Monthly", label: __("Monthly") },
-			],
-			default: "Daily",
-			reqd: 1,
-		},
-		{
 			fieldname: "group_by",
-			label: __("Group By"),
-			fieldtype: "Select",
 			options: [
 				{ value: "path", label: __("Path") },
 				{ value: "browser", label: __("Browser") },
@@ -40,7 +22,6 @@ frappe.query_reports["Website Analytics"] = {
 				{ value: "medium", label: __("Medium") },
 				{ value: "content", label: __("Content") },
 			],
-			default: "path",
 		},
 	],
 	formatter: function (value, row, column, data, default_formatter) {

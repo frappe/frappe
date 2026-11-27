@@ -1797,6 +1797,14 @@ def validate_fields(meta: Meta):
 		if docfield.fieldtype not in ["Table MultiSelect", "Table"]:
 			return
 
+		if docfield.fieldtype == "Table" and meta.istable:
+			frappe.throw(
+				_("Child Table {0} cannot have a Table field {1}").format(
+					frappe.bold(meta.name), frappe.bold(docfield.fieldname)
+				),
+				title=_("Invalid Field Type"),
+			)
+
 		doctype = docfield.options
 		child_doctype_meta = frappe.get_meta(doctype)
 

@@ -3,6 +3,8 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import listPlugin from "@fullcalendar/list";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import allLocales from "@fullcalendar/core/locales-all";
 
 frappe.FullCalendar = FullCalendar;
 frappe.FullCalendar.Plugins = [listPlugin, dayGridPlugin, timeGridPlugin, interactionPlugin];
+frappe.FullCalendar.locales = allLocales;

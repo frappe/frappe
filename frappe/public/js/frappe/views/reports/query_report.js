@@ -849,7 +849,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",
-				type: "GET",
+				type: "QUERY",
 				args: {
 					report_name: this.report_name,
 					filters: filters,
@@ -2092,7 +2092,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						args,
 					});
 				} else {
-					open_url_post(frappe.request.url, args);
+					const { cmd, ...params } = args;
+					open_url_post(`/api/method/${cmd}`, params);
 				}
 				this.export_dialog.hide();
 			}

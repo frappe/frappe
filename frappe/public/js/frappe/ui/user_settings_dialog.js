@@ -89,7 +89,6 @@ async function _load_user_data() {
 		"time_zone",
 		"notifications",
 		"search_bar",
-		"list_sidebar",
 		"bulk_actions",
 		"view_switcher",
 		"form_sidebar",
@@ -208,11 +207,6 @@ function _switches() {
 			},
 		],
 		lists: [
-			{
-				fieldname: "list_sidebar",
-				label: __("Show sidebar"),
-				description: __("Display the filter and group-by sidebar in list views."),
-			},
 			{
 				fieldname: "bulk_actions",
 				label: __("Allow bulk actions"),
