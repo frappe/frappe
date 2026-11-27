@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-08 09:32+0000\n"
-"PO-Revision-Date: 2026-11-16 04:13\n"
+"POT-Creation-Date: 2026-11-15 09:32+0000\n"
+"PO-Revision-Date: 2026-11-23 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -97,12 +97,12 @@ msgstr "ในมุมมองรายการ ไม่อนุญาต�
 msgid "'Recipients' not specified"
 msgstr "ผู้รับ ไม่ได้ระบุ"
 
-#: frappe/utils/__init__.py:257
+#: frappe/utils/__init__.py:267
 #, python-brace-format
 msgid "'{0}' is not a valid IBAN"
 msgstr "'{0}' ไม่ใช่ IBAN ที่ถูกต้อง"
 
-#: frappe/utils/__init__.py:247
+#: frappe/model/document.py:2703 frappe/utils/__init__.py:252
 #, python-brace-format
 msgid "'{0}' is not a valid URL"
 msgstr "'{0}' ไม่ใช่ URL ที่ถูกต้อง"
@@ -1147,7 +1147,7 @@ msgstr "การดำเนินการ / เส้นทาง"
 msgid "Action Complete"
 msgstr "ดำเนินการเสร็จสิ้น"
 
-#: frappe/model/document.py:3114
+#: frappe/model/document.py:3120
 msgid "Action Failed"
 msgstr "การดำเนินการล้มเหลว"
 
@@ -4374,7 +4374,7 @@ msgstr "กล้อง"
 #. Label of a Link field in DocType 'Newsletter'
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/email/doctype/newsletter/newsletter.json:245
-#: frappe/public/js/frappe/utils/utils.js:1742
+#: frappe/public/js/frappe/utils/utils.js:1751
 #: frappe/website/doctype/web_page_view/web_page_view.json:78
 #: frappe/website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
@@ -4518,7 +4518,7 @@ msgstr "ไม่สามารถดึงค่าได้"
 msgid "Cannot Remove"
 msgstr "ไม่สามารถลบได้"
 
-#: frappe/model/document.py:2833
+#: frappe/model/document.py:2839
 msgid "Cannot Update After Submit"
 msgstr "ไม่สามารถอัปเดตได้หลังจากส่ง"
 
@@ -5182,7 +5182,7 @@ msgstr "คลิกที่นี่เพื่อยืนยัน"
 msgid "Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access."
 msgstr "คลิกที่<b>อนุญาตการเข้าถึง Google Drive</b>เพื่ออนุญาตการเข้าถึง Google Drive"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:538
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:536
 msgid "Click on a file to select it."
 msgstr "คลิกที่ไฟล์เพื่อเลือกไฟล์"
 
@@ -6106,7 +6106,7 @@ msgstr "สถานะการมีส่วนร่วม"
 msgid "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected."
 msgstr "ควบคุมว่าสามารถให้ผู้ใช้ใหม่ลงทะเบียนโดยใช้คีย์การเข้าสู่ระบบโซเชียลนี้ได้หรือไม่ หากไม่ได้ตั้งค่า จะใช้การตั้งค่าเว็บไซต์"
 
-#: frappe/public/js/frappe/utils/utils.js:1044
+#: frappe/public/js/frappe/utils/utils.js:1053
 msgid "Copied to clipboard."
 msgstr "คัดลอกไปยังคลิปบอร์ดแล้ว"
 
@@ -6224,7 +6224,7 @@ msgstr "โต้ตอบ"
 msgid "Country"
 msgstr "ประเทศ"
 
-#: frappe/utils/__init__.py:118
+#: frappe/utils/__init__.py:123
 msgid "Country Code Required"
 msgstr "รหัสประเทศจำเป็น"
 
@@ -7173,7 +7173,7 @@ msgstr "วันที่หลังจากนั้น security.txt นี�
 msgid "Date and Number Format"
 msgstr "รูปแบบวันที่และตัวเลข"
 
-#: frappe/public/js/frappe/form/controls/date.js:175
+#: frappe/public/js/frappe/form/controls/date.js:181
 #, python-brace-format
 msgid "Date {0} must be in format: {1}"
 msgstr "วันที่ {0} ต้องอยู่ในรูปแบบ: {1}"
@@ -8585,7 +8585,7 @@ msgid "Document Types and Permissions"
 msgstr "ประเภทเอกสารและสิทธิ์"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:3185
+#: frappe/model/document.py:3191
 msgid "Document Unlocked"
 msgstr "เอกสารถูกปลดล็อก"
 
@@ -9738,7 +9738,7 @@ msgstr "เปิดใช้งานหากการคลิกที่\n"
 msgid "Enable in-app website tracking"
 msgstr "เปิดใช้งานการติดตามเว็บไซต์ในแอป"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:93
+#: frappe/desk/doctype/notification_type/notification_type.py:94
 msgid "Enable the notification type before emailing it to users."
 msgstr ""
 
@@ -9800,7 +9800,7 @@ msgstr "เปิดใช้งานมุมมองปฏิทินแล
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
 msgstr "การเปิดใช้งานการตอบกลับอัตโนมัติในบัญชีอีเมลขาเข้าจะส่งการตอบกลับอัตโนมัติไปยังอีเมลที่ซิงค์ทั้งหมด คุณต้องการดำเนินการต่อหรือไม่?"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:104
+#: frappe/desk/doctype/notification_type/notification_type.py:105
 #, python-brace-format
 msgid "Enabling email for {0} across all users in the background."
 msgstr ""
@@ -10984,7 +10984,7 @@ msgstr "ไม่สามารถเปลี่ยนประเภทฟิ
 msgid "File"
 msgstr "ไฟล์"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:498
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:496
 #, python-brace-format
 msgid "File \"{0}\" was skipped because of invalid file type"
 msgstr "ไฟล์ \"{0}\" ถูกข้ามเนื่องจากประเภทไฟล์ไม่ถูกต้อง"
@@ -11072,7 +11072,7 @@ msgstr "ไฟล์ใหญ่เกินไป"
 msgid "File type of {0} is not allowed"
 msgstr "ประเภทไฟล์ของ {0} ไม่ได้รับอนุญาต"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:637
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:635
 msgid "File upload failed."
 msgstr "การอัปโหลดไฟล์ล้มเหลว"
 
@@ -12006,7 +12006,7 @@ msgid "Generate Random Password"
 msgstr "สร้างรหัสผ่านแบบสุ่ม"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:162
-#: frappe/public/js/frappe/utils/utils.js:1781
+#: frappe/public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
 msgstr "สร้าง URL สำหรับติดตาม"
 
@@ -12486,7 +12486,7 @@ msgstr "จัดกลุ่มตาม <span style='font-weight:600;'>{0}</b>
 msgid "Grouped by {0}"
 msgstr ""
 
-#: frappe/handler.py:187
+#: frappe/handler.py:188
 #, python-brace-format
 msgid "Guests are not allowed to upload files for {0} Doctype"
 msgstr ""
@@ -12776,7 +12776,7 @@ msgstr "เฮลเวติกา"
 msgid "Helvetica Neue"
 msgstr "เฮลเวติกา นอย"
 
-#: frappe/public/js/frappe/utils/utils.js:1778
+#: frappe/public/js/frappe/utils/utils.js:1787
 msgid "Here's your tracking URL"
 msgstr "นี่คือลิงก์ติดตามของคุณ"
 
@@ -14330,7 +14330,7 @@ msgstr "พารามิเตอร์ไม่ถูกต้อง"
 msgid "Invalid Password"
 msgstr "รหัสผ่านไม่ถูกต้อง"
 
-#: frappe/utils/__init__.py:111
+#: frappe/utils/__init__.py:116
 msgid "Invalid Phone Number"
 msgstr "หมายเลขโทรศัพท์ไม่ถูกต้อง"
 
@@ -14352,8 +14352,8 @@ msgstr "ชื่อฟิลด์ตารางไม่ถูกต้อง
 msgid "Invalid Transition"
 msgstr "การเปลี่ยนผ่านไม่ถูกต้อง"
 
-#: frappe/core/doctype/file/file.py:351
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:550
+#: frappe/core/doctype/file/file.py:351 frappe/model/document.py:2703
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:548
 #: frappe/public/js/frappe/widgets/widget_dialog.js:583
 #: frappe/utils/csvutils.py:233 frappe/utils/csvutils.py:254
 msgid "Invalid URL"
@@ -14915,6 +14915,10 @@ msgstr "Javascript ถูกปิดใช้งานบนเบราว์�
 #: frappe/printing/doctype/print_format/print_format.json:106
 msgid "Jinja"
 msgstr "จินจา"
+
+#: frappe/utils/jinja.py:117
+msgid "Jinja Template Error"
+msgstr ""
 
 #. Label of a Data field in DocType 'Prepared Report'
 #. Label of a Data field in DocType 'RQ Job'
@@ -16753,7 +16757,7 @@ msgstr "ความหมายของประเภทการอนุญ
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/desk/doctype/todo/todo.json:53
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:218
-#: frappe/public/js/frappe/utils/utils.js:1750
+#: frappe/public/js/frappe/utils/utils.js:1759
 #: frappe/website/doctype/web_page_view/web_page_view.json:84
 #: frappe/website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -18363,8 +18367,8 @@ msgstr "จำนวนคอลัมน์"
 
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:94
-msgid "No of Rows (Max 500)"
-msgstr "จำนวนแถว (สูงสุด 500)"
+msgid "No of Rows"
+msgstr ""
 
 #: frappe/__init__.py:1084 frappe/client.py:143 frappe/client.py:185
 #, python-brace-format
@@ -18643,7 +18647,7 @@ msgstr "ไม่ได้อยู่ในโหมดนักพัฒนา
 #: frappe/api/v1.py:122 frappe/api/v1.py:127
 #: frappe/core/doctype/system_settings/system_settings.py:248
 #: frappe/handler.py:114
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:624
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:622
 #: frappe/public/js/frappe/request.js:155
 #: frappe/public/js/frappe/request.js:165
 #: frappe/public/js/frappe/request.js:170
@@ -18665,7 +18669,7 @@ msgstr "ไม่ได้รับอนุญาตให้เรียงล
 msgid "Not permitted to view {0}"
 msgstr "ไม่ได้รับอนุญาตให้ดู {0}"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:623
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:621
 #, python-brace-format
 msgid "Not permitted. {0}."
 msgstr "ไม่อนุญาต {0}"
@@ -18698,7 +18702,7 @@ msgstr "หมายเหตุ:"
 msgid "Note: By default emails for failed backups are sent."
 msgstr "หมายเหตุ: โดยค่าเริ่มต้นจะส่งอีเมลสำหรับการสำรองข้อมูลที่ล้มเหลว"
 
-#: frappe/public/js/frappe/utils/utils.js:786
+#: frappe/public/js/frappe/utils/utils.js:795
 msgid "Note: Changing the Page Name will break previous URL to this page."
 msgstr "หมายเหตุ: การเปลี่ยนชื่อหน้าจะทำให้ URL ก่อนหน้านี้ไปยังหน้านี้เสีย"
 
@@ -20423,7 +20427,7 @@ msgstr "โทรศัพท์"
 msgid "Phone No."
 msgstr "หมายเลขโทรศัพท์"
 
-#: frappe/utils/__init__.py:110
+#: frappe/utils/__init__.py:115
 #, python-brace-format
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "หมายเลขโทรศัพท์ {0} ที่ตั้งค่าในฟิลด์ {1} ไม่ถูกต้อง"
@@ -20593,7 +20597,7 @@ msgstr "โปรดเปิดใช้งานคีย์เข้าสู
 #: frappe/printing/page/print/print.js:643
 #: frappe/printing/page/print/print.js:673
 #: frappe/public/js/frappe/list/bulk_operations.js:161
-#: frappe/public/js/frappe/utils/utils.js:1455
+#: frappe/public/js/frappe/utils/utils.js:1464
 msgid "Please enable pop-ups"
 msgstr "โปรดเปิดใช้งานป๊อปอัป"
 
@@ -20750,12 +20754,12 @@ msgstr "โปรดเลือกฟิลด์ X และ Y"
 msgid "Please select a DocType in options before setting filters"
 msgstr "กรุณาเลือกประเภทเอกสาร (DocType) จากตัวเลือกก่อนตั้งค่าตัวกรอง"
 
-#: frappe/utils/__init__.py:117
+#: frappe/utils/__init__.py:122
 #, python-brace-format
 msgid "Please select a country code for field {1}."
 msgstr "โปรดเลือกรหัสประเทศสำหรับฟิลด์ {1}"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:526
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:524
 msgid "Please select a file first."
 msgstr "โปรดเลือกไฟล์ก่อน"
 
@@ -22119,9 +22123,13 @@ msgstr "โหมดอ่าน"
 msgid "Read the documentation to know more"
 msgstr "อ่านเอกสารเพื่อทราบข้อมูลเพิ่มเติม"
 
-#: frappe/utils/safe_exec.py:746 frappe/utils/safe_exec.py:759
+#: frappe/utils/safe_exec.py:748
 msgid "Read-Only queries are allowed"
 msgstr "อนุญาตให้ทำการค้นหาแบบอ่านอย่างเดียว"
+
+#: frappe/utils/safe_exec.py:751
+msgid "Reading passwords is not allowed"
+msgstr ""
 
 #. Label of a Markdown Editor field in DocType 'Package'
 #: frappe/core/doctype/package/package.json:19
@@ -23898,6 +23906,10 @@ msgstr "พารามิเตอร์ SMS"
 msgid "SMS Settings"
 msgstr "การตั้งค่า SMS"
 
+#: frappe/core/doctype/sms_settings/sms_settings.py:165
+msgid "SMS gateway request failed"
+msgstr ""
+
 #: frappe/core/doctype/sms_settings/sms_settings.py:126
 msgid "SMS sent successfully"
 msgstr "ส่ง SMS สำเร็จ"
@@ -24105,7 +24117,7 @@ msgstr "การบันทึกนี้จะส่งออกเอกส
 msgid "Saving..."
 msgstr "กำลังบันทึก..."
 
-#: frappe/public/js/frappe/form/controls/data.js:149
+#: frappe/public/js/frappe/form/controls/data.js:159
 msgid "Scan"
 msgstr "สแกน"
 
@@ -25251,7 +25263,7 @@ msgstr "สคริปต์เซิร์ฟเวอร์ถูกปิด
 msgid "Server Scripts feature is not available on this site."
 msgstr "ฟีเจอร์สคริปต์เซิร์ฟเวอร์ไม่สามารถใช้งานได้ในเว็บไซต์นี้"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:642
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:640
 msgid "Server error during upload. The file might be corrupted."
 msgstr "เกิดข้อผิดพลาดของเซิร์ฟเวอร์ระหว่างการอัปโหลด ไฟล์อาจเสียหาย"
 
@@ -25405,7 +25417,7 @@ msgid "Set Value"
 msgstr "ตั้งค่ามูลค่า"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:94
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:146
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:135
 msgid "Set all private"
 msgstr "ตั้งค่าทั้งหมดเป็นส่วนตัว"
 
@@ -26127,7 +26139,7 @@ msgstr "ขนาด"
 msgid "Size (MB)"
 msgstr "ขนาด (MB)"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:630
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:628
 msgid "Size exceeds the maximum allowed file size."
 msgstr "ขนาดไฟล์เกินขนาดสูงสุดที่อนุญาต"
 
@@ -26373,7 +26385,7 @@ msgstr "จัดเรียงฟิลด์ {0} ต้องเป็นช�
 
 #. Label of a Data field in DocType 'Web Page View'
 #. Label of a Small Text field in DocType 'Website Route Redirect'
-#: frappe/public/js/frappe/utils/utils.js:1736
+#: frappe/public/js/frappe/utils/utils.js:1745
 #: frappe/website/doctype/web_page_view/web_page_view.json:72
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json:16
 #: frappe/website/report/website_analytics/website_analytics.js:38
@@ -28205,6 +28217,10 @@ msgstr "เกิดข้อผิดพลาดในการสร้าง
 msgid "There was an error saving filters"
 msgstr "เกิดข้อผิดพลาดในการบันทึกตัวกรอง"
 
+#: frappe/utils/jinja.py:133
+msgid "There was an error while rendering this template."
+msgstr ""
+
 #: frappe/public/js/frappe/form/sidebar/attachments.js:236
 msgid "There were errors"
 msgstr "มีข้อผิดพลาด"
@@ -29281,7 +29297,7 @@ msgstr "ติดตามว่าอีเมลของคุณถูกเ
 msgid "Track milestones for any document"
 msgstr "ติดตามเหตุการณ์สำคัญสำหรับเอกสารใด ๆ"
 
-#: frappe/public/js/frappe/utils/utils.js:1775
+#: frappe/public/js/frappe/utils/utils.js:1784
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "URL การติดตามถูกสร้างและคัดลอกไปยังคลิปบอร์ด"
 
@@ -29635,6 +29651,11 @@ msgstr "ไม่สามารถเปิดไฟล์ที่แนบม
 msgid "Unable to read file format for {0}"
 msgstr "ไม่สามารถอ่านรูปแบบไฟล์สำหรับ {0}"
 
+#: frappe/email/receive.py:653
+#, python-brace-format
+msgid "Unable to save email attachment {0}"
+msgstr ""
+
 #: frappe/core/doctype/communication/email.py:188
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr "ไม่สามารถส่งอีเมลได้เนื่องจากไม่มีบัญชีอีเมล โปรดตั้งค่าบัญชีอีเมลเริ่มต้นจาก การตั้งค่า > บัญชีอีเมล"
@@ -29738,7 +29759,7 @@ msgstr "ยังไม่ได้อ่าน"
 msgid "Unread Notification Sent"
 msgstr "การแจ้งเตือนที่ยังไม่ได้อ่านถูกส่งแล้ว"
 
-#: frappe/utils/safe_exec.py:747 frappe/utils/safe_exec.py:760
+#: frappe/utils/safe_exec.py:758
 msgid "Unsafe SQL query"
 msgstr "คำสั่ง SQL ที่ไม่ปลอดภัย"
 
@@ -29959,8 +29980,8 @@ msgstr "อัปเกรดแผน"
 msgid "Upgrade your support experience with Frappe Helpdesk"
 msgstr "อัปเกรดประสบการณ์การสนับสนุนของคุณด้วย Frappe Helpdesk"
 
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:143
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:144
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:132
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:133
 #: frappe/public/js/frappe/form/grid.js:111
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:13
 msgid "Upload"
@@ -30634,7 +30655,7 @@ msgstr "ค่าที่เปลี่ยนแปลง"
 msgid "Value To Be Set"
 msgstr "ค่าที่จะตั้ง"
 
-#: frappe/model/document.py:843 frappe/model/document.py:2723
+#: frappe/model/document.py:843 frappe/model/document.py:2729
 #, python-brace-format
 msgid "Value cannot be changed for {0}"
 msgstr "ค่าไม่สามารถเปลี่ยนแปลงได้สำหรับ {0}"
@@ -30682,7 +30703,7 @@ msgstr "ค่าต้องเป็นหนึ่งใน {0}"
 msgid "Value to Validate"
 msgstr "ค่าที่จะตรวจสอบ"
 
-#: frappe/model/document.py:2796
+#: frappe/model/document.py:2802
 msgid "Value too big"
 msgstr "ค่ามากเกินไป"
 
@@ -31054,7 +31075,7 @@ msgstr "หน้าเว็บ"
 msgid "Web Page Block"
 msgstr "บล็อกหน้าเว็บ"
 
-#: frappe/public/js/frappe/utils/utils.js:1728
+#: frappe/public/js/frappe/utils/utils.js:1737
 msgid "Web Page URL"
 msgstr "URL หน้าเว็บ"
 
@@ -31754,7 +31775,7 @@ msgstr "ฟิลด์ X"
 msgid "XLSX"
 msgstr "XLSX"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:645
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:643
 msgid "XMLHttpRequest Error"
 msgstr "ข้อผิดพลาดของ XMLHttpRequest"
 
@@ -32032,7 +32053,7 @@ msgstr "คุณสามารถพิมพ์เอกสารได้ส
 msgid "You can only unfollow documents for yourself."
 msgstr "คุณสามารถยกเลิกการติดตามเอกสารได้เฉพาะสำหรับตัวคุณเองเท่านั้น"
 
-#: frappe/handler.py:244
+#: frappe/handler.py:245
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
 msgstr "คุณสามารถอัปโหลดได้เฉพาะไฟล์ JPG, PNG, GIF, PDF, TXT, CSV หรือเอกสารของ Microsoft เท่านั้น"
 
@@ -32672,7 +32693,7 @@ msgstr "จัดชิดขวา"
 msgid "amend"
 msgstr "แก้ไข"
 
-#: frappe/public/js/frappe/utils/utils.js:406 frappe/utils/data.py:1415
+#: frappe/public/js/frappe/utils/utils.js:415 frappe/utils/data.py:1415
 msgid "and"
 msgstr "และ"
 
@@ -32880,7 +32901,7 @@ msgstr "สร้าง"
 msgid "cyan"
 msgstr "สีฟ้า"
 
-#: frappe/public/js/frappe/utils/utils.js:1127
+#: frappe/public/js/frappe/utils/utils.js:1136
 msgctxt "Days (Field: Duration)"
 msgid "d"
 msgstr "วัน"
@@ -33161,7 +33182,7 @@ msgstr "สีเทา"
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr "ไม่พบ gzip ใน PATH! จำเป็นต้องใช้เพื่อสำรองข้อมูล"
 
-#: frappe/public/js/frappe/utils/utils.js:1131
+#: frappe/public/js/frappe/utils/utils.js:1140
 msgctxt "Hours (Field: Duration)"
 msgid "h"
 msgstr "ฮ"
@@ -33312,7 +33333,7 @@ msgstr "เข้าสู่ระบบแล้ว"
 msgid "long"
 msgstr "ยาว"
 
-#: frappe/public/js/frappe/utils/utils.js:1135
+#: frappe/public/js/frappe/utils/utils.js:1144
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
 msgstr "นาที"
@@ -33466,7 +33487,7 @@ msgstr "เมื่ออัปเดตหลังจากส่ง"
 msgid "only."
 msgstr "เพียงอย่างเดียว"
 
-#: frappe/public/js/frappe/utils/utils.js:403
+#: frappe/public/js/frappe/utils/utils.js:412
 #: frappe/website/doctype/web_form/web_form.js:388 frappe/www/login.html:89
 #: frappe/www/login.py:112
 msgid "or"
@@ -33668,7 +33689,7 @@ msgstr "รีทวีต"
 msgid "road"
 msgstr "ถนน"
 
-#: frappe/public/js/frappe/utils/utils.js:1139
+#: frappe/public/js/frappe/utils/utils.js:1148
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
 msgstr "วินาที"
@@ -34119,7 +34140,7 @@ msgstr "แผนภูมิ {0}"
 #: frappe/core/page/dashboard_view/dashboard_view.js:67
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:347
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:348
-#: frappe/public/js/frappe/utils/utils.js:943
+#: frappe/public/js/frappe/utils/utils.js:952
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:12
 #, python-brace-format
 msgid "{0} Dashboard"
@@ -34149,7 +34170,7 @@ msgstr "ชอบ {0}"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:83
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:84
-#: frappe/public/js/frappe/utils/utils.js:937
+#: frappe/public/js/frappe/utils/utils.js:946
 #: frappe/public/js/frappe/widgets/chart_widget.js:318 frappe/www/list.html:4
 #: frappe/www/list.html:8
 #, python-brace-format
@@ -34166,7 +34187,7 @@ msgstr "{0} เอ็ม"
 msgid "{0} Map"
 msgstr "แผนที่ {0}"
 
-#: frappe/public/js/frappe/utils/utils.js:940
+#: frappe/public/js/frappe/utils/utils.js:949
 #, python-brace-format
 msgid "{0} Modules"
 msgstr "{0} โมดูล"
@@ -34176,14 +34197,14 @@ msgstr "{0} โมดูล"
 msgid "{0} Name"
 msgstr "ชื่อ {0}"
 
-#: frappe/model/document.py:2826
+#: frappe/model/document.py:2832
 #, python-brace-format
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "{0} ไม่อนุญาตให้เปลี่ยน {1} หลังจากส่งจาก {2} เป็น {3}"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:95
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:96
-#: frappe/public/js/frappe/utils/utils.js:934
+#: frappe/public/js/frappe/utils/utils.js:943
 #: frappe/public/js/frappe/widgets/chart_widget.js:326
 #, python-brace-format
 msgid "{0} Report"
@@ -34234,7 +34255,7 @@ msgstr "{0} เพิ่ม 1 แถวใน {1}"
 msgid "{0} added {1} rows to {2}"
 msgstr "{0} เพิ่ม {1} แถวไปยัง {2}"
 
-#: frappe/public/js/frappe/form/controls/data.js:215
+#: frappe/public/js/frappe/form/controls/data.js:225
 #, python-brace-format
 msgid "{0} already exists. Select another name"
 msgstr "{0} มีอยู่แล้ว เลือกชื่ออื่น"
@@ -34448,7 +34469,7 @@ msgstr "{0} วัน"
 msgid "{0} days ago"
 msgstr "{0} วันที่ผ่านมา"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:90
+#: frappe/desk/doctype/notification_type/notification_type.py:91
 #, python-brace-format
 msgid "{0} does not exist"
 msgstr ""
@@ -34642,17 +34663,17 @@ msgid "{0} is not a valid DocType for Dynamic Link"
 msgstr "{0} ไม่ใช่ประเภทเอกสารที่ถูกต้องสำหรับลิงก์แบบไดนามิก"
 
 #: frappe/email/doctype/email_group/email_group.py:140
-#: frappe/utils/__init__.py:193
+#: frappe/utils/__init__.py:198
 #, python-brace-format
 msgid "{0} is not a valid Email Address"
 msgstr "{0} ไม่ใช่ที่อยู่อีเมลที่ถูกต้อง"
 
-#: frappe/utils/__init__.py:161
+#: frappe/utils/__init__.py:166
 #, python-brace-format
 msgid "{0} is not a valid Name"
 msgstr "{0} ไม่ใช่ชื่อที่ถูกต้อง"
 
-#: frappe/utils/__init__.py:141
+#: frappe/utils/__init__.py:146
 #, python-brace-format
 msgid "{0} is not a valid Phone Number"
 msgstr "{0} ไม่ใช่หมายเลขโทรศัพท์ที่ถูกต้อง"
@@ -34849,7 +34870,7 @@ msgid "{0} must begin and end with a letter and can only contain letters,\n"
 msgstr "{0} ต้องเริ่มต้นและสิ้นสุดด้วยตัวอักษรเท่านั้น และสามารถประกอบด้วยตัวอักษร, ตัวเลข,\n"
 "\t\t\t\t, ขีดกลาง (hyphen) หรือขีดล่าง (underscore) เท่านั้น"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:96
+#: frappe/desk/doctype/notification_type/notification_type.py:97
 #, python-brace-format
 msgid "{0} never sends email, so it cannot be enabled for users."
 msgstr ""
@@ -35036,7 +35057,7 @@ msgstr "{0} เพื่อหยุดรับอีเมลประเภ�
 
 #: frappe/public/js/frappe/form/controls/date_range.js:48
 #: frappe/public/js/frappe/form/controls/date_range.js:64
-#: frappe/public/js/frappe/form/formatters.js:236
+#: frappe/public/js/frappe/form/formatters.js:239
 #, python-brace-format
 msgid "{0} to {1}"
 msgstr "{0} ถึง {1}"
@@ -35132,7 +35153,7 @@ msgstr "ไม่พบ {0} {1}"
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "{0} {1}: ไม่สามารถลบระเบียนที่ส่งได้ คุณต้อง {2} ยกเลิก {3} ก่อน"
 
-#: frappe/model/document.py:2787
+#: frappe/model/document.py:2793
 #, python-brace-format
 msgid "{0}, Row {1}"
 msgstr "{0}, แถว {1}"
@@ -35142,7 +35163,7 @@ msgstr "{0}, แถว {1}"
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "{0}/{1} เสร็จสิ้น | โปรดเปิดแท็บนี้ไว้จนกว่าจะเสร็จสิ้น"
 
-#: frappe/model/document.py:2792
+#: frappe/model/document.py:2798
 #, python-brace-format
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "{0}: '{1}' ({3}) จะถูกตัดออก เนื่องจากจำนวนตัวอักษรสูงสุดที่อนุญาตคือ {2}"

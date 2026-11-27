@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-08 09:32+0000\n"
-"PO-Revision-Date: 2026-11-16 04:13\n"
+"POT-Creation-Date: 2026-11-15 09:32+0000\n"
+"PO-Revision-Date: 2026-11-23 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -97,12 +97,12 @@ msgstr "{1} satırındaki {0} türü için 'Liste Görünümü' seçeneğine izi
 msgid "'Recipients' not specified"
 msgstr "'Alıcılar' belirtilmemiş"
 
-#: frappe/utils/__init__.py:257
+#: frappe/utils/__init__.py:267
 #, python-brace-format
 msgid "'{0}' is not a valid IBAN"
 msgstr "'{0}' geçerli bir IBAN değil"
 
-#: frappe/utils/__init__.py:247
+#: frappe/model/document.py:2703 frappe/utils/__init__.py:252
 #, python-brace-format
 msgid "'{0}' is not a valid URL"
 msgstr "'{0}' geçerli bir URL değil"
@@ -1148,7 +1148,7 @@ msgstr "Aksiyon / Rota"
 msgid "Action Complete"
 msgstr "Eylem Tamamlandı"
 
-#: frappe/model/document.py:3114
+#: frappe/model/document.py:3120
 msgid "Action Failed"
 msgstr "Eylem Başarısız"
 
@@ -4375,7 +4375,7 @@ msgstr "Kamera"
 #. Label of a Link field in DocType 'Newsletter'
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/email/doctype/newsletter/newsletter.json:245
-#: frappe/public/js/frappe/utils/utils.js:1742
+#: frappe/public/js/frappe/utils/utils.js:1751
 #: frappe/website/doctype/web_page_view/web_page_view.json:78
 #: frappe/website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
@@ -4519,7 +4519,7 @@ msgstr "Değerler Getirilemiyor"
 msgid "Cannot Remove"
 msgstr "Kaldırılamıyor"
 
-#: frappe/model/document.py:2833
+#: frappe/model/document.py:2839
 msgid "Cannot Update After Submit"
 msgstr "Belge Gönderildikten Sonra Güncelleme Yapılamaz"
 
@@ -5183,7 +5183,7 @@ msgstr "Doğrulamak için buraya tıklayın"
 msgid "Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access."
 msgstr "Google Drive erişimini yetkilendirmek için <b>Google Drive erişimini yetkilendir</b> seçeneğine tıklayın."
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:538
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:536
 msgid "Click on a file to select it."
 msgstr "Seçmek için bir dosyaya tıklayın."
 
@@ -6107,7 +6107,7 @@ msgstr "Katkı Durumu"
 msgid "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected."
 msgstr "Yeni kullanıcıların bu Sosyal Giriş Anahtarını kullanarak kaydolup kaydolamayacağını kontrol eder. Ayarlanmamışsa, Web Sitesi Ayarları dikkate alınır."
 
-#: frappe/public/js/frappe/utils/utils.js:1044
+#: frappe/public/js/frappe/utils/utils.js:1053
 msgid "Copied to clipboard."
 msgstr "Panoya kopyalandı."
 
@@ -6225,7 +6225,7 @@ msgstr "Sayaç"
 msgid "Country"
 msgstr "Ülke"
 
-#: frappe/utils/__init__.py:118
+#: frappe/utils/__init__.py:123
 msgid "Country Code Required"
 msgstr "Ülke Kodu Gerekli"
 
@@ -7174,7 +7174,7 @@ msgstr "Bu security.txt dosyasının geçersiz sayılması gereken tarih. Sona e
 msgid "Date and Number Format"
 msgstr "Tarih ve Sayı Formatı"
 
-#: frappe/public/js/frappe/form/controls/date.js:175
+#: frappe/public/js/frappe/form/controls/date.js:181
 #, python-brace-format
 msgid "Date {0} must be in format: {1}"
 msgstr "Tarih {0} formatında olmalıdır: {1}"
@@ -8586,7 +8586,7 @@ msgid "Document Types and Permissions"
 msgstr "Belge Türleri ve İzinler"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:3185
+#: frappe/model/document.py:3191
 msgid "Document Unlocked"
 msgstr "Belge Kilidi Açıldı"
 
@@ -9739,7 +9739,7 @@ msgstr "Tıklandığında\n"
 msgid "Enable in-app website tracking"
 msgstr "Uygulama içi web sitesi izlemeyi etkinleştirin"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:93
+#: frappe/desk/doctype/notification_type/notification_type.py:94
 msgid "Enable the notification type before emailing it to users."
 msgstr ""
 
@@ -9801,7 +9801,7 @@ msgstr "Takvim ve Gantt görünümü aktif eder."
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
 msgstr "Gelen bir e-posta hesabında otomatik yanıtı etkinleştirmek, senkronize edilen tüm e-postalara otomatik yanıtlar gönderecektir. Devam etmek istiyor musunuz?"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:104
+#: frappe/desk/doctype/notification_type/notification_type.py:105
 #, python-brace-format
 msgid "Enabling email for {0} across all users in the background."
 msgstr ""
@@ -10985,7 +10985,7 @@ msgstr "{1} içindeki {0} alanının alan türü {2} türünden {3} türüne de�
 msgid "File"
 msgstr "Dosya"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:498
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:496
 #, python-brace-format
 msgid "File \"{0}\" was skipped because of invalid file type"
 msgstr "\"{0}\" dosyası geçersiz dosya türü nedeniyle atlandı"
@@ -11073,7 +11073,7 @@ msgstr "Dosya boyutu çok büyük"
 msgid "File type of {0} is not allowed"
 msgstr "{0} dosya türüne izin verilmiyor"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:637
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:635
 msgid "File upload failed."
 msgstr "Dosya yükleme başarısız oldu."
 
@@ -12007,7 +12007,7 @@ msgid "Generate Random Password"
 msgstr "Rastgele Şifre Oluştur"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:162
-#: frappe/public/js/frappe/utils/utils.js:1781
+#: frappe/public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
 msgstr "İzleme Bağlantısı Oluştur"
 
@@ -12487,7 +12487,7 @@ msgstr "<span style='font-weight:600;'>{0}</b> ile gruplandırılmış"
 msgid "Grouped by {0}"
 msgstr ""
 
-#: frappe/handler.py:187
+#: frappe/handler.py:188
 #, python-brace-format
 msgid "Guests are not allowed to upload files for {0} Doctype"
 msgstr ""
@@ -12777,7 +12777,7 @@ msgstr "Helvetica"
 msgid "Helvetica Neue"
 msgstr "Helvetica Neue"
 
-#: frappe/public/js/frappe/utils/utils.js:1778
+#: frappe/public/js/frappe/utils/utils.js:1787
 msgid "Here's your tracking URL"
 msgstr "İzleme Bağlantınız"
 
@@ -14331,7 +14331,7 @@ msgstr "Geçersiz Parametreler."
 msgid "Invalid Password"
 msgstr "Geçersiz Şifre"
 
-#: frappe/utils/__init__.py:111
+#: frappe/utils/__init__.py:116
 msgid "Invalid Phone Number"
 msgstr "Geçersiz Telefon Numarası"
 
@@ -14353,8 +14353,8 @@ msgstr "Geçersiz Tablo Alan Adı"
 msgid "Invalid Transition"
 msgstr "Geçersiz Geçiş"
 
-#: frappe/core/doctype/file/file.py:351
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:550
+#: frappe/core/doctype/file/file.py:351 frappe/model/document.py:2703
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:548
 #: frappe/public/js/frappe/widgets/widget_dialog.js:583
 #: frappe/utils/csvutils.py:233 frappe/utils/csvutils.py:254
 msgid "Invalid URL"
@@ -14916,6 +14916,10 @@ msgstr "JavaScript tarayıcınızda devredışı bırakılmış"
 #: frappe/printing/doctype/print_format/print_format.json:106
 msgid "Jinja"
 msgstr "Jinja"
+
+#: frappe/utils/jinja.py:117
+msgid "Jinja Template Error"
+msgstr ""
 
 #. Label of a Data field in DocType 'Prepared Report'
 #. Label of a Data field in DocType 'RQ Job'
@@ -16754,7 +16758,7 @@ msgstr "Farklı İzin Türlerinin Anlamı"
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/desk/doctype/todo/todo.json:53
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:218
-#: frappe/public/js/frappe/utils/utils.js:1750
+#: frappe/public/js/frappe/utils/utils.js:1759
 #: frappe/website/doctype/web_page_view/web_page_view.json:84
 #: frappe/website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -18364,8 +18368,8 @@ msgstr "Sütun sayısı"
 
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:94
-msgid "No of Rows (Max 500)"
-msgstr "Satır Sayısı (Maksimum 500)"
+msgid "No of Rows"
+msgstr ""
 
 #: frappe/__init__.py:1084 frappe/client.py:143 frappe/client.py:185
 #, python-brace-format
@@ -18644,7 +18648,7 @@ msgstr "Geliştirici Modunda değil! site_config.json dosyasına ayarlayın veya
 #: frappe/api/v1.py:122 frappe/api/v1.py:127
 #: frappe/core/doctype/system_settings/system_settings.py:248
 #: frappe/handler.py:114
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:624
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:622
 #: frappe/public/js/frappe/request.js:155
 #: frappe/public/js/frappe/request.js:165
 #: frappe/public/js/frappe/request.js:170
@@ -18666,7 +18670,7 @@ msgstr "{0} alanına göre sıralama veya gruplama yapmaya izin verilmiyor"
 msgid "Not permitted to view {0}"
 msgstr "Görüntülemek için yetkiniz yok: {0}"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:623
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:621
 #, python-brace-format
 msgid "Not permitted. {0}."
 msgstr "İzin verilmedi. {0}."
@@ -18699,7 +18703,7 @@ msgstr "Not:"
 msgid "Note: By default emails for failed backups are sent."
 msgstr "Not: Varsayılan olarak, başarısız yedeklemeler için e-postalar gönderilir."
 
-#: frappe/public/js/frappe/utils/utils.js:786
+#: frappe/public/js/frappe/utils/utils.js:795
 msgid "Note: Changing the Page Name will break previous URL to this page."
 msgstr "Not: Sayfa Adının değiştirilmesi, bu sayfanın önceki bağlantısını bozacaktır."
 
@@ -20424,7 +20428,7 @@ msgstr "Telefon"
 msgid "Phone No."
 msgstr "Telefon"
 
-#: frappe/utils/__init__.py:110
+#: frappe/utils/__init__.py:115
 #, python-brace-format
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "{1} alanına girilen Telefon Numarası {0} geçerli değil."
@@ -20594,7 +20598,7 @@ msgstr "Kullanıcı adı/şifre tabanlı girişi devre dışı bırakmadan önce
 #: frappe/printing/page/print/print.js:643
 #: frappe/printing/page/print/print.js:673
 #: frappe/public/js/frappe/list/bulk_operations.js:161
-#: frappe/public/js/frappe/utils/utils.js:1455
+#: frappe/public/js/frappe/utils/utils.js:1464
 msgid "Please enable pop-ups"
 msgstr "Pop-up etkinleştirin"
 
@@ -20751,12 +20755,12 @@ msgstr "Lütfen X ve Y alanlarını seçin"
 msgid "Please select a DocType in options before setting filters"
 msgstr "Filtreler ayarlamadan önce lütfen Seçenekler'de bir BelgeTipi seçin"
 
-#: frappe/utils/__init__.py:117
+#: frappe/utils/__init__.py:122
 #, python-brace-format
 msgid "Please select a country code for field {1}."
 msgstr "Lütfen {1} alanı için bir ülke kodu seçin."
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:526
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:524
 msgid "Please select a file first."
 msgstr "Lütfen önce bir dosya seçin."
 
@@ -22120,9 +22124,13 @@ msgstr "Okuma Modu"
 msgid "Read the documentation to know more"
 msgstr "Daha fazlasını öğrenmek için belgeleri okuyun"
 
-#: frappe/utils/safe_exec.py:746 frappe/utils/safe_exec.py:759
+#: frappe/utils/safe_exec.py:748
 msgid "Read-Only queries are allowed"
 msgstr "Yalnızca salt okunur sorgulara izin verilir"
+
+#: frappe/utils/safe_exec.py:751
+msgid "Reading passwords is not allowed"
+msgstr ""
 
 #. Label of a Markdown Editor field in DocType 'Package'
 #: frappe/core/doctype/package/package.json:19
@@ -23899,6 +23907,10 @@ msgstr "SMS Parametresi"
 msgid "SMS Settings"
 msgstr "SMS Ayarları"
 
+#: frappe/core/doctype/sms_settings/sms_settings.py:165
+msgid "SMS gateway request failed"
+msgstr ""
+
 #: frappe/core/doctype/sms_settings/sms_settings.py:126
 msgid "SMS sent successfully"
 msgstr "SMS başarıyla gönderildi"
@@ -24106,7 +24118,7 @@ msgstr "Belge ve burada bağlantısı verilen adımlar da json olarak dışarı 
 msgid "Saving..."
 msgstr "Kaydediliyor..."
 
-#: frappe/public/js/frappe/form/controls/data.js:149
+#: frappe/public/js/frappe/form/controls/data.js:159
 msgid "Scan"
 msgstr "Tara"
 
@@ -25252,7 +25264,7 @@ msgstr "Sunucu Komut Dosyaları devre dışı. Lütfen sunucu komut dosyaların�
 msgid "Server Scripts feature is not available on this site."
 msgstr "Bu sitede Sunucu Scriptleri özelliği bulunmamaktadır."
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:642
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:640
 msgid "Server error during upload. The file might be corrupted."
 msgstr "Yükleme sırasında sunucu hatası. Dosya bozulmuş olabilir."
 
@@ -25406,7 +25418,7 @@ msgid "Set Value"
 msgstr "Değer Ayarla"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:94
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:146
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:135
 msgid "Set all private"
 msgstr "Özel"
 
@@ -26128,7 +26140,7 @@ msgstr "Boyut"
 msgid "Size (MB)"
 msgstr "Boyut (MB)"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:630
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:628
 msgid "Size exceeds the maximum allowed file size."
 msgstr "Boyut, izin verilen maksimum dosya boyutunu aşıyor."
 
@@ -26374,7 +26386,7 @@ msgstr "Sıralama alanı {0} geçerli bir alan adı olmalıdır"
 
 #. Label of a Data field in DocType 'Web Page View'
 #. Label of a Small Text field in DocType 'Website Route Redirect'
-#: frappe/public/js/frappe/utils/utils.js:1736
+#: frappe/public/js/frappe/utils/utils.js:1745
 #: frappe/website/doctype/web_page_view/web_page_view.json:72
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json:16
 #: frappe/website/report/website_analytics/website_analytics.js:38
@@ -28206,6 +28218,10 @@ msgstr "Bu sayfayı oluştururken bir hata oluştu."
 msgid "There was an error saving filters"
 msgstr "Filtreleri kaydederken bir hata oluştu"
 
+#: frappe/utils/jinja.py:133
+msgid "There was an error while rendering this template."
+msgstr ""
+
 #: frappe/public/js/frappe/form/sidebar/attachments.js:236
 msgid "There were errors"
 msgstr "Hatalar oluştu"
@@ -29283,7 +29299,7 @@ msgstr "E-postanızın alıcı tarafından açılıp açılmadığını takip ed
 msgid "Track milestones for any document"
 msgstr "Herhangi bir belge için kilometre taşlarını izleyin"
 
-#: frappe/public/js/frappe/utils/utils.js:1775
+#: frappe/public/js/frappe/utils/utils.js:1784
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "İzleme bağlantısı oluşturuldu ve panoya kopyalandı"
 
@@ -29637,6 +29653,11 @@ msgstr "Ekli dosya açılamıyor. CSV olarak mı dışa aktardınız?"
 msgid "Unable to read file format for {0}"
 msgstr "{0} için dosya biçimi okunamıyor"
 
+#: frappe/email/receive.py:653
+#, python-brace-format
+msgid "Unable to save email attachment {0}"
+msgstr ""
+
 #: frappe/core/doctype/communication/email.py:188
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr "Eksik bir e-posta hesabı nedeniyle e-posta gönderilemiyor. Lütfen Ayarlar > E-posta Hesabı bölümünden varsayılan E-posta Hesabını ayarlayın"
@@ -29740,7 +29761,7 @@ msgstr "Okunmamış"
 msgid "Unread Notification Sent"
 msgstr "Okunmamış Bildirim Gönderildi"
 
-#: frappe/utils/safe_exec.py:747 frappe/utils/safe_exec.py:760
+#: frappe/utils/safe_exec.py:758
 msgid "Unsafe SQL query"
 msgstr "Güvenli olmayan SQL sorgusu"
 
@@ -29961,8 +29982,8 @@ msgstr "Plan yükseltme"
 msgid "Upgrade your support experience with Frappe Helpdesk"
 msgstr "Frappe Helpdesk ile destek deneyiminizi yükseltin"
 
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:143
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:144
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:132
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:133
 #: frappe/public/js/frappe/form/grid.js:111
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:13
 msgid "Upload"
@@ -30636,7 +30657,7 @@ msgstr "Değer Değişti"
 msgid "Value To Be Set"
 msgstr "Ayarlanacak Değer"
 
-#: frappe/model/document.py:843 frappe/model/document.py:2723
+#: frappe/model/document.py:843 frappe/model/document.py:2729
 #, python-brace-format
 msgid "Value cannot be changed for {0}"
 msgstr "{0} Değeri Değiştirilemez"
@@ -30684,7 +30705,7 @@ msgstr "{0} değerlerinden biri olmalıdır"
 msgid "Value to Validate"
 msgstr "Doğrulanacak Değer"
 
-#: frappe/model/document.py:2796
+#: frappe/model/document.py:2802
 msgid "Value too big"
 msgstr "Değer çok büyük"
 
@@ -31056,7 +31077,7 @@ msgstr "Web Sayfası"
 msgid "Web Page Block"
 msgstr "Web Sayfası Bloğu"
 
-#: frappe/public/js/frappe/utils/utils.js:1728
+#: frappe/public/js/frappe/utils/utils.js:1737
 msgid "Web Page URL"
 msgstr "Web Sayfası URL'si"
 
@@ -31756,7 +31777,7 @@ msgstr "X Alanı"
 msgid "XLSX"
 msgstr "XLSX"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:645
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:643
 msgid "XMLHttpRequest Error"
 msgstr "XMLHttpRequest Hatası"
 
@@ -32034,7 +32055,7 @@ msgstr "Aynı anda en fazla {0} belge yazdırabilirsiniz"
 msgid "You can only unfollow documents for yourself."
 msgstr "Yalnızca kendiniz için belgelerin takibini bırakabilirsiniz."
 
-#: frappe/handler.py:244
+#: frappe/handler.py:245
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
 msgstr "Yalnızca JPG, PNG, GIF, PDF, TXT, CSV veya Microsoft belgeleri yükleyebilirsiniz."
 
@@ -32674,7 +32695,7 @@ msgstr "align-right"
 msgid "amend"
 msgstr "değiştir"
 
-#: frappe/public/js/frappe/utils/utils.js:406 frappe/utils/data.py:1415
+#: frappe/public/js/frappe/utils/utils.js:415 frappe/utils/data.py:1415
 msgid "and"
 msgstr "ve"
 
@@ -32882,7 +32903,7 @@ msgstr "oluştur"
 msgid "cyan"
 msgstr "açık Mavi"
 
-#: frappe/public/js/frappe/utils/utils.js:1127
+#: frappe/public/js/frappe/utils/utils.js:1136
 msgctxt "Days (Field: Duration)"
 msgid "d"
 msgstr "g"
@@ -33163,7 +33184,7 @@ msgstr "gri"
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr "gzip PATH içinde bulunamadı! Yedek almak için bu gereklidir."
 
-#: frappe/public/js/frappe/utils/utils.js:1131
+#: frappe/public/js/frappe/utils/utils.js:1140
 msgctxt "Hours (Field: Duration)"
 msgid "h"
 msgstr "s"
@@ -33314,7 +33335,7 @@ msgstr "giriş yaptı"
 msgid "long"
 msgstr "uzun"
 
-#: frappe/public/js/frappe/utils/utils.js:1135
+#: frappe/public/js/frappe/utils/utils.js:1144
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
 msgstr "d"
@@ -33468,7 +33489,7 @@ msgstr ""
 msgid "only."
 msgstr "yalnız."
 
-#: frappe/public/js/frappe/utils/utils.js:403
+#: frappe/public/js/frappe/utils/utils.js:412
 #: frappe/website/doctype/web_form/web_form.js:388 frappe/www/login.html:89
 #: frappe/www/login.py:112
 msgid "or"
@@ -33670,7 +33691,7 @@ msgstr "retweet"
 msgid "road"
 msgstr "Yol"
 
-#: frappe/public/js/frappe/utils/utils.js:1139
+#: frappe/public/js/frappe/utils/utils.js:1148
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
 msgstr "s"
@@ -34121,7 +34142,7 @@ msgstr "{0} Grafiği"
 #: frappe/core/page/dashboard_view/dashboard_view.js:67
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:347
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:348
-#: frappe/public/js/frappe/utils/utils.js:943
+#: frappe/public/js/frappe/utils/utils.js:952
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:12
 #, python-brace-format
 msgid "{0} Dashboard"
@@ -34151,7 +34172,7 @@ msgstr "{0} Beğendi"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:83
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:84
-#: frappe/public/js/frappe/utils/utils.js:937
+#: frappe/public/js/frappe/utils/utils.js:946
 #: frappe/public/js/frappe/widgets/chart_widget.js:318 frappe/www/list.html:4
 #: frappe/www/list.html:8
 #, python-brace-format
@@ -34168,7 +34189,7 @@ msgstr "{0} A"
 msgid "{0} Map"
 msgstr "{0} Harita"
 
-#: frappe/public/js/frappe/utils/utils.js:940
+#: frappe/public/js/frappe/utils/utils.js:949
 #, python-brace-format
 msgid "{0} Modules"
 msgstr "{0} Modülü"
@@ -34178,14 +34199,14 @@ msgstr "{0} Modülü"
 msgid "{0} Name"
 msgstr "{0} İsmi"
 
-#: frappe/model/document.py:2826
+#: frappe/model/document.py:2832
 #, python-brace-format
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "{0} Gönderdikten sonra {1} değerini {2} değerinden {3} değerine değiştirmeye izin verilmedi"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:95
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:96
-#: frappe/public/js/frappe/utils/utils.js:934
+#: frappe/public/js/frappe/utils/utils.js:943
 #: frappe/public/js/frappe/widgets/chart_widget.js:326
 #, python-brace-format
 msgid "{0} Report"
@@ -34236,7 +34257,7 @@ msgstr "{0} {1} tablosuna 1 satır ekledi"
 msgid "{0} added {1} rows to {2}"
 msgstr "{0}, {2} alanına {1} satır ekledi"
 
-#: frappe/public/js/frappe/form/controls/data.js:215
+#: frappe/public/js/frappe/form/controls/data.js:225
 #, python-brace-format
 msgid "{0} already exists. Select another name"
 msgstr "{0} zaten mevcut. Başka bir isim deneyin."
@@ -34450,7 +34471,7 @@ msgstr "{0} g"
 msgid "{0} days ago"
 msgstr "{0} gün önce"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:90
+#: frappe/desk/doctype/notification_type/notification_type.py:91
 #, python-brace-format
 msgid "{0} does not exist"
 msgstr ""
@@ -34644,17 +34665,17 @@ msgid "{0} is not a valid DocType for Dynamic Link"
 msgstr "{0} Dinamik Bağlantı için geçerli bir DocType değil"
 
 #: frappe/email/doctype/email_group/email_group.py:140
-#: frappe/utils/__init__.py:193
+#: frappe/utils/__init__.py:198
 #, python-brace-format
 msgid "{0} is not a valid Email Address"
 msgstr "{0} geçerli bir E-Posta Adresi değil."
 
-#: frappe/utils/__init__.py:161
+#: frappe/utils/__init__.py:166
 #, python-brace-format
 msgid "{0} is not a valid Name"
 msgstr "{0} geçerli bir İsim değil"
 
-#: frappe/utils/__init__.py:141
+#: frappe/utils/__init__.py:146
 #, python-brace-format
 msgid "{0} is not a valid Phone Number"
 msgstr "{0} geçerli bir Telefon Numarası değil"
@@ -34851,7 +34872,7 @@ msgid "{0} must begin and end with a letter and can only contain letters,\n"
 msgstr "{0} bir harfle başlamalı ve bir harfle bitmelidir; yalnızca harf,\n"
 "\t\t\t\tkısa çizgi veya alt çizgi içerebilir."
 
-#: frappe/desk/doctype/notification_type/notification_type.py:96
+#: frappe/desk/doctype/notification_type/notification_type.py:97
 #, python-brace-format
 msgid "{0} never sends email, so it cannot be enabled for users."
 msgstr ""
@@ -35038,7 +35059,7 @@ msgstr "Bu tür e-postaları almaya devam etmek istemiyorsanız {0}"
 
 #: frappe/public/js/frappe/form/controls/date_range.js:48
 #: frappe/public/js/frappe/form/controls/date_range.js:64
-#: frappe/public/js/frappe/form/formatters.js:236
+#: frappe/public/js/frappe/form/formatters.js:239
 #, python-brace-format
 msgid "{0} to {1}"
 msgstr "{0} ile {1}"
@@ -35134,7 +35155,7 @@ msgstr "{0} {1} bulunamadı."
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "{0} {1}: Gönderilen kayıt silinemez. Önce {2} İptal {3} işlemini gerçekleştirin."
 
-#: frappe/model/document.py:2787
+#: frappe/model/document.py:2793
 #, python-brace-format
 msgid "{0}, Row {1}"
 msgstr "{0}, Satır {1}"
@@ -35144,7 +35165,7 @@ msgstr "{0}, Satır {1}"
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "{0}/{1} tamamlandı | Lütfen tamamlanana kadar bu sekmeyi açık bırakın."
 
-#: frappe/model/document.py:2792
+#: frappe/model/document.py:2798
 #, python-brace-format
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "{0}: '{1}' ({3}) kısaltılacak, izin verilen maksimum karakter sayısı {2}"

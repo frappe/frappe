@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-08 09:32+0000\n"
-"PO-Revision-Date: 2026-11-16 04:13\n"
+"POT-Creation-Date: 2026-11-15 09:32+0000\n"
+"PO-Revision-Date: 2026-11-23 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Burmese\n"
 "MIME-Version: 1.0\n"
@@ -97,12 +97,12 @@ msgstr "'List View တွင်' သည် အတန်း {1} ရှိ {0} အ
 msgid "'Recipients' not specified"
 msgstr "'လက်ခံသူများ' သတ်မှတ်မထားပါ"
 
-#: frappe/utils/__init__.py:257
+#: frappe/utils/__init__.py:267
 #, python-brace-format
 msgid "'{0}' is not a valid IBAN"
 msgstr "'{0}' သည် မှန်ကန်သော IBAN မဟုတ်ပါ"
 
-#: frappe/utils/__init__.py:247
+#: frappe/model/document.py:2703 frappe/utils/__init__.py:252
 #, python-brace-format
 msgid "'{0}' is not a valid URL"
 msgstr "'{0}' သည် မှန်ကန်သော URL မဟုတ်ပါ။"
@@ -1148,7 +1148,7 @@ msgstr "လုပ်ဆောင်ချက် / လမ်းကြောင်
 msgid "Action Complete"
 msgstr "လုပ်ဆောင်ချက် ပြီးဆုံးပါပြီ"
 
-#: frappe/model/document.py:3114
+#: frappe/model/document.py:3120
 msgid "Action Failed"
 msgstr "လုပ်ဆောင်ချက် မအောင်မြင်ပါ"
 
@@ -4375,7 +4375,7 @@ msgstr "ကင်မရာ"
 #. Label of a Link field in DocType 'Newsletter'
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/email/doctype/newsletter/newsletter.json:245
-#: frappe/public/js/frappe/utils/utils.js:1742
+#: frappe/public/js/frappe/utils/utils.js:1751
 #: frappe/website/doctype/web_page_view/web_page_view.json:78
 #: frappe/website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
@@ -4519,7 +4519,7 @@ msgstr "တန်ဖိုးများကို ရယူ၍မရပါ"
 msgid "Cannot Remove"
 msgstr "ဖယ်ရှား၍မရပါ"
 
-#: frappe/model/document.py:2833
+#: frappe/model/document.py:2839
 msgid "Cannot Update After Submit"
 msgstr "တင်သွင်းပြီးနောက် အပ်ဒိတ်လုပ်၍မရပါ"
 
@@ -5183,7 +5183,7 @@ msgstr "အတည်ပြုရန် ဤနေရာကို နှိပ်�
 msgid "Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access."
 msgstr "Google Drive ဝင်ရောက်ခွင့်ကို ခွင့်ပြုရန် <b>Google Drive ဝင်ရောက်ခွင့် ခွင့်ပြုရန်</b> ကို နှိပ်ပါ။"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:538
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:536
 msgid "Click on a file to select it."
 msgstr "ဖိုင်ကိုရွေးချယ်ရန် နှိပ်ပါ။"
 
@@ -6107,7 +6107,7 @@ msgstr "ပံ့ပိုးမှု အခြေအနေ"
 msgid "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected."
 msgstr "အသစ်အသုံးပြုသူများသည် ဤဆိုရှယ်လော့ဂင်ကီးကို အသုံးပြု၍ အကောင့်ဖွင့်နိုင်/မနိုင်ကို ထိန်းချုပ်သည်။ သတ်မှတ်မထားပါက ဝဘ်ဆိုက်ဆက်တင်များကို လိုက်နာပါသည်။"
 
-#: frappe/public/js/frappe/utils/utils.js:1044
+#: frappe/public/js/frappe/utils/utils.js:1053
 msgid "Copied to clipboard."
 msgstr "ကလစ်ဘုတ်သို့ ကူးယူပြီးပါပြီ။"
 
@@ -6225,7 +6225,7 @@ msgstr "ကောင်တာ"
 msgid "Country"
 msgstr "နိုင်ငံ"
 
-#: frappe/utils/__init__.py:118
+#: frappe/utils/__init__.py:123
 msgid "Country Code Required"
 msgstr "နိုင်ငံကုဒ် လိုအပ်သည်"
 
@@ -7174,7 +7174,7 @@ msgstr "ဤ security.txt ကို ခေတ်မမီတော့ဟု သ�
 msgid "Date and Number Format"
 msgstr "ရက်စွဲနှင့် ကိန်းဂဏန်းပုံစံ"
 
-#: frappe/public/js/frappe/form/controls/date.js:175
+#: frappe/public/js/frappe/form/controls/date.js:181
 #, python-brace-format
 msgid "Date {0} must be in format: {1}"
 msgstr "ရက်စွဲ {0} သည် ပုံစံ: {1} ဖြစ်ရမည်"
@@ -8586,7 +8586,7 @@ msgid "Document Types and Permissions"
 msgstr "စာရွက်စာတမ်းအမျိုးအစားများနှင့် ခွင့်ပြုချက်များ"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:3185
+#: frappe/model/document.py:3191
 msgid "Document Unlocked"
 msgstr "စာရွက်စာတမ်း လော့ခ်ဖွင့်ပြီး"
 
@@ -9739,7 +9739,7 @@ msgstr "ဖွင့်မည် အကယ်၍ နှိပ်လိုက်�
 msgid "Enable in-app website tracking"
 msgstr "အက်ပ်အတွင်း ဝဘ်ဆိုက်ခြေရာခံခြင်းကို ဖွင့်မည်"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:93
+#: frappe/desk/doctype/notification_type/notification_type.py:94
 msgid "Enable the notification type before emailing it to users."
 msgstr ""
 
@@ -9801,7 +9801,7 @@ msgstr "ပြက္ခဒိန် နှင့် Gantt မြင်ကွင�
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
 msgstr "အဝင်အီးမေးလ်အကောင့်တွင် အလိုအလျောက်ပြန်ကြားခြင်းကို ဖွင့်ခြင်းဖြင့် ထပ်တူပြုထားသော အီးမေးလ်အားလုံးသို့ အလိုအလျောက်ပြန်ကြားစာများ ပေးပို့ပါမည်။ ဆက်လက်လုပ်ဆောင်လိုပါသလား?"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:104
+#: frappe/desk/doctype/notification_type/notification_type.py:105
 #, python-brace-format
 msgid "Enabling email for {0} across all users in the background."
 msgstr ""
@@ -10985,7 +10985,7 @@ msgstr "{1} တွင် {0} ၏ အကွက်အမျိုးအစား�
 msgid "File"
 msgstr "ဖိုင်"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:498
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:496
 #, python-brace-format
 msgid "File \"{0}\" was skipped because of invalid file type"
 msgstr "ဖိုင် \"{0}\" သည် မမှန်ကန်သော ဖိုင်အမျိုးအစားကြောင့် ကျော်လွှားခဲ့ပါသည်"
@@ -11073,7 +11073,7 @@ msgstr "ဖိုင် အရမ်းကြီးသည်"
 msgid "File type of {0} is not allowed"
 msgstr "ဖိုင်အမျိုးအစား {0} ကို ခွင့်မပြုပါ"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:637
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:635
 msgid "File upload failed."
 msgstr "ဖိုင်တင်ခြင်း မအောင်မြင်ပါ။"
 
@@ -12006,7 +12006,7 @@ msgid "Generate Random Password"
 msgstr "ကျပန်း စကားဝှက် ထုတ်လုပ်ရန်"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:162
-#: frappe/public/js/frappe/utils/utils.js:1781
+#: frappe/public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
 msgstr "ခြေရာခံ URL ဖန်တီးရန်"
 
@@ -12486,7 +12486,7 @@ msgstr "<span style='font-weight:600;'>{0}</b> ဖြင့် အုပ်စ�
 msgid "Grouped by {0}"
 msgstr ""
 
-#: frappe/handler.py:187
+#: frappe/handler.py:188
 #, python-brace-format
 msgid "Guests are not allowed to upload files for {0} Doctype"
 msgstr ""
@@ -12776,7 +12776,7 @@ msgstr ""
 msgid "Helvetica Neue"
 msgstr ""
 
-#: frappe/public/js/frappe/utils/utils.js:1778
+#: frappe/public/js/frappe/utils/utils.js:1787
 msgid "Here's your tracking URL"
 msgstr "ဤတွင် သင့်ခြေရာခံ URL ဖြစ်ပါသည်"
 
@@ -14330,7 +14330,7 @@ msgstr "ဘောင်များ မမှန်ကန်ပါ။"
 msgid "Invalid Password"
 msgstr "စကားဝှက် မမှန်ကန်ပါ"
 
-#: frappe/utils/__init__.py:111
+#: frappe/utils/__init__.py:116
 msgid "Invalid Phone Number"
 msgstr "ဖုန်းနံပါတ် မမှန်ကန်ပါ"
 
@@ -14352,8 +14352,8 @@ msgstr "ဇယား အကွက်အမည် မမှန်ကန်ပါ"
 msgid "Invalid Transition"
 msgstr "အသွင်ကူးပြောင်းမှု မမှန်ကန်ပါ"
 
-#: frappe/core/doctype/file/file.py:351
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:550
+#: frappe/core/doctype/file/file.py:351 frappe/model/document.py:2703
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:548
 #: frappe/public/js/frappe/widgets/widget_dialog.js:583
 #: frappe/utils/csvutils.py:233 frappe/utils/csvutils.py:254
 msgid "Invalid URL"
@@ -14914,6 +14914,10 @@ msgstr "သင့်ဘရောက်ဆာတွင် Javascript ကို �
 #. Option for the 'Print Format Type' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json:106
 msgid "Jinja"
+msgstr ""
+
+#: frappe/utils/jinja.py:117
+msgid "Jinja Template Error"
 msgstr ""
 
 #. Label of a Data field in DocType 'Prepared Report'
@@ -16753,7 +16757,7 @@ msgstr "ခွင့်ပြုချက်အမျိုးအစား မ�
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/desk/doctype/todo/todo.json:53
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:218
-#: frappe/public/js/frappe/utils/utils.js:1750
+#: frappe/public/js/frappe/utils/utils.js:1759
 #: frappe/website/doctype/web_page_view/web_page_view.json:84
 #: frappe/website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -18363,8 +18367,8 @@ msgstr "ကော်လံ အရေအတွက်"
 
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:94
-msgid "No of Rows (Max 500)"
-msgstr "အတန်း အရေအတွက် (အများဆုံး 500)"
+msgid "No of Rows"
+msgstr ""
 
 #: frappe/__init__.py:1084 frappe/client.py:143 frappe/client.py:185
 #, python-brace-format
@@ -18643,7 +18647,7 @@ msgstr "Developer mode တွင် မဟုတ်ပါ! site_config.json တ�
 #: frappe/api/v1.py:122 frappe/api/v1.py:127
 #: frappe/core/doctype/system_settings/system_settings.py:248
 #: frappe/handler.py:114
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:624
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:622
 #: frappe/public/js/frappe/request.js:155
 #: frappe/public/js/frappe/request.js:165
 #: frappe/public/js/frappe/request.js:170
@@ -18665,7 +18669,7 @@ msgstr "{0} အလိုက် စီရန် သို့မဟုတ် အ�
 msgid "Not permitted to view {0}"
 msgstr "{0} ကို ကြည့်ရှုရန် ခွင့်မပြုပါ"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:623
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:621
 #, python-brace-format
 msgid "Not permitted. {0}."
 msgstr "ခွင့်မပြုပါ။ {0}။"
@@ -18698,7 +18702,7 @@ msgstr "မှတ်ချက်:"
 msgid "Note: By default emails for failed backups are sent."
 msgstr "မှတ်ချက်: မူရင်းအားဖြင့် အရန်သိမ်းခြင်း မအောင်မြင်သည့်အခါ အီးမေးလ်များ ပို့ပါသည်။"
 
-#: frappe/public/js/frappe/utils/utils.js:786
+#: frappe/public/js/frappe/utils/utils.js:795
 msgid "Note: Changing the Page Name will break previous URL to this page."
 msgstr "မှတ်ချက်: စာမျက်နှာအမည်ကို ပြောင်းလဲခြင်းသည် ဤစာမျက်နှာသို့ ယခင် URL ကို ပျက်စီးစေပါမည်။"
 
@@ -20423,7 +20427,7 @@ msgstr "ဖုန်း"
 msgid "Phone No."
 msgstr "ဖုန်းနံပါတ်"
 
-#: frappe/utils/__init__.py:110
+#: frappe/utils/__init__.py:115
 #, python-brace-format
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "အကွက် {1} တွင် သတ်မှတ်ထားသော ဖုန်းနံပါတ် {0} သည် မမှန်ကန်ပါ။"
@@ -20593,7 +20597,7 @@ msgstr "အသုံးပြုသူအမည်/စကားဝှက်ဖ�
 #: frappe/printing/page/print/print.js:643
 #: frappe/printing/page/print/print.js:673
 #: frappe/public/js/frappe/list/bulk_operations.js:161
-#: frappe/public/js/frappe/utils/utils.js:1455
+#: frappe/public/js/frappe/utils/utils.js:1464
 msgid "Please enable pop-ups"
 msgstr "ပေါ့ပ်အပ်များကို ဖွင့်ပါ"
 
@@ -20750,12 +20754,12 @@ msgstr "X နှင့် Y အကွက်များကို ရွေးခ
 msgid "Please select a DocType in options before setting filters"
 msgstr "စစ်ထုတ်မှုများ သတ်မှတ်ခြင်းမပြုမီ ရွေးချယ်စရာများတွင် DocType တစ်ခုကို ရွေးချယ်ပါ"
 
-#: frappe/utils/__init__.py:117
+#: frappe/utils/__init__.py:122
 #, python-brace-format
 msgid "Please select a country code for field {1}."
 msgstr "အကွက် {1} အတွက် နိုင်ငံကုဒ် ရွေးချယ်ပါ။"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:526
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:524
 msgid "Please select a file first."
 msgstr "ဖိုင်တစ်ခုကို အရင်ရွေးချယ်ပါ။"
 
@@ -22119,9 +22123,13 @@ msgstr "ဖတ်ရှုမုဒ်"
 msgid "Read the documentation to know more"
 msgstr "ပိုမိုသိရှိရန် စာရွက်စာတမ်းကို ဖတ်ရှုပါ"
 
-#: frappe/utils/safe_exec.py:746 frappe/utils/safe_exec.py:759
+#: frappe/utils/safe_exec.py:748
 msgid "Read-Only queries are allowed"
 msgstr "ဖတ်ရှုမှုသီးသန့် မေးခွန်းများသာ ခွင့်ပြုထားသည်"
+
+#: frappe/utils/safe_exec.py:751
+msgid "Reading passwords is not allowed"
+msgstr ""
 
 #. Label of a Markdown Editor field in DocType 'Package'
 #: frappe/core/doctype/package/package.json:19
@@ -23898,6 +23906,10 @@ msgstr "SMS ပါရာမီတာ"
 msgid "SMS Settings"
 msgstr "SMS ဆက်တင်များ"
 
+#: frappe/core/doctype/sms_settings/sms_settings.py:165
+msgid "SMS gateway request failed"
+msgstr ""
+
 #: frappe/core/doctype/sms_settings/sms_settings.py:126
 msgid "SMS sent successfully"
 msgstr "SMS အောင်မြင်စွာ ပို့ပြီးပါပြီ"
@@ -24105,7 +24117,7 @@ msgstr "ဤအရာကိုသိမ်းဆည်းခြင်းသည်
 msgid "Saving..."
 msgstr "သိမ်းဆည်းနေသည်..."
 
-#: frappe/public/js/frappe/form/controls/data.js:149
+#: frappe/public/js/frappe/form/controls/data.js:159
 msgid "Scan"
 msgstr "စကင်ဖတ်ပါ"
 
@@ -25251,7 +25263,7 @@ msgstr "ဆာဗာစခရစ်များကို ပိတ်ထား�
 msgid "Server Scripts feature is not available on this site."
 msgstr "ဆာဗာစခရစ်များ လုပ်ဆောင်ချက်သည် ဤဆိုက်တွင် မရရှိနိုင်ပါ။"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:642
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:640
 msgid "Server error during upload. The file might be corrupted."
 msgstr "အပ်လုဒ်တင်နေစဉ် ဆာဗာအမှား ဖြစ်ပေါ်ခဲ့သည်။ ဖိုင်သည် ပျက်စီးနေနိုင်ပါသည်။"
 
@@ -25405,7 +25417,7 @@ msgid "Set Value"
 msgstr "တန်ဖိုး သတ်မှတ်ပါ"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:94
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:146
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:135
 msgid "Set all private"
 msgstr "အားလုံးကို ကိုယ်ပိုင်အဖြစ် သတ်မှတ်ပါ"
 
@@ -26127,7 +26139,7 @@ msgstr "အရွယ်အစား"
 msgid "Size (MB)"
 msgstr "အရွယ်အစား (MB)"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:630
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:628
 msgid "Size exceeds the maximum allowed file size."
 msgstr "အရွယ်အစားသည် ခွင့်ပြုထားသော အများဆုံးဖိုင်အရွယ်အစားကို ကျော်လွန်နေပါသည်။"
 
@@ -26373,7 +26385,7 @@ msgstr "အစီအစဉ်ကွက် {0} သည် တရားဝင်အ
 
 #. Label of a Data field in DocType 'Web Page View'
 #. Label of a Small Text field in DocType 'Website Route Redirect'
-#: frappe/public/js/frappe/utils/utils.js:1736
+#: frappe/public/js/frappe/utils/utils.js:1745
 #: frappe/website/doctype/web_page_view/web_page_view.json:72
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json:16
 #: frappe/website/report/website_analytics/website_analytics.js:38
@@ -28205,6 +28217,10 @@ msgstr "ဤစာမျက်နှာကို တည်ဆောက်ရာ�
 msgid "There was an error saving filters"
 msgstr "စစ်ထုတ်မှုများကို သိမ်းဆည်းရာတွင် အမှားတစ်ခု ဖြစ်ပွားခဲ့သည်"
 
+#: frappe/utils/jinja.py:133
+msgid "There was an error while rendering this template."
+msgstr ""
+
 #: frappe/public/js/frappe/form/sidebar/attachments.js:236
 msgid "There were errors"
 msgstr "အမှားများရှိခဲ့သည်"
@@ -29281,7 +29297,7 @@ msgstr "သင့်အီးမေးလ်ကို လက်ခံသူက �
 msgid "Track milestones for any document"
 msgstr "မည်သည့်စာရွက်စာတမ်းအတွက်မဆို မိုင်တိုင်များကို ခြေရာခံပါ"
 
-#: frappe/public/js/frappe/utils/utils.js:1775
+#: frappe/public/js/frappe/utils/utils.js:1784
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "ခြေရာခံ URL ဖန်တီးပြီး ကလစ်ဘုတ်သို့ ကူးယူပြီးပါပြီ"
 
@@ -29635,6 +29651,11 @@ msgstr "ပူးတွဲဖိုင်ကို ဖွင့်၍မရပ�
 msgid "Unable to read file format for {0}"
 msgstr "{0} အတွက် ဖိုင်ပုံစံကို ဖတ်၍မရပါ"
 
+#: frappe/email/receive.py:653
+#, python-brace-format
+msgid "Unable to save email attachment {0}"
+msgstr ""
+
 #: frappe/core/doctype/communication/email.py:188
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr "အီးမေးလ်အကောင့် ပျောက်ဆုံးနေသောကြောင့် မေးလ်ပို့၍ မရပါ။ ကျေးဇူးပြု၍ ဆက်တင်များ > အီးမေးလ်အကောင့် မှ မူရင်း အီးမေးလ်အကောင့်ကို သတ်မှတ်ပါ"
@@ -29738,7 +29759,7 @@ msgstr "မဖတ်ရသေး"
 msgid "Unread Notification Sent"
 msgstr "မဖတ်ရသေးသော အသိပေးချက် ပို့ပြီး"
 
-#: frappe/utils/safe_exec.py:747 frappe/utils/safe_exec.py:760
+#: frappe/utils/safe_exec.py:758
 msgid "Unsafe SQL query"
 msgstr "မလုံခြုံသော SQL မေးခွန်း"
 
@@ -29959,8 +29980,8 @@ msgstr "အစီအစဉ်အဆင့်မြှင့်တင်ခြင
 msgid "Upgrade your support experience with Frappe Helpdesk"
 msgstr "Frappe Helpdesk ဖြင့် သင်၏ အကူအညီဝန်ဆောင်မှု အတွေ့အကြုံကို အဆင့်မြှင့်တင်ပါ"
 
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:143
-#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:144
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:132
+#: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:133
 #: frappe/public/js/frappe/form/grid.js:111
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:13
 msgid "Upload"
@@ -30634,7 +30655,7 @@ msgstr "တန်ဖိုး ပြောင်းလဲခဲ့သည်"
 msgid "Value To Be Set"
 msgstr "သတ်မှတ်ရမည့် တန်ဖိုး"
 
-#: frappe/model/document.py:843 frappe/model/document.py:2723
+#: frappe/model/document.py:843 frappe/model/document.py:2729
 #, python-brace-format
 msgid "Value cannot be changed for {0}"
 msgstr "{0} အတွက် တန်ဖိုးကို ပြောင်းလဲ၍မရပါ"
@@ -30682,7 +30703,7 @@ msgstr "တန်ဖိုးသည် {0} ထဲမှ တစ်ခုဖြစ
 msgid "Value to Validate"
 msgstr "အတည်ပြုရမည့် တန်ဖိုး"
 
-#: frappe/model/document.py:2796
+#: frappe/model/document.py:2802
 msgid "Value too big"
 msgstr "တန်ဖိုး အရမ်းကြီးသည်"
 
@@ -31054,7 +31075,7 @@ msgstr "ဝဘ်စာမျက်နှာ"
 msgid "Web Page Block"
 msgstr "ဝဘ်စာမျက်နှာ ဘလော့"
 
-#: frappe/public/js/frappe/utils/utils.js:1728
+#: frappe/public/js/frappe/utils/utils.js:1737
 msgid "Web Page URL"
 msgstr "ဝဘ်စာမျက်နှာ URL"
 
@@ -31754,7 +31775,7 @@ msgstr "X အကွက်"
 msgid "XLSX"
 msgstr ""
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:645
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:643
 msgid "XMLHttpRequest Error"
 msgstr "XMLHttpRequest အမှား"
 
@@ -32032,7 +32053,7 @@ msgstr "တစ်ကြိမ်လျှင် စာရွက်စာတမ�
 msgid "You can only unfollow documents for yourself."
 msgstr "စာရွက်စာတမ်းများအတွက် ကိုယ်တိုင်အတွက်သာ စောင့်ကြည့်ခြင်းကို ရပ်နိုင်ပါသည်။"
 
-#: frappe/handler.py:244
+#: frappe/handler.py:245
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
 msgstr "JPG, PNG, GIF, PDF, TXT, CSV သို့မဟုတ် Microsoft စာရွက်စာတမ်းများကိုသာ အပ်လုဒ်တင်နိုင်ပါသည်။"
 
@@ -32672,7 +32693,7 @@ msgstr "align-right"
 msgid "amend"
 msgstr "ပြင်ဆင်"
 
-#: frappe/public/js/frappe/utils/utils.js:406 frappe/utils/data.py:1415
+#: frappe/public/js/frappe/utils/utils.js:415 frappe/utils/data.py:1415
 msgid "and"
 msgstr "နှင့်"
 
@@ -32880,7 +32901,7 @@ msgstr "ဖန်တီးရန်"
 msgid "cyan"
 msgstr "စိမ်းပြာရောင်"
 
-#: frappe/public/js/frappe/utils/utils.js:1127
+#: frappe/public/js/frappe/utils/utils.js:1136
 msgctxt "Days (Field: Duration)"
 msgid "d"
 msgstr "ရ"
@@ -33161,7 +33182,7 @@ msgstr "မီးခိုးရောင်"
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr "gzip ကို PATH တွင် မတွေ့ပါ။ အရန်သိမ်းခြင်း ပြုလုပ်ရန် ၎င်းလိုအပ်ပါသည်။"
 
-#: frappe/public/js/frappe/utils/utils.js:1131
+#: frappe/public/js/frappe/utils/utils.js:1140
 msgctxt "Hours (Field: Duration)"
 msgid "h"
 msgstr "နာ"
@@ -33312,7 +33333,7 @@ msgstr "ဝင်ရောက်ထားသည်"
 msgid "long"
 msgstr "ရှည်"
 
-#: frappe/public/js/frappe/utils/utils.js:1135
+#: frappe/public/js/frappe/utils/utils.js:1144
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
 msgstr "မိ"
@@ -33466,7 +33487,7 @@ msgstr ""
 msgid "only."
 msgstr "သာ။"
 
-#: frappe/public/js/frappe/utils/utils.js:403
+#: frappe/public/js/frappe/utils/utils.js:412
 #: frappe/website/doctype/web_form/web_form.js:388 frappe/www/login.html:89
 #: frappe/www/login.py:112
 msgid "or"
@@ -33668,7 +33689,7 @@ msgstr "retweet"
 msgid "road"
 msgstr "လမ်း"
 
-#: frappe/public/js/frappe/utils/utils.js:1139
+#: frappe/public/js/frappe/utils/utils.js:1148
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
 msgstr "စ"
@@ -34119,7 +34140,7 @@ msgstr "{0} ဇယားပုံ"
 #: frappe/core/page/dashboard_view/dashboard_view.js:67
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:347
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:348
-#: frappe/public/js/frappe/utils/utils.js:943
+#: frappe/public/js/frappe/utils/utils.js:952
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:12
 #, python-brace-format
 msgid "{0} Dashboard"
@@ -34149,7 +34170,7 @@ msgstr "{0} နှစ်သက်သည်"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:83
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:84
-#: frappe/public/js/frappe/utils/utils.js:937
+#: frappe/public/js/frappe/utils/utils.js:946
 #: frappe/public/js/frappe/widgets/chart_widget.js:318 frappe/www/list.html:4
 #: frappe/www/list.html:8
 #, python-brace-format
@@ -34166,7 +34187,7 @@ msgstr "{0} လ"
 msgid "{0} Map"
 msgstr "{0} မြေပုံ"
 
-#: frappe/public/js/frappe/utils/utils.js:940
+#: frappe/public/js/frappe/utils/utils.js:949
 #, python-brace-format
 msgid "{0} Modules"
 msgstr "{0} မော်ဂျူးများ"
@@ -34176,14 +34197,14 @@ msgstr "{0} မော်ဂျူးများ"
 msgid "{0} Name"
 msgstr "{0} အမည်"
 
-#: frappe/model/document.py:2826
+#: frappe/model/document.py:2832
 #, python-brace-format
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "{0} {2} မှ {3} သို့ တင်သွင်းပြီးနောက် {1} ကို ပြောင်းလဲခွင့်မပြု"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:95
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:96
-#: frappe/public/js/frappe/utils/utils.js:934
+#: frappe/public/js/frappe/utils/utils.js:943
 #: frappe/public/js/frappe/widgets/chart_widget.js:326
 #, python-brace-format
 msgid "{0} Report"
@@ -34234,7 +34255,7 @@ msgstr "{0} သည် {1} သို့ အတန်း ၁ ခု ထည့်�
 msgid "{0} added {1} rows to {2}"
 msgstr "{0} သည် {2} သို့ အတန်း {1} ခု ထည့်သွင်းခဲ့သည်"
 
-#: frappe/public/js/frappe/form/controls/data.js:215
+#: frappe/public/js/frappe/form/controls/data.js:225
 #, python-brace-format
 msgid "{0} already exists. Select another name"
 msgstr "{0} ရှိပြီးသားဖြစ်ပါသည်။ အခြားအမည်တစ်ခု ရွေးချယ်ပါ"
@@ -34448,7 +34469,7 @@ msgstr "{0} ရက်"
 msgid "{0} days ago"
 msgstr "လွန်ခဲ့တဲ့ {0} ရက်ပတ်လုံး"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:90
+#: frappe/desk/doctype/notification_type/notification_type.py:91
 #, python-brace-format
 msgid "{0} does not exist"
 msgstr ""
@@ -34642,17 +34663,17 @@ msgid "{0} is not a valid DocType for Dynamic Link"
 msgstr "{0} သည် Dynamic Link အတွက် မှန်ကန်သော DocType မဟုတ်ပါ"
 
 #: frappe/email/doctype/email_group/email_group.py:140
-#: frappe/utils/__init__.py:193
+#: frappe/utils/__init__.py:198
 #, python-brace-format
 msgid "{0} is not a valid Email Address"
 msgstr "{0} သည် မှန်ကန်သော အီးမေးလ် လိပ်စာ မဟုတ်ပါ"
 
-#: frappe/utils/__init__.py:161
+#: frappe/utils/__init__.py:166
 #, python-brace-format
 msgid "{0} is not a valid Name"
 msgstr "{0} သည် မှန်ကန်သော အမည် မဟုတ်ပါ"
 
-#: frappe/utils/__init__.py:141
+#: frappe/utils/__init__.py:146
 #, python-brace-format
 msgid "{0} is not a valid Phone Number"
 msgstr "{0} သည် မှန်ကန်သော ဖုန်းနံပါတ် မဟုတ်ပါ"
@@ -34849,7 +34870,7 @@ msgid "{0} must begin and end with a letter and can only contain letters,\n"
 msgstr "{0} သည် စာလုံးဖြင့် စတင်ပြီး စာလုံးဖြင့် အဆုံးသတ်ရမည်ဖြစ်ပြီး စာလုံး၊\n"
 "\t\t\t\tဟိုက်ဖန် (-) သို့မဟုတ် underscore (_) များသာ ပါဝင်နိုင်ပါသည်။"
 
-#: frappe/desk/doctype/notification_type/notification_type.py:96
+#: frappe/desk/doctype/notification_type/notification_type.py:97
 #, python-brace-format
 msgid "{0} never sends email, so it cannot be enabled for users."
 msgstr ""
@@ -35036,7 +35057,7 @@ msgstr "ဤအမျိုးအစား အီးမေးလ်များ �
 
 #: frappe/public/js/frappe/form/controls/date_range.js:48
 #: frappe/public/js/frappe/form/controls/date_range.js:64
-#: frappe/public/js/frappe/form/formatters.js:236
+#: frappe/public/js/frappe/form/formatters.js:239
 #, python-brace-format
 msgid "{0} to {1}"
 msgstr "{0} မှ {1}"
@@ -35132,7 +35153,7 @@ msgstr "{0} {1} မတွေ့ပါ"
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "{0} {1}: တင်သွင်းပြီးသော မှတ်တမ်းကို ဖျက်၍မရပါ။ အရင် {2} ပယ်ဖျက် {3} ရပါမည်။"
 
-#: frappe/model/document.py:2787
+#: frappe/model/document.py:2793
 #, python-brace-format
 msgid "{0}, Row {1}"
 msgstr "{0}၊ အတန်း {1}"
@@ -35142,7 +35163,7 @@ msgstr "{0}၊ အတန်း {1}"
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "{0}/{1} ပြီးဆုံးပြီ | ပြီးဆုံးသည်အထိ ဤတပ်ကို ဖွင့်ထားပါ။"
 
-#: frappe/model/document.py:2792
+#: frappe/model/document.py:2798
 #, python-brace-format
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "{0}: '{1}' ({3}) သည် ခွင့်ပြုထားသော အများဆုံးစာလုံးရေ {2} ဖြစ်သောကြောင့် ဖြတ်တောက်ခံရမည်"
