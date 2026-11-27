@@ -341,7 +341,7 @@ runs:
       echo -e "\033[33mCreate Site + Build Assets: $((end_time - start_time)) seconds\033[0m"
 
   - name: Save built assets
-    if: ${{ inputs.build-assets == 'true' && steps.built-assets-restore.outputs.cache-hit != 'true' }}
+    if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.built-assets-restore.outputs.cache-hit != 'true' }}
     uses: actions/cache/save@v4
     with:
       path: |
