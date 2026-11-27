@@ -145,8 +145,8 @@ test.describe("Phone tab bar", () => {
 	}) => {
 		// with no language set there is no lookup to fail
 		await admin.set_value("User", test_user_id, { language: "en" });
-		const failed_lookup = page.waitForRequest(/frappe\.client\.get_value\?.*doctype=Language/);
-		await page.route(/frappe\.client\.get_value\?.*doctype=Language/, (route) =>
+		const failed_lookup = page.waitForRequest(/\/api\/v2\/document\/Language\?/);
+		await page.route(/\/api\/v2\/document\/Language\?/, (route) =>
 			route.fulfill({ status: 500, contentType: "application/json", body: "{}" })
 		);
 
