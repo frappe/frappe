@@ -34,7 +34,7 @@ from frappe.deprecation_dumpster import (
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from frappe.utils.html_utils import sanitize_html
+from frappe.utils.html_utils import has_html_tags, sanitize_html
 
 if TYPE_CHECKING:
 	from werkzeug.test import Client
@@ -736,7 +736,11 @@ def get_request_session(max_retries=5, max_redirects=DEFAULT_MAX_REDIRECTS, adap
 
 
 def markdown(text, sanitize=True, linkify=True):
-	html = text if is_html(text) else frappe.utils.md_to_html(text)
+	html = (
+		text
+		if is_html(text) and ("<!-- markdown -->" not in text or has_html_tags(text))
+		else frappe.utils.md_to_html(text)
+	)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
