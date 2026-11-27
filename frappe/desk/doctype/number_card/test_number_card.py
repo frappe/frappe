@@ -1,11 +1,31 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 import frappe
-from frappe.desk.doctype.number_card.number_card import get_cards_for_user
+from frappe.core.doctype.user.test_user import test_user
+from frappe.desk.doctype.number_card.number_card import (
+	get_cards_for_user,
+	get_permission_query_conditions,
+)
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestNumberCard(FrappeTestCase):
+	def test_permission_condition_escapes_report_names(self):
+		report_name = "Test Backslash Report\\"
+		hook = "frappe.desk.doctype.number_card.number_card.get_allowed_report_names"
+
+		with (
+			test_user(roles=["Desk User"]) as user,
+			self.set_user(user.name),
+			patch(hook, return_value={report_name}),
+		):
+			condition = get_permission_query_conditions()
+
+		self.assertIn(frappe.db.escape(report_name, percent=False), condition)
+		frappe.db.sql(f"select name from `tabNumber Card` where {condition}")
+
 	def test_link_search_hides_cards_from_blocked_modules(self):
 		user = "test2@example.com"
 		blocked_module = "Contacts"
