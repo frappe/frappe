@@ -7,6 +7,7 @@ import frappe
 from frappe.api.skills import get_skill, list_skills
 from frappe.flow.doctype.flow_skill.test_flow_skill import AppSkills
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
+from frappe.mcp.protocol import server_instructions
 from frappe.mcp.test_utils import McpTestCase
 from frappe.tests import IntegrationTestCase
 
@@ -102,6 +103,15 @@ class TestSkills(IntegrationTestCase):
 	def test_a_user_without_flow_access_gets_no_skills(self):
 		frappe.set_user(self.outsider)
 		self.assertEqual(list_skills(), {"skills": []})
+		self.assertNotIn("Skills:", server_instructions())
+
+	def test_server_instructions_list_each_skill_on_one_line(self):
+		frappe.db.set_value("Flow Skill", self.bound, "description", "Approve\n  an expense.")
+		frappe.set_user(self.member)
+		instructions = server_instructions()
+		self.assertIn("call get_skill", instructions)
+		self.assertIn(f"\n- {self.bound}: Approve an expense.\n", instructions)
+		self.assertNotIn(self.hidden, instructions)
 
 	def test_a_skill_gives_its_instructions_and_an_app_skill_its_files(self):
 		frappe.set_user(self.member)
