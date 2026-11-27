@@ -106,6 +106,7 @@ def registry() -> tuple[Tool, ...]:
 		UPDATE_DOCUMENT,
 	)
 	from frappe.mcp.tools.methods import CALL_DOCUMENT_METHOD, CALL_METHOD
+	from frappe.mcp.tools.skills import GET_SKILL, LIST_SKILLS
 
 	return (
 		SEARCH_DOCTYPES,
@@ -113,6 +114,8 @@ def registry() -> tuple[Tool, ...]:
 		SEARCH_METHODS,
 		GET_METHOD_SCHEMA,
 		LIST_DOCUMENT_METHODS,
+		LIST_SKILLS,
+		GET_SKILL,
 		LIST_DOCUMENTS,
 		GET_DOCUMENT,
 		COUNT_DOCUMENTS,

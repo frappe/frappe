@@ -144,3 +144,29 @@ class TestSkillRoutes(McpTestCase):
 		self.assertEqual(
 			self.get(f"/{self.app_skill}?file=references/forms.md")["content"], "Use the ToDo form."
 		)
+
+	def tool(self, tool: str, **arguments):
+		response = self.request(
+			{
+				"jsonrpc": "2.0",
+				"id": 1,
+				"method": "tools/call",
+				"params": {"name": tool, "arguments": arguments},
+			}
+		)
+		self.assertFalse(response.json["result"]["isError"], response.json["result"])
+		return response.json["result"]["structuredContent"]
+
+	def test_mcp_tools_match_the_rest_routes(self):
+		self.assertEqual(self.tool("list_skills"), self.get(""))
+		self.assertEqual(self.tool("get_skill", name=self.app_skill), self.get(f"/{self.app_skill}"))
+		self.assertEqual(
+			self.tool("get_skill", name=self.app_skill, file="references/forms.md"),
+			self.get(f"/{self.app_skill}?file=references/forms.md"),
+		)
+		definitions = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}).json["result"][
+			"tools"
+		]
+		for definition in definitions:
+			if definition["name"] in ("list_skills", "get_skill"):
+				self.assertTrue(definition["annotations"]["readOnlyHint"])

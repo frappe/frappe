@@ -93,6 +93,8 @@ class TestMcpTransport(McpTestCase):
 				"search_methods",
 				"get_method_schema",
 				"list_document_methods",
+				"list_skills",
+				"get_skill",
 				"list_documents",
 				"get_document",
 				"count_documents",
