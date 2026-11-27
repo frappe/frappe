@@ -738,7 +738,14 @@ def download_report_pdf(
 
 	frappe.local.response.filename = f"{report_name}.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+		html,
+		{
+			"orientation": orientation,
+			"proxy": "http://0.0.0.0:0",
+			"bypass-proxy-for": _pdf_bypass_proxy_hosts(),
+			"load-error-handling": "ignore",
+		},
+		smart_shrinking=True,
 	)
 	frappe.local.response.type = "pdf"
 
