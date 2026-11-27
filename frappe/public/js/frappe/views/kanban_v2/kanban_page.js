@@ -67,6 +67,8 @@ const SELECT_STYLES = {
 	archived: { theme: "gray", icon: "archive" },
 };
 
+const DEFAULT_SORT = { sort_by: "modified", sort_order: "desc" };
+
 /**
  * Kanban v2 board page. Route: List/{Doctype}/Kanban/{board_name}.
  * Customize via `frappe.kanban_v2.settings` / `extend_settings` (see settings.js).
@@ -168,7 +170,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			page: this.page,
 		});
 		// each board route has its own page, so leaving it means leaving the board
-		$(this.wrapper).on("hide", () => this.teardown_board(true));
+		$(this.wrapper).on("hide", () => {
+			this.teardown_board(true);
+			frappe.app?.sidebar?.unfold_after_leaving_page();
+		});
 	}
 
 	render_selection_bar() {
@@ -354,9 +359,13 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
-	async load_from_route() {
+	/** `route_options`: what frappe.route_options held, read when the URL has no query. */
+	async load_from_route(route_options = null) {
 		// the hide handler undoes the layout, so re-apply it each time the page shows
 		this.apply_page_shell();
+		// the board wants the width: the sidebar folds to its rail while it shows, without
+		// saving that as the viewer's choice; leaving restores it (see the hide handler)
+		frappe.app?.sidebar?.fold_for_page();
 
 		const board_name = this.get_board_name_from_route();
 		if (!board_name) {
@@ -366,7 +375,12 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			});
 			return;
 		}
-		if (this.current_board === board_name && this.board) return;
+		// link filters apply to this visit only, so a board that has or had them is set up again
+		const route_filters = this.take_route_filters(route_options);
+		const has_route_filters = route_filters.length > 0 || this._has_route_filters;
+		if (this.current_board === board_name && this.board && !has_route_filters) {
+			return;
+		}
 		this.current_board = board_name;
 
 		this.page.set_title(board_name, null, true);
@@ -388,17 +402,21 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.doctype = board.reference_doctype;
 		this.field_name = board.field_name;
 		this.filters = JSON.parse(board.filters || "[]");
+		// otherwise setup_quick_filters carries the typed values over
+		if (has_route_filters) this.remove_quick_filters();
 		// only boards shipped by an app have translations
 		const title =
 			board.is_standard === "Yes" ? __(board.kanban_board_name) : board.kanban_board_name;
 		this.page.set_title(title, null, true);
 
 		await frappe.model.with_doctype(this.doctype);
+		this.add_route_filters(route_filters);
 		this.setup_meta();
 		this.setup_toolbar();
 		// before the board loads: it reads its filters from the boxes and the panel
 		await this.setup_quick_filters();
 		this.sync_filter_group_to_board();
+		this.apply_saved_sort();
 		this.mount_board();
 		// so opening Kanban without a board name comes back here
 		frappe.model.user_settings.save(this.doctype, "last_view", "Kanban").then(() =>
@@ -407,6 +425,53 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			})
 		);
 		this.setup_group_button();
+		// last, so a doctype can reshape the header the board just built
+		if (this.settings.setup_page) this.settings.setup_page(this);
+	}
+
+	/** The link's filters: the URL query, else the route options, as the list view reads them. */
+	take_route_filters(route_options) {
+		let params = new URLSearchParams(window.location.search);
+		if (!params.toString() && route_options) params = new Map(Object.entries(route_options));
+		const entries = [];
+		params.forEach((value, field) => entries.push([field, value]));
+		return entries;
+	}
+
+	/**
+	 * Adds the link's field filters next to the board's saved ones, which the server applies anyway.
+	 * They live in this.filters only, so they show in the Filter button and clear like any filter,
+	 * but the Kanban Board isn't changed.
+	 */
+	add_route_filters(entries) {
+		this._has_route_filters = false;
+		const added = [];
+		for (let [field, value] of entries) {
+			const is_field =
+				frappe.meta.get_field(this.doctype, field) ||
+				frappe.model.std_fields_list.includes(field);
+			if (!is_field) continue;
+			if (typeof value === "string" && value.startsWith("[") && value.endsWith("]")) {
+				try {
+					value = JSON.parse(value);
+				} catch {
+					// a plain value that only looks like a list
+				}
+			}
+			const pairs = Array.isArray(value) && Array.isArray(value[0]) ? value : [value];
+			for (const pair of pairs) {
+				added.push(
+					Array.isArray(pair)
+						? [this.doctype, field, pair[0], pair[1]]
+						: [this.doctype, field, "=", pair]
+				);
+			}
+		}
+		const saved = new Set(this.filters.map((filter) => JSON.stringify(filter)));
+		const route_filters = added.filter((filter) => !saved.has(JSON.stringify(filter)));
+		if (!route_filters.length) return;
+		this.filters = [...this.filters, ...route_filters];
+		this._has_route_filters = true;
 	}
 
 	setup_meta() {
@@ -691,9 +756,42 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		$filter_section.empty();
 
 		this.setup_filter_button($filter_section);
+		this.setup_sort_selector($filter_section);
 		this.setup_group_button($filter_section);
 		this.setup_settings_button($filter_section);
 		this.sync_board_height();
+	}
+
+	/** The list view's sort selector, in the same place: right after the Filter button. */
+	setup_sort_selector($parent) {
+		this.sort_selector = new frappe.ui.SortSelector({
+			parent: $parent,
+			doctype: this.doctype,
+			args: { ...DEFAULT_SORT },
+			onchange: (sort_by, sort_order) => this.on_sort_change(sort_by, sort_order),
+		});
+	}
+
+	get_order_by() {
+		return this.sort_selector.get_sql_string();
+	}
+
+	/** Each board remembers its own sort, as the list view remembers its. */
+	apply_saved_sort() {
+		const saved = frappe.get_user_settings(this.doctype, "Kanban").sorts?.[this.current_board];
+		this.sort_selector.set_value(
+			saved?.sort_by || DEFAULT_SORT.sort_by,
+			saved?.sort_order || DEFAULT_SORT.sort_order
+		);
+	}
+
+	on_sort_change(sort_by, sort_order) {
+		const sorts = {
+			...(frappe.get_user_settings(this.doctype, "Kanban").sorts || {}),
+			[this.current_board]: { sort_by, sort_order },
+		};
+		frappe.model.user_settings.save(this.doctype, "Kanban", { sorts });
+		this.reload_board();
 	}
 
 	async setup_quick_filters() {
@@ -703,29 +801,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				'<div class="standard-filter-section kanban-v2-quick-filters flex"></div>'
 			).insertBefore(this.$filter_section);
 		}
-		// the boxes' filters outlive them (board or swimlane change), each replacing the filter its
-		// box would hold: the new boxes take back the ones they can hold, the rest stay in the panel
-		const quick = this.get_quick_filters();
-		const boxed = new Set(quick.map(([, fn]) => fn));
-		this.filters = (this.filters || [])
-			.filter(
-				([doctype, fn, cond, val]) =>
-					!(
-						doctype === this.doctype &&
-						boxed.has(fn) &&
-						frappe.ui.FilterGroup.fits_box(page.fields_dict[fn], cond, val)
-					)
-			)
-			.concat(quick);
-		(this._quick_filter_fields || []).forEach((fn) => {
-			const f = page.fields_dict[fn];
-			if (f) {
-				f.$wrapper && f.$wrapper.remove();
-				delete page.fields_dict[fn];
-			}
-		});
-		this.$quick_filters.empty();
-		this._quick_filter_fields = [];
+		// on a swimlane change the boxes' filters outlive them, next to the panel's: the new boxes
+		// take back the ones they can hold, the rest stay in the panel
+		this.filters = this.get_quick_filters().concat(this.filters || []);
+		this.remove_quick_filters();
 
 		const excluded = new Set([this.field_name, this.group_by_field].filter(Boolean));
 		const meta = frappe.get_meta(this.doctype);
@@ -745,6 +824,19 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 
 		await this.seed_quick_filters();
+	}
+
+	/** Drops the quick filter boxes together with the filters they hold. */
+	remove_quick_filters() {
+		(this._quick_filter_fields || []).forEach((fn) => {
+			const f = this.page.fields_dict[fn];
+			if (f) {
+				f.$wrapper && f.$wrapper.remove();
+				delete this.page.fields_dict[fn];
+			}
+		});
+		this.$quick_filters?.empty();
+		this._quick_filter_fields = [];
 	}
 
 	/** Mirrors the list view's standard filters. */
@@ -1018,13 +1110,18 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const key = JSON.stringify(this.get_effective_filters());
 		if (key === this._loaded_key) return;
 		this._loaded_key = key;
+		this.reload_board();
+	}
+
+	/** Grouped boards mount again, as the lanes depend on the filtered set; others reload in place. */
+	reload_board() {
 		if (this.group_by_field) {
-			// the lanes depend on the filtered set
 			this.mount_board();
 			return;
 		}
 		if (!this.provider) return;
 		this.provider.setFilters(this.get_effective_filters());
+		this.provider.setOrderBy(this.get_order_by());
 		this.board.refresh();
 	}
 
@@ -1093,11 +1190,27 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			reportview_args: {
 				doctype: this.doctype,
 				fields: JSON.stringify(this.fields),
-				order_by: "modified desc",
+				order_by: this.get_order_by(),
 				filters: JSON.stringify(filters),
 				with_comment_count: 1,
 			},
 		});
+	}
+
+	/** The title the card shows, or nothing when the card isn't on the board. */
+	get_card_title(card_id) {
+		return this.get_card(card_id)?.[this.title_field] || null;
+	}
+
+	get_card(card_id) {
+		const engines = this.board?.boards
+			? this.board.boards.map((entry) => entry.board?.engine)
+			: [this.board?.engine];
+		for (const engine of engines) {
+			const card = engine?.findCard?.(card_id);
+			if (card) return card;
+		}
+		return null;
 	}
 
 	board_options(provider, opts = {}) {
@@ -1106,18 +1219,37 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const base_callbacks = {
 			onCardOpen: (card) => frappe.set_route("Form", this.doctype, card.name),
 			onSelectionChange: opts.onSelectionChange || ((ids) => this.update_selection_bar(ids)),
-			onMoveError: (mv) => {
+			onMoveError: (mv, error) => {
+				if (error?.server_message_shown) return;
 				const count = (mv.cardIds || []).length;
+				const title = this.get_card_title(mv.cardId);
 				frappe.ui.toast({
 					message:
 						count > 1
 							? __("Could not move {0} cards", [count])
-							: __("Could not move {0}", [mv.cardId]),
+							: title
+							? __("Could not move {0}", [title])
+							: __("Could not move the card"),
 					type: "error",
 				});
 			},
 			onAddCard: (columnId) => this.add_document(columnId),
 		};
+		const callbacks = { ...(settings.callbacks || {}) };
+		const before_move = callbacks.onBeforeCardMove;
+		if (before_move) {
+			// the card's title, doc and board, and the page, so a handler can take over the move
+			callbacks.onBeforeCardMove = (move) =>
+				before_move(
+					{
+						...move,
+						title: this.get_card_title(move.cardId),
+						doc: this.get_card(move.cardId),
+						board_name: this.current_board,
+					},
+					this
+				);
+		}
 		// the sheet opens the form, so a double tap doesn't
 		if (this.touch) {
 			base_callbacks.onCardClick = (card, ev) => this.on_card_tap(card, ev);
@@ -1142,7 +1274,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				: (card, el) => this.render_card(card, el),
 			renderColumnHeader: settings.renderColumnHeader,
 			renderEmptyState: settings.renderEmptyState,
-			callbacks: this.merge_callbacks(base_callbacks, settings.callbacks || {}),
+			callbacks: this.merge_callbacks(base_callbacks, callbacks),
 			// settings.options: extra engine options, e.g. addColumn
 			...(settings.options || {}),
 		};
@@ -1215,11 +1347,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	merge_callbacks(base, custom) {
 		const out = {};
-		const compose = new Set(["onSelectionChange"]);
 		for (const k of new Set([...Object.keys(base), ...Object.keys(custom)])) {
 			const b = base[k];
 			const c = custom[k];
-			if (b && c && compose.has(k)) {
+			if (b && c && k === "onSelectionChange") {
 				out[k] = (...args) => {
 					b(...args);
 					return c(...args);
@@ -1262,7 +1393,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 		for (const fieldname of this.card_field_list) {
 			const df = this.field_df(fieldname);
-			if (df) rows.appendChild(this.field_row(card, df));
+			const row = df && this.field_row(card, df);
+			if (row) rows.appendChild(row);
 		}
 		el.appendChild(rows);
 		el.appendChild(this.card_footer(card));
@@ -1411,6 +1543,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	field_row(card, df) {
+		const value = this.field_value(card, df);
+		if (!value && this.settings.hide_empty_fields) return null;
 		const label = this.field_label(df);
 		const icon = (this.card_field_icons || {})[df.fieldname];
 		const row = document.createElement("div");
@@ -1425,7 +1559,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			row.appendChild(text);
 		}
 
-		const value = this.field_value(card, df);
 		if (value) {
 			row.appendChild(value);
 		} else {
@@ -1495,6 +1628,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	field_value(card, df, opts = {}) {
 		const val = card[df.fieldname];
 		if (val === undefined || val === null || val === "") return null;
+		// an amount of 0 on a card almost always means "not filled in"
+		if (df.fieldtype === "Currency" && !flt(val)) return null;
 
 		const el = document.createElement("div");
 		el.className = "text-sm text-ink-gray-6 truncate min-w-0";
@@ -2442,8 +2577,9 @@ frappe.views.KanbanV2View = class KanbanV2View {
 	}
 
 	show() {
+		const route_options = frappe.route_options;
 		frappe.route_options = {};
-		return this._kanban.load_from_route();
+		return this._kanban.load_from_route(route_options);
 	}
 
 	/** The view switcher carries these filters to the next view, as from a list view. */

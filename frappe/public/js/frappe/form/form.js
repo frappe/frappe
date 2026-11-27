@@ -1653,6 +1653,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	show_submit_message() {
 		if (
+			!this.hide_submit_message &&
 			this.meta.is_submittable &&
 			this.perm[0] &&
 			this.perm[0].submit &&
