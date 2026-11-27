@@ -499,6 +499,76 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 		self.assertIsNone(response["data"].get("secret"))
 
 
+class TestApiV2ListArgs(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		email = "api.listargs@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="API List Args",
+					roles=[{"role": "Desk User"}],
+					send_welcome_email=0,
+				)
+				.insert()
+				.name
+			)
+		self.user = user
+		keys = generate_keys(self.user)
+		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
+		self.description = frappe.generate_hash()
+		self.todos = [
+			frappe.get_doc(doctype="ToDo", description=self.description, allocated_to=self.user).insert().name
+			for _ in range(3)
+		]
+		note = frappe.get_doc(
+			doctype="Note", title=self.description, public=1, seen_by=[{"user": self.user}]
+		).insert()
+		self.note, self.note_row = note.name, note.seen_by[0].name
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			for name in self.todos:
+				frappe.delete_doc_if_exists("ToDo", name)
+			frappe.delete_doc_if_exists("Note", self.note)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def list(self, doctype, **params):
+		response = self.get(self.resource(doctype), params, headers=self.headers)
+		self.assertEqual(response.status_code, 200, response.json)
+		return response
+
+	def test_limit_zero_returns_all_rows(self):
+		response = self.list("ToDo", filters={"description": self.description}, limit=0)
+		self.assertCountEqual([row["name"] for row in response.json["data"]], self.todos)
+		self.assertFalse(response.json["has_next_page"])
+
+	def test_or_filters(self):
+		response = self.list(
+			"ToDo",
+			filters={"description": self.description},
+			or_filters=[["name", "=", self.todos[0]], ["name", "=", self.todos[1]]],
+		)
+		self.assertCountEqual([row["name"] for row in response.json["data"]], self.todos[:2])
+
+	def test_child_table_with_parent_doctype(self):
+		response = self.list("Note Seen By", parent_doctype="Note", limit=0)
+		frappe.set_user(self.user)
+		expected = frappe.get_list("Note Seen By", parent_doctype="Note", limit=0)
+		frappe.set_user("Administrator")
+		self.assertIn(self.note_row, [row["name"] for row in response.json["data"]])
+		self.assertCountEqual(response.json["data"], expected)
+
+
 class TestMethodAPIV2(FrappeAPITestCase):
 	version = "v2"
 
