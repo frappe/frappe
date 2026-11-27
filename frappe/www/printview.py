@@ -338,7 +338,6 @@ def get_rendered_template(
 				</script>
 			"""
 
-<<<<<<< HEAD
 	convert_markdown(doc)
 
 	args = {}
@@ -358,18 +357,6 @@ def get_rendered_template(
 			"print_settings": print_settings,
 		}
 	)
-=======
-	args = {
-		"doc": doc,
-		"meta": frappe.get_meta(doc.doctype),
-		"layout": make_layout(doc, meta),
-		"no_letterhead": no_letterhead,
-		"trigger_print": cint(trigger_print),
-		"letter_head": letter_head.content,
-		"footer": letter_head.footer,
-		"print_settings": print_settings,
-	}
->>>>>>> ad6fedb (fix(print): standard print shows markdown text as raw text)
 	hook_func = frappe.get_hooks("pdf_body_html")
 	html = frappe.get_attr(hook_func[-1])(jenv=jenv, template=template, print_format=print_format, args=args)
 
@@ -633,14 +620,7 @@ def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
 
 
 def run_before_print(doc: "Document", print_settings: dict) -> None:
-<<<<<<< HEAD
-	"""Prepare Link titles and fire the document's ``before_print`` hook."""
-=======
-	"""Prepare Link titles and markdown values and fire the document's ``before_print`` hook.
-
-	Shared by the legacy template renderer and the builder generator so both
-	prepare the document the same way before rendering."""
->>>>>>> ad6fedb (fix(print): standard print shows markdown text as raw text)
+	"""Prepare Link titles and markdown values and fire the document's ``before_print`` hook."""
 	doc.flags.in_print = True
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
