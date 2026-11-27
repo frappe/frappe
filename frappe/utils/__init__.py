@@ -26,8 +26,15 @@ from werkzeug.test import Client
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
+<<<<<<< HEAD
 from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import sanitize_html
+=======
+from frappe.utils.html_utils import has_html_tags, sanitize_html, sanitize_html_payload
+
+if TYPE_CHECKING:
+	from werkzeug.test import Client
+>>>>>>> 4bd0cba (fix: content marked as markdown shows as raw text in help articles)
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
 EMAIL_STRING_PATTERN = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
@@ -758,7 +765,11 @@ def get_request_session(max_retries=5):
 
 
 def markdown(text, sanitize=True, linkify=True):
-	html = text if is_html(text) else frappe.utils.md_to_html(text)
+	html = (
+		text
+		if is_html(text) and ("<!-- markdown -->" not in text or has_html_tags(text))
+		else frappe.utils.md_to_html(text)
+	)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
