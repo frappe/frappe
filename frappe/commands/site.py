@@ -249,6 +249,7 @@ def _restore(
 	from pathlib import Path
 
 	from frappe.installer import extract_files
+	from frappe.utils import get_bench_relative_path
 	from frappe.utils.backups import decrypt_backup
 
 	# Check for the backup file in the backup directory, as well as the main bench directory
@@ -269,12 +270,7 @@ def _restore(
 			click.secho(f"File {sql_file_path} not found.", fg="red")
 			sys.exit(1)
 
-	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
-	if err:
-		click.secho("Failed to detect type of backup file", fg="red")
-		sys.exit(1)
-
-	if "encrypted data" in out.decode().split(":")[-1].strip():
+	if _is_encrypted(sql_file_path):
 		encryption_key = _get_encryption_key(provided_key=encryption_key, non_interactive=non_interactive)
 
 		with decrypt_backup(sql_file_path, encryption_key):
@@ -308,7 +304,8 @@ def _restore(
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
 		# Decrypt data if there is a Key
-		if encryption_key:
+		with_public_files = get_bench_relative_path(with_public_files)
+		if encryption_key and _is_encrypted(with_public_files):
 			with decrypt_backup(with_public_files, encryption_key):
 				public = extract_files(site, with_public_files)
 		else:
@@ -319,7 +316,8 @@ def _restore(
 
 	if with_private_files:
 		# Decrypt data if there is a Key
-		if encryption_key:
+		with_private_files = get_bench_relative_path(with_private_files)
+		if encryption_key and _is_encrypted(with_private_files):
 			with decrypt_backup(with_private_files, encryption_key):
 				private = extract_files(site, with_private_files)
 		else:
@@ -421,12 +419,7 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 		click.secho("Partial restore is not supported for SQLite databases", fg="red")
 		sys.exit(1)
 
-	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
-	if err:
-		click.secho("Failed to detect type of backup file", fg="red")
-		sys.exit(1)
-
-	if "encrypted data" in out.decode().split(":")[-1].strip():
+	if _is_encrypted(sql_file_path):
 		key = _get_encryption_key(provided_key=encryption_key, non_interactive=non_interactive)
 
 		with decrypt_backup(sql_file_path, key):
@@ -454,6 +447,14 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 
 		partial_restore(sql_file_path, verbose)
 	frappe.destroy()
+
+
+def _is_encrypted(file_path: str) -> bool:
+	err, out = frappe.utils.execute_in_shell(["file", file_path], check_exit_code=True)
+	if err:
+		click.secho("Failed to detect type of backup file", fg="red")
+		sys.exit(1)
+	return "encrypted data" in out.decode().split(":")[-1].strip()
 
 
 def _get_encryption_key(provided_key: str | None = None, non_interactive: bool = False) -> str:
