@@ -192,7 +192,22 @@
 
 		</div>
 
-		<div class="flex flex-col gap-1">
+		<div v-if="isGlobal && isDeveloperMode" class="flex flex-col gap-2">
+			<h3 class="text-base-medium text-ink-gray-9">Frappe app</h3>
+			<FormControl
+				type="combobox"
+				placeholder="Select App"
+				:modelValue="componentDoc?.frappe_app"
+				:options="frappeApps"
+				@update:modelValue="(app: string) => componentEditorStore.setFrappeApp(componentId, app)"
+			/>
+			<p class="text-sm text-ink-gray-5">
+				The app that holds this component in its files, at studio/studio_components. Every site with
+				the app gets the component.
+			</p>
+		</div>
+
+		<div v-if="store.activeApp" class="flex flex-col gap-1">
 			<div class="flex items-center justify-between">
 				<h3 class="text-base-medium text-ink-gray-9">Global component</h3>
 				<Switch
@@ -209,7 +224,18 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import { Combobox, Dropdown, ErrorMessage, Popover, FormControl, Button, Switch, dialog, toast } from "frappe-ui"
+import {
+	Combobox,
+	Dropdown,
+	ErrorMessage,
+	Popover,
+	FormControl,
+	Button,
+	Switch,
+	call,
+	dialog,
+	toast,
+} from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
@@ -233,6 +259,13 @@ const canvasStore = useCanvasStore()
 const componentId = computed(() => canvasStore.fragmentData.fragmentId ?? "")
 const componentDoc = computed(() => componentStore.getComponentDoc(componentId.value))
 const isGlobal = computed(() => !componentDoc.value?.studio_app)
+const isDeveloperMode = window.is_developer_mode
+const frappeApps = ref<string[]>([])
+if (isDeveloperMode) {
+	call("frappe.core.doctype.module_def.module_def.get_installed_apps").then((apps: string[] | string) => {
+		frappeApps.value = typeof apps === "string" ? JSON.parse(apps) : apps || []
+	})
+}
 const scriptError = computed(() => componentStore.componentScriptErrors.get(componentId.value))
 const emits = computed(() => componentStore.getComponentEmits(componentId.value))
 

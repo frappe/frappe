@@ -435,6 +435,42 @@ their JSON. Studio still runs them. Update an older component to these rules
 when you work on it: follow
 `studio/frontend/docs/migrate-global-components-to-app-components.md`.
 
+## Components on desk
+
+A workspace is a global Studio Component: a root component whose blocks are
+widget components. No Studio App is necessary.
+
+- `Workspace.studio_component` links the root. A workspace without one has
+  `content` and widget tables, and `frappe/desk/workspace_component.py`
+  converts them to the same kind of tree each time the page loads.
+- The widgets are standard components in the frappe repository, at
+  `studio/studio_components/`:
+  `desk_links`, `desk_shortcut`, `desk_number_card`, `desk_chart`, and
+  `desk_quick_list`. Use them by id, with `isStudioComponent: true`.
+- The root block is a grid of 12 columns. Give each child a
+  `gridColumn: "span <n>"` style, and `span 12` in `mobileStyles`.
+- The server applies the reader's permissions to the widget blocks before it
+  sends the tree (`WidgetResolver`). It removes a widget that the reader
+  cannot open. A widget that needs this check gets a resolver there.
+- Open a global component with no app at `/studio/component/<component_id>`.
+  Use `/studio/component/new` to make one. This works on any site.
+- To ship a component in a Frappe app's source, set `frappe_app` on it in
+  developer mode. Its files are then
+  `<frappe_app>/studio/studio_components/<component_id>.json` and `.js`.
+  `bench migrate` syncs them, and the component is standard on other sites.
+- On desk, a component gets its data in its own script, such as
+  `createListResource` from `frappe-ui`. The requests use the permissions of
+  the user who looks at the workspace. There is no page, so `route` and
+  `router` are not those of an app. Use `window.frappe.set_route(...)` to open
+  a desk view.
+- Every desk user can load a global component's blocks and script, except a
+  workspace's root. Do not put a secret in them.
+- Set appearance in block style values, as in a custom app. Desk's stylesheet
+  for components has the text size classes and the `lucide-*` icon classes
+  only.
+- Other desk code can show a component with
+  `frappe.ui.mount_island("frappe.studio.component", element, { component, props })`.
+
 ## Tailwind CSS
 
 - Tailwind classes are supported only in standard apps. The editor and preview

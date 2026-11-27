@@ -13,6 +13,7 @@ from frappe.studio.export import (
 	delete_file,
 	parse_json,
 	remove_empty_values,
+	validate_frappe_app,
 	validate_standard_app_change,
 	write_code_file,
 	write_document_file,
@@ -25,6 +26,7 @@ from frappe.studio.utils import (
 	get_export_folder,
 	get_exported_app_folders,
 	get_exported_app_name,
+	get_studio_folder,
 	script_extension,
 	validate_file_name,
 	walk_blocks,
@@ -44,6 +46,7 @@ class StudioComponent(Document):
 		block: DF.LongText | None
 		component_id: DF.Data | None
 		component_name: DF.Data | None
+		frappe_app: DF.Data | None
 		inputs: DF.Table[StudioComponentInput]
 		is_disabled: DF.Check
 		is_standard: DF.Check
@@ -73,12 +76,23 @@ class StudioComponent(Document):
 			self.block = frappe.as_json(self.block, indent=None)
 
 	def validate(self):
+		self.validate_frappe_app()
 		validate_standard_app_change(self)
 		# the docname holds the id, so the two cannot disagree
 		self.component_id = get_component_id(self.name)
 		if not self.studio_app:
 			self.validate_no_app_dependencies()
 		self.validate_legacy_inputs()
+
+	def validate_frappe_app(self):
+		"""A Frappe app can hold a global component in its files. An app's component is in the
+		files of its Studio App."""
+		if not self.frappe_app:
+			return
+		if self.studio_app:
+			frappe.throw(_("Only a global component can belong to a Frappe app."))
+		validate_frappe_app(self)
+		self.is_standard = 1
 
 	def validate_legacy_inputs(self):
 		"""The props of a component are in its script. The input rows of an older component can
@@ -244,6 +258,10 @@ class StudioComponent(Document):
 		return [doc for doc in docs if doc.studio_app not in apps_with_their_own]
 
 	def on_update(self):
+		if can_export(self) and self.frappe_app:
+			folder = get_frappe_app_component_folder(self.frappe_app)
+			os.makedirs(folder, exist_ok=True)
+			self.export_to_folder(folder)
 		if can_export(self) and self.has_value_changed("script"):
 			for folder in self.get_export_folders():
 				self.write_script_file(folder)
@@ -255,7 +273,8 @@ class StudioComponent(Document):
 			return
 		if not self.flags.is_app_deleted:
 			self.validate_not_used()
-		if frappe.conf.developer_mode:
+		# uninstalling an app from a site leaves the app's files
+		if frappe.conf.developer_mode and not frappe.flags.in_uninstall:
 			self.delete_files()
 
 	def export_to_folder(self, folder: str):
@@ -289,14 +308,9 @@ class StudioComponent(Document):
 			folders = [get_export_folder(frappe_app, self.studio_app)] if frappe_app else []
 		else:
 			folders = [
-				app_folder
-				for studio_folder in get_studio_folders()
-				for app_folder in get_exported_app_folders(studio_folder)
-				# an app's own component with this id uses the same file name
-				if not frappe.db.exists(
-					"Studio Component",
-					get_component_name(self.component_id, get_exported_app_name(app_folder)),
-				)
+				# the Frappe app that holds it, then each Studio App that exported a copy
+				*([get_studio_folder(self.frappe_app)] if self.frappe_app else []),
+				*self.get_exporting_app_folders(),
 			]
 		return [
 			folder
@@ -304,9 +318,26 @@ class StudioComponent(Document):
 			if os.path.exists(os.path.join(folder, f"{self.get_file_stem()}.json"))
 		]
 
+	def get_exporting_app_folders(self) -> list[str]:
+		return [
+			app_folder
+			for studio_folder in get_studio_folders()
+			for app_folder in get_exported_app_folders(studio_folder)
+			# an app's own component with this id uses the same file name
+			if not frappe.db.exists(
+				"Studio Component",
+				get_component_name(self.component_id, get_exported_app_name(app_folder)),
+			)
+		]
+
 	def delete_files(self):
 		for folder in self.get_export_folders():
 			delete_component_files(folder, self.get_file_stem())
+
+
+def get_frappe_app_component_folder(frappe_app: str) -> str:
+	"""The folder for the global components that a Frappe app holds, which need no Studio App."""
+	return os.path.join(get_studio_folder(frappe_app), COMPONENT_FOLDER)
 
 
 def rename_component_files(folder: str, old_stem: str, new_stem: str):

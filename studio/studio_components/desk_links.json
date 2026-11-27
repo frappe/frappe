@@ -1,0 +1,111 @@
+{
+ "block": {
+  "baseStyles": {
+   "background": "var(--surface-base)",
+   "borderColor": "var(--outline-gray-1)",
+   "borderRadius": "12px",
+   "borderStyle": "solid",
+   "borderWidth": "1px",
+   "display": "flex",
+   "flexDirection": "column",
+   "padding": "12px 8px 8px 8px",
+   "width": "100%"
+  },
+  "children": [
+   {
+    "baseStyles": {
+     "color": "var(--ink-gray-8)",
+     "fontWeight": "600",
+     "padding": "0px 8px 6px 8px"
+    },
+    "componentId": "desk_links-label",
+    "componentName": "TextBlock",
+    "componentProps": {
+     "fontSize": "text-base",
+     "text": "{{ props.label }}"
+    }
+   },
+   {
+    "baseStyles": {
+     "display": "flex",
+     "flexDirection": "column",
+     "gap": "0px",
+     "width": "100%"
+    },
+    "children": [
+     {
+      "baseStyles": {
+       "alignItems": "center",
+       "borderRadius": "8px",
+       "cursor": "{{ isDisabled(dataItem) ? 'default' : 'pointer' }}",
+       "display": "flex",
+       "minHeight": "30px",
+       "minWidth": "0px",
+       "padding": "0px 8px",
+       "width": "100%"
+      },
+      "children": [
+       {
+        "baseStyles": {
+         "color": "var(--ink-gray-7)",
+         "display": "block",
+         "flex": "1",
+         "minWidth": "0px",
+         "opacity": "{{ isDisabled(dataItem) ? 0.5 : 1 }}",
+         "overflow": "hidden",
+         "textOverflow": "ellipsis",
+         "whiteSpace": "nowrap"
+        },
+        "componentId": "desk_links-link",
+        "componentName": "TextBlock",
+        "componentProps": {
+         "fontSize": "text-base",
+         "text": "{{ dataItem.label }}"
+        }
+       }
+      ],
+      "classes": [
+       "hover:bg-surface-gray-2"
+      ],
+      "componentEvents": {
+       "click": {
+        "action": "Run Script",
+        "event": "click",
+        "script": "open(dataItem)"
+       }
+      },
+      "componentId": "desk_links-row",
+      "componentName": "container",
+      "componentProps": {
+       "title": "{{ getHint(dataItem) }}"
+      },
+      "originalElement": "div"
+     }
+    ],
+    "componentId": "desk_links-rows",
+    "componentName": "Repeater",
+    "componentProps": {
+     "data": "{{ props.links }}",
+     "dataKey": "link_to",
+     "emptyStateMessage": ""
+    }
+   }
+  ],
+  "componentId": "desk_links-root",
+  "componentName": "container",
+  "originalElement": "div"
+ },
+ "component_id": "desk_links",
+ "component_name": "Links",
+ "creation": "2026-11-19 15:45:38.572904",
+ "docstatus": 0,
+ "doctype": "Studio Component",
+ "frappe_app": "frappe",
+ "idx": 0,
+ "is_disabled": 0,
+ "is_standard": 1,
+ "modified": "2026-11-19 15:47:01.605916",
+ "modified_by": "Administrator",
+ "name": "desk_links",
+ "owner": "Administrator"
+}

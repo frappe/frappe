@@ -16,6 +16,8 @@ from frappe.studio.utils import find_script_file, get_studio_folder
 #   <frappe_app>/studio/<studio_app>/studio_page/<stem>/<stem>.json   -> Studio Page
 #   <frappe_app>/studio/<studio_app>/studio_components/<id>.json      -> Studio Component
 #   <frappe_app>/studio/<studio_app>/studio_components/<id>.js|ts     -> its `script` field
+#   <frappe_app>/studio/studio_components/<id>.json                   -> a global Studio Component
+#   <frappe_app>/studio/studio_components/<id>.js|ts                  -> its `script` field
 PAGE_FOLDER = "studio_page"
 COMPONENT_FOLDER = "studio_components"
 
@@ -93,7 +95,7 @@ def get_component_path_from_script(path: str) -> str | None:
 	"""The component JSON a script file belongs to. None if `path` is not a component script."""
 	stem, extension = os.path.splitext(path)
 	parts = get_studio_relative_parts(path)
-	if extension not in (".js", ".ts") or not parts or len(parts) != 3 or parts[1] != COMPONENT_FOLDER:
+	if extension not in (".js", ".ts") or not parts or not is_component_path(parts):
 		return None
 	return f"{stem}.json"
 
@@ -104,7 +106,7 @@ def synced_doc_identity(path: str, doctype: str) -> dict:
 	return {
 		"doctype": doctype,
 		"name": get_exported_component_name(path) if is_component else data.get(DOCNAME_FIELD[doctype]),
-		"studio_app": get_studio_relative_parts(path)[0],
+		"studio_app": None if is_frappe_app_component(path) else get_studio_relative_parts(path)[0],
 	}
 
 
@@ -125,15 +127,24 @@ def get_doctype_from_path(path: str) -> str | None:
 	if not parts or not parts[-1].endswith(".json"):
 		return None
 
+	if is_component_path(parts):
+		return "Studio Component"
 	studio_app, *rest = parts
 	if rest == [f"{frappe.scrub(studio_app)}.json"]:
 		return "Studio App"
 	# a page's folder and file share the stem; anything else is not a page export
 	if len(rest) == 3 and rest[0] == PAGE_FOLDER and rest[1] == rest[2].removesuffix(".json"):
 		return "Studio Page"
-	if len(rest) == 2 and rest[0] == COMPONENT_FOLDER:
-		return "Studio Component"
 	return None
+
+
+def is_component_path(parts: list[str]) -> bool:
+	"""Whether the parts name a file of a component: one of a Studio App, or one of the Frappe app."""
+	return len(parts) in (2, 3) and parts[-2] == COMPONENT_FOLDER
+
+
+def is_frappe_app_component(path: str) -> bool:
+	return len(get_studio_relative_parts(path) or []) == 2
 
 
 def get_studio_relative_parts(path: str) -> list[str] | None:

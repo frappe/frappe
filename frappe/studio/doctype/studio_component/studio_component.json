@@ -13,6 +13,7 @@
   "script",
   "component_id",
   "studio_app",
+  "frappe_app",
   "is_standard",
   "interface_tab",
   "inputs"
@@ -79,12 +80,19 @@
    "options": "Studio App",
    "search_index": 1,
    "set_only_once": 1
+  },
+  {
+   "description": "The Frappe app whose files hold this global component. Set it in developer mode to ship the component with that app.",
+   "fieldname": "frappe_app",
+   "fieldtype": "Data",
+   "label": "Frappe App",
+   "no_copy": 1
   }
  ],
  "grid_page_length": 50,
- "index_web_pages_for_search": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-16 13:00:16.514778",
+ "modified": "2026-11-19 14:53:09.816086",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",

@@ -36,11 +36,11 @@
 						class="absolute left-0 right-0 top-0 z-20 flex h-11 items-center justify-between border-b border-outline-gray-2 bg-surface-base px-[0.4rem] text-sm text-ink-gray-8"
 					>
 						<div class="flex items-center gap-1 pl-2 text-xs">
-							<a @click="canvasStore.exitAllFragments" class="cursor-pointer">
-								{{ store.activePage?.page_title }}
+							<a v-if="store.activePage" @click="canvasStore.exitAllFragments" class="cursor-pointer">
+								{{ store.activePage.page_title }}
 							</a>
 							<template v-for="(fragment, index) in canvasStore.fragmentStack" :key="fragment.fragmentId">
-								<span class="lucide-chevron-right h-3 w-3" />
+								<span v-if="store.activePage || index" class="lucide-chevron-right h-3 w-3" />
 								<a
 									v-if="index < canvasStore.fragmentStack.length - 1"
 									class="flex cursor-pointer items-center gap-1.5"
@@ -360,6 +360,23 @@ onActivated(async () => {
 	}
 })
 
+/** Open a global component with no app, as desk uses it. */
+async function openComponent(componentID: string) {
+	await store.closeApp()
+	const componentEditorStore = useComponentEditorStore()
+	if (componentID !== "new") return componentEditorStore.editComponent(componentID, true)
+	componentEditorStore.promptNewComponent({
+		onCreated: (component) =>
+			router.replace({ name: "StudioComponent", params: { componentID: component.component_id } }),
+	})
+}
+
+watch(
+	() => route.params.componentID,
+	(componentID) => componentID && openComponent(componentID as string),
+	{ immediate: true },
+)
+
 onDeactivated(() => {
 	store.selectedPage = null
 	store.activePage = null
@@ -374,7 +391,7 @@ watch(
 )
 
 usePageMeta(() => {
-	const page_title = store.activePage?.page_title
+	const page_title = store.activePage?.page_title || canvasStore.fragmentData.fragmentName
 	return {
 		title: page_title ? `${page_title} | Frappe Studio` : "Frappe Studio",
 	}

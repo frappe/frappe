@@ -133,6 +133,27 @@ class TestSync(IntegrationTestCase):
 			self.assertTrue(frappe.db.exists("Studio App", app.name))
 			self.assertTrue(frappe.db.exists("Studio Page", page.name))
 
+	def test_sync_frappe_app_components(self):
+		"""A Frappe app holds global components in its files, with no Studio App."""
+		with exports_in_tempdir():
+			component = frappe.get_doc(
+				doctype="Studio Component",
+				component_name="Shipped " + frappe.generate_hash(length=8),
+				script="export default { props: { title: String } }\n",
+				frappe_app="frappe",
+			).insert()
+			frappe.db.delete("Studio Component", {"name": component.name})
+
+			sync_studio_apps("frappe")
+
+			synced = frappe.db.get_value(
+				"Studio Component", component.name, ["frappe_app", "is_standard", "studio_app", "script"]
+			)
+			self.assertEqual(synced, ("frappe", 1, None, component.script))
+
+			before_app_uninstall("frappe")
+			self.assertFalse(frappe.db.exists("Studio Component", component.name))
+
 	def test_sync_imports_component_scripts(self):
 		with exports_in_tempdir():
 			component, _page, script_path = export_scripted_component()

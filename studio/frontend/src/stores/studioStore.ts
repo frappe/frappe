@@ -140,6 +140,17 @@ const useStudioStore = defineStore("store", () => {
 		await registerAppScripts()
 	}
 
+	/** Open the editor with no app, for a global component. */
+	async function closeApp() {
+		activeApp.value = null
+		activePage.value = null
+		selectedPage.value = null
+		pageBlocks.value = []
+		useComponentStore().setStudioApp("")
+		loadStudioComponents()
+		await unloadAppRuntime()
+	}
+
 	// the canvas is not a rendered app page, so it asks for the app's studio_app_boot dict
 	async function setAppBoot(appName: string) {
 		try {
@@ -867,6 +878,7 @@ const useStudioStore = defineStore("store", () => {
 		isDbApp,
 		refreshAppFiles,
 		setApp,
+		closeApp,
 		deleteApp,
 		updateActiveApp,
 		deleteAppPage,

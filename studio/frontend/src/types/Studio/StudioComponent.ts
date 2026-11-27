@@ -4,6 +4,8 @@ export interface StudioComponent {
 	component_name: string
 	/** The app that owns the component. A component without an app is available in every app. */
 	studio_app?: string | null
+	/** The Frappe app that holds a global component in its files. */
+	frappe_app?: string | null
 	/**	Block : JSON	*/
 	block?: any
 	script?: string | null

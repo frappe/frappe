@@ -201,6 +201,8 @@ def get():
 	)
 	bootinfo.assets_json = get_assets_json()
 	bootinfo.ui_islands = get_ui_islands()
+	# the site draws every workspace as a Studio component, also one that has only content
+	bootinfo.studio_workspaces = bool(frappe.conf.studio_workspaces)
 	bootinfo.read_only = bool(frappe.flags.read_only)
 
 	for hook in frappe.get_hooks("extend_bootinfo"):

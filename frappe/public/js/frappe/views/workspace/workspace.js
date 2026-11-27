@@ -299,6 +299,7 @@ frappe.views.Workspace = class Workspace {
 							label: __("Edit"),
 							icon: "pencil",
 							onclick: async () => {
+								if (this.uses_component(this._page)) return this.edit_component();
 								if (!this.editor || !this.editor.readOnly) return;
 								this.is_read_only = false;
 								await this.editor.readOnly.toggle();
@@ -360,6 +361,13 @@ frappe.views.Workspace = class Workspace {
 					"frappe";
 			}
 
+			if (this.uses_component(current_page)) {
+				this.setup_actions(page);
+				this.show_component(current_page);
+				this.remove_page_skeleton();
+				return;
+			}
+			this.hide_component();
 			parse_content(current_page);
 
 			this.content = current_page.content && [...current_page.content];
@@ -389,6 +397,39 @@ frappe.views.Workspace = class Workspace {
 			localStorage.current_page = current_page.name;
 			localStorage.is_current_page_public = current_page.public ? "true" : "false";
 		}
+	}
+
+	uses_component(page) {
+		return Boolean(page.studio_component || frappe.boot.studio_workspaces);
+	}
+
+	/** Draw the page as its Studio component. The island fetches the blocks that this user may see. */
+	show_component(page) {
+		this.body.find("#editorjs").hide();
+		let $component = this.body.find(".workspace-component");
+		if (!$component.length) {
+			$component = $(
+				`<div class="workspace-component desk-page page-main-content"></div>`
+			).appendTo(this.body.find(".editor-js-container"));
+		}
+		$component.show();
+		frappe.ui.mount_island("frappe.studio.component", $component[0], { workspace: page.name });
+	}
+
+	hide_component() {
+		const $component = this.body.find(".workspace-component").hide();
+		if ($component.length) frappe.ui.unmount_island($component[0]);
+		this.body.find("#editorjs").show();
+	}
+
+	/** Open the page's component in Studio. A page that has only content gets its component first. */
+	async edit_component() {
+		const component = await frappe.xcall(
+			"frappe.desk.workspace_component.make_workspace_component",
+			{ workspace: this._page.name }
+		);
+		this._page.studio_component = component;
+		window.open(`/studio/component/${encodeURIComponent(component)}`);
 	}
 
 	add_custom_cards_in_content() {

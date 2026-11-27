@@ -1,0 +1,86 @@
+{
+ "block": {
+  "baseStyles": {
+   "alignItems": "center",
+   "background": "var(--surface-gray-2)",
+   "borderRadius": "8px",
+   "cursor": "pointer",
+   "display": "flex",
+   "flexDirection": "row",
+   "gap": "6px",
+   "minHeight": "36px",
+   "padding": "0px 12px",
+   "width": "100%"
+  },
+  "children": [
+   {
+    "baseStyles": {
+     "color": "var(--ink-gray-8)",
+     "display": "block",
+     "fontWeight": "500",
+     "minWidth": "0px",
+     "overflow": "hidden",
+     "textOverflow": "ellipsis",
+     "whiteSpace": "nowrap"
+    },
+    "componentId": "desk_shortcut-label",
+    "componentName": "TextBlock",
+    "componentProps": {
+     "fontSize": "text-base",
+     "text": "{{ props.label }}"
+    }
+   },
+   {
+    "baseStyles": {
+     "color": "var(--ink-gray-5)",
+     "flexShrink": 0,
+     "height": "14px",
+     "width": "14px"
+    },
+    "componentId": "desk_shortcut-icon",
+    "componentName": "Icon",
+    "componentProps": {
+     "icon": "lucide-arrow-up-right"
+    }
+   },
+   {
+    "baseStyles": {
+     "marginLeft": "auto"
+    },
+    "componentId": "desk_shortcut-count",
+    "componentName": "Badge",
+    "componentProps": {
+     "label": "{{ count }}",
+     "variant": "subtle"
+    },
+    "visibilityCondition": "count"
+   }
+  ],
+  "classes": [
+   "hover:bg-surface-gray-3"
+  ],
+  "componentEvents": {
+   "click": {
+    "action": "Run Script",
+    "event": "click",
+    "script": "open()"
+   }
+  },
+  "componentId": "desk_shortcut-root",
+  "componentName": "container",
+  "originalElement": "div"
+ },
+ "component_id": "desk_shortcut",
+ "component_name": "Shortcut",
+ "creation": "2026-11-19 15:45:38.646537",
+ "docstatus": 0,
+ "doctype": "Studio Component",
+ "frappe_app": "frappe",
+ "idx": 0,
+ "is_disabled": 0,
+ "is_standard": 1,
+ "modified": "2026-11-19 15:47:01.722581",
+ "modified_by": "Administrator",
+ "name": "desk_shortcut",
+ "owner": "Administrator"
+}

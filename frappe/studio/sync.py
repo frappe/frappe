@@ -31,7 +31,12 @@ def after_app_install(app_name):
 
 
 def before_app_uninstall(app_name):
-	"""Delete studio apps from the uninstalled app."""
+	"""Delete the studio apps and the components that the uninstalled app holds."""
+	for name in frappe.get_all("Studio Component", filters={"frappe_app": app_name}, pluck="name"):
+		component = frappe.get_doc("Studio Component", name)
+		# the blocks that use it stay, as they do for the components of a deleted Studio App
+		component.flags.is_app_deleted = True
+		component.delete()
 	apps = frappe.get_all("Studio App", filters={"frappe_app": app_name}, pluck="name")
 	for studio_app in apps:
 		print(f"Deleting Studio App {studio_app} for {app_name}")
@@ -42,6 +47,8 @@ def sync_studio_apps(app_name: str | None = None):
 	apps = [app_name] if app_name else frappe.get_installed_apps()
 
 	for app in apps:
+		# the Frappe app's own components, which belong to no Studio App
+		sync_components(get_studio_folder(app))
 		for app_folder in get_exported_app_folders(get_studio_folder(app)):
 			print(f"Syncing Studio App {get_exported_app_name(app_folder)} for {app}")
 			import_file_by_path(get_app_file_path(app_folder))
@@ -83,8 +90,9 @@ def sync_pages(app_folder):
 		import_file_by_path(page_path)
 
 
-def sync_components(app_folder):
-	studio_component_folder = os.path.join(app_folder, "studio_components")
+def sync_components(folder):
+	"""Import the components in `folder`: a Studio App's export folder, or `<frappe_app>/studio`."""
+	studio_component_folder = os.path.join(folder, "studio_components")
 	if not os.path.exists(studio_component_folder):
 		return
 

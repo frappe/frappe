@@ -61,7 +61,7 @@ class Workspace(Document, DeskViews):
 		link_to: DF.DynamicLink | None
 		link_type: DF.Literal["DocType", "Page", "Report"]
 		links: DF.Table[WorkspaceLink]
-		module: DF.Link | None
+		module: DF.Link
 		module_onboarding: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
 		parent_page: DF.Link | None
@@ -72,6 +72,7 @@ class Workspace(Document, DeskViews):
 		sequence_id: DF.Float
 		shortcuts: DF.Table[WorkspaceShortcut]
 		standard: DF.Check
+		studio_component: DF.Link | None
 		title: DF.Data
 		type: DF.Literal["Workspace", "Link", "URL"]
 	# end: auto-generated types
@@ -441,6 +442,9 @@ class Workspace(Document, DeskViews):
 
 	def after_delete(self):
 		self.keep_copy_for_restore()
+		# an import deletes the row to replace it, and the new row links the same component
+		if self.studio_component and not frappe.flags.in_import:
+			frappe.delete_doc("Studio Component", self.studio_component, ignore_missing=True)
 
 		if disable_saving_as_public():
 			return
