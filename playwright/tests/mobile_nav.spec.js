@@ -193,7 +193,10 @@ test.describe("Phone tab bar", () => {
 			await page.evaluate(() => frappe.set_route("profile", "personal"));
 			await expect(field("Last Name")).toHaveValue("Changed Elsewhere");
 			await field("Middle Name").fill("Middle");
-			const saved = page.waitForResponse((r) => r.url().includes("frappe.client.set_value"));
+			const saved = page.waitForResponse(
+				(r) =>
+					r.request().method() === "PATCH" && r.url().includes("/api/v2/document/User/")
+			);
 			await page.getByRole("button", { name: "Save", exact: true }).click();
 			await saved;
 

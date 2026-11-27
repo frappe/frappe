@@ -60,28 +60,30 @@ frappe.db = {
 		});
 	},
 	get_single_value: (doctype, field) => {
-		return new Promise((resolve) => {
-			frappe
-				.call({
-					method: "frappe.client.get_single_value",
-					args: { doctype, field },
-					type: "GET",
-				})
-				.then((r) => resolve(r ? r.message : null));
-		});
+		return call_v2_api("GET", document_path(doctype, doctype), { fields: [field] }).then(
+			(doc) => drop_nulls(doc)[field]
+		);
 	},
 	set_value: function (doctype, docname, fieldname, value, callback) {
-		return frappe.call({
-			method: "frappe.client.set_value",
-			args: {
-				doctype: doctype,
+		let request;
+		if (frappe.model.is_table(doctype)) {
+			// v2 saves a child row on its own and returns the row, not the parent
+			request = frappe.xcall("frappe.client.set_value", {
+				doctype,
 				name: docname,
-				fieldname: fieldname,
-				value: value,
-			},
-			callback: function (r) {
-				callback && callback(r.message);
-			},
+				fieldname,
+				value,
+			});
+		} else {
+			const values =
+				typeof fieldname === "object" ? fieldname : { [fieldname]: as_form_value(value) };
+			request = call_v2_api("PATCH", document_path(doctype, docname), values, {
+				json: true,
+			});
+		}
+		return request.then((message) => {
+			callback && callback(message);
+			return { message };
 		});
 	},
 	get_doc: function (doctype, name, filters) {
@@ -176,6 +178,12 @@ function drop_nulls(doc) {
 			: value;
 	}
 	return out;
+}
+
+// as frappe.call sends a form value: objects and arrays as JSON, null and undefined as ""
+function as_form_value(value) {
+	if (value == null) return "";
+	return $.isPlainObject(value) || Array.isArray(value) ? JSON.stringify(value) : value;
 }
 
 function document_path(doctype, name) {
