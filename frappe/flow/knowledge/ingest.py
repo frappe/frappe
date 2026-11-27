@@ -52,6 +52,22 @@ def sync_due_sources() -> None:
 		enqueue_ingestion(source)
 
 
+def reembed_all() -> None:
+	"""Vectors only match the model that made them: drop them and rebuild every source."""
+	from frappe.flow.knowledge import store
+
+	sources = frappe.get_all("Flow Knowledge Source", pluck="name")
+	if not sources:
+		return
+	# the vector store has no rollback, so it goes once the new model is saved, before the jobs
+	frappe.db.after_commit.add(store.drop_table)
+	frappe.db.set_value(
+		"Flow Knowledge Source", {"name": ("in", sources)}, "status", "Pending", update_modified=False
+	)
+	for source in sources:
+		enqueue_ingestion(source, rebuild=True)
+
+
 def enqueue_reconciliation(source: str) -> None:
 	frappe.enqueue(
 		"frappe.flow.knowledge.ingest.reconcile_source",
@@ -90,6 +106,9 @@ def _ingest_source(source: str, rebuild: bool) -> None:
 			_sync_doctype(doc, settings)
 		else:
 			_rebuild_single(doc, settings)
+	except _ModelChanged:
+		frappe.db.rollback()
+		return
 	except Exception:
 		frappe.db.rollback()
 		_mark_failed(source)
@@ -101,6 +120,17 @@ def _ingest_source(source: str, rebuild: bool) -> None:
 		update_modified=False,
 	)
 	frappe.db.commit()  # the status shows while the job runs; nosemgrep: frappe-manual-commit
+
+
+class _ModelChanged(Exception):
+	"""The embedding model changed during the run; the rebuild queued with the change redoes the source."""
+
+
+def _ensure_model_unchanged(settings) -> None:
+	# locked until the commit, so the model can't change before these vectors are written
+	model = frappe.db.get_single_value("Flow Knowledge Settings", "embedding_model", for_update=True)
+	if model != settings.embedding_model:
+		raise _ModelChanged
 
 
 def purge_source(source: str) -> None:
@@ -132,6 +162,7 @@ def _rebuild_single(doc, settings) -> None:
 	if not pieces:
 		return
 
+	_ensure_model_unchanged(settings)
 	store.ensure_table_for_dimension(cint(settings.embedding_dimension))
 
 	rows = []
@@ -250,6 +281,7 @@ def _embed_and_insert(doc, settings, to_embed) -> None:
 	for _, _, pieces in to_embed:
 		all_pieces.extend(pieces)
 	vectors = embed_texts(all_pieces)
+	_ensure_model_unchanged(settings)
 	store.ensure_table_for_dimension(cint(settings.embedding_dimension))
 
 	rows = []

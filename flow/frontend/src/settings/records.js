@@ -172,6 +172,7 @@ export function useRecord(props, emit) {
 		saving.value = true;
 		error.value = "";
 		try {
+			if (!(await confirmed())) return;
 			const from = doc.value.name;
 			const to = renameTo();
 			const method = isNew.value ? "frappe.client.insert" : "frappe.client.save";
@@ -188,6 +189,24 @@ export function useRecord(props, emit) {
 		} finally {
 			saving.value = false;
 		}
+	}
+
+	// a spec may ask before a save with side effects
+	async function confirmed() {
+		const ask = await props.spec.confirmSave?.(doc.value, JSON.parse(original.value));
+		if (!ask) return true;
+		return new Promise((resolve) => {
+			dialog.confirm({
+				title: ask.title,
+				size: "lg",
+				message: ask.message,
+				actions: [
+					{ label: __("Cancel"), variant: "outline", onClick: () => resolve(false) },
+					{ label: ask.label, variant: "solid", onClick: () => resolve(true) },
+				],
+				onCancel: () => resolve(false),
+			});
+		});
 	}
 
 	// a saved record is named after its rename field, so changing that field renames it
