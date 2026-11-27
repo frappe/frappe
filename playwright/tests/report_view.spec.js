@@ -68,9 +68,7 @@ test.describe("Report View", () => {
 
 	test("Field with enabled allow_on_submit should be editable.", async ({ page, api }) => {
 		const value_update = page.waitForResponse(
-			(res) =>
-				res.request().method() === "POST" &&
-				res.url().includes("api/method/frappe.client.set_value")
+			(res) => res.request().method() === "PATCH" && res.url().includes("/api/v2/document/")
 		);
 		await page.goto(`/desk/List/${doctype_name}/Report`);
 

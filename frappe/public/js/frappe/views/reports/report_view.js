@@ -781,7 +781,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						reject();
 					}
 				})
-				.fail(reject);
+				.catch(reject);
 		});
 	}
 
