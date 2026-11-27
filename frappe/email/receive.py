@@ -780,10 +780,19 @@ class InboundMail(Email):
 		):
 			return communication
 
-		name, _, domain = self.message_id.rpartition("@")
-		if name and domain == frappe.local.site:
+		if name := self.get_copy_communication_name(self.message_id):
 			# a copy this site sent of a received mail, e.g. to an assignee who is also this inbox
 			return Communication.find_one_by_filters(name=name, **filters)
+
+	@staticmethod
+	def get_copy_communication_name(message_id: str) -> str | None:
+		"""Return the Communication name in the Message-ID of a copy that this site sent of a received mail.
+
+		The Message-ID is `<random>.<communication>@<site>`, or `<communication>@<site>` for older copies.
+		"""
+		local_part, _, domain = message_id.rpartition("@")
+		if local_part and domain == frappe.local.site:
+			return local_part.rpartition(".")[2]
 
 	def is_sender_same_as_receiver(self):
 		return self.from_email == self.email_account.email_id
@@ -836,9 +845,9 @@ class InboundMail(Email):
 			if self.parent_email_queue() and self.parent_email_queue().communication:
 				communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)
 			else:
-				reference = self.in_reply_to
-				if "@" in self.in_reply_to:
-					reference, _ = self.in_reply_to.split("@", 1)
+				reference = (
+					self.get_copy_communication_name(self.in_reply_to) or self.in_reply_to.split("@", 1)[0]
+				)
 				communication = Communication.find(reference, ignore_error=True)
 
 		self._parent_communication = communication or ""
