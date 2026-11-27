@@ -2092,7 +2092,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						args,
 					});
 				} else {
-					open_url_post(frappe.request.url, args);
+					const { cmd, ...params } = args;
+					open_url_post(`/api/method/${cmd}`, params);
 				}
 				this.export_dialog.hide();
 			}

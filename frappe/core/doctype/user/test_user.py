@@ -483,16 +483,17 @@ class TestUser(IntegrationTestCase):
 	@requires_test_service(TestService.WEB_SERVER)
 	@IntegrationTestCase.change_settings("System Settings", commit=True, password_reset_limit=1)
 	def test_rate_limiting_for_reset_password(self):
-		url = get_url()
-		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
+		method = "frappe.core.doctype.user.user.reset_password"
+		url = f"{get_url()}/api/method/{method}"
+		data = {"user": "test@test.com"}
 
 		# Password reset is limited by the request IP, not the submitted user.
 		# Clear all identities for this endpoint instead of guessing the IP key.
-		counter_prefix = f"rl:{data['cmd']}:"
+		counter_prefix = f"rl:{method}:"
 		frappe.cache.delete_keys(counter_prefix)
 		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
 
-		c = FrappeClient(url)
+		c = FrappeClient(get_url())
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		self.assertEqual(res1.status_code, 200)

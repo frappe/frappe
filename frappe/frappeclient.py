@@ -98,14 +98,7 @@ class FrappeClient:
 
 	def logout(self):
 		"""Logout session"""
-		self.session.get(
-			self.url,
-			params={
-				"cmd": "logout",
-			},
-			verify=self.verify,
-			headers=self.headers,
-		)
+		self.session.post(self.url + "/api/method/logout", verify=self.verify, headers=self.headers)
 
 	def get_list(
 		self,
@@ -356,18 +349,12 @@ class FrappeClient:
 		return self.post_process(res)
 
 	def get_request(self, params):
-		res = self.session.get(
-			self.url, params=self.preprocess(params), verify=self.verify, headers=self.headers
-		)
-		res = self.post_process(res)
-		return res
+		params = dict(params)
+		return self.get_api(params.pop("cmd"), self.preprocess(params))
 
 	def post_request(self, data):
-		res = self.session.post(
-			self.url, data=self.preprocess(data), verify=self.verify, headers=self.headers
-		)
-		res = self.post_process(res)
-		return res
+		data = dict(data)
+		return self.post_api(data.pop("cmd"), data)
 
 	def preprocess(self, params):
 		"""convert dicts, lists to json"""

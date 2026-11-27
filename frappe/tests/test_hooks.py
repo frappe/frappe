@@ -287,6 +287,11 @@ class TestAPIHooks(FrappeAPITestCase):
 			# Test!
 			self.assertTrue(response.json.get("message") == get_user_by_email("test@example.com"))
 
+	def test_auth_hook_sees_the_method_that_runs(self):
+		with self.patch_hooks({"auth_hooks": ["frappe.tests.test_hooks.block_ping"]}):
+			response = self.get("/api/method/frappe.ping?cmd=frappe.auth.get_logged_user")
+			self.assertEqual(response.status_code, 403)
+
 
 def custom_has_permission(doc, ptype, user):
 	if doc.flags.dont_touch_me:
@@ -298,6 +303,15 @@ def custom_auth():
 	_auth_type, token = frappe.get_request_header("Authorization", "Bearer ").split(" ")
 	if token == "set_test_example_user":
 		frappe.set_user("test@example.com")
+
+
+def block_ping():
+	if frappe.form_dict.cmd:
+		path = f"/api/method/{frappe.form_dict.cmd}"
+	else:
+		path = frappe.request.path
+	if path == "/api/method/frappe.ping":
+		raise frappe.PermissionError
 
 
 class CustomToDo(ToDo):
