@@ -303,8 +303,6 @@ def get_rendered_template(
 				</script>
 			"""
 
-	convert_markdown(doc)
-
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
@@ -543,7 +541,7 @@ def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
 
 
 def run_before_print(doc: "Document", print_settings: dict) -> None:
-	"""Prepare Link titles and fire the document's ``before_print`` hook.
+	"""Prepare Link titles and markdown values and fire the document's ``before_print`` hook.
 
 	Shared by the legacy template renderer and the builder generator so both
 	prepare the document the same way before rendering."""
@@ -551,6 +549,7 @@ def run_before_print(doc: "Document", print_settings: dict) -> None:
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
+	convert_markdown(doc)
 
 
 def has_share_key(doc: "Document | dict | None") -> bool:
