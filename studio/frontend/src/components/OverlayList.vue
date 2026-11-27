@@ -35,9 +35,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import useComponentStore from "@/stores/componentStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import LucideArrowUpRight from "~icons/lucide/arrow-up-right"
 

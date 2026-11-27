@@ -184,8 +184,8 @@ import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import { confirm } from "@/utils/helpers"
 import type { leftPanelComponentTabOptions, FrappeUIComponent } from "@/types"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
-import type { CustomVueComponentMeta } from "@/types/vue"
+import type { StudioComponent } from "@/runtime/types/Studio/StudioComponent"
+import type { CustomVueComponentMeta } from "@/runtime/types/vue"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()

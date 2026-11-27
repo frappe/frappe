@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { ref, reactive, computed, nextTick } from "vue"
-import type Block from "@/utils/block"
-import { getBlockCopy, getBlockInstance } from "@/utils/serializer"
+import type Block from "@/runtime/utils/block"
+import { getBlockCopy, getBlockInstance } from "@/runtime/utils/serializer"
 import { confirm } from "@/utils/helpers"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"

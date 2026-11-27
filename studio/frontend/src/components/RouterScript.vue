@@ -54,7 +54,7 @@ import {
 	resolveScriptPath,
 	writeStudioFile,
 } from "@/data/studioFiles"
-import { checkAppScript } from "@/browserRuntime/appRuntime"
+import { checkAppScript } from "@/runtime/browserRuntime/appRuntime"
 import { routerScriptCompletions } from "@/utils/completions/routerScriptCompletions"
 import { confirm } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"

@@ -7,9 +7,9 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import useComponentEditorStore from "@/stores/componentEditorStore"
-import useComponentStore from "@/stores/componentStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 import useCanvasStore from "@/stores/canvasStore"
 
 const props = defineProps<{

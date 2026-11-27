@@ -4,8 +4,8 @@ import { useDebounceFn } from "@vueuse/core"
 import { fetchApp } from "@/utils/helpers"
 import { invalidateComponentCache, getComponentSlots } from "@/utils/componentSlots"
 import useStudioStore from "@/stores/studioStore"
-import useComponentStore from "@/stores/componentStore"
-import { registerStudioComponentScripts } from "@/data/studioComponentScripts"
+import useComponentStore from "@/runtime/stores/componentStore"
+import { registerStudioComponentScripts } from "@/runtime/data/studioComponentScripts"
 
 // Keep the open editor in sync with changes made outside it. Three sources, two transports:
 //   - page/app/component JSON synced from disk -> backend socket (studio_doc_update)

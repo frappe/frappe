@@ -1,13 +1,13 @@
 import { computed, unref, isRef } from "vue"
-import useCodeStore, { usePageScope } from "@/stores/codeStore"
+import useCodeStore, { usePageScope } from "@/runtime/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
-import { getBindingType } from "@/utils/parseCode"
+import { getBindingType } from "@/runtime/utils/parseCode"
 import { getCompletions } from "./autocompletions"
 import type { CompletionContext, CompletionSource as CMCompletionSource } from "@codemirror/autocomplete"
 import { syntaxTree } from "@codemirror/language"
 import type { SyntaxNode } from "@lezer/common"
-import * as globalUtils from "@/utils/globalUtils"
+import * as globalUtils from "@/runtime/utils/globalUtils"
 
 export const useStudioCompletions = (canEditValues: boolean = false) => {
 	const codeStore = useCodeStore()

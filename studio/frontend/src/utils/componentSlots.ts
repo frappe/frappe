@@ -1,7 +1,7 @@
 import components from "@/data/components"
 import { componentFolders } from "@/utils/components"
 import { reactive } from "vue"
-import type { CustomVueComponentMeta } from "@/types/vue"
+import type { CustomVueComponentMeta } from "@/runtime/types/vue"
 
 // ?raw to get raw content of a file as string
 const frappeUIModules: Record<string, string> = import.meta.glob(
@@ -17,7 +17,7 @@ const frappeUIModules: Record<string, string> = import.meta.glob(
 	{ query: "?raw", eager: true, import: "default" },
 )
 
-const studioModules: Record<string, string> = import.meta.glob("@/components/AppLayout/*.vue", {
+const studioModules: Record<string, string> = import.meta.glob("@/runtime/components/core/*/*.vue", {
 	query: "?raw",
 	eager: true,
 	import: "default",
@@ -89,7 +89,7 @@ function getComponentTemplate(componentName: string): string {
 			}
 		}
 	} else {
-		const modulePath = `/src/components/AppLayout/${componentName}.vue`
+		const modulePath = `/src/runtime/components/core/${componentName}/${componentName}.vue`
 		if (studioModules[modulePath]) {
 			rawTemplate = studioModules[modulePath]
 		}

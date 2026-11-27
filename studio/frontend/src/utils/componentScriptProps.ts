@@ -1,7 +1,7 @@
 import { typescriptLanguage } from "@codemirror/lang-javascript"
 import type { SyntaxNode, Tree } from "@lezer/common"
 
-import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponentInput } from "@/runtime/types/Studio/StudioComponent"
 
 // The props of a component are in its script. The editor's form reads and writes the `props`
 // object of the script's default export as text. A save changes only the keys of a prop whose

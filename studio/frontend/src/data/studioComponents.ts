@@ -1,5 +1,5 @@
 import { createListResource } from "frappe-ui"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import type { StudioComponent } from "@/runtime/types/Studio/StudioComponent"
 
 const studioComponents = createListResource({
 	method: "GET",

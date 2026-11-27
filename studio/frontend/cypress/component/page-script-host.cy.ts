@@ -13,9 +13,9 @@ import {
 	watch,
 } from "vue"
 
-import { usePageScope } from "@/stores/codeStore"
-import PageScriptHost from "@/components/PageScriptHost.vue"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import { usePageScope } from "@/runtime/stores/codeStore"
+import PageScriptHost from "@/runtime/components/PageScriptHost.vue"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 const page = { name: "probe-page", script: "" } as StudioPage
 

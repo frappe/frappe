@@ -86,7 +86,7 @@ import IconButton from "@/components/IconButton.vue"
 import LucideChevronsLeft from "~icons/lucide/chevrons-left"
 import AgentPanel from "@/components/AgentPanel.vue"
 
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import type { LeftPanelOptions } from "@/types"
