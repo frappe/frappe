@@ -187,6 +187,26 @@ class EmailQueue(Document):
 
 		return True
 
+	def claim(self) -> bool:
+		"""Set the status to "Sending" and reload, unless another worker did it first.
+
+		Commits the open transaction first, so that SQLite writes from a fresh snapshot.
+		"""
+		frappe.db.commit()  # nosemgrep
+		email_queue = frappe.qb.DocType("Email Queue")
+		(
+			frappe.qb.update(email_queue)
+			.set(email_queue.status, "Sending")
+			.set(email_queue.modified, now())
+			.where(email_queue.name == self.name)
+			.where(email_queue.status.isin(["Not Sent", "Partially Sent"]))
+		).run()
+		claimed = frappe.db._cursor.rowcount == 1
+		if claimed:
+			self.reload()
+
+		return claimed
+
 	def send(
 		self,
 		smtp_server_instance: SMTPServer = None,
@@ -196,6 +216,9 @@ class EmailQueue(Document):
 		"""Send emails to recipients."""
 
 		if not self.can_send_now() and not force_send:
+			return
+
+		if not force_send and not self.claim():
 			return
 
 		with SendMailContext(self, smtp_server_instance, frappe_mail_client) as ctx:
@@ -1017,7 +1040,7 @@ class QueueBuilder:
 		frappe_mail_client = None
 		smtp_server_instance = None
 		for name in queue_names:
-			q = frappe.get_doc("Email Queue", name, for_update=True)
+			q = frappe.get_doc("Email Queue", name)
 			if not frappe_mail_client and not smtp_server_instance:
 				email_account = q.get_email_account(raise_error=True)
 

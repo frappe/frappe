@@ -132,6 +132,24 @@ class TestEmailQueue(IntegrationTestCase):
 
 		mock_smtp_server.discard_session.assert_called_once()
 
+	def test_send_skips_email_claimed_by_another_worker(self):
+		email_record = frappe.new_doc(
+			"Email Queue",
+			sender="Test <test@example.com>",
+			show_as_cc="",
+			message="Test message",
+			status="Not Sent",
+			priority=1,
+			recipients=[{"recipient": "test_claimed@example.com"}],
+		).insert()
+		frappe.db.set_value("Email Queue", email_record.name, "status", "Sending")
+		frappe.flags.sent_mail = None
+
+		email_record.send()
+
+		self.assertIsNone(frappe.flags.sent_mail)
+		self.assertEqual(frappe.db.get_value("Email Queue", email_record.name, "status"), "Sending")
+
 	@run_only_if(db_type_is.SQLITE)
 	def test_send_records_result_when_another_connection_commits_during_send(self):
 		email_record = frappe.new_doc(
