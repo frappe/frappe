@@ -252,7 +252,6 @@ class TestEmailQueue(FrappeTestCase):
 		)
 		for case, kwargs, url_count in (
 			("no URLs", {}, 0),
-			("masthead", {"brand_name": "Example"}, 1),
 			("brand logo", {"brand_logo": "https://example.com/logo.png"}, 2),
 			("body links", {"message": body_links}, 2),
 			("unsubscribe link", unsubscribe, 1),
@@ -260,7 +259,6 @@ class TestEmailQueue(FrappeTestCase):
 			(
 				"all",
 				{
-					"brand_name": "Example",
 					"brand_logo": "https://example.com/logo.png",
 					"message": body_links,
 					"email_read_tracker_url": "/api/method/frappe.ping",
@@ -288,19 +286,16 @@ class TestEmailQueue(FrappeTestCase):
 		frappe.set_user("test@example.com")
 
 		text, html = self.get_sent_parts(
-			brand_name="Example", header=["Assignment Update", "blue"], message="<p>Your task is due.</p>"
+			header=["Assignment Update", "blue"], message="<p>Your task is due.</p>"
 		)
 		html_words = BeautifulSoup(html, "html.parser").body.get_text(" ").split()
 
 		self.assertIn("Mumbai,", html_words)
 		self.assertEqual([word for word in text.split() if "://" not in word], html_words)
 
-	def get_sent_parts(self, brand_name=None, brand_logo=None, message="<p>Hello</p>", **kwargs):
+	def get_sent_parts(self, brand_logo=None, message="<p>Hello</p>", **kwargs):
 		"""Return the decoded plain-text and HTML parts of a message sent to customer@example.com."""
-		with (
-			patch("frappe.email.email_body.get_brand_name", return_value=brand_name),
-			patch("frappe.email.email_body.get_brand_logo", return_value=brand_logo),
-		):
+		with patch("frappe.email.email_body.get_brand_logo", return_value=brand_logo):
 			queue = frappe.sendmail(
 				recipients=["customer@example.com"],
 				subject="Parts",
