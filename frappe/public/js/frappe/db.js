@@ -95,13 +95,17 @@ frappe.db = {
 		});
 	},
 	insert: function (doc) {
-		return call_document_api("POST", `document/${encodeURIComponent(doc.doctype)}`, doc, {
+		// v2 inserts a child row on its own, without saving the parent
+		if (doc.parenttype || frappe.model.is_table(doc.doctype)) {
+			return frappe.xcall("frappe.client.insert", { doc });
+		}
+		return call_v2_api("POST", `document/${encodeURIComponent(doc.doctype)}`, doc, {
 			json: true,
 		});
 	},
 	delete_doc: function (doctype, name) {
 		const path = `document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/`;
-		return call_document_api("DELETE", path).then(() => {
+		return call_v2_api("DELETE", path).then(() => {
 			frappe.model.delete_from_locals(doctype, name);
 		});
 	},
@@ -118,7 +122,7 @@ frappe.db = {
 
 		const fields = [];
 
-		return call_document_api(
+		return call_v2_api(
 			cache ? "GET" : "QUERY",
 			`doctype/${encodeURIComponent(doctype)}/count`,
 			{ filters, fields, distinct, limit },
@@ -145,7 +149,7 @@ frappe.db = {
 	},
 };
 
-function call_document_api(type, path, args = {}, opts = {}) {
+function call_v2_api(type, path, args = {}, opts = {}) {
 	return new Promise((resolve, reject) => {
 		frappe.call({
 			url: `/api/v2/${path}`,
