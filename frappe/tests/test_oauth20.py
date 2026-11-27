@@ -362,6 +362,16 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertFalse(response.json.get("active"))
 		self.assertEqual(response.json.get("client_id"), self.client_id)
 
+	def test_introspect_expired_token_is_inactive(self):
+		access_token, token = self._make_bearer_token()
+		token.db_set("expiration_time", add_to_date(None, hours=-1, as_datetime=True))
+
+		response = self.introspect(access_token, headers=self.get_client_auth_headers())
+
+		self.assertEqual(response.status_code, 200)
+		self.assertFalse(response.json.get("active"))
+		self.assertEqual(response.json.get("client_id"), self.client_id)
+
 	def test_introspect_token_unknown_token_is_inactive(self):
 		response = self.introspect("this-token-does-not-exist", headers=self.get_client_auth_headers())
 
