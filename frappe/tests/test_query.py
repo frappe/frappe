@@ -93,18 +93,6 @@ class TestQuery(IntegrationTestCase):
 			query,
 		)
 
-<<<<<<< HEAD
-=======
-	def test_like_filter_on_non_text_field(self):
-		query = frappe.qb.get_query("DocType", fields=["name"], filters={"docstatus": ["like", "0"]})
-		names = query.run(pluck=True)
-
-		self.assertIn("DocType", names)
-		if frappe.db.db_type == "postgres":
-			self.assertIn('CAST("DOCSTATUS" AS VARCHAR) ILIKE', query.get_sql().upper())
-		else:
-			self.assertNotIn("CAST(", query.get_sql().upper())
-
 	def test_like_filter_escapes_wildcards_with_backslash(self):
 		names = {
 			description: frappe.get_doc(doctype="ToDo", description=description).insert().name
@@ -123,7 +111,6 @@ class TestQuery(IntegrationTestCase):
 		query = frappe.qb.from_(todo).select(todo.name).where(todo.description.like("100\\% \\_Ltd"))
 		self.assertEqual(query.run(pluck=True), [names["100% _Ltd"]])
 
->>>>>>> 97fe4c5 (fix(sqlite): escape like wildcards with a backslash)
 	def test_string_fields(self):
 		self.assertEqual(
 			frappe.qb.get_query("User", fields="name, email", filters={"name": "Administrator"}).get_sql(),

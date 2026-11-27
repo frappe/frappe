@@ -2,8 +2,9 @@ from datetime import datetime, time, timedelta
 from typing import Any
 
 from pypika.dialects import SQLLiteValueWrapper
+from pypika.enums import Dialects
 from pypika.queries import QueryBuilder
-from pypika.terms import Criterion, Function, ValueWrapper
+from pypika.terms import BasicCriterion, Criterion, Function, ValueWrapper
 from pypika.utils import format_alias_sql
 
 import frappe
@@ -131,33 +132,14 @@ class SubQuery(Criterion):
 
 
 subqry = SubQuery
-<<<<<<< HEAD
-=======
 
 
-class PostgresAwareCriterion(BasicCriterion):
-	def __init__(self, comparator: Comparator, postgres_comparator: Comparator, left: Term, right: Term):
-		super().__init__(comparator, left, right)
-		self.default_comparator = comparator
-		self.postgres_comparator = postgres_comparator
-
-	def get_sql(self, **kwargs: Any) -> str:
-		self.comparator = (
-			self.postgres_comparator
-			if renders_for_postgres(kwargs.get("dialect"))
-			else self.default_comparator
-		)
-		return super().get_sql(**kwargs)
-
-
-class LikeCriterion(PostgresAwareCriterion):
+class LikeCriterion(BasicCriterion):
 	"""LIKE / NOT LIKE with a backslash escaping `%` and `_` on every database."""
-
-	has_escape_clause = False
 
 	def get_sql(self, **kwargs: Any) -> str:
 		sql = super().get_sql(**kwargs)
-		if self.has_escape_clause or not renders_for_sqlite(kwargs.get("dialect")):
+		if not renders_for_sqlite(kwargs.get("dialect")):
 			return sql
 		pattern = self.right.value if isinstance(self.right, ValueWrapper) else None
 		if isinstance(pattern, str) and "\\" not in pattern:
@@ -171,10 +153,3 @@ def renders_for_sqlite(dialect: Dialects | None) -> bool:
 	if dialect:
 		return dialect == Dialects.SQLLITE
 	return bool(frappe.db and frappe.db.db_type == "sqlite")
-
-
-def renders_for_postgres(dialect: Dialects | None) -> bool:
-	if dialect:
-		return dialect == Dialects.POSTGRESQL
-	return bool(frappe.db and frappe.db.db_type == "postgres")
->>>>>>> 97fe4c5 (fix(sqlite): escape like wildcards with a backslash)

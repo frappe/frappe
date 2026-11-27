@@ -48,35 +48,6 @@ IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
 	"Date": None,
 	"Datetime": None,
 }
-<<<<<<< HEAD
-=======
-# A NULL column's stand-in in db_query-style IFNULL filters; no real date is 0001-01-01.
-IFNULL_FALLBACK_VALUES = {**IS_SET_EMPTY_VALUES, "Date": "0001-01-01", "Datetime": "0001-01-01"}
-
-
-class EscapedLikeCriterion(Criterion):
-	def __init__(self, criterion: Criterion):
-		super().__init__()
-		self.criterion = criterion
-		criterion.has_escape_clause = True
-
-	def nodes_(self):
-		yield self
-		yield from self.criterion.nodes_()
-
-	def get_sql(self, **kwargs: Any) -> str:
-		return f"{self.criterion.get_sql(**kwargs)} ESCAPE '!'"
-
-
-class JSONColumnCast(functions.Cast):
-	"""Cast this engine adds to a postgres `json` column, as opposed to a caller-supplied Cast."""
-
-
-def _cast_autoincrement_name(field: Field, doctype: str) -> Term:
-	if frappe.db.db_type == "postgres" and frappe.get_meta(doctype).autoname == "autoincrement":
-		return functions.Cast(field, "varchar")
-	return field
->>>>>>> 97fe4c5 (fix(sqlite): escape like wildcards with a backslash)
 
 
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):

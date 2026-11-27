@@ -18,12 +18,8 @@ from frappe.integrations.frappe_providers import email_oauth
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import wait_for_job
-<<<<<<< HEAD
-from frappe.utils import set_request
-=======
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_user_by_email, set_request
->>>>>>> 49fbd5f (test: run on a site without a background worker and on SQLite)
+from frappe.utils import set_request
 
 V2 = {"pilot_endpoint": "http://pilot.test", "pilot_auth_token": "pt"}
 AUTHORIZE = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"

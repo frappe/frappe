@@ -1,21 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-<<<<<<< HEAD
-=======
-import unicodedata
 from unittest.mock import patch
 
->>>>>>> 9e1cf79 (fix: keep an encryption key another process has just written)
 from cryptography.fernet import Fernet
 
 import frappe
 from frappe.tests import IntegrationTestCase
-<<<<<<< HEAD
-from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
-=======
 from frappe.utils.password import (
-	MAX_PASSWORD_SIZE,
-	Auth,
 	check_password,
 	decrypt,
 	encrypt,
@@ -23,7 +14,6 @@ from frappe.utils.password import (
 	passlibctx,
 	update_password,
 )
->>>>>>> 9e1cf79 (fix: keep an encryption key another process has just written)
 
 
 class TestPassword(IntegrationTestCase):
