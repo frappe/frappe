@@ -242,7 +242,6 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
-		self.make_repeatable()
 		self.validate_nestedset()
 		self.validate_child_table()
 		self.validate_website()
@@ -578,6 +577,8 @@ class DocType(Document):
 			print(f"\n\nThere was an issue while migrating the DocType: {self.name}\n")
 			raise e
 
+		if not self.flags.ignore_validate:
+			self.make_repeatable()
 		self.change_modified_of_parent()
 		make_module_and_roles(self)
 
