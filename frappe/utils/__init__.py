@@ -34,11 +34,7 @@ from frappe.deprecation_dumpster import (
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-<<<<<<< HEAD
-from frappe.utils.html_utils import sanitize_html
-=======
-from frappe.utils.html_utils import has_html_tags, sanitize_html, sanitize_html_payload
->>>>>>> 4bd0cba (fix: content marked as markdown shows as raw text in help articles)
+from frappe.utils.html_utils import has_html_tags, sanitize_html
 
 if TYPE_CHECKING:
 	from werkzeug.test import Client
