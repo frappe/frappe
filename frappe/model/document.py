@@ -3177,6 +3177,15 @@ class Document(_DocumentBase):
 				):
 					value = None
 
+				elif (
+					convert_dates_to_str
+					and fieldtype in ("Datetime", "Date")
+					and isinstance(value, str)
+					and frappe.db.db_type == "sqlite"
+				):
+					# SQLite keeps the text as given; the other databases cast it to the column's type
+					value = get_datetime(value) if fieldtype == "Datetime" else getdate(value)
+
 			if convert_dates_to_str and isinstance(value, DatetimeTypes):
 				value = str(value)
 

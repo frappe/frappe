@@ -273,6 +273,29 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(saved.subject, "saved after a whole-second insert")
 		self.assertEqual(saved.creation, get_datetime("2026-10-15 10:33:29"))
 
+	def test_date_strings_are_stored_in_the_column_type(self):
+		with self.set_user("test@example.com"):
+			event = frappe.get_doc(
+				{
+					"doctype": "Event",
+					"subject": "_Test all day",
+					"starts_on": "2026-01-05",
+					"ends_on": "2026-01-05 18:30",
+					"event_type": "Private",
+				}
+			).insert()
+			todo = frappe.get_doc(
+				{"doctype": "ToDo", "description": "_Test date", "date": "2026-01-05 18:30:00"}
+			).insert()
+
+		on_the_day = {"starts_on": [">=", "2026-01-05 00:00:00"], "ends_on": "2026-01-05 18:30:00"}
+		self.assertEqual(
+			frappe.get_all("Event", {"name": event.name, **on_the_day}, pluck="name"), [event.name]
+		)
+		self.assertEqual(
+			frappe.get_all("ToDo", {"name": todo.name, "date": "2026-01-05"}, pluck="name"), [todo.name]
+		)
+
 	def test_first_save_of_a_single(self):
 		doctype = new_doctype(
 			issingle=1, fields=[{"fieldname": "note", "fieldtype": "Data", "label": "Note"}]

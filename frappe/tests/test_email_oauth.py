@@ -18,6 +18,7 @@ from frappe.integrations.frappe_providers import email_oauth
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import wait_for_job
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_user_by_email, set_request
 
 V2 = {"pilot_endpoint": "http://pilot.test", "pilot_auth_token": "pt"}
@@ -913,6 +914,7 @@ class TestRefresh(IntegrationTestCase):
 		frappe.db.rollback()
 		self.assertFalse(has_token(app.name, self.user))
 
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_dead_grant_drops_the_tokens(self) -> None:
 		app = self.expired_app("frappe-cloud-relay:microsoft")
 		self.pilot.side_effect = frappe.ValidationError("invalid_grant")
@@ -926,6 +928,7 @@ class TestRefresh(IntegrationTestCase):
 		self.assert_token_dropped(app)
 		self.assertFalse(frappe.db.exists("ToDo", callers_work.name))
 
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_dead_grant_on_a_customers_own_app_drops_the_tokens(self) -> None:
 		app = self.expired_app("https://login.example.com/token", client_secret="their-secret")
 		with (

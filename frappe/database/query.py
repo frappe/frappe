@@ -69,6 +69,7 @@ class EscapedLikeCriterion(Criterion):
 	def __init__(self, criterion: Criterion):
 		super().__init__()
 		self.criterion = criterion
+		criterion.has_escape_clause = True
 
 	def nodes_(self):
 		yield self
