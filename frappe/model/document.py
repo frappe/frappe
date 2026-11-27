@@ -765,7 +765,7 @@ class Document(_DocumentBase):
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
-			d._sanitize_content()
+			d._sanitize_content(getattr(self, "_action", None))
 			d._save_passwords()
 			d._validate_length()
 		if self.is_new():
@@ -2846,7 +2846,7 @@ class Document(_DocumentBase):
 						title=_("Cannot Update After Submit"),
 					)
 
-	def _sanitize_content(self):
+	def _sanitize_content(self, action=None):
 		"""Sanitize HTML and Email in field values. Used to prevent XSS.
 
 		- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
@@ -2855,6 +2855,8 @@ class Document(_DocumentBase):
 
 		if frappe.flags.in_install:
 			return
+
+		action = action or getattr(self, "_action", None)
 
 		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			if not value or not isinstance(value, str):
@@ -2877,9 +2879,9 @@ class Document(_DocumentBase):
 				df.get("ignore_xss_filter")
 				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options") == "Email")
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code", "JSON")
-				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()
-				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))
+				# fields locked after submit can't change, so leave them as stored
+				or (action == "update_after_submit" and not df.get("allow_on_submit") and not self.is_new())
 			):
 				continue
 
