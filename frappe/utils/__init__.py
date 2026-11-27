@@ -758,7 +758,14 @@ def get_request_session(max_retries=5):
 
 
 def markdown(text, sanitize=True, linkify=True):
-	html = text if is_html(text) else frappe.utils.md_to_html(text)
+	from bs4 import BeautifulSoup
+
+	html = (
+		text
+		if is_html(text)
+		and ("<!-- markdown -->" not in text or bool(BeautifulSoup(text, "html.parser").find()))
+		else frappe.utils.md_to_html(text)
+	)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
