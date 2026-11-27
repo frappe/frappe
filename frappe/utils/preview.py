@@ -100,8 +100,7 @@ def capture_screenshot(
 	timeout=30,
 ) -> bytes:
 	"""Drive Chromium over CDP, reusing the PDF generator's process + lifecycle:
-	register the browser so Chromium isn't torn down mid-use, and reset the
-	singleton on crash so the next request gets a fresh instance."""
+	register the browser so Chromium isn't torn down mid-use."""
 	from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
 	from frappe.utils.chromium.page import get_browser_context_params
 	from frappe.utils.pdf import get_host_url
@@ -110,57 +109,46 @@ def capture_screenshot(
 	generator, browser_id = ChromiumManager.acquire()
 	session = page = None
 	try:
-		try:
-			if not generator._devtools_url:
-				generator._set_devtools_url()
-			session = CDPSocketClient(generator._devtools_url)
-			session.connect()
-			params = get_browser_context_params() if html is not None else {"disposeOnDetach": True}
-			context, error = session.send("Target.createBrowserContext", params)
-			if error:
-				raise RuntimeError(f"Error creating browser context: {error}")
+		if not generator._devtools_url:
+			generator._set_devtools_url()
+		session = CDPSocketClient(generator._devtools_url)
+		session.connect()
+		params = get_browser_context_params() if html is not None else {"disposeOnDetach": True}
+		context, error = session.send("Target.createBrowserContext", params)
+		if error:
+			raise RuntimeError(f"Error creating browser context: {error}")
 
-			page = Page(session, context["browserContextId"], "screenshot")
-			page.is_print_designer = False  # normally set by Browser.new_page
-			page.set_media_emulation("screen")  # Page defaults to print media
-			page.set_device_metrics(width, height)
+		page = Page(session, context["browserContextId"], "screenshot")
+		page.is_print_designer = False  # normally set by Browser.new_page
+		page.set_media_emulation("screen")  # Page defaults to print media
+		page.set_device_metrics(width, height)
 
-			if html is not None:
-				# Load the host first so the HTML's local /assets and /files
-				# requests are fulfilled from disk by set_content's interceptor.
-				page.set_tab_url(get_host_url())
-				page.wait_for_navigate()
-				page.set_content(html, wait_for=["load", "DOMContentLoaded", "networkIdle"])
-				page.wait_for_set_content()
+		if html is not None:
+			# Load the host first so the HTML's local /assets and /files
+			# requests are fulfilled from disk by set_content's interceptor.
+			page.set_tab_url(get_host_url())
+			page.wait_for_navigate()
+			page.set_content(html, wait_for=["load", "DOMContentLoaded", "networkIdle"])
+			page.wait_for_set_content()
+		else:
+			if headers:
+				page.set_extra_headers_for_origin(url, headers)
+			deadline = time.monotonic() + timeout
+			if wait_until:
+				page.navigate(url, wait_for=["DOMContentLoaded"], timeout=timeout)
 			else:
-				if headers:
-					page.set_extra_headers_for_origin(url, headers)
-				deadline = time.monotonic() + timeout
-				if wait_until:
-					page.navigate(url, wait_for=["DOMContentLoaded"], timeout=timeout)
-				else:
-					page.navigate(url)
-				if wait_until:
-					wait_until_truthy(page, wait_until, deadline, timeout)
-				if wait_for:
-					sleep(page, wait_for / 1000)
+				page.navigate(url)
+			if wait_until:
+				wait_until_truthy(page, wait_until, deadline, timeout)
+			if wait_for:
+				sleep(page, wait_for / 1000)
 
-			clip = get_full_page_clip(page, width) if full_page else None
-			return page.capture_screenshot(image_format=image_format, clip=clip)
-		finally:
-			# Remove the browser before the outer except resets the singleton.
-			safe_execute(page and page.close)
-			safe_execute(session and session.disconnect)
-			generator.remove_browser(browser_id)
-	except Exception:
-		# Only reset the singleton when the local Chrome process has actually exited.
-		# - proc is None: external chromium_websocket_url is in use — no local process
-		#   to check; transient network errors must not reset the singleton.
-		# - proc.poll() is None: local process is still running — error is application-level.
-		proc = generator._chromium_process
-		if proc is not None and proc.poll() is not None:
-			generator._close_browser()
-		raise
+		clip = get_full_page_clip(page, width) if full_page else None
+		return page.capture_screenshot(image_format=image_format, clip=clip)
+	finally:
+		safe_execute(page and page.close)
+		safe_execute(session and session.disconnect)
+		generator.release(browser_id)
 
 
 def wait_until_truthy(page, expression: str, deadline: float, timeout: int):
