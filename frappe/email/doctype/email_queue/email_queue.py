@@ -596,7 +596,7 @@ def retry_sending(queues: str | list[str]):
 	email_queue = frappe.qb.DocType("Email Queue")
 	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(email_queue.modified, now()).set(
 		email_queue.modified_by, frappe.session.user
-	).where(email_queue.name.isin(queues) & email_queue.status == "Error").run()
+	).where(email_queue.name.isin(queues) & (email_queue.status == "Error")).run()
 
 
 @frappe.whitelist()
