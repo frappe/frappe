@@ -71,20 +71,26 @@ jobs:
       - uses: actions/github-script@v8
         with:
           script: |
-            const cutoff = Date.now() - 6 * 24 * 60 * 60 * 1000;
+            const DAY = 24 * 60 * 60 * 1000;
             const prs = await github.paginate(github.rest.pulls.list, {
               ...context.repo,
               state: "open",
               per_page: 100,
             });
             for (const pr of prs) {
-              if (pr.user.login !== "mergify[bot]") continue;
               if (pr.labels.some((l) => l.name === "no-stale")) continue;
-              if (new Date(pr.updated_at).getTime() > cutoff) continue;
+              let body;
+              if (pr.user.login === "mergify[bot]" && Date.now() - Date.parse(pr.updated_at) > 6 * DAY) {
+                body = "This backport had no activity for 6 days, so it is being closed. Reopen it if it is still needed.";
+              } else if (pr.user.login === "dependabot[bot]" && Date.now() - Date.parse(pr.created_at) > 7 * DAY) {
+                body = "This dependency update was not merged within 7 days, so it is being closed. Reopen it if it is still needed.";
+              } else {
+                continue;
+              }
               await github.rest.issues.createComment({
                 ...context.repo,
                 issue_number: pr.number,
-                body: "This backport had no activity for 6 days, so it is being closed. Reopen it if it is still needed.",
+                body,
               });
               await github.rest.pulls.update({
                 ...context.repo,
