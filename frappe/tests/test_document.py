@@ -233,7 +233,7 @@ class TestDocument(IntegrationTestCase):
 				{"doctype": "ToDo", "description": "_Test date", "date": "2026-01-05 18:30:00"}
 			).insert()
 
-		on_the_day = {"starts_on": [">=", "2026-01-05 00:00:00"], "ends_on": ["<=", "2026-01-05 18:30:00"]}
+		on_the_day = {"starts_on": [">=", "2026-01-05 00:00:00"], "ends_on": "2026-01-05 18:30:00"}
 		self.assertEqual(
 			frappe.get_all("Event", {"name": event.name, **on_the_day}, pluck="name"), [event.name]
 		)
