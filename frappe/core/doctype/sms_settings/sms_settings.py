@@ -82,7 +82,7 @@ def check_sms_permission():
 		frappe.throw(_("You are not permitted to send SMS"), frappe.PermissionError)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def send_sms(receiver_list: str | list[str], msg: str, sender_name: str = "", success_msg: bool = True):
 	check_sms_permission()
 	return _send_sms(receiver_list, msg, sender_name, success_msg)
