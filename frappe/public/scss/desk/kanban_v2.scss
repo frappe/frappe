@@ -22,6 +22,22 @@
 	height: var(--kanban-v2-height, calc(100vh - var(--page-head-height) - var(--margin-md)));
 	overflow: hidden;
 }
+/* KanbanV2Embed: the host's container sets the height */
+.kanban-v2-embed {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+
+	> .kanban-v2-container {
+		height: auto;
+	}
+}
+/* the board on its own Kanban Board form */
+.kanban-board-preview {
+	height: 60vh;
+	min-height: 320px;
+}
 
 .kn-board {
 	--kn-accent: var(--outline-blue-5);
