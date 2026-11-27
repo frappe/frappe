@@ -635,6 +635,18 @@ export const SPECS = {
 		doctype: "Flow Knowledge Settings",
 		label: __("Knowledge settings"),
 		single: true,
+		// the server embeds every source and memory again with a new model
+		confirmSave(doc, before) {
+			const { embedding_model: model } = doc;
+			if (!model || !before.embedding_model || model === before.embedding_model) return null;
+			return {
+				title: __("Change the embedding model?"),
+				message: __(
+					"Knowledge sources and memories will be embedded again with the new model. Knowledge search finds nothing until that finishes, and the model's provider charges for it. Files attached in earlier chats can no longer be searched."
+				),
+				label: __("Change and re-embed"),
+			};
+		},
 		fields: [
 			{
 				name: "embedding_model",
