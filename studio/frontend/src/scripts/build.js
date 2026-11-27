@@ -409,7 +409,6 @@ async function buildWithVite(
 			outDir: outDir,
 			emptyOutDir: true,
 			target: "es2015",
-			sourcemap: true,
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {
