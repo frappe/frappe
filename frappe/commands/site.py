@@ -273,36 +273,9 @@ def _restore(
 	if err:
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
-<<<<<<< HEAD
 
-	if "AES" in out.decode().split(":")[-1].strip():
-		if encryption_key:
-			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
-
-		else:
-			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			encryption_key = get_or_generate_backup_encryption_key()
-=======
-	is_encrypted = "encrypted data" in out.decode().split(":")[-1].strip()
-
-	# ---- Progress reporting: total = 2 mandatory (locate + restore) + optional phases
-
-	total_phases = 2 + int(is_encrypted) + int(bool(with_public_files)) + int(bool(with_private_files))
-	phase = 0
-
-	def _phase(msg: str, colour: str = "cyan") -> None:
-		nonlocal phase
-		phase += 1
-		click.secho(f"[{phase}/{total_phases}] {msg}", fg=colour)
-
-	_phase("Located backup file")
-	backup_size = frappe.utils.get_file_size(sql_file_path, format=True)
-	click.secho(f"      {os.path.basename(sql_file_path)} ({backup_size})", fg="green")
-
-	if is_encrypted:
-		_phase("Decrypting backup", colour="yellow")
+	if "encrypted data" in out.decode().split(":")[-1].strip():
 		encryption_key = _get_encryption_key(provided_key=encryption_key, non_interactive=non_interactive)
->>>>>>> 30cb994 (fix: get encryption key during restore (#36198))
 
 		with decrypt_backup(sql_file_path, encryption_key):
 			# Rollback on unsuccessful decryption
