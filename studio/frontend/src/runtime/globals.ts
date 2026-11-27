@@ -58,7 +58,7 @@ import {
 	SettingsBody,
 	SettingsRow,
 } from "frappe-ui"
-import { Calendar, CommandPalette, CommandPaletteItem, ListView, TextEditor } from "frappe-ui/experimental"
+import { Calendar, CommandPalette, CommandPaletteItem, ListView } from "frappe-ui/experimental"
 import { FRAPPE_UI_CHARTS } from "@/runtime/utils/constants"
 import {
 	List,
@@ -110,13 +110,17 @@ export function registerGlobalComponents(app: App) {
 	app.component("Tooltip", Tooltip)
 	app.component("Tree", Tree)
 	app.component("ListView", ListView)
-	app.component("TextEditor", TextEditor)
 	app.component("CommandPalette", CommandPalette)
 	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)
 	app.component("ContextMenu", ContextMenu)
 	app.component("Duration", Duration)
 	app.component("Spinner", Spinner)
+	app.component(
+		"TextEditor",
+		// frappe-ui has no entry for the editor alone, and the "frappe-ui/experimental" entry is loaded with the page
+		defineAsyncComponent(() => import("../../node_modules/frappe-ui/experimental/TextEditor/TextEditor.vue")),
+	)
 
 	for (const chart of FRAPPE_UI_CHARTS) {
 		app.component(
