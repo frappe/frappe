@@ -1,4 +1,5 @@
 # imports - standard imports
+import getpass
 import os
 import shutil
 import sys
@@ -155,12 +156,24 @@ def new_site(
 	default=False,
 	help="Ignore the validations and downgrade warnings. This action is not recommended",
 )
-@click.option("--encryption-key", help="Backup encryption key")
+@click.option(
+	"--encryption-key",
+	envvar="FRAPPE_BACKUP_ENCRYPTION_KEY",
+	show_envvar=True,
+	help="Backup encryption key",
+)
+@click.option(
+	"--non-interactive",
+	is_flag=True,
+	default=False,
+	help="Fail instead of prompting for a missing encryption key",
+)
 @pass_context
 def restore(
 	context,
 	sql_file_path,
 	encryption_key=None,
+	non_interactive=False,
 	db_root_username=None,
 	db_root_password=None,
 	db_name=None,
@@ -183,6 +196,7 @@ def restore(
 			site=site,
 			sql_file_path=sql_file_path,
 			encryption_key=encryption_key,
+			non_interactive=non_interactive,
 			db_root_username=db_root_username,
 			db_root_password=db_root_password,
 			verbose=context.verbose or verbose,
@@ -199,6 +213,7 @@ def _restore(
 	site=None,
 	sql_file_path=None,
 	encryption_key=None,
+	non_interactive=False,
 	db_root_username=None,
 	db_root_password=None,
 	verbose=None,
@@ -211,7 +226,7 @@ def _restore(
 	from pathlib import Path
 
 	from frappe.installer import extract_files
-	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
+	from frappe.utils.backups import decrypt_backup
 
 	# Check for the backup file in the backup directory, as well as the main bench directory
 	dirs = (f"{site}/private/backups", "..")
@@ -236,13 +251,8 @@ def _restore(
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
 
-	if "AES" in out.decode().split(":")[-1].strip():
-		if encryption_key:
-			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
-
-		else:
-			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			encryption_key = get_or_generate_backup_encryption_key()
+	if "encrypted data" in out.decode().split(":")[-1].strip():
+		encryption_key = _get_encryption_key(provided_key=encryption_key, non_interactive=non_interactive)
 
 		with decrypt_backup(sql_file_path, encryption_key):
 			# Rollback on unsuccessful decryption
@@ -358,11 +368,22 @@ def restore_backup(
 @click.command("partial-restore")
 @click.argument("sql-file-path")
 @click.option("--verbose", "-v", is_flag=True)
-@click.option("--encryption-key", help="Backup encryption key")
+@click.option(
+	"--encryption-key",
+	envvar="FRAPPE_BACKUP_ENCRYPTION_KEY",
+	show_envvar=True,
+	help="Backup encryption key",
+)
+@click.option(
+	"--non-interactive",
+	is_flag=True,
+	default=False,
+	help="Fail instead of prompting for a missing encryption key",
+)
 @pass_context
-def partial_restore(context, sql_file_path, verbose, encryption_key=None):
+def partial_restore(context, sql_file_path, verbose, encryption_key=None, non_interactive=False):
 	from frappe.installer import is_partial, partial_restore
-	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
+	from frappe.utils.backups import decrypt_backup
 
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
@@ -377,14 +398,8 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
 
-	if "cipher" in out.decode().split(":")[-1].strip():
-		if encryption_key:
-			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
-			key = encryption_key
-
-		else:
-			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			key = get_or_generate_backup_encryption_key()
+	if "encrypted data" in out.decode().split(":")[-1].strip():
+		key = _get_encryption_key(provided_key=encryption_key, non_interactive=non_interactive)
 
 		with decrypt_backup(sql_file_path, key):
 			if not is_partial(sql_file_path):
@@ -411,6 +426,27 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 		partial_restore(sql_file_path, verbose)
 	frappe.destroy()
+
+
+def _get_encryption_key(provided_key: str | None = None, non_interactive: bool = False) -> str:
+	from frappe.utils.backups import BACKUP_ENCRYPTION_CONFIG_KEY
+
+	if provided_key:
+		click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
+		return provided_key
+
+	if site_config_key := frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY):
+		click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
+		return site_config_key
+
+	may_prompt = not non_interactive and not os.environ.get("CI")
+	if may_prompt and sys.__stdin__ and sys.__stdin__.isatty():
+		click.secho("Encryption key is required to decrypt the backup file.", fg="yellow")
+		if prompted_key := getpass.getpass("Enter encryption key: "):
+			return prompted_key
+
+	click.secho("Encryption key is required to decrypt the backup file.", fg="red")
+	sys.exit(1)
 
 
 @click.command("reinstall")
@@ -1073,8 +1109,6 @@ def set_admin_password(context, admin_password=None, logout_all_sessions=False):
 
 
 def set_user_password(site, user, password, logout_all_sessions=False):
-	import getpass
-
 	from frappe.utils.password import update_password
 
 	try:
