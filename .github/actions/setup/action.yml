@@ -258,6 +258,8 @@ runs:
         curl -fsSL --retry 2 -o "$RUNNER_TEMP/assets.tar.gz" \
           "https://github.com/${GITHUB_REPOSITORY}/releases/download/assets-${BASE_REF}/frappe-${BASE_SHA}.tar.gz" || return 1
         tar -xzf "$RUNNER_TEMP/assets.tar.gz" -C apps/frappe --exclude manifest.json
+        # The build that is skipped also installs these; the Studio tests build an app with them.
+        yarn --cwd apps/frappe/studio/frontend install --frozen-lockfile --silent
       }
 
       build_pid=""
