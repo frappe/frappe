@@ -1,0 +1,3 @@
+# Domains of known spammers. Sites never send email to these domains or their subdomains.
+# A site can allow some of them again with the `allow_blocked_email_domains` list in site_config.json.
+# One domain per line, lowercase.
