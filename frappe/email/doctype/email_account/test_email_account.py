@@ -4,6 +4,7 @@
 import email
 import imaplib
 import os
+import re
 import unittest
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
@@ -404,7 +405,9 @@ class TestEmailAccount(IntegrationTestCase):
 		sent, received, copy_queue = self.receive_reply_to_assigned_todo()
 		copy = email.message_from_string(copy_queue.message)
 
-		self.assertEqual(copy_queue.message_id, f"{received.name}@{frappe.local.site}")
+		self.assertRegex(
+			copy_queue.message_id, rf"^\d+\.\d+\.\d+\.{received.name}@{re.escape(frappe.local.site)}$"
+		)
 		self.assertEqual(copy["Message-Id"], f"<{copy_queue.message_id}>")
 		self.assertEqual(copy["In-Reply-To"], f"<{sent.message_id}>")
 		self.assertEqual(copy["References"], f"<{sent.message_id}> <{received.message_id}>")
@@ -424,9 +427,16 @@ class TestEmailAccount(IntegrationTestCase):
 	def test_reply_to_inbound_copy_threads_without_email_queue(self):
 		_, received, copy_queue = self.receive_reply_to_assigned_todo()
 		copy = email.message_from_string(copy_queue.message)
+		self.assert_reply_threads_without_email_queue(received, copy["Message-Id"])
+
+	def test_reply_to_older_inbound_copy_threads_without_email_queue(self):
+		_, received, _ = self.receive_reply_to_assigned_todo()
+		self.assert_reply_threads_without_email_queue(received, f"<{received.name}@{frappe.local.site}>")
+
+	def assert_reply_threads_without_email_queue(self, received, copy_message_id):
 		frappe.db.delete("Email Queue")
 
-		reply = self.get_test_mail("reply-4.raw").replace("{{ message_id }}", copy["Message-Id"])
+		reply = self.get_test_mail("reply-4.raw").replace("{{ message_id }}", copy_message_id)
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, {'"INBOX"': {"latest_messages": [reply]}})
 
