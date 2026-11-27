@@ -16,7 +16,7 @@ jobs:
         with:
           script: |
             const DAY = 24 * 60 * 60 * 1000;
-            const DAYS_BEFORE_STALE = 12;
+            const DAYS_BEFORE_STALE = 10;
             const DAYS_BEFORE_CLOSE = 1;
             const LABEL = "inactive";
             const EXEMPT = ["hotfix", "no-stale"];
