@@ -143,20 +143,12 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 	def test_barcode_docfield_with_qr_options_renders_qr(self):
 		"""A dragged Barcode docfield whose options ask for a qr code prints one —
 		decided by the field, without a barcode_format on the layout element."""
-		from frappe.utils.print_format_generator import get_html
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import get_barcode, get_html
 
 		fieldname = f"_test_qr_{frappe.generate_hash(length=6)}"
-		custom_field = frappe.get_doc(
-			{
-				"doctype": "Custom Field",
-				"dt": "ToDo",
-				"label": "QR",
-				"fieldname": fieldname,
-				"fieldtype": "Barcode",
-				"options": "qrcode",
-			}
-		).insert(ignore_permissions=True)
-		self.addCleanup(custom_field.delete, ignore_permissions=True)
+		qr_field = frappe._dict(fieldname=fieldname, fieldtype="Barcode", options="qrcode", label="QR")
 
 		layout = {
 			"sections": [
@@ -175,10 +167,15 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		}
 		pf = self._make_print_format(format_data=json.dumps(layout))
 		todo = self._make_todo()
-		frappe.db.set_value("ToDo", todo.name, fieldname, "HELLO-QR")
+		todo.set(fieldname, "HELLO-QR")
+		get_field = todo.meta.get_field
 
-		html = get_html("ToDo", todo.name, pf.name)
-		self.assertIn("data:image/svg+xml;base64", html)
+		def get_field_with_qr(name):
+			return qr_field if name == fieldname else get_field(name)
+
+		with patch.object(todo.meta, "get_field", side_effect=get_field_with_qr):
+			html = get_html("ToDo", todo.name, pf.name, doc=todo)
+		self.assertIn(get_barcode("HELLO-QR", "QR"), html)
 		self.assertNotIn('data-barcode-value="HELLO-QR"', html)
 
 	def test_barcode_value_fills_field_placeholders_with_raw_values(self):
