@@ -275,7 +275,7 @@ def update_user_settings(old: str, new: str, link_fields: list[dict]) -> None:
 	user_settings_details = (
 		frappe.qb.from_(UserSettings)
 		.select("user", "doctype", "data")
-		.where(UserSettings.data.like(cstr(old)) & UserSettings.doctype.isin(linked_doctypes))
+		.where(UserSettings.data.like(f"%{cstr(old)}%") & UserSettings.doctype.isin(linked_doctypes))
 		.run(as_dict=True)
 	)
 
