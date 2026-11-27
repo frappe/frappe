@@ -22,7 +22,7 @@ def get_change_log(user=None):
 	last_known_versions = frappe._dict(
 		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
 	)
-	current_versions = get_versions()
+	current_versions = get_app_versions()
 
 	if not last_known_versions:
 		update_last_known_versions()
@@ -92,13 +92,18 @@ def update_last_known_versions():
 		"User",
 		frappe.session.user,
 		"last_known_versions",
-		json.dumps(get_versions()),
+		json.dumps(get_app_versions()),
 		update_modified=False,
 	)
 
 
 @frappe.whitelist()
 def get_versions():
+	frappe.permissions.validate_desk_user()
+	return get_app_versions()
+
+
+def get_app_versions():
 	"""Get versions of all installed apps.
 
 	Example:
@@ -169,7 +174,7 @@ def check_for_update():
 		return
 
 	updates = frappe._dict(major=[], minor=[], patch=[])
-	apps = get_versions()
+	apps = get_app_versions()
 
 	for app in apps:
 		remote_url = get_source_url(app)

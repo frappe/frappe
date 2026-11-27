@@ -872,6 +872,7 @@ def _get_timezones():
 @frappe.whitelist()
 def get_all_roles():
 	"""return all roles"""
+	frappe.has_permission("Role", "read", throw=True)
 	active_domains = frappe.get_active_domains()
 
 	roles = frappe.get_all(
@@ -909,6 +910,7 @@ def get_current_user_roles() -> list[str]:
 @frappe.whitelist()
 def get_perm_info(role: str):
 	"""get permission info"""
+	frappe.has_permission("Role", "read", throw=True)
 	from frappe.permissions import get_all_perms
 
 	return get_all_perms(role)
