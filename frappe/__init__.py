@@ -2167,7 +2167,9 @@ def attach_print(
 	print_settings = db.get_singles_dict("Print Settings")
 
 	if print_letterhead and not letterhead:
-		letterhead = get_cached_value("Letter Head", {"is_default": 1}, "name")
+		if not doc:
+			doc = get_doc(doctype, name)
+		letterhead = doc.get("letter_head") or get_cached_value("Letter Head", {"is_default": 1}, "name")
 
 	kwargs = dict(
 		print_format=print_format,
