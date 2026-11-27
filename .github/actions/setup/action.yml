@@ -99,15 +99,22 @@ runs:
       sudo install -d /usr/share/postgresql-common/pgdg
       sudo curl -fsSL --retry 3 --retry-all-errors -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
       echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-      sudo apt-get -qq update \
-        -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/pgdg.list \
-        -o Dir::Etc::sourceparts=- \
-        -o APT::Get::List-Cleanup=0
+      sudo apt-get -qq update
+
+  - shell: bash -e {0}
+    run: echo "APT_PACKAGES=libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev fontconfig libjpeg-turbo8 xfonts-75dpi xfonts-base" >> $GITHUB_ENV
 
   - name: Install System Dependencies
     uses: awalsh128/cache-apt-pkgs-action@v1.6.3
     with:
-      packages: libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev fontconfig libjpeg-turbo8 xfonts-75dpi xfonts-base
+      packages: ${{ env.APT_PACKAGES }}
+
+  - shell: bash -e {0}
+    run: |
+      if ! command -v redis-server > /dev/null || ! command -v mariadb > /dev/null; then
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq --fix-missing $APT_PACKAGES
+      fi
 
   - shell: bash -e {0}
     run: |
