@@ -102,10 +102,13 @@ jobs:
       - name: Add a site for every extra worker
         shell: bash
         # A SQLite site is a folder, so a worker's site is a copy of the saved one with its own
-        # database name, host name and cache database. The workers then share no data.
+        # database name, host name and cache server. The workers then share no data. A cache
+        # database on the shared server is not enough: flushing it empties the in-process cache
+        # of every client of that server.
         run: |
-          cache_url=$(jq -r .redis_cache sites/common_site_config.json)
           for worker in $(seq 2 "$WORKERS"); do
+            cache_port=$((13100 + worker))
+            redis-server --port "$cache_port" --daemonize yes --save "" --appendonly no
             site="test_site_$worker"
             echo "127.0.0.1 $site" | sudo tee -a /etc/hosts
             cp -a "$RUNNER_TEMP/pristine-site" "$RUNNER_TEMP/pristine-site-$worker"
@@ -113,7 +116,7 @@ jobs:
             db_name=$(jq -r .db_name site_config.json)
             mv "db/$db_name.db" "db/${db_name}_$worker.db"
             jq --arg db "${db_name}_$worker" --arg host "http://$site:8000" \
-              --arg cache "${cache_url%/}/$((worker - 1))" \
+              --arg cache "redis://127.0.0.1:$cache_port" \
               '. + {db_name: $db, host_name: $host, redis_cache: $cache}' site_config.json > site_config.json.new
             mv site_config.json.new site_config.json
             cd - > /dev/null

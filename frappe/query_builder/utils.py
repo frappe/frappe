@@ -11,10 +11,10 @@ from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
 	QueryBuilder,
 	_SetOperation,
 )
-from pypika.terms import PseudoColumn, Term
+from pypika.terms import PseudoColumn, Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
 import frappe
-from frappe.query_builder.terms import EscapedValueWrapper, NamedParameterWrapper
+from frappe.query_builder.terms import EscapedValueWrapper, LikeCriterion, NamedParameterWrapper
 
 # Frappe's public query-builder helpers are installed on Base below. This is the
 # existing framework extension mechanism rather than an app overriding Frappe.
@@ -282,7 +282,22 @@ def patch_get_query():
 	Base.get_query = get_query
 
 
+def patch_like_operators():
+	"""Give SQLite the backslash escape that LIKE has by default on MariaDB and Postgres."""
+	from pypika.enums import Matching
+
+	def like(self, expr: str):
+		return LikeCriterion(Matching.like, self, self.wrap_constant(expr))
+
+	def not_like(self, expr: str):
+		return LikeCriterion(Matching.not_like, self, self.wrap_constant(expr))
+
+	Term.like = like  # nosemgrep: frappe-monkey-patching-not-allowed
+	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
 def patch_all():
 	patch_query_execute()
 	patch_query_aggregation()
 	patch_get_query()
+	patch_like_operators()

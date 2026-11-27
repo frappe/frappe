@@ -1,10 +1,19 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 from cryptography.fernet import Fernet
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
+from frappe.utils.password import (
+	check_password,
+	decrypt,
+	encrypt,
+	get_encryption_key,
+	passlibctx,
+	update_password,
+)
 
 
 class TestPassword(IntegrationTestCase):
@@ -119,6 +128,16 @@ class TestPassword(IntegrationTestCase):
 		self.assertEqual(text, decrypted_text)
 
 		pass
+
+	def test_encryption_key_another_process_wrote_is_not_replaced(self):
+		key_on_disk = get_encryption_key()
+		stale_conf = frappe._dict(
+			{key: value for key, value in frappe.conf.items() if key != "encryption_key"}
+		)
+
+		with patch.object(frappe.local, "conf", stale_conf):
+			self.assertEqual(get_encryption_key(), key_on_disk)
+		self.assertEqual(frappe.get_site_config()["encryption_key"], key_on_disk)
 
 
 def get_password_list(doc):

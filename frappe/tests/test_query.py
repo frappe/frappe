@@ -93,6 +93,24 @@ class TestQuery(IntegrationTestCase):
 			query,
 		)
 
+	def test_like_filter_escapes_wildcards_with_backslash(self):
+		names = {
+			description: frappe.get_doc(doctype="ToDo", description=description).insert().name
+			for description in ("100% _Ltd", "100x yLtd")
+		}
+
+		def matching(operator, pattern):
+			found = frappe.get_all("ToDo", filters={"description": [operator, pattern]}, pluck="name")
+			return {description for description, name in names.items() if name in found}
+
+		self.assertEqual(matching("like", "%100_ _Ltd%"), {"100% _Ltd", "100x yLtd"})
+		self.assertEqual(matching("like", "%100\\% \\_Ltd%"), {"100% _Ltd"})
+		self.assertEqual(matching("not like", "%100\\% \\_Ltd%"), {"100x yLtd"})
+
+		todo = frappe.qb.DocType("ToDo")
+		query = frappe.qb.from_(todo).select(todo.name).where(todo.description.like("100\\% \\_Ltd"))
+		self.assertEqual(query.run(pluck=True), [names["100% _Ltd"]])
+
 	def test_string_fields(self):
 		self.assertEqual(
 			frappe.qb.get_query("User", fields="name, email", filters={"name": "Administrator"}).get_sql(),

@@ -193,6 +193,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
+	def _transform_result(self, result: list[tuple] | tuple[tuple]) -> tuple[tuple]:
+		return tuple(result) if isinstance(result, list) else result
+
 	def set_execution_timeout(self, seconds: float):
 		self.sql(f"PRAGMA busy_timeout = {round(seconds * 1000)}")
 
@@ -705,6 +708,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self.before_rollback.run()
 
 			self._conn.rollback()
+			self.transaction_writes = 0
 			self._invalidate_transactional_schema_cache()
 			self._transaction_has_schema_changes = False
 			self.start_next_transaction(self.after_rollback)
@@ -864,12 +868,17 @@ def _reorder_positional_parameters(values, positional_parameter_order: tuple[int
 	return list(reordered) if isinstance(values, list) else tuple(reordered)
 
 
+TRAILING_LOCK_CLAUSE = re.compile(r"\s+for\s+update(\s+nowait|\s+skip\s+locked)?\s*;?\s*$", re.IGNORECASE)
+
+
 def _legacy_modify_query(query: str) -> str:
 	"""Fallback for queries sqlglot can't parse"""
 	# Replace backticks only when they delimit identifiers. Literal backticks in
 	# strings and comments must survive the fallback translation unchanged.
 	query = convert_backtick_identifiers(query)
 	query = replace_locate_with_instr(query)
+	# SQLite has no row-level locks
+	query = TRAILING_LOCK_CLAUSE.sub("", query)
 
 	if re.search("from tab", query, flags=re.IGNORECASE):
 		query = re.sub("from tab([a-zA-Z]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
