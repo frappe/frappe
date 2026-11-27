@@ -1,0 +1,10 @@
+<p>{{ body_content }}</p>
+{% if content %}
+<blockquote>
+	{{ content }}
+</blockquote>
+{% endif %}
+<p>{{ _("Replies to this email do not reach {0}. To reply, open the document.").format(sender) }}</p>
+<div class="more-info">
+	<a href="{{ doc_link }}">{{ _("Open Document") }}</a>
+</div>
