@@ -115,10 +115,20 @@ runs:
 
   # the mariadb server runs as a service container; the client tools come
   # from ubuntu's archives so CI does not depend on mariadb.com mirrors
+  - shell: bash -e {0}
+    run: echo "APT_PACKAGES=libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev" >> $GITHUB_ENV
+
   - name: Install System Dependencies
     uses: awalsh128/cache-apt-pkgs-action@v1.6.3
     with:
-      packages: libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
+      packages: ${{ env.APT_PACKAGES }}
+
+  - shell: bash -e {0}
+    run: |
+      if ! command -v redis-server > /dev/null || ! command -v mariadb > /dev/null; then
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq --fix-missing $APT_PACKAGES
+      fi
 
   - shell: bash -e {0}
     run: |
