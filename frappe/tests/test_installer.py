@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-<<<<<<< HEAD
+from frappe.defaults import _clear_cache
 from frappe.installer import (
 	add_module_defs,
 	install_app,
@@ -15,11 +15,6 @@ from frappe.installer import (
 	remove_from_installed_apps,
 )
 from frappe.tests import IntegrationTestCase, UnitTestCase
-=======
-from frappe.defaults import _clear_cache
-from frappe.installer import add_module_defs, install_app, remove_from_installed_apps
-from frappe.tests import IntegrationTestCase
->>>>>>> 70f1737 (fix: removing an app no longer runs its cached hooks)
 
 # an app that is not on the bench, so no remote can name it
 FAKE_APP = "zzz_test_app"
