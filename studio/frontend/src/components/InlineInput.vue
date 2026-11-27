@@ -62,7 +62,6 @@
 </template>
 
 <script setup lang="ts">
-import { isNumber } from "@tiptap/vue-3"
 import { Tooltip } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
 import { isDynamicValue } from "@/runtime/utils/code"
@@ -179,10 +178,10 @@ const incrementOrDecrement = (step: number, initialValue: null | number = null) 
 	const unit =
 		existingUnit || (props.unitOptions.length && !isNaN(Number(number)) ? props.unitOptions[0] : "")
 	let newValue = (initialValue != null ? Number(initialValue) : Number(number)) + step
-	if (isNumber(props.minValue) && newValue <= props.minValue) {
+	if (typeof props.minValue === "number" && newValue <= props.minValue) {
 		newValue = props.minValue
 	}
-	if (isNumber(props.maxValue) && newValue >= props.maxValue) {
+	if (typeof props.maxValue === "number" && newValue >= props.maxValue) {
 		newValue = props.maxValue
 	}
 	handleChange(newValue + "" + unit)
