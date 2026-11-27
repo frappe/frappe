@@ -1,6 +1,6 @@
 // Ported from Builder, modified later
 import { nextTick } from "vue"
-import type Block from "@/utils/block"
+import type Block from "@/runtime/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import setGuides from "@/utils/guidesTracker"
 import { getBlockInfo, numberToPx } from "@/utils/helpers"

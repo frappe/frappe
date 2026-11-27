@@ -1,11 +1,2 @@
-@import "frappe-ui/style.css";
-@import './styles/codemirror.css';
-
-:root {
-	color-scheme: light;
-	background-color: var(--surface-base);
-}
-
-[data-theme="dark"] {
-	color-scheme: dark;
-}
+@import "./runtime/index.css";
+@import "./styles/codemirror.css";

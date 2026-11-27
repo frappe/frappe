@@ -81,7 +81,7 @@ import MarginHandler from "@/components/MarginHandler.vue"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucidePenLine from "~icons/lucide/pen-line"
 
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"

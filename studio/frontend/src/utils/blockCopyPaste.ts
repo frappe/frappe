@@ -1,19 +1,19 @@
 import { dialog, toast, call } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { usePageScope } from "@/stores/codeStore"
-import useComponentStore from "@/stores/componentStore"
+import { usePageScope } from "@/runtime/stores/codeStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 import { studioPages } from "@/data/studioPages"
-import { hasBuiltPageScript } from "@/data/studioPageScripts"
+import { hasBuiltPageScript } from "@/runtime/data/studioPageScripts"
 import {
 	showPasteConflictDialog,
 	type PasteConflictChoice,
 	type PasteConflictKind,
 } from "@/components/PasteConflictDialog.vue"
 import PasteWarningToast from "@/components/PasteWarningToast.vue"
-import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
+import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/runtime/utils/serializer"
 import { setClipboardData } from "@/utils/helpers"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import type { BlockOptions } from "@/types"
 
 const CLIPBOARD_FORMAT = "studio-copied-blocks"

@@ -48,7 +48,7 @@ import { Button, Switch, toast } from "frappe-ui"
 import { List, ListCell, ListHeader, ListHeaderCell, ListRow, ListRows } from "frappe-ui/list"
 import EditPageDialog from "@/components/Settings/EditPageDialog.vue"
 import useStudioStore from "@/stores/studioStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 const store = useStudioStore()
 const pages = computed(() => Object.values(store.appPages))

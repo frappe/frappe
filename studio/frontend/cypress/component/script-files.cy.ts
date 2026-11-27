@@ -1,6 +1,6 @@
 import { toast } from "frappe-ui"
 import { resolveScriptPath } from "@/data/studioFiles"
-import { checkAppScript } from "@/browserRuntime/appRuntime"
+import { checkAppScript } from "@/runtime/browserRuntime/appRuntime"
 import RouterScript from "@/components/RouterScript.vue"
 import useStudioStore from "@/stores/studioStore"
 import type { StudioApp } from "@/types/Studio/StudioApp"

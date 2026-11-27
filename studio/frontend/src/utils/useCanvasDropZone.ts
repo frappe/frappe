@@ -1,6 +1,6 @@
 import useCanvasStore from "@/stores/canvasStore"
-import Block from "@/utils/block"
-import { getBlockInstance, getComponentBlock } from "@/utils/serializer"
+import Block from "@/runtime/utils/block"
+import { getBlockInstance, getComponentBlock } from "@/runtime/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { useDropZone } from "@vueuse/core"
 import { toast } from "frappe-ui"

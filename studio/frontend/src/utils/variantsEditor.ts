@@ -5,8 +5,8 @@
 
 import { dialog, toast } from "frappe-ui"
 import useCanvasStore from "@/stores/canvasStore"
-import type Block from "@/utils/block"
-import { keepDialogText, setEditorVariantChoice, variantOptionNames } from "@/utils/variants"
+import type Block from "@/runtime/utils/block"
+import { keepDialogText, setEditorVariantChoice, variantOptionNames } from "@/runtime/utils/variants"
 
 /** Confirm, then collapse a Variants block to one of its options. This edits the canvas, not
 the server, so undo and autosave treat it like any other block change. */

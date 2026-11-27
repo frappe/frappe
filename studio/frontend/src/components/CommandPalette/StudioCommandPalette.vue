@@ -24,8 +24,8 @@ import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { studioComponents } from "@/data/studioComponents"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
+import type { StudioComponent } from "@/runtime/types/Studio/StudioComponent"
 
 type PaletteItem = CPItem & { action?: () => void; group?: string; shortcutName?: string }
 type Step = { id: string; label: string; placeholder: string; hint: string }

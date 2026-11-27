@@ -214,9 +214,9 @@ import EmptyState from "@/components/EmptyState.vue"
 import PageScriptHelp from "@/components/PageScriptHelp.vue"
 import ComponentScriptHelp from "@/components/ComponentScriptHelp.vue"
 import useStudioStore from "@/stores/studioStore"
-import useComponentStore from "@/stores/componentStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { usePageScope } from "@/stores/codeStore"
+import { usePageScope } from "@/runtime/stores/codeStore"
 import {
 	listStudioFiles,
 	readStudioFile,
@@ -229,9 +229,9 @@ import {
 	resolveScriptPath,
 	type StudioFileNode,
 } from "@/data/studioFiles"
-import { checkAppScript } from "@/browserRuntime/appRuntime"
+import { checkAppScript } from "@/runtime/browserRuntime/appRuntime"
 import { confirm, scrub } from "@/utils/helpers"
-import { COMPONENT_SCRIPT_BOILERPLATE, PAGE_SCRIPT_BOILERPLATE } from "@/utils/constants"
+import { COMPONENT_SCRIPT_BOILERPLATE, PAGE_SCRIPT_BOILERPLATE } from "@/runtime/utils/constants"
 import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
 import type { ContextMenuOption } from "@/types"
 

@@ -65,7 +65,7 @@
 import { isNumber } from "@tiptap/vue-3"
 import { Tooltip } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
-import { isDynamicValue } from "@/utils/code"
+import { isDynamicValue } from "@/runtime/utils/code"
 import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"

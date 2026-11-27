@@ -1,6 +1,6 @@
 import type { CompletionContext, CompletionResult } from "@codemirror/autocomplete"
 import { isRef, unref } from "vue"
-import useCodeStore, { usePageScope } from "@/stores/codeStore"
+import useCodeStore, { usePageScope } from "@/runtime/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { getCompletions } from "./autocompletions"
 import { vueImportCompletions } from "./vueApiCompletions"

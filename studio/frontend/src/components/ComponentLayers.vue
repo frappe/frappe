@@ -176,7 +176,7 @@ import Draggable from "vuedraggable"
 import ComponentLayers from "@/components/ComponentLayers.vue"
 
 import useCanvasStore from "@/stores/canvasStore"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
 import LucideRepeat from "~icons/lucide/repeat"
