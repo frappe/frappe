@@ -49,7 +49,7 @@ frappe.db = {
 				{ doctype, fieldname, filters, parent: parent_doc },
 				"GET"
 			);
-		} else if (frappe.model.is_single(doctype)) {
+		} else if (frappe.model.is_single(doctype) || locals.DocType[doctype]?.issingle) {
 			request = call_v2_api("GET", document_path(doctype, doctype), { fields });
 		} else {
 			request = get_first_match(doctype, filters, fields).then((row) => row || {});
