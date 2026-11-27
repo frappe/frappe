@@ -259,9 +259,11 @@ class SQLiteLogDocument(Document):
 		page = frappe.utils.cint(20 if requested is None else requested)
 		start_at = frappe.utils.cint(_first_given(start, offset, limit_start) or 0)
 
+		fields, link_fields = _split_link_fields(doctype, fields or ["name"])
+
 		query = db._get_query(
 			table=doctype,
-			fields=fields or ["name"],
+			fields=fields,
 			filters=filters,
 			or_filters=or_filters,
 			order_by=order_by,
@@ -274,7 +276,12 @@ class SQLiteLogDocument(Document):
 		# `pluck` caller wants the bare column values. Both dispatchers select the plucked
 		# field as the only field, so flattening the first column is all that is left to do --
 		# without this, `frappe.get_all(..., pluck="name")` hands back a list of dicts.
-		return db.sql(query, as_dict=not (as_list or pluck), pluck=bool(pluck))
+		rows = db.sql(query, as_dict=not (as_list or pluck), pluck=bool(pluck))
+
+		if link_fields:
+			rows = _fill_link_fields(rows, link_fields, as_dict=not (as_list or pluck), pluck=bool(pluck))
+
+		return rows
 
 	@staticmethod
 	def get_count(doctype: str, filters=None, or_filters=None, **kwargs) -> int:
@@ -299,6 +306,72 @@ class SQLiteLogDocument(Document):
 	def get_stats(**kwargs):
 		"""Return sidebar stats -- always empty."""
 		return {}
+
+
+def _split_link_fields(doctype: str, fields):
+	"""Replace each `link_field.target_field` with the bare link column.
+
+	The linked DocType's table is in the primary database, so the log connection cannot join
+	it. Each replaced column keeps the key the join would have produced, and
+	:func:`_fill_link_fields` swaps its values for the linked ones afterwards.
+	"""
+	from frappe.database.query import DynamicTableField, LinkTableField
+
+	if isinstance(fields, str):
+		fields = [fields]
+
+	query_fields, link_fields = [], []
+	for field in fields:
+		parsed = (
+			DynamicTableField.parse(field, doctype, allow_tab_notation=False)
+			if isinstance(field, str)
+			else None
+		)
+		if not isinstance(parsed, LinkTableField):
+			query_fields.append(field)
+			continue
+
+		key = parsed.alias or parsed.fieldname
+		link_fields.append((len(query_fields), key, parsed.doctype, parsed.fieldname))
+		query_fields.append(f"{parsed.link_fieldname} as {key}")
+
+	return query_fields, link_fields
+
+
+def _fill_link_fields(rows, link_fields, as_dict: bool, pluck: bool):
+	"""Replace the link names in `rows` with the target field values, read from the primary database.
+
+	Values come from `frappe.get_list`, so a document or field the user may not read gives
+	None, as the permission-checked join would.
+	"""
+	from frappe.desk.link_title import get_link_titles
+
+	if not as_dict and not pluck:
+		rows = [list(row) for row in rows]
+
+	def get_value(row, index, key):
+		if pluck:
+			return row
+		return row.get(key) if as_dict else row[index]
+
+	for index, key, link_doctype, target_field in link_fields:
+		names = {name for row in rows if (name := get_value(row, index, key))}
+		values = {}
+		if names and frappe.has_permission(link_doctype, "select"):
+			values = get_link_titles(link_doctype, target_field, names)
+
+		if pluck:
+			rows = [values.get(name) for name in rows]
+			continue
+
+		for row in rows:
+			value = values.get(get_value(row, index, key))
+			if as_dict:
+				row[key] = value
+			else:
+				row[index] = value
+
+	return rows
 
 
 def _first_given(*values):
