@@ -6,6 +6,7 @@ from collections.abc import Callable
 import click
 
 import frappe
+from frappe.flow.commands.evals import flow_eval
 
 
 @click.group("flow-server")
@@ -108,4 +109,4 @@ def _sync_tools(_site: str) -> None:
 	frappe.db.commit()  # a bench command has no request to commit its writes; nosemgrep: frappe-manual-commit
 
 
-commands = [flow_server]
+commands = [flow_server, flow_eval]
