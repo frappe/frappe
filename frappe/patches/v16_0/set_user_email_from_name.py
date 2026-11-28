@@ -17,12 +17,12 @@ def execute():
 	for user in users:
 		if user.name in STANDARD_USERS:
 			# Administrator and Guest keep their own email, lowercased, unless another user's ID is
-			# that email: then they go back to their default one (people sign up as admin@example.com)
+			# that email: then they go back to their default one (people sign up as admin@example.com),
+			# or the reserved one. If both are IDs too, they keep it and the clash below names it.
 			email = (user.email or "").lower()
 			if email in user_ids:
-				email = DEFAULT_EMAILS[user.name]
-				if email in user_ids:
-					email = RESERVED_EMAILS[user.name]
+				fallbacks = (DEFAULT_EMAILS[user.name], RESERVED_EMAILS[user.name])
+				email = next((fallback for fallback in fallbacks if fallback not in user_ids), email)
 
 			if email and email != user.email:
 				standard_user_emails[user.name] = (user.email, email)
@@ -33,8 +33,9 @@ def execute():
 
 		owners.setdefault((email or "").lower(), []).append(user.name)
 
-	# Rare: an ID that is a reserved email, or, on Postgres, two IDs that differ only in case
-	# (John@x.com and john@x.com). The unique index would fail on these, so stop with the names instead.
+	# Rare: Administrator's or Guest's email and both its fallbacks are IDs, or, on Postgres, two IDs
+	# that differ only in case (John@x.com and john@x.com). The unique index would fail on these,
+	# so stop with the names instead.
 	clashes = {email: names for email, names in owners.items() if email and len(names) > 1}
 	if clashes:
 		frappe.throw(
