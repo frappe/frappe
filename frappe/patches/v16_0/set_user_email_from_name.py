@@ -82,11 +82,11 @@ def report_administrator_email_change(old_email, new_email):
 		details = _("Administrator won't get mail until it has a real address.")
 	elif method == "OTP App" and get_default("Administrator_otplogin"):
 		details = _(
-			"Administrator's authenticator app keeps working, but if its two-factor authentication is reset, it can't set it up again until it has a real address. Give it another address, such as {0}."
+			"Administrator can still sign in with the authenticator app, but resetting Administrator's two-factor authentication needs a real email address. Set one, such as {0}."
 		).format(plus_address)
 	else:
 		details = _(
-			"Administrator signs in with two-factor authentication, which emails it a code, so it can't sign in until it has a real address. Sign in as Administrator without 2FA (e.g. {0}) and give it another address, such as {1}."
+			"Administrator's two-factor authentication codes are sent by email, so Administrator can't sign in until it has a real email address. Sign in as Administrator without 2FA (e.g. {0}) and set one, such as {1}."
 		).format(f"bench --site {frappe.local.site} browse --user Administrator", plus_address)
 
 	message = f"{subject} {details}"
