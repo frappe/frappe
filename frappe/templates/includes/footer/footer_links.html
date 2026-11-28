@@ -8,17 +8,15 @@
 </a>
 {% endmacro %}
 <div class="footer-links">
-	<div class="row">
-		<div class="footer-col-left col-sm-6">
-			{%- for item in footer_items if item.label and not (item.parent_label or item.child_items) and not item.right %}
-			{{ footer_link(item) }}
-			{% endfor -%}
-		</div>
+	<div class="footer-col-left">
+		{%- for item in footer_items if item.label and not (item.parent_label or item.child_items) and not item.right %}
+		{{ footer_link(item) }}
+		{% endfor -%}
+	</div>
 
-		<div class="footer-col-right col-sm-6">
-			{%- for item in footer_items if item.label and not (item.parent_label or item.child_items) and item.right %}
-			{{ footer_link(item) }}
-			{% endfor -%}
-		</div>
+	<div class="footer-col-right">
+		{%- for item in footer_items if item.label and not (item.parent_label or item.child_items) and item.right %}
+		{{ footer_link(item) }}
+		{% endfor -%}
 	</div>
 </div>

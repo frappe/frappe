@@ -1,9 +1,34 @@
+// what can show above the closing bar
+$footer-content: ".footer-logo-extension .row > * > *, .footer-group, .footer-info > .footer-col-left:not(:empty)";
+
 .web-footer {
 	padding: 3rem 0;
 	min-height: 140px;
 	background-color: var(--fg-color);
 	border-top: 1px solid $border-color;
 	margin-top: auto;
+	// body is a fixed-height flex column, so a tall page would squeeze the footer under its content
+	flex-shrink: 0;
+
+	// the closing bar sits flush on the bottom edge
+	&:has(.footer-powered) {
+		padding-bottom: 0;
+	}
+
+	// with nothing above it, the footer is only the closing bar, under the footer's own border
+	&:not(:has(#{$footer-content})) {
+		min-height: 0;
+		padding-top: 0;
+
+		> .container {
+			row-gap: 0;
+		}
+
+		.footer-powered {
+			margin-top: 0;
+			border-top: none;
+		}
+	}
 }
 
 .footer-logo {
@@ -15,11 +40,11 @@
 
 .footer-child-item {
 	margin-top: 0.5rem;
+	font-size: $font-size-sm;
 }
 
 .footer-link,
 .footer-child-item a {
-	font-size: $font-size-sm;
 	font-weight: 500;
 	color: $gray-700;
 
@@ -29,40 +54,6 @@
 	}
 }
 
-.footer-col-right {
-	@include media-breakpoint-up(sm) {
-		text-align: right;
-	}
-}
-
-.footer-col-left,
-.footer-col-right {
-	padding-top: 0.8rem;
-	padding-bottom: 1rem;
-	line-height: 2;
-
-	&:empty {
-		padding: 0;
-	}
-}
-
-.footer-col-left .footer-link {
-	margin-right: 1rem;
-}
-
-.footer-col-right .footer-link {
-	margin-right: 1rem;
-
-	@include media-breakpoint-up(sm) {
-		margin-right: 0;
-		margin-left: 1rem;
-	}
-}
-
-.footer-group {
-	margin-top: 2rem;
-}
-
 .footer-group-label {
 	color: $text-muted;
 	font-size: $font-size-sm;
@@ -70,20 +61,114 @@
 }
 
 .footer-grouped-links {
-	margin-bottom: 2rem;
+	// on a phone the address follows the logo, as it does beside the links on wider screens
+	order: 1;
+	display: grid;
+	// equal columns keep a second row of groups lined up under the first
+	grid-template-columns: repeat(auto-fit, 9rem);
+	gap: 2rem 1.5rem;
 }
 
 .footer-group-links {
-	display: flex;
-	flex-direction: column;
-	flex-wrap: wrap;
-	max-height: 10rem;
 	margin-bottom: 0;
 }
 
 .footer-info {
+	display: contents;
 	color: $text-muted;
 	font-size: $font-size-sm;
+
+	> .footer-col-left {
+		line-height: 1.65;
+		overflow-wrap: break-word;
+
+		&:empty {
+			display: none;
+		}
+	}
+}
+
+.footer-powered {
+	grid-column: 1 / -1;
+	order: 10;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem 2rem;
+	// plus the divider, as the navbar counts its own
+	min-height: calc(var(--navbar-height) + 1px);
+	margin-top: 2rem;
+	padding-block: 0.875rem;
+	border-top: 1px solid $border-color;
+	// runs the divider past the container to the page edges
+	border-image: linear-gradient($border-color, $border-color) 1 / 1px 0 0 / 0 100vw;
+	font-size: 0.8125rem;
+	line-height: 1.5;
+
+	&:not(:has(.footer-link)) {
+		justify-content: center;
+	}
+
+	@include media-breakpoint-down(xs) {
+		flex-direction: column;
+		gap: 0.5rem;
+		padding-block: 1rem;
+		text-align: center;
+	}
+}
+
+.footer-links {
+	display: flex;
+	flex: 1 1 auto;
+	flex-wrap: wrap;
+	gap: 0.375rem 2rem;
+
+	&:not(:has(.footer-link)) {
+		display: none;
+	}
+
+	> .footer-col-left,
+	> .footer-col-right {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0 1.25rem;
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	@include media-breakpoint-up(sm) {
+		> .footer-col-right {
+			margin-inline-start: auto;
+		}
+	}
+
+	@include media-breakpoint-down(xs) {
+		flex-direction: column;
+		gap: 0.5rem;
+
+		> .footer-col-left,
+		> .footer-col-right {
+			justify-content: center;
+		}
+	}
+}
+
+.footer-copyright {
+	@include media-breakpoint-down(xs) {
+		display: block;
+	}
+
+	&::after {
+		content: "·";
+		// the template leaves a space after the span, so the trailing side needs less
+		margin-inline: 0.5rem 0.25rem;
+
+		@include media-breakpoint-down(xs) {
+			content: none;
+		}
+	}
 }
 
 .form-control {
@@ -102,6 +187,61 @@
 			box-shadow: none;
 			border-radius: var(--radius);
 			font-size: $font-size-sm;
+		}
+	}
+}
+
+.web-footer > .container {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 1rem;
+
+	.footer-logo-extension,
+	.footer-logo-extension > .row {
+		display: contents;
+	}
+
+	.footer-logo-extension > .row > * {
+		max-width: none;
+		padding: 0;
+
+		&:not(:has(*)) {
+			display: none;
+		}
+	}
+
+	// the columns' own gutters are gone, and the container has none at this width
+	@include media-breakpoint-only(md) {
+		padding-inline: 1.5rem;
+	}
+
+	@include media-breakpoint-up(md) {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+		// the links span both rows and the second takes their extra height, so the address stays under the logo
+		grid-template-rows: auto 1fr;
+		column-gap: 3rem;
+
+		.footer-logo-extension > .row > .text-left,
+		.footer-info > .footer-col-left {
+			grid-column: 1;
+		}
+
+		.footer-info > .footer-col-left {
+			grid-row: 1;
+		}
+
+		&:has(.footer-logo) .footer-info > .footer-col-left {
+			grid-row: 2;
+		}
+
+		.footer-grouped-links {
+			grid-column: 2;
+			grid-row: 1 / span 2;
+			justify-content: end;
+		}
+
+		.footer-logo-extension > .row > .text-right {
+			grid-column: 1 / -1;
 		}
 	}
 }
