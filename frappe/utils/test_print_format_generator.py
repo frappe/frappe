@@ -147,7 +147,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		decided by the field, without a barcode_format on the layout element."""
 		from unittest.mock import patch
 
-		from frappe.utils.print_format_generator import get_barcode, get_html
+		from frappe.utils.print_format_generator import get_html, get_qr_code
 
 		fieldname = f"_test_qr_{frappe.generate_hash(length=6)}"
 		qr_field = frappe._dict(fieldname=fieldname, fieldtype="Barcode", options="qrcode", label="QR")
@@ -177,7 +177,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		with patch.object(todo.meta, "get_field", side_effect=get_field_with_qr):
 			html = get_html("ToDo", todo.name, pf.name, doc=todo)
-		self.assertIn(get_barcode("HELLO-QR", "QR"), html)
+		self.assertIn(get_qr_code("HELLO-QR"), html)
 		self.assertNotIn('data-barcode-value="HELLO-QR"', html)
 
 	def test_screen_preview_is_full_page_width(self):
