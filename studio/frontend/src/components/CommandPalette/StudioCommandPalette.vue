@@ -24,8 +24,8 @@ import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { studioComponents } from "@/data/studioComponents"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
+import type { StudioComponent } from "@/runtime/types/Studio/StudioComponent"
 
 type PaletteItem = CPItem & { action?: () => void; group?: string; shortcutName?: string }
 type Step = { id: string; label: string; placeholder: string; hint: string }
@@ -158,8 +158,8 @@ const componentItems = computed<PaletteItem[]>(() => {
 		.map((component: StudioComponent) => ({
 			name: `component-${component.component_id}`,
 			title: component.component_name,
-			icon: "lucide-box",
-			action: () => useComponentEditorStore().editComponent(component.component_id),
+			icon: component.studio_app ? "lucide-box" : "lucide-globe",
+			action: () => useComponentEditorStore().editComponent(component.component_id, true),
 		}))
 })
 

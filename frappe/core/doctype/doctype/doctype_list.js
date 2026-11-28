@@ -131,7 +131,8 @@ frappe.listview_settings["DocType"] = {
 			secondary_action_label: __("Cancel"),
 			secondary_action() {
 				new_d.hide();
-				if (frappe.get_route()[0] === "Form") {
+				const [view, doctype, name] = frappe.get_route();
+				if (view === "Form" && doctype === "DocType" && name?.startsWith("new-doctype-")) {
 					frappe.set_route("List", "DocType");
 				}
 			},

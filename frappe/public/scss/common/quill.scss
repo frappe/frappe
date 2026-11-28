@@ -281,7 +281,8 @@
 	}
 }
 
-.print-format {
+.print-format,
+.print-format-doc {
 	.ql-snow .ql-editor {
 		height: auto;
 		min-height: 0;
@@ -741,4 +742,97 @@
 .mention-link::after,
 .mention-link::before {
 	display: none;
+}
+
+/*!rtl:begin:ignore:ql-image-overlay*/
+.ql-image-overlay {
+	position: absolute;
+	top: var(--ql-image-top);
+	left: var(--ql-image-left);
+	width: var(--ql-image-width);
+	height: var(--ql-image-height);
+	box-sizing: border-box;
+	border: 1px dashed var(--ink-gray-5);
+	user-select: none;
+
+	.ql-image-handle {
+		position: absolute;
+		width: calc(var(--spacing) * 3);
+		height: calc(var(--spacing) * 3);
+		box-sizing: border-box;
+		background-color: var(--surface-base);
+		border: 1px solid var(--outline-gray-4);
+	}
+
+	.ql-image-handle-nw {
+		top: calc(var(--spacing) * -1.5);
+		left: calc(var(--spacing) * -1.5);
+		cursor: nwse-resize;
+	}
+
+	.ql-image-handle-ne {
+		top: calc(var(--spacing) * -1.5);
+		right: calc(var(--spacing) * -1.5);
+		cursor: nesw-resize;
+	}
+
+	.ql-image-handle-se {
+		bottom: calc(var(--spacing) * -1.5);
+		right: calc(var(--spacing) * -1.5);
+		cursor: nwse-resize;
+	}
+
+	.ql-image-handle-sw {
+		bottom: calc(var(--spacing) * -1.5);
+		left: calc(var(--spacing) * -1.5);
+		cursor: nesw-resize;
+	}
+
+	.ql-image-size {
+		position: absolute;
+		right: var(--padding-xs);
+		bottom: var(--padding-xs);
+		padding: calc(var(--spacing) * 0.5) var(--padding-xs);
+		font-size: var(--text-xs);
+		white-space: nowrap;
+		color: var(--ink-gray-7);
+		background-color: var(--surface-base);
+		border: 1px solid var(--outline-gray-3);
+		border-radius: var(--radius-sm);
+
+		&.outside {
+			right: auto;
+			bottom: auto;
+			top: calc(100% + var(--margin-xs));
+			left: calc(100% + var(--margin-xs));
+		}
+
+		&.outside-left {
+			left: auto;
+			right: calc(100% + var(--margin-xs));
+		}
+	}
+
+	.ql-image-toolbar {
+		position: absolute;
+		top: var(--padding-xs);
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		padding: calc(var(--spacing) * 0.5);
+		background-color: var(--surface-base);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow-md);
+	}
+}
+/*!rtl:end:ignore:ql-image-overlay*/
+
+body.ql-image-resizing-nwse,
+body.ql-image-resizing-nwse * {
+	cursor: nwse-resize;
+}
+
+body.ql-image-resizing-nesw,
+body.ql-image-resizing-nesw * {
+	cursor: nesw-resize;
 }

@@ -17,11 +17,12 @@
 								<RecordTable
 									:columns="columnsOf(value)"
 									:rows="value.map((cells) => ({ cells }))"
+									:json="fields"
 								/>
 							</div>
 						</td>
 						<td v-else class="max-w-[320px] truncate py-0.5">
-							<ValueView :value="value" />
+							<ValueView :value="value" :json="fields" />
 						</td>
 					</tr>
 				</tbody>
@@ -52,9 +53,14 @@ const props = defineProps({
 
 const parsed = computed(() => parseResult(props.result));
 const doctype = computed(() => props.arguments.doctype ?? "");
+// a rename's table already says the new name
 const values = computed(() =>
-	Object.entries(props.arguments.values ?? props.arguments.args ?? {})
+	parsed.value?.action === "rename"
+		? []
+		: Object.entries(props.arguments.values ?? props.arguments.args ?? {})
 );
+// an update's values are fields; an action's args are not
+const fields = computed(() => "values" in props.arguments);
 // deleted records have no form left to open
 const linked = computed(() => !!doctype.value && !parsed.value?.deleted);
 
@@ -75,7 +81,7 @@ const columns = computed(() => columnsOf(rows.value.map((row) => row.cells)));
 
 // amend answers with the record it created; a whitelisted method with whatever it returns
 function amended(outcome, name) {
-	return outcome?.name && outcome.name !== name ? { renamed_to: outcome.name } : {};
+	return outcome?.name && outcome.name !== name ? { amended_as: outcome.name } : {};
 }
 
 // a returned record fills the row's columns, all but the name amended() reads

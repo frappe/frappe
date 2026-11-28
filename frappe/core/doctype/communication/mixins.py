@@ -1,12 +1,24 @@
+from email.utils import make_msgid
+
 import frappe
 from frappe import _
 from frappe.core.utils import get_parent_doc
+from frappe.desk.doctype.notification_log.notification_log import get_title, get_title_html
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_enabled_for_feature,
 )
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.utils import cstr, get_formatted_email, get_url, parse_addr
+from frappe.utils import (
+	cstr,
+	escape_html,
+	get_email_address,
+	get_email_addresses,
+	get_formatted_email,
+	get_url,
+	get_url_to_form,
+	parse_addr,
+)
 
 
 class CommunicationEmailMixin:
@@ -23,7 +35,8 @@ class CommunicationEmailMixin:
 	def get_notification_recipient(self):
 		"""Get notification recipient of the communication docs parent.
 
-		Calls `get_notification_email` on the parent if available; otherwise returns the owner.
+		Calls `get_notification_email` on the parent if available; otherwise returns the owner's email,
+		unless the owner is Administrator or Guest.
 		This uses `run_method` so hooks can customize recipients per app/site.
 		"""
 		parent_doc = get_parent_doc(self)
@@ -34,7 +47,10 @@ class CommunicationEmailMixin:
 		if notification_email:
 			return notification_email
 
-		return parent_doc.owner
+		if parent_doc.owner in frappe.STANDARD_USERS:
+			return None
+
+		return get_email_address(parent_doc.owner)
 
 	def get_all_email_addresses(self, exclude_displayname=False):
 		"""Get all Email addresses mentioned in the doc along with display name."""
@@ -97,12 +113,12 @@ class CommunicationEmailMixin:
 			if notification_recipient := self.get_notification_recipient():
 				cc.append(notification_recipient)
 			cc = set(cc) - {self.sender_mailid}
-			assignees = set(self.get_assignees()) - {self.sender_mailid}
+			assignees = set(self.get_assignees())
 			# Check and remove If user disabled notifications for incoming emails on assigned document.
 			for assignee in assignees.copy():
 				if not is_email_enabled_for_feature(assignee, "enable_email_threads_on_assigned_document"):
 					assignees.remove(assignee)
-			cc.update(assignees)
+			cc.update(get_email_addresses(assignees) - {self.sender_mailid})
 
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
@@ -216,6 +232,7 @@ class CommunicationEmailMixin:
 				"print_format": print_format,
 				"html": print_html,
 				"print_format_attachment": 1,
+				"print_as_owner": 1,
 				"doctype": self.reference_doctype,
 				"name": self.reference_name,
 				"lang": print_language or frappe.local.lang,
@@ -305,6 +322,9 @@ class CommunicationEmailMixin:
 		)
 		bcc = self.get_mail_bcc_with_displayname(is_inbound_mail_communcation=is_inbound_mail_communcation)
 
+		if is_inbound_mail_communcation:
+			recipients, cc = cc, []
+
 		if not (recipients or cc or bcc):
 			return {}
 
@@ -321,12 +341,12 @@ class CommunicationEmailMixin:
 		reply_to = None
 
 		# If this is a reply to an existing email, set reply_to as the sender of the reply
-		if self.in_reply_to:
+		if self.in_reply_to and not is_inbound_mail_communcation:
 			reply_to = self.get_mail_sender_with_displayname()
 		elif incoming_email_account:
 			reply_to = incoming_email_account.email_id
 
-		return {
+		input_dict = {
 			"recipients": recipients,
 			"cc": cc,
 			"bcc": bcc,
@@ -338,7 +358,9 @@ class CommunicationEmailMixin:
 			"reference_doctype": self.reference_doctype,
 			"reference_name": self.reference_name,
 			"attachments": final_attachments,
-			"message_id": self.message_id,
+			"message_id": make_msgid(idstring=self.name, domain=frappe.local.site)[1:-1]
+			if is_inbound_mail_communcation
+			else self.message_id,
 			"unsubscribe_message": self.get_unsubscribe_message(),
 			"delayed": True,
 			"communication": self.name,
@@ -349,6 +371,29 @@ class CommunicationEmailMixin:
 			"raw_html": raw_html,
 			"add_css": add_css,
 			"in_reply_to": self.in_reply_to,
+		}
+		if is_inbound_mail_communcation:
+			input_dict.update(self.get_inbound_notification())
+		return input_dict
+
+	def get_inbound_notification(self) -> dict:
+		"""Return the From, content and header of the email that tells assignees about this received email."""
+		sender = escape_html(self.get_mail_sender_with_displayname())
+		title = escape_html(get_title(self.reference_doctype, self.reference_name))
+		content = frappe.get_template("templates/emails/new_email_notification.html").render(
+			{
+				"body_content": _("{0} sent an email on {1} {2}").format(
+					frappe.bold(sender), frappe.bold(_(self.reference_doctype)), get_title_html(title)
+				),
+				"content": self.content,
+				"sender": sender,
+				"doc_link": get_url_to_form(self.reference_doctype, self.reference_name),
+			}
+		)
+		return {
+			"sender": None,
+			"content": content,
+			"header": [_("New Email on {0}").format(self.reference_name), "orange"],
 		}
 
 	def send_email(

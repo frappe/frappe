@@ -31,7 +31,7 @@
 			<slot name="palette" :view="paletteView" :query="subQuery" :close="closePalettes" :back="openCommands" />
 
 			<!-- slash-command palette -->
-			<PalettePanel v-if="menuOpen" title="Commands" :query="slash?.query ?? ''" @close="closePalettes">
+			<PalettePanel v-if="menuOpen" :title="__('Commands')" :query="slash?.query ?? ''" @close="closePalettes">
 				<div class="flow-palette-list overflow-y-auto p-1">
 					<template v-for="(m, i) in menuItems" :key="m.name">
 						<!-- a heading takes a row's height, and a gap above it sets its section off; the
@@ -58,7 +58,7 @@
 						</button>
 					</template>
 					<div v-if="!menuItems.length" class="flow-palette-empty">
-						No matching commands
+						{{ __("No matching commands") }}
 					</div>
 				</div>
 			</PalettePanel>
@@ -91,22 +91,22 @@
 				class="mx-3.5 -mb-1.5 flex flex-col divide-y divide-outline-gray-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-2.5 pt-1"
 			>
 				<div v-for="item in flow.state.queued" :key="item.key" class="flex min-h-5 items-center gap-2 py-1">
-					<span class="flex-none text-base-medium text-ink-gray-6">Queued</span>
+					<span class="flex-none text-base-medium text-ink-gray-6">{{ __("Queued") }}</span>
 					<span class="min-w-0 flex-1 truncate text-base text-ink-gray-7">{{ item.label }}</span>
 					<!-- a compaction takes no steering: the queue waits for it to end -->
 					<button
 						v-if="!compacting"
 						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
-						:title="running ? 'Add it to the running turn' : 'Send it now'"
+						:title="running ? __('Add it to the running turn') : __('Send it now')"
 						:disabled="disabled"
 						@click="steerQueued(item)"
 					>
 						<span class="lucide-corner-down-left size-3" aria-hidden="true" />
-						{{ running ? "Steer" : "Send" }}
+						{{ running ? __("Steer") : __("Send") }}
 					</button>
 					<button
 						class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-9"
-						title="Remove from queue"
+						:title="__('Remove from queue')"
 						:disabled="disabled"
 						@click="dropQueued(item)"
 					>
@@ -119,14 +119,14 @@
 			<fieldset
 				:disabled="disabled"
 				class="flow-composer-surface relative flex min-w-0 flex-col rounded-6 border border-outline-gray-2 focus-within:border-outline-gray-3 dark:border-transparent dark:focus-within:border-transparent"
-				:class="starting ? 'gap-4 p-2.5' : 'gap-2 p-2'"
+				:class="tall ? 'gap-4 p-2.5' : 'gap-2 p-2'"
 			>
 				<div
 					v-if="fileDragging"
 					class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center gap-2 rounded-6 border border-dashed border-outline-gray-4 bg-surface-gray-1 text-base-medium text-ink-gray-7"
 				>
 					<span class="lucide-paperclip size-4" aria-hidden="true" />
-					Drop files to attach
+					{{ __("Drop files to attach") }}
 				</div>
 				<button
 					v-if="needsCwd"
@@ -137,8 +137,8 @@
 						class="lucide-folder size-3.5 flex-none text-ink-gray-5"
 						aria-hidden="true"
 					/>
-					<span class="min-w-0 flex-1 text-base-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
-					<span class="flex-none text-base-medium text-ink-gray-6">Browse…</span>
+					<span class="min-w-0 flex-1 text-base-medium leading-4 text-ink-gray-9">{{ __("Choose a project folder to start") }}</span>
+					<span class="flex-none text-base-medium text-ink-gray-6">{{ __("Browse…") }}</span>
 				</button>
 				<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5 px-1 pt-0.5">
 					<figure
@@ -147,19 +147,19 @@
 						class="group/attachment relative h-[72px] w-[72px] flex-none overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
 						:title="item.name"
 					>
-						<button class="block h-full w-full cursor-zoom-in" :aria-label="`View ${item.name}`" @click="viewer = item">
+						<button class="block h-full w-full cursor-zoom-in" :aria-label="__('View {0}', [item.name])" @click="viewer = item">
 							<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
 						</button>
 						<button
 							class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
-							title="Remove attachment"
-							:aria-label="`Remove ${item.name}`"
+							:title="__('Remove attachment')"
+							:aria-label="__('Remove {0}', [item.name])"
 							:disabled="locked"
 							@click="removeAttachment(i)"
 						>
 							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
-						<span v-if="item.preparing" class="pointer-events-none absolute bottom-1 left-1 rounded bg-surface-base/90 p-1" :aria-label="`Preparing ${item.name}`" role="status">
+						<span v-if="item.preparing" class="pointer-events-none absolute bottom-1 left-1 rounded bg-surface-base/90 p-1" :aria-label="__('Preparing {0}', [item.name])" role="status">
 							<span
 								class="lucide-loader-circle size-3.5 animate-spin"
 								aria-hidden="true"
@@ -176,19 +176,19 @@
 					>
 						<span :class="chipIconClass"><span class="lucide-code size-3.5" aria-hidden="true" /></span>
 						<span class="min-w-0 truncate text-base-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
-						<button :class="chipRemoveClass" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)">
+						<button :class="chipRemoveClass" :title="__('Remove reference')" :disabled="locked" @click="flow.removeCodeRef(i)">
 							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
 					</span>
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
 						<span :class="chipIconClass"><span class="lucide-align-left size-3.5" aria-hidden="true" /></span>
 						<span class="min-w-0 truncate text-base-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
-						<button :class="chipRemoveClass" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)">
+						<button :class="chipRemoveClass" :title="__('Remove quote')" :disabled="locked" @click="flow.removeQuote(i)">
 							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
 					</span>
 					<span v-for="{ item, i } in fileChips" :key="item.key" :class="chipClass" :title="item.name">
-						<span v-if="item.preparing" :class="chipIconClass" :aria-label="`Preparing ${item.name}`" role="status">
+						<span v-if="item.preparing" :class="chipIconClass" :aria-label="__('Preparing {0}', [item.name])" role="status">
 							<span
 								class="lucide-loader-circle size-3.5 animate-spin"
 								aria-hidden="true"
@@ -204,8 +204,8 @@
 						<span class="min-w-0 flex-1 truncate text-base-medium text-ink-gray-8">{{ item.name }}</span>
 						<button
 							:class="chipRemoveClass"
-							title="Remove attachment"
-							:aria-label="`Remove ${item.name}`"
+							:title="__('Remove attachment')"
+							:aria-label="__('Remove {0}', [item.name])"
 							:disabled="locked"
 							@click="removeAttachment(i)"
 						>
@@ -214,8 +214,8 @@
 					</span>
 				</div>
 				<div v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="px-1 text-base text-ink-red-6">
-					Could not prepare {{ item.name }}: {{ item.error }}
-					<button class="underline" :disabled="locked" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
+					{{ __("Could not prepare {0}: {1}", [item.name, item.error]) }}
+					<button class="underline" :disabled="locked" :aria-label="__('Retry {0}', [item.name])" @click="prepareAttachment(item)">{{ __("Retry") }}</button>
 				</div>
 				<!-- the chat's text size in a narrow frame. It rises over an open list's click-catcher, so
 				     clicking back into it keeps the list. -->
@@ -237,7 +237,7 @@
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
 						class="relative max-h-40 w-full resize-none border-0 bg-transparent px-1.5 text-md leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[length:var(--flow-chat-text,15px)] dark:placeholder:text-ink-gray-6"
-						:class="[skillParts ? 'text-transparent' : 'text-ink-gray-9', starting ? 'min-h-[50px] py-1' : 'min-h-[62px] pt-1']"
+						:class="[skillParts ? 'text-transparent' : 'text-ink-gray-9', tall ? 'min-h-[50px] py-1' : 'min-h-[62px] pt-1']"
 						@keydown="onKey"
 						@paste="onPaste"
 						@scroll="textScrollTop = $event.currentTarget.scrollTop"
@@ -256,7 +256,7 @@
 					@change="onFilesPicked"
 				/>
 				<div v-if="visionWarning" class="px-1 text-base text-ink-amber-6">
-					The selected model cannot view images. Switch to a vision-capable model before sending.
+					{{ __("The selected model cannot view images. Switch to a vision-capable model before sending.") }}
 				</div>
 				<div v-if="modelWarning" class="px-1 text-base text-ink-gray-5">{{ modelWarning }}</div>
 				<!-- a tooltip opens on hover or keyboard focus, not when a closed menu hands focus back -->
@@ -265,12 +265,12 @@
 						<!-- attach files; with a host's lists (`plusLists`), a menu: attach, then a row a list,
 						     whose list opens beside it on hover (in its place in a narrow frame) -->
 						<span class="relative flex-none">
-							<Tooltip :text="plusMenu ? '' : plusRows.length ? 'Add' : attachLabel">
+							<Tooltip :text="plusMenu ? '' : plusRows.length ? __('Add') : attachLabel">
 								<button
 									ref="plusButton"
 									class="grid flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-									:class="[plusMenu && 'bg-surface-gray-2', starting ? 'h-8 w-8' : 'h-7 w-7']"
-									:aria-label="plusRows.length ? 'Add' : attachLabel"
+									:class="[plusMenu && 'bg-surface-gray-2', tall ? 'h-8 w-8' : 'h-7 w-7']"
+									:aria-label="plusRows.length ? __('Add') : attachLabel"
 									:aria-expanded="plusRows.length ? plusMenu : undefined"
 									:disabled="locked"
 									@click="plusRows.length ? (plusMenu ? closePlusMenu() : (plusMenu = true)) : openFilePicker()"
@@ -280,7 +280,7 @@
 							</Tooltip>
 							<PalettePanel
 								v-if="plusMenu && !(plusSub && layout.narrow)"
-								title="Add"
+								:title="__('Add')"
 								dropdown
 								align="left"
 								:width="PLUS_WIDTH"
@@ -319,23 +319,23 @@
 							/>
 						</span>
 						<!-- a host's own buttons beside the +, such as a new chat's pickers; `starting` until the
-						     first message goes out -->
-						<slot name="tools" :starting="starting" :insert="insertFromMenu" />
+						     first message goes out, `tall` while the box is roomier -->
+						<slot name="tools" :starting="starting" :tall="tall" :insert="insertFromMenu" />
 						<span v-if="modeAtModel" class="min-w-2 flex-1" />
 
 						<!-- approval mode, its icon and name; its list hangs from it. A narrow frame shows the
 						     icon alone, which its list explains. A host may put a new chat's by the model, on the right -->
 						<span class="relative flex-none">
-							<Tooltip :text="modeMenu ? '' : layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'">
+							<Tooltip :text="modeMenu ? '' : layout.narrow ? __('Approval mode: {0}', [modeLabel]) : __('Approval mode')">
 								<button
 									ref="modeButton"
 									class="flex items-center gap-1.5 whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
 									:class="[
 										modeMenu ? 'bg-surface-gray-2' : '',
-										starting ? 'h-8' : 'h-7',
-										layout.narrow ? `${starting ? 'w-8' : 'w-7'} justify-center` : 'px-2',
+										tall ? 'h-8' : 'h-7',
+										layout.narrow ? `${tall ? 'w-8' : 'w-7'} justify-center` : 'px-2',
 									]"
-									:aria-label="`Approval mode: ${modeLabel}`"
+									:aria-label="__('Approval mode: {0}', [modeLabel])"
 									:aria-expanded="modeMenu"
 									@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
 								>
@@ -351,7 +351,7 @@
 							     enough for a description to keep to one line by the tick -->
 							<PalettePanel
 								v-if="modeMenu"
-								title="Approval mode"
+								:title="__('Approval mode')"
 								dropdown
 								:align="modeAtModel ? 'right' : 'left'"
 								:width="344"
@@ -389,28 +389,28 @@
 
 						<!-- the pickers, by the send button; a host adds its own around the model button -->
 						<slot name="toolbar" :open-palette="openPalette">
-							<ModelButton :providers="has('providers')" :tall="starting" @open="openPalette" />
+							<ModelButton :providers="has('providers')" :thinking="has('thinking')" :tall="tall" @open="openPalette" />
 						</slot>
 
-						<Tooltip v-if="running && !submitting" text="Stop">
+						<Tooltip v-if="running && !submitting" :text="__('Stop')">
 							<button
 								class="ml-1 grid h-7 w-7 flex-none place-items-center rounded-5 bg-surface-gray-10 text-ink-base hover:opacity-90"
-								aria-label="Stop"
+								:aria-label="__('Stop')"
 								@click="flow.abort()"
 							>
 								<span class="h-[11px] w-[11px] rounded-[2px] bg-current" />
 							</button>
 						</Tooltip>
-						<Tooltip v-else :text="canSend ? 'Send' : ''">
+						<Tooltip v-else :text="canSend ? __('Send') : ''">
 							<button
 								class="ml-1 grid flex-none place-items-center rounded-5"
 								:class="[
-									starting ? 'h-8 w-8' : 'h-7 w-7',
+									tall ? 'h-8 w-8' : 'h-7 w-7',
 									canSend || submitting
 										? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
 										: 'pointer-events-none bg-surface-gray-3 text-ink-gray-4',
 								]"
-								aria-label="Send"
+								:aria-label="__('Send')"
 								:disabled="!canSend"
 								:aria-busy="submitting"
 								@click="submit"
@@ -434,7 +434,7 @@
 			>
 				<button
 					class="flex h-6 min-w-0 items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
-					title="Change working directory"
+					:title="__('Change working directory')"
 					:disabled="disabled"
 					@click="chooseFolder"
 				>
@@ -469,6 +469,7 @@ import {
 	splitQuotes,
 	subagentTitle,
 } from "../transcript.js"
+import { __ } from "../translate.js"
 import ApprovalCard from "./ApprovalCard.vue"
 import FileMentionPalette from "./FileMentionPalette.vue"
 import ImageViewer from "./ImageViewer.vue"
@@ -487,7 +488,7 @@ const props = defineProps({
 	mentions: { type: Boolean, default: true }, // "@" file mentions
 	// the daemon stores images only; a host that stages uploads itself takes any file
 	imagesOnly: { type: Boolean, default: true },
-	placeholder: { type: String, default: "Ask flow…" },
+	placeholder: { type: String, default: () => __("Ask flow…") },
 	modes: { type: Array, default: () => APPROVAL_MODES }, // [{ id, label, desc }] in the host's words
 	disabled: { type: Boolean, default: false }, // shown but inert, e.g. until the host's setup is done
 	// the + menu's lists after Attach: [{ id, label, icon, startedOnly }], each drawn by the host's
@@ -536,7 +537,7 @@ const IMAGE_ACCEPT = ".png,.jpg,.jpeg,.gif,.webp,.bmp,image/png,image/jpeg,image
 function atAttachmentLimit() {
 	const { maxAttachments } = flow.options
 	if (attachments.value.length < maxAttachments) return false
-	flow.notify(`A message can carry at most ${maxAttachments} attachments.`, "error")
+	flow.notify(__("A message can carry at most {0} attachments.", [maxAttachments]), "error")
 	return true
 }
 
@@ -550,7 +551,7 @@ function addLocalFiles(files) {
 		if (atAttachmentLimit()) return
 		const image = isSupportedImage(file)
 		if (props.imagesOnly && !image) {
-			flow.notify("Flow currently supports PNG, JPEG, GIF, WebP, and BMP images only.", "error")
+			flow.notify(__("Flow currently supports PNG, JPEG, GIF, WebP, and BMP images only."), "error")
 			continue
 		}
 		if (attachments.value.some((item) => item.file && item.file.name === file.name && item.file.size === file.size)) continue
@@ -583,7 +584,7 @@ function prepareAttachment(item) {
 			Object.assign(item, prepared)
 			if (!attachments.value.includes(item)) discardAttachment(item)
 		} catch (error) {
-			item.error = error.message || "Please try again."
+			item.error = error.message || __("Please try again.")
 		} finally {
 			item.preparing = false
 			preparations.delete(item.key)
@@ -802,7 +803,7 @@ const plusSub = ref(null)
 const plusButton = ref(null)
 const modeAtModel = computed(() => props.newChatModeRight && starting.value)
 const plusRows = computed(() => props.plusLists.filter((row) => !row.startedOnly || !starting.value))
-const attachLabel = computed(() => (props.imagesOnly ? "Attach images" : "Attach files"))
+const attachLabel = computed(() => (props.imagesOnly ? __("Attach images") : __("Attach files")))
 
 function closePlusMenu(refocus = true) {
 	plusMenu.value = false
@@ -840,16 +841,16 @@ async function chooseFolder() {
 }
 
 const COMMANDS = [
-	{ name: "model", label: "Model", icon: "lucide-cpu", hint: "Choose the model", stacked: true, run: () => (paletteView.value = "models") },
-	{ name: "thinking", label: "Thinking", icon: "lucide-zap", hint: "Set the reasoning effort", stacked: true, run: () => (paletteView.value = "thinking") },
-	{ name: "providers", label: "Providers", icon: "lucide-key", hint: "Connect model providers", stacked: true, run: () => (paletteView.value = "providers") },
-	{ name: "transcript", label: "Transcript", icon: "lucide-list", hint: "Every step and what it cost in tokens", run: () => flow.setTranscriptOpen(true) },
-	{ name: "new", label: "New chat", icon: "lucide-plus", hint: "Start a fresh conversation", run: () => flow.startNewChat() },
-	{ name: "rewind", label: "Rewind", icon: "lucide-rotate-ccw", hint: "Branch from before your last message", run: rewind },
-	{ name: "compact", label: "Compact", icon: "lucide-minimize-2", hint: "Summarize and shrink context", run: () => flow.compact() },
-	{ name: "reload", label: "Reload extensions", icon: "lucide-refresh-cw", hint: "Re-import server extensions", run: () => flow.reloadExtensions() },
-	{ name: "abort", label: "Abort", icon: "lucide-square", hint: "Interrupt the running turn", run: () => flow.abort() },
-	{ name: "settings", label: "Settings", icon: "lucide-settings", hint: "Custom instructions, defaults and theme", run: () => flow.setSettingsOpen(true) },
+	{ name: "model", label: __("Model"), icon: "lucide-cpu", hint: __("Choose the model"), stacked: true, run: () => (paletteView.value = "models") },
+	{ name: "thinking", label: __("Thinking"), icon: "lucide-zap", hint: __("Set the reasoning effort"), stacked: true, run: () => (paletteView.value = "thinking") },
+	{ name: "providers", label: __("Providers"), icon: "lucide-key", hint: __("Connect model providers"), stacked: true, run: () => (paletteView.value = "providers") },
+	{ name: "transcript", label: __("Transcript"), icon: "lucide-list", hint: __("Every step and what it cost in tokens"), run: () => flow.setTranscriptOpen(true) },
+	{ name: "new", label: __("New chat"), icon: "lucide-plus", hint: __("Start a fresh conversation"), run: () => flow.startNewChat() },
+	{ name: "rewind", label: __("Rewind"), icon: "lucide-rotate-ccw", hint: __("Branch from before your last message"), run: rewind },
+	{ name: "compact", label: __("Compact"), icon: "lucide-minimize-2", hint: __("Summarize and shrink context"), run: () => flow.compact() },
+	{ name: "reload", label: __("Reload extensions"), icon: "lucide-refresh-cw", hint: __("Re-import server extensions"), run: () => flow.reloadExtensions() },
+	{ name: "abort", label: __("Abort"), icon: "lucide-square", hint: __("Interrupt the running turn"), run: () => flow.abort() },
+	{ name: "settings", label: __("Settings"), icon: "lucide-settings", hint: __("Custom instructions, defaults and theme"), run: () => flow.setSettingsOpen(true) },
 	// typed only, "/cwd <path>": the way in that the folder notice names on a host with no folder dialog
 	{ name: "cwd", hidden: true, run: cwdCommand },
 ]
@@ -928,6 +929,10 @@ const chipRemoveClass =
 const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId && !flow.state.prefs.cwd)
 // a new chat, until its first message goes out, and its folder
 const starting = computed(() => !flow.state.sessionId && !flow.state.conversation.sending.length)
+// roomier while it sits mid-page; at the foot (a panel, a phone) it keeps one size, before and after
+const tall = computed(() => starting.value && !!lift.value)
+// its textarea's floor changes with it: fit the box again
+watch(tall, () => nextTick(autosize))
 const startCwd = computed(() => {
 	const cwd = flow.state.prefs?.cwd
 	return cwd && cwd !== "." && starting.value ? cwd : null
@@ -998,7 +1003,7 @@ const matches = computed(() => {
 	const skills = skillCommands.value.filter(
 		(c) => c.name.startsWith(q) || c.label.startsWith(q),
 	)
-	return [...commands, ...skills.map((c, i) => (i === 0 ? { ...c, section: "Skills" } : c))]
+	return [...commands, ...skills.map((c, i) => (i === 0 ? { ...c, section: __("Skills") } : c))]
 })
 // mid-message, a "/" no skill matches (a path, a fraction) opens nothing
 const menuOpen = computed(
@@ -1027,7 +1032,7 @@ function onKey(e) {
 	// Backspace on a sub-page's bare "/" goes back a page, as its back arrow does
 	if (e.key === "Backspace" && searching && text.value === "/" && box.value?.selectionStart === 1) {
 		e.preventDefault()
-		const back = stack.value?.querySelector('.flow-palette-panel button[title="Back"]')
+		const back = stack.value?.querySelector(".flow-palette-panel [data-palette-back]")
 		if (back) back.click()
 		else openCommands()
 	}

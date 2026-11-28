@@ -5,15 +5,18 @@ import json
 import os
 import subprocess
 from contextlib import contextmanager
+from functools import partial
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import click
+from filelock import FileLock
 
 import frappe
 from frappe.flow.daemon import lifecycle
 from frappe.tests import UnitTestCase
+from frappe.utils.synchronization import filelock
 
 
 class TestDaemonLifecycle(UnitTestCase):
@@ -192,6 +195,20 @@ class TestDaemonLifecycle(UnitTestCase):
 			self.assertTrue(any("no listing" in warning for warning in warnings[1:]))
 			popen.assert_not_called()
 			sync.assert_called_once()
+
+	def test_a_lock_another_migrate_holds_warns_without_failing_install_or_migrate(self):
+		lock = self.runtime.parent / "config" / f"{lifecycle.LOCK}.lock"
+		for hook in (lifecycle.after_install, lifecycle.after_migrate):
+			with (
+				self.subTest(hook=hook.__name__),
+				FileLock(lock),
+				patch.object(lifecycle, "filelock", partial(filelock, timeout=0)),
+				patch.object(lifecycle, "sync_server_tools") as sync,
+				patch.object(click, "secho") as secho,
+			):
+				hook()
+				self.assertIn("Failed to aquire lock", secho.call_args_list[0].args[0])
+				sync.assert_called_once()
 
 	def test_migrate_restarts_only_a_daemon_flow_runs_itself(self):
 		(self.partition / "extensions").mkdir(parents=True)  # new extensions wait for the manager too

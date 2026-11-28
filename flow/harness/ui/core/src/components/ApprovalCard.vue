@@ -3,18 +3,23 @@
 		class="flex max-h-[min(500px,calc(72vh/var(--flow-zoom,1)))] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 	>
 		<div class="flex items-start gap-3 px-3.5 py-2.5">
-			<div class="min-w-0 flex-1 text-base-medium leading-snug text-ink-gray-8">{{ title }}</div>
+			<div class="min-w-0 flex-1">
+				<div class="text-base-medium leading-snug text-ink-gray-8">{{ title }}</div>
+				<div v-if="asked.reason" class="mt-0.5 text-sm leading-snug text-ink-gray-5">
+					{{ __("Not auto-approved: {0}", [asked.reason]) }}
+				</div>
+			</div>
 			<span
 				v-if="subagent != null"
 				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs-medium text-ink-gray-6"
 			>
-				Sub-agent{{ subagent ? `: ${subagent}` : "" }}
+				{{ subagent ? __("Sub-agent: {0}", [subagent]) : __("Sub-agent") }}
 			</span>
 			<span
 				v-if="total > 1"
 				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs-medium text-ink-gray-6"
 			>
-				{{ position }} of {{ total }}
+				{{ __("{0} of {1}", [position, total]) }}
 			</span>
 		</div>
 
@@ -23,7 +28,7 @@
 			<component
 				:is="presentation.argsComponent"
 				:arguments="args"
-				v-bind="takesCall ? { call } : {}"
+				v-bind="takesCall ? { call: { ...call, prompt: asked.prompt } } : {}"
 			/>
 		</div>
 		<pre
@@ -40,9 +45,9 @@
 
 		<!-- a host view that answers the card itself brings its own buttons -->
 		<div v-if="!asking && !presentation.ownAnswers" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
-			<Button ref="askButton" variant="ghost" label="Ask for changes" @click="asking = true" />
-			<Button variant="subtle" label="Deny" @click="answer('Deny')" />
-			<Button variant="solid" label="Approve" @click="answer('Approve')" />
+			<Button ref="askButton" variant="ghost" :label="__('Ask for changes')" @click="asking = true" />
+			<Button variant="subtle" :label="__('Deny')" @click="answer('Deny')" />
+			<Button variant="solid" :label="__('Approve')" @click="answer('Approve')" />
 		</div>
 		<div v-else-if="asking" class="px-3.5 py-2.5">
 			<!-- function ref: the field mounts only while asking, so mount-time focus
@@ -52,14 +57,14 @@
 				v-model="askText"
 				variant="outline"
 				:rows="2"
-				placeholder="Describe what you want instead…"
+				:placeholder="__('Describe what you want instead…')"
 				class="resize-none"
 				@keydown="onAskKey"
 			/>
 			<div class="mt-2 flex items-center gap-2">
-				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">⏎ send · esc cancel</span>
-				<Button variant="ghost" label="Cancel" @click="cancelAsk" />
-				<Button variant="solid" label="Send" :disabled="!askText.trim()" @click="sendAsk" />
+				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">{{ __("⏎ send · esc cancel") }}</span>
+				<Button variant="ghost" :label="__('Cancel')" @click="cancelAsk" />
+				<Button variant="solid" :label="__('Send')" :disabled="!askText.trim()" @click="sendAsk" />
 			</div>
 		</div>
 	</div>
@@ -71,6 +76,7 @@ import { Button } from "frappe-ui/src/components/Button"
 import { Textarea } from "frappe-ui/src/components/Textarea"
 
 import { layout } from "../layout.js"
+import { __ } from "../translate.js"
 
 // One gated call, answered here. The composer shows the batch one call at a time,
 // and the call's place in it tells the user how many questions follow.
@@ -103,6 +109,16 @@ function focusAsk(el) {
 
 const args = computed(() => props.call.args ?? props.call.arguments ?? {})
 
+// In auto mode the server ends the prompt with why its reviewer held the call. The header
+// says it, so the body and a host's view get the prompt without it.
+const REASON = "\n\nNot auto-approved: "
+const asked = computed(() => {
+	const prompt = props.call.prompt ?? ""
+	const at = prompt.lastIndexOf(REASON)
+	if (at < 0) return { prompt, reason: "" }
+	return { prompt: prompt.slice(0, at), reason: prompt.slice(at + REASON.length).trim() }
+})
+
 // a host's own tools may name the action better than the server prompt does
 const presentation = computed(() => flow.options?.presentTool?.(props.call.name, args.value) ?? {})
 
@@ -116,17 +132,18 @@ const title = computed(() => {
 	const a = args.value
 	const custom = presentation.value.title
 	if (custom != null) return custom
+	const path = a.path ?? __("file")
 	switch (props.call.name) {
 		case "bash":
-			return a.description || "Run this command?"
+			return a.description || __("Run this command?")
 		case "edit": {
 			const n = a.edits?.length ?? 1
-			return `Apply ${n} edit${n === 1 ? "" : "s"} to ${a.path ?? "file"}?`
+			return n === 1 ? __("Apply 1 edit to {0}?", [path]) : __("Apply {0} edits to {1}?", [n, path])
 		}
 		case "write":
-			return `Write ${a.path ?? "file"}?`
+			return __("Write {0}?", [path])
 		default:
-			return props.call.prompt?.split("\n")[0] ?? `Approve ${props.call.name}?`
+			return asked.value.prompt.split("\n")[0] || __("Approve {0}?", [props.call.name])
 	}
 })
 
@@ -145,9 +162,11 @@ const body = computed(() => {
 	if (props.call.name === "write") return a.content ?? ""
 	if (props.call.name === "edit") return null
 	// generic: server-provided prompt already includes the argument JSON
-	const prompt = props.call.prompt ?? ""
-	const rest = prompt.split("\n").slice(1).join("\n").trim()
-	return rest || JSON.stringify(a, null, 2)
+	const rest = asked.value.prompt.split("\n").slice(1).join("\n").trim()
+	const dump = JSON.stringify(a, null, 2)
+	// a call with no arguments has nothing to show, unless its tool wrote a prompt
+	if (!Object.keys(a).length && (!rest || rest === dump)) return ""
+	return rest || dump
 })
 
 function sendAsk() {

@@ -223,6 +223,16 @@ def get_website_settings(context=None):
 	if settings.address:
 		context["footer_address"] = settings.address
 
+	for k in ("navbar_template", "footer_template"):
+		if template := settings.get(k):
+			values = frappe.parse_json(settings.get(f"{k}_values") or "{}")
+			try:
+				fields = {f.fieldname for f in frappe.get_cached_doc("Web Template", template).fields}
+			except frappe.DoesNotExistError:
+				frappe.clear_last_message()
+				fields = set()
+			context[f"{k}_values"] = {key: value for key, value in values.items() if key in fields}
+
 	if frappe.request:
 		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
 
@@ -299,6 +309,6 @@ def modify_header_footer_items(items: list):
 	return top_items
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def get_auto_account_deletion():
 	return frappe.db.get_single_value("Website Settings", "auto_account_deletion")

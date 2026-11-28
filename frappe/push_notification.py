@@ -267,7 +267,7 @@ class PushNotification:
 
 
 # Webhook which will be called by the central relay server for authentication
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def auth_webhook(secret: str):
 	response = Response()
 	response.mimetype = "text/plain; charset=UTF-8"
@@ -280,13 +280,13 @@ def auth_webhook(secret: str):
 
 
 # Subscribe and Unsubscribe API
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(methods=["POST"])
 def subscribe(fcm_token: str, project_name: str) -> dict:
 	success, message = PushNotification(project_name).add_token(frappe.session.user, fcm_token)
 	return {"success": success, "message": message}
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(methods=["POST"])
 def unsubscribe(fcm_token: str, project_name: str) -> dict:
 	success, message = PushNotification(project_name).remove_token(frappe.session.user, fcm_token)
 	return {"success": success, "message": message}

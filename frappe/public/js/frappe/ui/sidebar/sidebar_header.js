@@ -159,7 +159,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		// is nothing to push into the edge with, and without this the dock would be drawn and
 		// unreachable and the switcher gone with it. Read on every open, as all these rows are,
 		// so plugging in a trackpad is picked up without a reload.
-		if (sidebar.dock_enabled() && frappe.ui.Dock.pointer_can_reveal()) {
+		if (sidebar.dock_enabled() && frappe.ui.Dock.pointer_can_reveal() && !frappe.is_mobile()) {
 			return [this.all_apps_item()];
 		}
 

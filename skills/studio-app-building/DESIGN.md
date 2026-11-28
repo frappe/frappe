@@ -4,7 +4,7 @@ How a Studio page should LOOK, distilled from the design language of shipping
 Frappe apps (Gameplan, CRM, Helpdesk, Drive, Insights). Vocabulary here is
 Studio blocks: camelCase `style` properties and `var(--*)` espresso tokens —
 the Tailwind/Vue original lives in the frappe-ui skill
-(`frappe-ui/skills/frappe-ui/DESIGN.md`, `TOKENS.md`). When unsure how something
+(`frappe-ui/skills/frappe-ui/CORE.md`). When unsure how something
 should look, copy a shipping Frappe app; don't invent.
 
 A screenshot, mockup or design file from the user is the layout: build what it
@@ -37,8 +37,8 @@ Pick text color by ROLE, not by eye:
 
 | Token | Role |
 |---|---|
-| `var(--ink-gray-9)` | strongest values: unread titles, KPI figures, page default |
-| `var(--ink-gray-8)` | headings, titles, primary content |
+| `var(--ink-gray-9)` | strongest values only: unread titles, KPI figures |
+| `var(--ink-gray-8)` | body copy, headings, titles, page default |
 | `var(--ink-gray-7)` | secondary values, table cells, descriptions |
 | `var(--ink-gray-6)` | field labels, form icons |
 | `var(--ink-gray-5)` | timestamps, counts, captions, meta |
@@ -55,17 +55,18 @@ capitals.
 
 ## Surfaces & borders
 
-- Page background `var(--surface-base)`. Subtle fills and hover surfaces
-  `var(--surface-gray-1)` / `var(--surface-gray-2)`; board/kanban columns
-  `var(--surface-gray-1)` with cards on `var(--surface-elevation-1)`.
+- Page background `var(--surface-base)`. `var(--surface-gray-1)` is the quiet
+  fill for something that is NOT a control: an inset block, a board/kanban
+  column (with cards on `var(--surface-elevation-1)`). A control rests on
+  `var(--surface-gray-2)` and hovers on `var(--surface-gray-3)`.
 - Stacked rows separate with a bottom hairline per row:
   `borderWidth: "0px 0px 1px 0px"`, `borderColor: "var(--outline-gray-1)"`,
   `borderStyle: "solid"` — the Frappe look is divided lists, not grids of
   boxed cards.
 - When a card IS warranted: `var(--surface-base)` + 1px
   `var(--outline-gray-1)` border, or a tinted surface with no border — not
-  both heavy. borderRadius: cards/panels `0.5rem`–`0.625rem`, dialogs
-  `0.75rem`, full-bleed sections none. boxShadow rarely — overlays, not
+  both heavy. borderRadius: controls `8px`, cards/panels `12px`, dialogs
+  `16px`, full-bleed sections none. boxShadow rarely — overlays, not
   resting cards.
 
 ## Color discipline
@@ -75,12 +76,13 @@ Everything is gray unless the color MEANS something:
 - Status/priority: a Badge with `variant: subtle` and a theme mapped from the
   value (open → blue, done → green, error → red, everything else gray) — one
   mapping per page, applied consistently.
-- Sign: negative `var(--ink-red-6)`, positive `var(--ink-green-6)`. Severity:
+- Sign: negative `var(--ink-red-5)`, positive `var(--ink-green-5)`. Severity:
   red/amber/green inks, never backgrounds.
 - Unread/attention: a single small dot (8px circle, `var(--surface-blue-7)` or
   amber) — not a row highlight.
-- Tinted banners (`var(--surface-red-1)`, `--surface-amber-1`, …) only for
-  page-level notices; prefer the Alert component.
+- Tinted blocks (`var(--surface-<color>-2)` with `var(--ink-<color>-7)` text
+  and a `var(--outline-<color>-3)` border) only for page-level notices; prefer
+  the Alert component.
 
 ## Geometry & rhythm
 
@@ -124,10 +126,16 @@ principles above instead; the widths are starting points, not limits.
   `text-base` `ink-gray-7` title, a `text-sm` `ink-gray-5` caption, and one
   solid CTA. Never render a bare "No data" string.
 
-## Mobile (`mstyle`)
+## Mobile and tablet
+
+Overrides live in the block's own breakpoint style layers: `mobileStyles` and
+`tabletStyles`. Studio's AI tools write the same layers with the short keys
+`mstyle` and `tstyle`. Set only the properties that change; the base styles
+carry the rest.
 
 A systematic translation, not a second design: columns stack
 (`flexDirection: "column"`), side/meta panels collapse below content, rows get
-taller and titles one step bigger (`text-base` → `text-lg`), action clusters
-collapse into one Dropdown, gutters drop to 12px. Same data on both — trim
-fields, don't fork the layout.
+taller (60px → 68px feed rows), titles and meta go one step bigger
+(`text-base` → `text-lg`, `text-sm` → `text-md`), action clusters collapse into
+one Dropdown, gutters drop to 12px. Same data on both — trim fields, don't fork
+the layout.

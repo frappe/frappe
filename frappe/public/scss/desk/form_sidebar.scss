@@ -234,6 +234,9 @@
 		gap: 2px;
 
 		.form-print {
+			display: flex;
+			gap: calc(var(--spacing) * 0.5);
+
 			button:hover {
 				background: var(--btn-default-hover-bg);
 			}
@@ -554,6 +557,10 @@ body[data-route^="Form"] {
 	// without affecting empty state
 	.attachments-actions + .attachment-row {
 		margin-top: 8px;
+	}
+
+	.explore-link:not(.has-attachments):hover {
+		text-decoration: none;
 	}
 }
 

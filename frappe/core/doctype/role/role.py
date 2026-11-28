@@ -4,6 +4,7 @@
 import frappe
 from frappe.core.page.permission_manager.permission_manager import get_permissions
 from frappe.model.document import Document
+from frappe.permissions import setup_custom_perms
 from frappe.website.path_resolver import validate_path
 from frappe.website.router import clear_routing_cache
 
@@ -100,6 +101,7 @@ class Role(Document):
 
 		perms = get_permissions(role=cur_role)
 		for perm in perms:
+			setup_custom_perms(perm.parent)
 			perm.update(
 				{
 					"name": None,
@@ -137,12 +139,19 @@ def get_info_based_on_role(role, field="email", ignore_permissions=False):
 
 def get_user_info(users, field="email"):
 	"""Fetch details about users for the specified field"""
-	info_list = []
-	for user in users:
-		user_info, enabled = frappe.db.get_value("User", user.get("user_name"), [field, "enabled"])
-		if enabled and user_info not in ["admin@example.com", "guest@example.com"]:
-			info_list.append(user_info)
-	return info_list
+	user_names = [user.get("user_name") for user in users]
+	if not user_names:
+		return []
+
+	return frappe.get_all(
+		"User",
+		filters=[
+			["name", "in", user_names],
+			["name", "!=", "Guest"],
+			["enabled", "=", 1],
+		],
+		pluck=field,
+	)
 
 
 def get_users(role):

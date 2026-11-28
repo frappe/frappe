@@ -1,6 +1,6 @@
 <template>
 	<PalettePanel
-		:title="selected?.name || 'Providers'"
+		:title="selected?.name || __('Providers')"
 		back
 		:query="query"
 		:busy="!selected && query !== debouncedQuery"
@@ -11,7 +11,7 @@
 		<template v-if="!selected" #actions>
 			<button
 				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-				title="Refresh providers"
+				:title="__('Refresh providers')"
 				@click="reload"
 			>
 				<span
@@ -37,7 +37,7 @@
 					class="flex items-center gap-1 text-xs-medium text-ink-green-7"
 				>
 					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-7" />
-					Connected
+					{{ __("Connected") }}
 				</span>
 				<span
 					v-else
@@ -50,7 +50,7 @@
 				v-if="!filtered.length && debouncedQuery && !loading"
 				class="flow-palette-empty"
 			>
-				No providers found
+				{{ __("No providers found") }}
 			</div>
 			<!-- the last row: local runtimes and private gateways; it waits for the list, so the
 			     first provider, not it, takes the highlight -->
@@ -61,9 +61,9 @@
 				@click="select(CUSTOM_OPTION)"
 			>
 				<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
-				<span class="flex-none">Add custom endpoint</span>
+				<span class="flex-none">{{ __("Add custom endpoint") }}</span>
 				<span class="flow-palette-hint min-w-0 flex-1 truncate">
-					Ollama, LM Studio, or any OpenAI-compatible URL
+					{{ __("Ollama, LM Studio, or any OpenAI-compatible URL") }}
 				</span>
 				<span
 					class="lucide-chevron-right flow-palette-hint size-4 flex-none"
@@ -81,22 +81,22 @@
 				</span>
 				<div class="min-w-0">
 					<div class="truncate text-base-semibold text-ink-gray-9">{{ selected.name }}</div>
-					<div class="truncate text-sm text-ink-gray-5">{{ selected.source || "Not connected" }}</div>
+					<div class="truncate text-sm text-ink-gray-5">{{ selected.source || __("Not connected") }}</div>
 				</div>
 			</div>
 
 			<!-- custom endpoint setup: adds a new one, or edits the selected one in place -->
 			<form v-if="selected.custom_setup || selected.custom" class="flex flex-col gap-3" @submit.prevent="saveCustom">
 				<label class="block">
-					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Name</span>
-					<input v-model="customName" :class="FIELD" placeholder="Local Ollama" />
+					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">{{ __("Name") }}</span>
+					<input v-model="customName" :class="FIELD" :placeholder="__('Local Ollama')" />
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Base URL</span>
+					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">{{ __("Base URL") }}</span>
 					<input v-model="customBaseUrl" :class="FIELD" placeholder="http://localhost:11434/v1" />
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Models</span>
+					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">{{ __("Models") }}</span>
 					<textarea
 						v-model="customModelIds"
 						rows="3"
@@ -104,20 +104,19 @@
 						placeholder="ollama/llama3.2&#10;ollama/qwen2.5"
 					/>
 					<span class="mt-1 block text-xs leading-4 text-ink-gray-5">
-						One per line (or comma separated). Each id needs a prefix, e.g.
-						<code class="text-ink-gray-6">ollama/llama3.2</code>.
+						{{ ID_HELP[0] }}<code class="text-ink-gray-6">ollama/llama3.2</code>{{ ID_HELP[1] }}
 					</span>
 				</label>
 				<label class="block">
 					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">
-						API key <span class="font-normal text-ink-gray-4">(optional)</span>
+						{{ KEY_LABEL[0] }}<span class="font-normal text-ink-gray-4">{{ KEY_LABEL[1] }}</span>{{ KEY_LABEL[2] }}
 					</span>
 					<input
 						v-model="customApiKey"
 						type="password"
 						autocomplete="off"
 						:class="FIELD"
-						:placeholder="editingCustom ? 'Leave empty to keep the saved key' : 'Leave empty for local runtimes'"
+						:placeholder="editingCustom ? __('Leave empty to keep the saved key') : __('Leave empty for local runtimes')"
 					/>
 				</label>
 				<div class="mt-1 flex items-center gap-2">
@@ -127,7 +126,7 @@
 						theme="red"
 						size="md"
 						icon-left="lucide-log-out"
-						label="Disconnect"
+						:label="__('Disconnect')"
 						:disabled="saving"
 						@click="disconnect"
 					/>
@@ -136,7 +135,7 @@
 						variant="solid"
 						size="md"
 						:icon-left="editingCustom ? 'lucide-check' : 'lucide-plus'"
-						:label="editingCustom ? 'Save changes' : 'Add endpoint'"
+						:label="editingCustom ? __('Save changes') : __('Add endpoint')"
 						:disabled="!canSaveCustom || saving"
 					/>
 				</div>
@@ -147,7 +146,7 @@
 					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-sm text-ink-gray-7"
 				>
 					<span class="lucide-circle-check size-4 text-ink-green-7" aria-hidden="true" />
-					Ready to use
+					{{ __("Ready to use") }}
 				</div>
 				<Button
 					v-if="selected.credential_type"
@@ -156,20 +155,20 @@
 					size="md"
 					class="mt-3"
 					icon-left="lucide-log-out"
-					label="Disconnect"
+					:label="__('Disconnect')"
 					:disabled="saving"
 					@click="disconnect"
 				/>
 			</div>
 
 			<form v-else-if="selected.auth_methods.includes('api_key')" class="mt-5" @submit.prevent="saveKey">
-				<label class="mb-1.5 block text-sm-medium text-ink-gray-7">API key</label>
+				<label class="mb-1.5 block text-sm-medium text-ink-gray-7">{{ __("API key") }}</label>
 				<input
 					v-model="apiKey"
 					type="password"
 					autocomplete="off"
 					class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
-					placeholder="Paste your API key"
+					:placeholder="__('Paste your API key')"
 				/>
 				<Button
 					type="submit"
@@ -177,7 +176,7 @@
 					size="md"
 					class="mt-3"
 					icon-left="lucide-key"
-					label="Save API key"
+					:label="__('Save API key')"
 					:disabled="!apiKey.trim() || saving"
 				/>
 			</form>
@@ -188,7 +187,7 @@
 					variant="solid"
 					size="md"
 					icon-left="lucide-external-link"
-					label="Sign in"
+					:label="__('Sign in')"
 					:disabled="saving"
 					@click="beginOAuth"
 				/>
@@ -197,7 +196,7 @@
 					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-sm text-ink-gray-7"
 				>
 					<span class="flow-shimmer font-medium">
-						{{ oauthStatus === "exchanging" ? "Finishing sign-in…" : "Waiting for sign-in…" }}
+						{{ oauthStatus === "exchanging" ? __("Finishing sign-in…") : __("Waiting for sign-in…") }}
 					</span>
 				</div>
 				<!-- popup blockers eat the window.open after the awaited /start —
@@ -210,14 +209,14 @@
 					class="mt-2 flex w-fit items-center gap-1.5 text-sm text-ink-gray-6 underline hover:text-ink-gray-9"
 				>
 					<span class="lucide-external-link size-3" aria-hidden="true" />
-					Open the sign-in page
+					{{ __("Open the sign-in page") }}
 				</a>
 				<div
 					v-if="oauthStatus === 'connected'"
 					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-sm text-ink-gray-7"
 				>
 					<span class="lucide-circle-check size-4 text-ink-green-7" aria-hidden="true" />
-					Connected
+					{{ __("Connected") }}
 				</div>
 				<div v-if="oauthError" class="mt-2 text-sm leading-relaxed text-ink-red-6">
 					{{ oauthError }}
@@ -227,7 +226,7 @@
 					class="mt-3 block text-sm text-ink-gray-5 hover:text-ink-gray-8"
 					@click="showManual = true"
 				>
-					Enter callback URL
+					{{ __("Enter callback URL") }}
 				</button>
 				<form v-if="showManual" class="mt-3" @submit.prevent="completeOAuth">
 					<input
@@ -240,7 +239,7 @@
 						variant="outline"
 						size="md"
 						class="mt-2"
-						label="Complete sign-in"
+						:label="__('Complete sign-in')"
 						:disabled="!callbackUrl.trim() || saving"
 					/>
 				</form>
@@ -254,6 +253,7 @@ import { computed, inject, onBeforeUnmount, ref, toRef } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 
 import { useDebouncedValue } from "../debounce.js"
+import { __ } from "../translate.js"
 import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
 import ProviderIcon from "./ProviderIcon.vue"
@@ -275,13 +275,17 @@ const callbackUrl = ref("")
 const authorizeUrl = ref("")
 let pollTimer = null
 
+// one label; {0} and {1} mark the part set lighter
+const KEY_LABEL = __("API key {0}(optional){1}").split(/\{[01]\}/)
+// split where the example id goes
+const ID_HELP = __("One per line (or comma separated). Each id needs a prefix, e.g. {0}.").split("{0}")
 const FIELD =
 	"h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 
 // the synthetic row that opens the custom-endpoint form
 const CUSTOM_OPTION = {
 	id: "__custom__",
-	name: "Custom endpoint",
+	name: __("Custom endpoint"),
 	auth_methods: ["custom"],
 	configured: false,
 	custom_setup: true,
@@ -323,7 +327,7 @@ async function saveCustom() {
 		const data = editing
 			? await flow.client.updateCustomProvider(selected.value.id, payload)
 			: await flow.client.saveCustomProvider(payload)
-		flow.notify(`${data.provider.name} ${editing ? "updated" : "added"}`)
+		flow.notify(editing ? __("{0} updated", [data.provider.name]) : __("{0} added", [data.provider.name]))
 		await reload()
 		flow.refreshModels()
 		// prefill from the response row: it is authoritative even if reload failed
@@ -386,7 +390,7 @@ async function saveKey() {
 	saving.value = true
 	try {
 		await flow.client.saveProviderKey(selected.value.id, apiKey.value.trim())
-		flow.notify(`${selected.value.name} key saved`)
+		flow.notify(__("{0} key saved", [selected.value.name]))
 		apiKey.value = ""
 		await reload()
 		flow.refreshModels()

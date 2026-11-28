@@ -85,4 +85,197 @@ describe("useOnboarding", () => {
 
     expect(showHelpModal.value).toBe(true);
   });
+
+  it("matches saved progress to steps by name, not position", async () => {
+    const { onboarding, onStatusLoaded } = await load();
+
+    const shown = [
+      { name: "invite_team", title: "Invite your team", completed: false },
+      { name: "add_a_task", title: "Add a task", completed: false },
+      {
+        name: "create_first_lead",
+        title: "Create your first lead",
+        completed: false,
+      },
+    ];
+    onboarding.setUp(shown);
+    onStatusLoaded({
+      frappecrm_onboarding_status: [
+        { name: "create_first_lead", completed: true },
+        { name: "invite_team", completed: false },
+      ],
+    });
+
+    const done = shown.filter((s) => s.completed).map((s) => s.name);
+    expect(done).toEqual(["create_first_lead"]);
+    expect(onboarding.isOnboardingStepsCompleted.value).toBe(false);
+  });
+
+  it("stays finished when the app later adds a step", async () => {
+    const { onboarding, onStatusLoaded, showHelpModal } = await load();
+
+    const shown = [
+      ...steps(),
+      { name: "publish_first_lead", title: "Publish", completed: false },
+    ];
+    onboarding.setUp(shown);
+    onStatusLoaded({
+      frappecrm_onboarding_status: [
+        { name: "create_first_lead", completed: true },
+        { name: "invite_team", completed: true },
+      ],
+    });
+
+    expect(onboarding.isOnboardingStepsCompleted.value).toBe(true);
+    expect(showHelpModal.value).toBe(false);
+  });
+
+  it("does not save a queued step before the saved status is known", async () => {
+    const { call } = await import("frappe-ui");
+    const { onboarding, onStatusLoaded } = await load();
+    vi.mocked(call).mockClear();
+
+    const shown = steps();
+    onboarding.updateOnboardingStep("invite_team");
+    onboarding.setUp(shown);
+    expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(true);
+    expect(vi.mocked(call)).not.toHaveBeenCalled();
+
+    onStatusLoaded({
+      frappecrm_onboarding_status: [
+        { name: "a_role_only_step", completed: true },
+      ],
+    });
+    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    expect(saved).toContainEqual({ name: "invite_team", completed: true });
+    expect(saved).toContainEqual({ name: "a_role_only_step", completed: true });
+  });
+
+  it("keeps Skip all pressed before the saved status is known", async () => {
+    const { call } = await import("frappe-ui");
+    const { onboarding, onStatusLoaded } = await load();
+    vi.mocked(call).mockClear();
+
+    const shown = steps();
+    onboarding.setUp(shown);
+    onboarding.skipAll();
+    expect(vi.mocked(call)).not.toHaveBeenCalled();
+
+    onStatusLoaded({});
+    expect(shown.every((s) => s.completed)).toBe(true);
+    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    expect(saved.every((s: { completed: boolean }) => s.completed)).toBe(true);
+  });
+
+  it("forgets a queued completion the user resets before the saved status is known", async () => {
+    const { call } = await import("frappe-ui");
+    const { onboarding, onStatusLoaded } = await load();
+    vi.mocked(call).mockClear();
+
+    const shown = steps();
+    onboarding.setUp(shown);
+    onboarding.skipAll();
+    onboarding.resetAll();
+    onboarding.updateOnboardingStep("invite_team");
+    onboarding.updateOnboardingStep("invite_team", false);
+
+    onStatusLoaded({});
+    expect(shown.some((s) => s.completed)).toBe(false);
+    expect(vi.mocked(call)).not.toHaveBeenCalled();
+  });
+
+  it("applies a step queued before setUp only once", async () => {
+    const { call } = await import("frappe-ui");
+    const { onboarding, onStatusLoaded } = await load();
+
+    const shown = steps();
+    onboarding.updateOnboardingStep("invite_team");
+    onStatusLoaded({});
+    onboarding.setUp(shown);
+    onboarding.updateOnboardingStep("invite_team", false);
+    onboarding.syncStatus();
+
+    expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(false);
+    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    expect(
+      saved.find((s: { name: string }) => s.name === "invite_team")?.completed,
+    ).toBe(false);
+  });
+
+  it("keeps a step completed before setUp, and saves it", async () => {
+    const { call } = await import("frappe-ui");
+    const { onboarding, onStatusLoaded } = await load();
+
+    const shown = steps();
+    onboarding.updateOnboardingStep("invite_team");
+    onboarding.setUp(shown);
+    onStatusLoaded({});
+
+    expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(true);
+    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    expect(saved).toEqual([
+      { name: "create_first_lead", completed: false },
+      { name: "invite_team", completed: true },
+    ]);
+  });
+
+  it("keeps a step completed before setUp when the saved status loads first", async () => {
+    const { onboarding, onStatusLoaded } = await load();
+
+    const shown = steps();
+    onboarding.updateOnboardingStep("invite_team");
+    onStatusLoaded({});
+    onboarding.setUp(shown);
+
+    expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(true);
+  });
+
+  it("takes a new order when set up again, keeping each step's progress", async () => {
+    const { onboarding, onStatusLoaded } = await load();
+    onboarding.setUp(steps());
+    onStatusLoaded({});
+    onboarding.updateOnboardingStep("create_first_lead");
+
+    onboarding.setUp(steps().reverse());
+
+    const { useOnboarding } = await import("../onboarding");
+    const shown = useOnboarding("frappecrm")!.steps!;
+    expect(shown.map((s) => s.name)).toEqual([
+      "invite_team",
+      "create_first_lead",
+    ]);
+    expect(shown.find((s) => s.name === "create_first_lead")?.completed).toBe(
+      true,
+    );
+  });
+
+  it("keeps a finished checklist finished when set up again", async () => {
+    const { onboarding, onStatusLoaded } = await load();
+    onboarding.setUp(steps());
+    onStatusLoaded({
+      frappecrm_onboarding_status: steps().map((s) => ({
+        name: s.name,
+        completed: true,
+      })),
+    });
+    expect(onboarding.isOnboardingStepsCompleted.value).toBe(true);
+
+    onboarding.setUp(steps());
+
+    expect(onboarding.stepsCompleted.value).toBe(onboarding.totalSteps.value);
+  });
+
+  it("shows exactly the steps of the latest setUp", async () => {
+    const { onboarding, onStatusLoaded } = await load();
+    onboarding.setUp(steps());
+    onStatusLoaded({});
+
+    const added = { name: "add_note", title: "Add a note", completed: false };
+    onboarding.setUp([...steps().slice(1), added]);
+
+    const { useOnboarding } = await import("../onboarding");
+    const shown = useOnboarding("frappecrm")!.steps!;
+    expect(shown.map((s) => s.name)).toEqual(["invite_team", "add_note"]);
+    expect(onboarding.totalSteps.value).toBe(2);
+  });
 });

@@ -9,13 +9,14 @@ from frappe.core.utils import find
 from frappe.desk.doctype.event.event import get_events
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects, toggle_test_mode
+from frappe.utils import get_user_by_email
 
 
 class TestEvent(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Event")
 		make_test_objects("Event", reset=True)
-		self.test_user = "test1@example.com"
+		self.test_user = get_user_by_email("test1@example.com")
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -61,7 +62,7 @@ class TestEvent(IntegrationTestCase):
 					{
 						"reference_doctype": "User",
 						"reference_docname": self.test_user,
-						"email": self.test_user,
+						"email": "test1@example.com",
 					}
 				],
 			}
@@ -71,6 +72,56 @@ class TestEvent(IntegrationTestCase):
 		events = get_events(start="2025-05-01", end="2025-05-31")
 
 		self.assertIn(event.name, [e.name for e in events])
+
+	def test_participant_by_email_or_user_link(self):
+		from frappe.core.doctype.user.test_user import test_user
+		from frappe.desk.doctype.event.event import update_attending_status
+
+		def make_event(reference_doctype, reference_docname, email=None):
+			return frappe.get_doc(
+				doctype="Event",
+				subject="_Test Participant Event",
+				event_type="Private",
+				starts_on="2025-05-10 10:00:00",
+				event_participants=[
+					{
+						"reference_doctype": reference_doctype,
+						"reference_docname": reference_docname,
+						"email": email,
+					}
+				],
+			).insert()
+
+		with test_user(roles=[], generated_id=True) as user:
+			contact = frappe.db.get_value("Contact", {"user": user.name})
+			by_email = make_event("Contact", contact, user.email)
+			by_link = make_event("User", user.name)
+			other = make_event("User", "Guest", "someone_else@example.com")
+
+			with self.set_user(user.name):
+				listed = frappe.get_list("Event", pluck="name")
+				in_calendar = [e.name for e in get_events(start="2025-05-01", end="2025-05-31")]
+				for event in (by_email, by_link):
+					self.assertTrue(frappe.has_permission("Event", doc=event))
+					self.assertIn(event.name, listed)
+					self.assertIn(event.name, in_calendar)
+
+				self.assertFalse(frappe.has_permission("Event", doc=other))
+				self.assertNotIn(other.name, listed)
+				self.assertNotIn(other.name, in_calendar)
+
+				update_attending_status(by_email.name, user.email, "Yes")
+
+			self.assertEqual(
+				frappe.db.get_value("Event Participants", {"parent": by_email.name}, "attending"), "Yes"
+			)
+
+			update_attending_status(by_email.name, user.name, "No")
+
+			self.assertEqual(
+				frappe.db.get_value("Event Participants", {"parent": by_email.name}, "attending"), "No"
+			)
+			self.assertFalse(frappe.db.get_value("Event", by_email.name, "attending"))
 
 	def test_get_events_for_different_timezone(self):
 		frappe.set_user("Administrator")
@@ -118,10 +169,11 @@ class TestEvent(IntegrationTestCase):
 		from frappe.desk.form.assign_to import add
 
 		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
+		user = get_user_by_email("test@example.com")
 
 		add(
 			{
-				"assign_to": ["test@example.com"],
+				"assign_to": [user],
 				"doctype": "Event",
 				"name": ev.name,
 				"description": "Test Assignment",
@@ -130,7 +182,7 @@ class TestEvent(IntegrationTestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
+		self.assertEqual(ev._assign, json.dumps([user]))
 
 		# add another one
 		add(
@@ -144,7 +196,7 @@ class TestEvent(IntegrationTestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEqual(set(json.loads(ev._assign)), {"test@example.com", self.test_user})
+		self.assertEqual(set(json.loads(ev._assign)), {user, self.test_user})
 
 		# Remove an assignment
 		todo = frappe.get_doc(
@@ -155,7 +207,7 @@ class TestEvent(IntegrationTestCase):
 		todo.save()
 
 		ev = frappe.get_doc("Event", ev.name)
-		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
+		self.assertEqual(ev._assign, json.dumps([user]))
 
 		# cleanup
 		ev.delete()

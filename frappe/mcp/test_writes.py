@@ -7,6 +7,7 @@ import frappe
 from frappe.api import v2
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.mcp.test_utils import McpTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestWriteDocument(McpTestCase):
@@ -107,7 +108,7 @@ class TestWriteDocument(McpTestCase):
 			data={"email": "mcp.forbidden@example.com", "first_name": "Forbidden"},
 		)
 		self.assertTrue(response.json["result"]["isError"])
-		self.assertFalse(frappe.db.exists("User", "mcp.forbidden@example.com"))
+		self.assertIsNone(get_user_by_email("mcp.forbidden@example.com"))
 
 	def test_client_flags_cannot_bypass_permissions(self):
 		response = self.write(
@@ -127,7 +128,7 @@ class TestWriteDocument(McpTestCase):
 			},
 		)
 		self.assertTrue(response.json["result"]["isError"])
-		self.assertFalse(frappe.db.exists("User", "mcp.forbidden@example.com"))
+		self.assertIsNone(get_user_by_email("mcp.forbidden@example.com"))
 
 	def test_required_document_fields(self):
 		response = self.write(tool="create_document", doctype="ToDo", data={})

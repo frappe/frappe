@@ -3,6 +3,7 @@ import shutil
 
 import frappe
 from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
+from frappe.studio.doctype.studio_component.test_studio_component import export_scripted_component
 from frappe.studio.doctype.studio_page.test_studio_page import (
 	PAGE_SCRIPT,
 	component_ref,
@@ -10,6 +11,7 @@ from frappe.studio.doctype.studio_page.test_studio_page import (
 	make_component,
 )
 from frappe.studio.sync import before_app_uninstall, remove_orphaned_apps_and_pages, sync_studio_apps
+from frappe.studio.sync_json import sync_file
 from frappe.studio.utils import get_app_file_path
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
@@ -130,3 +132,18 @@ class TestSync(IntegrationTestCase):
 			remove_orphaned_apps_and_pages()
 			self.assertTrue(frappe.db.exists("Studio App", app.name))
 			self.assertTrue(frappe.db.exists("Studio Page", page.name))
+
+	def test_sync_imports_component_scripts(self):
+		with exports_in_tempdir():
+			component, _page, script_path = export_scripted_component()
+			with open(script_path, "w") as script_file:
+				script_file.write("export default { emits: ['close'] }\n")
+
+			sync_studio_apps("frappe")
+			script = frappe.db.get_value("Studio Component", component.name, "script")
+			self.assertEqual(script, "export default { emits: ['close'] }\n")
+
+			os.remove(script_path)
+			self.assertEqual(sync_file(script_path)["name"], component.name)
+			self.assertIsNone(frappe.db.get_value("Studio Component", component.name, "script"))
+			self.assertIsNone(sync_file(script_path))

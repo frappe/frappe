@@ -1,36 +1,12 @@
-import { Ref } from "vue"
-import { createDocumentResource, createResource, dialog } from "frappe-ui"
+import { createDocumentResource, dialog } from "frappe-ui"
 import { toast } from "frappe-ui"
 
-import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
+import { isObjectEmpty } from "@/runtime/utils/helpers"
+
+export * from "@/runtime/utils/helpers"
+import type { ObjectLiteral, SelectOption, HashString, RGBString } from "@/types"
 import type { StudioApp } from "@/types/Studio/StudioApp"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import DOMPurify from "dompurify"
-
-function isEditor() {
-	return window.location.pathname.startsWith("/studio/")
-}
-
-function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {
-	if (!obj || typeof obj !== "object") {
-		return obj
-	}
-	if (obj instanceof Date) {
-		return new Date(obj)
-	}
-	if (Array.isArray(obj)) {
-		return obj.map(item => deepCloneObject(item, skipKeys))
-	}
-
-	const clonedObj: any = {}
-	for (const key in obj) {
-		if (skipKeys?.includes(key)) continue
-		clonedObj[key] = deepCloneObject(obj[key], skipKeys)
-	}
-
-	return clonedObj
-}
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 type BlockInfo = {
 	blockId: string
@@ -41,44 +17,7 @@ function getBlockInfo(e: MouseEvent) {
 	return (target?.dataset || {}) as BlockInfo
 }
 
-const isTextNode = (el: Element) => {
-	return el.nodeType === Node.TEXT_NODE
-}
-
-const isCommentNode = (el: Element) => {
-	return el.nodeType === Node.COMMENT_NODE
-}
-
-function getComponentRoot(componentRef: Ref) {
-	if (!componentRef.value) return null
-	if (componentRef.value instanceof HTMLElement || componentRef.value instanceof SVGElement) {
-		return componentRef.value
-	} else {
-		if (isTextNode(componentRef.value.$el) || isCommentNode(componentRef.value.$el)) {
-			// access exposed ref
-			const rootRef = componentRef.value.rootRef
-			if (typeof rootRef === "function") {
-				// options API exposes ref as a function
-				return rootRef().$el
-			} else {
-				return rootRef
-			}
-		}
-		return componentRef.value?.$el
-	}
-}
-
 // css
-function numberToPx(number: StyleValue, round: boolean = true): string {
-	/* appends "px" to number with optional rounding */
-	if (number === null || number === undefined) return ""
-	if (typeof number === "string") {
-		number = parseFloat(number)
-	}
-	number = round ? Math.round(number) : number;
-	return `${number}px`;
-}
-
 function pxToNumber(px: string | number | null | undefined): number {
 	if (!px) return 0
 	if (typeof px === "number") return px
@@ -138,13 +77,6 @@ function normalizeValueWithUnits(value: string, unitOptions: string[], styleProp
 	return addUnitToNumber(value, defaultUnit);
 }
 
-function kebabToCamelCase(str: string) {
-	// convert border-color to borderColor
-	return str.replace(/-([a-z])/g, function (g) {
-		return g[1].toUpperCase();
-	});
-}
-
 function camelToKebabCase(str: string) {
 	// convert borderColor to border-color
 	return str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
@@ -178,11 +110,6 @@ function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	return true
 }
 
-function isObjectEmpty(obj: object | null | undefined | any): boolean {
-	if (!obj) return true
-	return Object.keys(obj).length === 0
-}
-
 function getValueFromObject(obj: object | null | undefined, key: string) {
 	if (isObjectEmpty(obj)) return undefined
 	const data = Object.assign({}, obj)
@@ -193,27 +120,6 @@ function getValueFromObject(obj: object | null | undefined, key: string) {
 			data as Record<string, any>,
 		)
 	return value
-}
-
-function setValueInObject(obj: Record<string, any>, key: string, value: any) {
-	if (isObjectEmpty(obj)) return
-
-	const propertyPath = key.split(".")
-	if (propertyPath.length === 1) {
-		// top level key
-		obj[key] = value
-	} else {
-		const targetProperty = propertyPath.pop()!
-		// navigate to the parent object
-		for (const key of propertyPath) {
-			if (!obj[key] || typeof obj[key] !== "object") {
-				obj[key] = {}
-			}
-			obj = obj[key]
-		}
-		// set the value on the parent object
-		obj[targetProperty] = value
-	}
 }
 
 function isPrivateKey(key: string) {
@@ -246,14 +152,11 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 }
 
 function isTargetEditable(e: Event) {
-	const target = e.target as HTMLElement;
+	// the first element in the path: `e.target` of a shadow root is its host
+	const target = (e.composedPath()[0] ?? e.target) as HTMLElement;
 	const isEditable = target.isContentEditable;
 	const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
 	return isEditable || isInput;
-}
-
-function generateId() {
-	return Math.random().toString(36).substr(2, 9);
 }
 
 // slots
@@ -290,29 +193,6 @@ async function fetchPage(pageName: string) {
 	})
 	await pageResource.reload()
 	return pageResource.doc
-}
-
-// Fetches the page definition (blocks + resources + variables) in one unprivileged call.
-// Data the page renders stays permission-checked by the endpoints its resources call.
-async function fetchAppPage(appName: string, pageName: string, preview: boolean = false) {
-	const page = createResource({
-		url: "frappe.studio.doctype.studio_page.studio_page.get_page",
-		method: "GET",
-		params: { app_name: appName, page_name: pageName, preview },
-		// a published page changes only on publish; the preview must see every draft save
-		cache: preview ? undefined : ["studio-page", pageName],
-	})
-	// a cached definition mounts at once and refreshes in the background for the next visit
-	if (page.fetched) {
-		page.reload().catch(() => {})
-		return page.data
-	}
-	try {
-		await page.fetch()
-	} catch (error) {
-		return null
-	}
-	return page.data
 }
 
 // extract dynamic route variables from a vue-router route, e.g. "/articles/:category" -> ["category"]
@@ -363,22 +243,6 @@ function getParamsArray(params?: string | Record<string, unknown>) {
 		paramsArray.push({ key, value: _value ?? "", name: key, isJSONValue: typeof value !== "string" })
 	})
 	return paramsArray
-}
-
-// variables
-const getInitialVariableValue = (variable: Variable) => {
-	// cast variable's initial value as per variable type
-	let initialValue = variable.initial_value
-	if (variable.variable_type === "Number") {
-		initialValue = Number(initialValue)
-	} else if (variable.variable_type === "Boolean") {
-		initialValue = (initialValue === "true")
-	} else if (variable.variable_type === "Object" && typeof initialValue === "string") {
-		initialValue = JSON.parse(initialValue)
-	} else if (variable.variable_type === "String" && typeof initialValue === "string") {
-		initialValue = JSON.parse(initialValue)
-	}
-	return initialValue
 }
 
 // dialogs
@@ -566,40 +430,22 @@ function throttle<T extends (...args: any[]) => void>(func: T, wait: number = 10
 	return invoke
 }
 
-function scrub(txt: string | null | undefined) {
-	if (!txt) return ""
-	return txt.replace(/ |-/g, "_").toLowerCase()
-}
-
-function sanitizeHTML(html?: string): string {
-	return DOMPurify.sanitize(html ?? "", { ADD_TAGS: ["use"] })
-}
-
-
 export {
-	isEditor,
-	deepCloneObject,
 	getBlockInfo,
-	getComponentRoot,
 	// css
-	numberToPx,
 	pxToNumber,
 	extractNumberAndUnit,
 	normalizeValueWithUnits,
-	kebabToCamelCase,
 	camelToKebabCase,
 	toTitleCase,
 	areObjectsEqual,
-	isObjectEmpty,
 	getValueFromObject,
-	setValueInObject,
 	isPrivateKey,
 	// maps & objects
 	objToArray,
 	mapToObject,
 	replaceMapKey,
 	isTargetEditable,
-	generateId,
 	// slots
 	isHTML,
 	// app
@@ -608,14 +454,11 @@ export {
 	openPageInDesk,
 	// page
 	fetchPage,
-	fetchAppPage,
 	getRouteVariables,
 	// data
 	getAutocompleteValues,
 	getParamsObj,
 	getParamsArray,
-	// variables
-	getInitialVariableValue,
 	// dialog
 	confirm,
 	// colors
@@ -631,6 +474,4 @@ export {
 	setClipboardData,
 	getErrorMessage,
 	throttle,
-	scrub,
-	sanitizeHTML,
 }

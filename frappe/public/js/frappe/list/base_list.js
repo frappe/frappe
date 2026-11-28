@@ -78,8 +78,12 @@ frappe.views.BaseList = class BaseList {
 
 	get_list_view_settings() {
 		return frappe
-			.call("frappe.desk.listview.get_list_settings", {
-				doctype: this.doctype,
+			.call({
+				method: "frappe.desk.listview.get_list_settings",
+				type: "GET",
+				args: {
+					doctype: this.doctype,
+				},
 			})
 			.then((doc) => (this.list_view_settings = doc.message || {}));
 	}
@@ -263,7 +267,9 @@ frappe.views.BaseList = class BaseList {
 					item.label,
 					item.action,
 					item.standard,
-					item.shortcut
+					item.shortcut,
+					undefined,
+					item.group
 				);
 				if (item.class) {
 					$item && $item.addClass(item.class);
@@ -530,6 +536,7 @@ frappe.views.BaseList = class BaseList {
 		const args = this.get_args();
 		return {
 			method: this.method,
+			type: "QUERY",
 			args: args,
 			freeze: this.freeze_on_refresh || false,
 			freeze_message: this.freeze_message || __("Loading") + "...",
@@ -724,7 +731,10 @@ class FilterArea {
 		this.user_setting_fields =
 			frappe.get_user_settings(this.list_view.doctype)?.group_by_fields || [];
 
-		if (["assigned_to", "owner", "tags"].some((v) => this.user_setting_fields.includes(v))) {
+		if (
+			!this.list_view.meta.is_virtual &&
+			["assigned_to", "owner", "tags"].some((v) => this.user_setting_fields.includes(v))
+		) {
 			this.render_non_standard_fields_filter();
 		}
 	}
@@ -817,6 +827,7 @@ class FilterArea {
 		}
 
 		const fields_dict = this.list_view.page.fields_dict;
+		const boxed_fields = new Set();
 
 		return filters.reduce((out, filter) => {
 			const [dt, fieldname, condition, value] = filter;
@@ -824,14 +835,23 @@ class FilterArea {
 			out.non_standard_filters = out.non_standard_filters || [];
 
 			// set in list view area if filters are present
-			if (frappe.ui.FilterGroup.fits_box(fields_dict[fieldname], condition, value)) {
+			if (
+				!boxed_fields.has(fieldname) &&
+				frappe.ui.FilterGroup.fits_box(fields_dict[fieldname], condition, value)
+			) {
+				boxed_fields.add(fieldname);
 				// standard filter
 				out.promise = out.promise.then(() => {
 					// Set match type for fields that support it
 					if (fields_dict[fieldname].df) {
 						fields_dict[fieldname].df.match_type = condition;
 					}
-					return fields_dict[fieldname].set_value(value);
+					// the box adds the wildcards back (get_standard_filters)
+					const box_value =
+						condition === "like" && typeof value === "string"
+							? value.replace(/^%([^%]*)%$/, "$1")
+							: value;
+					return fields_dict[fieldname].set_value(box_value);
 				});
 			} else {
 				// filter out non standard filters
@@ -846,8 +866,10 @@ class FilterArea {
 			let label, fieldtype;
 			if (fieldname === "assigned_to") {
 				label = __("Assigned To");
+				fieldtype = "Link";
 			} else if (fieldname === "owner") {
 				label = __("Created By");
+				fieldtype = "Link";
 			} else if (fieldname === "tags") {
 				label = __("Tags");
 			}
@@ -1000,6 +1022,13 @@ class FilterArea {
 				<span class="group-by-value ellipsis" data-name="${field.name}">
 					${applied_html}
 					${label}
+					${
+						field.description
+							? `<br><span class="small text-muted">${frappe.utils.escape_html(
+									field.description
+							  )}</span>`
+							: ""
+					}
 				</span>
 				<span class="group-by-count">${field.count}</span>
 			</a>
@@ -1071,17 +1100,23 @@ class FilterArea {
 			field: field,
 		};
 
-		return frappe.call("frappe.desk.listview.get_group_by_count", args).then((r) => {
-			let field_counts = r.message || [];
-			field_counts = field_counts.filter((f) => f.count !== 0);
-			let current_user = field_counts.find((f) => f.name === frappe.session.user);
-			field_counts = field_counts.filter(
-				(f) => !["Guest", "Administrator", frappe.session.user].includes(f.name)
-			);
-			// Set frappe.session.user on top of the list
-			if (current_user) field_counts.unshift(current_user);
-			return field_counts;
-		});
+		return frappe
+			.call({
+				method: "frappe.desk.listview.get_group_by_count",
+				args: args,
+				type: "QUERY",
+			})
+			.then((r) => {
+				let field_counts = r.message || [];
+				field_counts = field_counts.filter((f) => f.count !== 0);
+				let current_user = field_counts.find((f) => f.name === frappe.session.user);
+				field_counts = field_counts.filter(
+					(f) => !["Guest", "Administrator", frappe.session.user].includes(f.name)
+				);
+				// Set frappe.session.user on top of the list
+				if (current_user) field_counts.unshift(current_user);
+				return field_counts;
+			});
 	}
 
 	apply_filter(fieldname, value) {
@@ -1090,11 +1125,6 @@ class FilterArea {
 			operator = "is";
 			value = "not set";
 		}
-		if (fieldname === "_assign") {
-			operator = "like";
-			value = `%${value}%`;
-		}
-
 		return this.list_view.filter_area.add(this.list_view.doctype, fieldname, operator, value);
 	}
 

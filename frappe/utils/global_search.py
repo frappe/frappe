@@ -9,6 +9,7 @@ import redis
 
 import frappe
 from frappe.model.document import get_controller
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
@@ -520,7 +521,7 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 	from frappe.desk.doctype.global_search_settings.global_search_settings import (
 		get_doctypes_for_global_search,
 	)
-	from frappe.query_builder.functions import Match
+	from frappe.query_builder.functions import Lower, Match
 
 	results = []
 	sorted_results = []
@@ -541,6 +542,7 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 			frappe.qb.from_(global_search)
 			.select(global_search.doctype, global_search.name, global_search.content, rank.as_("rank"))
 			.where(rank)
+			.orderby(Lower(global_search.name) == word.lower(), order=frappe.qb.desc)
 			.orderby("rank", order=frappe.qb.desc)
 			.limit(limit)
 		)
@@ -557,7 +559,7 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 
 		results.extend(result)
 
-	for r in sort_search_results(results, allowed_doctypes):
+	for r in sort_search_results(results, allowed_doctypes, text):
 		if r.rank > 0.0:
 			try:
 				meta = frappe.get_meta(r.doctype)
@@ -574,10 +576,11 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 	return sorted_results
 
 
-def sort_search_results(results: list, doctypes: list[str]) -> list:
-	"""Order hits by the DocType priority from Global Search Settings, then by relevance."""
+def sort_search_results(results: list, doctypes: list[str], text: str = "") -> list:
+	"""Order hits by exact name match, then the DocType priority from Global Search Settings, then relevance."""
 	priority = {doctype: idx for idx, doctype in enumerate(doctypes)}
-	return sorted(results, key=lambda r: (priority[r.doctype], -r.rank))
+	words = {word.strip().lower() for word in text.split("&")}
+	return sorted(results, key=lambda r: (r.name.lower() not in words, priority[r.doctype], -r.rank))
 
 
 WEB_SEARCH_MAX_SEGMENTS = 5
@@ -585,7 +588,8 @@ WEB_SEARCH_MAX_LIMIT = 100
 WEB_SEARCH_MAX_TEXT_LENGTH = 1000
 
 
-@frappe.whitelist(allow_guest=True)  # nosemgrep
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep
+@rate_limit(limit=30, seconds=60)
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1

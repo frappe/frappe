@@ -9,7 +9,7 @@
 			class="fixed inset-0 z-50 flex items-center justify-center bg-black-overlay-200 p-2 dark:bg-black-overlay-700 sm:p-6"
 			role="dialog"
 			aria-modal="true"
-			aria-label="Transcript"
+			:aria-label="__('Transcript')"
 			@click.self="close"
 		>
 			<!-- on a phone the totals scroll away with the steps under a pinned title; wider, only the steps scroll -->
@@ -18,17 +18,17 @@
 			>
 				<header class="sticky top-0 z-10 flex-none bg-surface-elevation-1 p-4 sm:static sm:px-6 sm:pb-0 sm:pt-5">
 					<div class="flex items-center gap-2">
-						<h2 class="min-w-0 flex-1 text-md-semibold text-ink-gray-9">Transcript</h2>
+						<h2 class="min-w-0 flex-1 text-md-semibold text-ink-gray-9">{{ __("Transcript") }}</h2>
 						<!-- for an issue or another chat: the steps as they show, as JSON -->
 						<template v-if="rows.length">
-							<CopyButton :text="json" title="Copy JSON" variant="subtle" size="sm">
-								<span class="max-sm:hidden">Copy JSON</span>
+							<CopyButton :text="json" :title="__('Copy JSON')" variant="subtle" size="sm">
+								<span class="max-sm:hidden">{{ __("Copy JSON") }}</span>
 							</CopyButton>
-							<Button variant="subtle" size="sm" icon-left="lucide-download" title="Download JSON" @click="download">
-								<span class="max-sm:hidden">Download</span>
+							<Button variant="subtle" size="sm" icon-left="lucide-download" :title="__('Download JSON')" @click="download">
+								<span class="max-sm:hidden">{{ __("Download") }}</span>
 							</Button>
 						</template>
-						<Button ref="closeEl" variant="ghost" icon="lucide-x" class="flex-none" title="Close" @click="close" />
+						<Button ref="closeEl" variant="ghost" icon="lucide-x" class="flex-none" :title="__('Close')" @click="close" />
 					</div>
 					<div v-if="title" class="mt-1 truncate text-base text-ink-gray-6">{{ title }}</div>
 				</header>
@@ -47,7 +47,7 @@
 				</div>
 
 				<div class="px-4 pb-2 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:px-6">
-					<div v-if="!rows.length" class="py-10 text-center text-sm text-ink-gray-5">Nothing sent yet.</div>
+					<div v-if="!rows.length" class="py-10 text-center text-sm text-ink-gray-5">{{ __("Nothing sent yet.") }}</div>
 					<template v-for="(row, index) in rows" :key="row.key">
 						<!-- each user message opens a turn -->
 						<!-- the role, the first line and the JSON button share one baseline -->
@@ -73,7 +73,7 @@
 											:class="{ 'rotate-90': opened.has(row.key) }"
 											aria-hidden="true"
 										/>
-										System prompt
+										{{ __("System prompt") }}
 									</button>
 									<p v-else class="text-ink-gray-5">{{ row.body }}</p>
 									<pre v-if="prompt && opened.has(row.key)" :class="PRE">{{ prompt }}</pre>
@@ -81,7 +81,7 @@
 								<template v-else-if="row.kind === 'user'">
 									<p class="whitespace-pre-wrap break-words">{{ userText(row.entry) }}</p>
 									<p v-if="userAttachments(row.entry).length" class="text-ink-gray-5">
-										Attached: {{ userAttachments(row.entry).map((file) => file.name).join(", ") }}
+										{{ __("Attached: {0}", [names(userAttachments(row.entry))]) }}
 									</p>
 								</template>
 								<template v-else-if="row.kind === 'assistant'">
@@ -91,10 +91,10 @@
 										<p
 											v-else-if="block.type === 'thinking' && (block.redacted || block.thinking?.trim())"
 											class="whitespace-pre-wrap break-words text-ink-gray-5"
-										>{{ block.redacted ? "Thinking, not shown by the provider." : block.thinking }}</p>
+										>{{ block.redacted ? __("Thinking, not shown by the provider.") : block.thinking }}</p>
 									</template>
 									<p v-if="onlyCalls(row.entry)" class="text-ink-gray-5">
-										Called {{ row.entry.content.map((block) => block.name).join(", ") }}
+										{{ __("Called {0}", [names(row.entry.content)]) }}
 									</p>
 									<p v-if="row.entry.error_message" class="whitespace-pre-wrap break-words text-ink-red-4">{{ row.entry.error_message }}</p>
 								</template>
@@ -121,7 +121,7 @@
 									</div>
 								</template>
 								<template v-else-if="row.kind === 'compaction'">
-									<p class="text-ink-gray-5">Summary of the chat so far</p>
+									<p class="text-ink-gray-5">{{ __("Summary of the chat so far") }}</p>
 									<p class="whitespace-pre-wrap break-words">{{ row.entry.summary }}</p>
 								</template>
 								<template v-else-if="row.kind === 'error'">
@@ -165,6 +165,7 @@ import { Button } from "frappe-ui/src/components/Button"
 import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
 
 import { buildTranscriptRows, formatCost, formatTime, formatTokens, userAttachments, userText } from "../transcript.js"
+import { __ } from "../translate.js"
 import CopyButton from "./CopyButton.vue"
 
 const portalTarget = usePortalTarget()
@@ -207,19 +208,19 @@ const stats = computed(() => {
 	const calls = Object.values(subagents ?? {}).reduce((n, child) => n + child.requests.length, requests.length)
 	const cached = usage.input ? Math.round((usage.cacheRead / usage.input) * 100) : 0
 	const stats = [
-		{ label: "Tokens", value: formatTokens(usage.input + usage.output), sub: cached ? `${cached}% cached` : "" },
-		{ label: "Input", value: formatTokens(usage.input) },
-		{ label: "Output", value: formatTokens(usage.output) },
-		{ label: "Model calls", value: String(calls) },
+		{ label: __("Tokens"), value: formatTokens(usage.input + usage.output), sub: cached ? __("{0}% cached", [cached]) : "" },
+		{ label: __("Input"), value: formatTokens(usage.input) },
+		{ label: __("Output"), value: formatTokens(usage.output) },
+		{ label: __("Model calls"), value: String(calls) },
 	]
 	if (contextTokens) {
 		stats.push({
-			label: "Context",
+			label: __("Context"),
 			value: formatTokens(contextTokens),
-			sub: contextWindow ? `of ${formatTokens(contextWindow)}` : "",
+			sub: contextWindow ? __("of {0}", [formatTokens(contextWindow)]) : "",
 		})
 	}
-	if (usage.cost) stats.push({ label: "Cost", value: formatCost(usage.cost) })
+	if (usage.cost) stats.push({ label: __("Cost"), value: formatCost(usage.cost) })
 	return stats
 })
 
@@ -231,10 +232,10 @@ function toggle(key) {
 
 // a tool's arguments and result; a result that is JSON reads as JSON
 function folds(row) {
-	const folds = [{ key: `${row.key}:args`, label: "Arguments", text: JSON.stringify(row.input.arguments ?? {}, null, 2) }]
+	const folds = [{ key: `${row.key}:args`, label: __("Arguments"), text: JSON.stringify(row.input.arguments ?? {}, null, 2) }]
 	if (row.output) {
 		const error = !!row.output.is_error
-		folds.push({ key: `${row.key}:result`, label: error ? "Error" : "Result", text: pretty(row.output.content), error })
+		folds.push({ key: `${row.key}:result`, label: error ? __("Error") : __("Result"), text: pretty(row.output.content), error })
 	}
 	return folds
 }
@@ -248,10 +249,11 @@ function pretty(text) {
 }
 
 const onlyCalls = (entry) => entry.content.length > 0 && entry.content.every((block) => block.type === "tool_call")
+const names = (items) => items.map((item) => item.name).join(", ")
 
 function usageLine(usage) {
-	const parts = [`${formatTokens(usage.input_tokens)} in`, `${formatTokens(usage.output_tokens)} out`]
-	if (usage.cache_read_tokens) parts.push(`${formatTokens(usage.cache_read_tokens)} cached`)
+	const parts = [__("{0} in", [formatTokens(usage.input_tokens)]), __("{0} out", [formatTokens(usage.output_tokens)])]
+	if (usage.cache_read_tokens) parts.push(__("{0} cached", [formatTokens(usage.cache_read_tokens)]))
 	if (usage.cost) parts.push(formatCost(usage.cost))
 	return parts.join(" · ")
 }

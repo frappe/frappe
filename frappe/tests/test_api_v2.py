@@ -15,7 +15,7 @@ from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_test_client, set_request
+from frappe.utils import get_test_client, get_user_by_email, set_request
 
 authorization_token = None
 
@@ -91,6 +91,21 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		creations = [row["creation"] for row in response.json["data"]]
 		self.assertEqual(creations, sorted(creations, reverse=True))
+
+	def test_get_list_filters_match_empty_values_v2(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "no reference"}).insert()
+		frappe.db.commit()
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "ToDo", todo.name)
+		self.assertIsNone(frappe.db.get_value("ToDo", todo.name, "reference_type"))
+
+		for value in ("", ["!=", "User"], ["not in", ["User"]]):
+			filters = {"name": todo.name, "reference_type": value}
+			response = self.get(
+				self.resource(self.DOCTYPE), {"sid": self.sid, "filters": frappe.as_json(filters)}
+			)
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual([row["name"] for row in response.json["data"]], [todo.name], value)
 
 	def test_get_list_fields_v2(self):
 		# test 6: fetch response with fields
@@ -277,12 +292,17 @@ class TestApiV2UpdatePermissions(FrappeAPITestCase):
 	def setUp(self):
 		super().setUp()
 		frappe.set_user("Administrator")
-		self.user = "api.permissions@example.com"
-		self.created_user = not frappe.db.exists("User", self.user)
+		email = "api.permissions@example.com"
+		self.user = get_user_by_email(email)
+		self.created_user = not self.user
 		if self.created_user:
-			frappe.get_doc(
-				doctype="User", email=self.user, first_name="API Permissions", send_welcome_email=0
-			).insert()
+			self.user = (
+				frappe.get_doc(
+					doctype="User", email=email, first_name="API Permissions", send_welcome_email=0
+				)
+				.insert()
+				.name
+			)
 		keys = generate_keys(self.user)
 		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
 		self.names = []
@@ -344,15 +364,20 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 	def setUp(self):
 		super().setUp()
 		frappe.set_user("Administrator")
-		self.user = "api.fieldlevel@example.com"
-		if not frappe.db.exists("User", self.user):
-			frappe.get_doc(
-				doctype="User",
-				email=self.user,
-				first_name="API Field Level",
-				roles=[{"role": "Desk User"}],
-				send_welcome_email=0,
-			).insert()
+		email = "api.fieldlevel@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="API Field Level",
+					roles=[{"role": "Desk User"}],
+					send_welcome_email=0,
+				)
+				.insert()
+				.name
+			)
+		self.user = user
 		keys = generate_keys(self.user)
 		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
 		self.doctype = (
@@ -472,6 +497,76 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 		self.assertIsNone(response["docs"][0].get("secret"))
 		self.assertEqual(response["data"]["name"], self.name)
 		self.assertIsNone(response["data"].get("secret"))
+
+
+class TestApiV2ListArgs(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		email = "api.listargs@example.com"
+		if not (user := get_user_by_email(email)):
+			user = (
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="API List Args",
+					roles=[{"role": "Desk User"}],
+					send_welcome_email=0,
+				)
+				.insert()
+				.name
+			)
+		self.user = user
+		keys = generate_keys(self.user)
+		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
+		self.description = frappe.generate_hash()
+		self.todos = [
+			frappe.get_doc(doctype="ToDo", description=self.description, allocated_to=self.user).insert().name
+			for _ in range(3)
+		]
+		note = frappe.get_doc(
+			doctype="Note", title=self.description, public=1, seen_by=[{"user": self.user}]
+		).insert()
+		self.note, self.note_row = note.name, note.seen_by[0].name
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			for name in self.todos:
+				frappe.delete_doc_if_exists("ToDo", name)
+			frappe.delete_doc_if_exists("Note", self.note)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def list(self, doctype, **params):
+		response = self.get(self.resource(doctype), params, headers=self.headers)
+		self.assertEqual(response.status_code, 200, response.json)
+		return response
+
+	def test_limit_zero_returns_all_rows(self):
+		response = self.list("ToDo", filters={"description": self.description}, limit=0)
+		self.assertCountEqual([row["name"] for row in response.json["data"]], self.todos)
+		self.assertFalse(response.json["has_next_page"])
+
+	def test_or_filters(self):
+		response = self.list(
+			"ToDo",
+			filters={"description": self.description},
+			or_filters=[["name", "=", self.todos[0]], ["name", "=", self.todos[1]]],
+		)
+		self.assertCountEqual([row["name"] for row in response.json["data"]], self.todos[:2])
+
+	def test_child_table_with_parent_doctype(self):
+		response = self.list("Note Seen By", parent_doctype="Note", limit=0)
+		frappe.set_user(self.user)
+		expected = frappe.get_list("Note Seen By", parent_doctype="Note", limit=0)
+		frappe.set_user("Administrator")
+		self.assertIn(self.note_row, [row["name"] for row in response.json["data"]])
+		self.assertCountEqual(response.json["data"], expected)
 
 
 class TestMethodAPIV2(FrappeAPITestCase):
@@ -953,8 +1048,9 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 
 	@classmethod
 	def tearDownClass(cls):
-		for user in (cls.DESK_USER, cls.WEBSITE_USER):
-			frappe.delete_doc_if_exists("User", user, force=True)
+		for email in (cls.DESK_USER, cls.WEBSITE_USER):
+			if user := get_user_by_email(email):
+				frappe.delete_doc("User", user, force=True)
 		frappe.db.commit()
 		super().tearDownClass()
 
@@ -971,7 +1067,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
-		if not frappe.db.exists("User", email):
+		if not (user_id := get_user_by_email(email)):
 			user = frappe.get_doc(
 				{
 					"doctype": "User",
@@ -982,13 +1078,14 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			)
 			user.append_roles(*roles)
 			user.insert(ignore_permissions=True)
+			user_id = user.name
 			# HTTP requests use another connection and must see this user.
 			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		set_request(path="/")
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as(email)
+		frappe.local.login_manager.login_as(user_id)
 		return frappe.session.sid
 
 	def discovery_paths(self):
@@ -1207,6 +1304,23 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		# frappe opts into source exposure via the `expose_discovery_source` hook
 		self.assertIn("source", data)
 		self.assertIn("def test(", data["source"])
+		self.assertNotIn("replaced_by", data)
+
+	def test_replaced_method_is_described_but_not_searched_v2(self):
+		path = "frappe.tests.test_api_v2.replaced_discovery_method"
+		search_response = self.get(
+			self.discovery_path("search"), {"sid": self.sid, "q": "replaced_discovery_method"}
+		)
+		self.assertEqual(search_response.status_code, 200)
+		self.assertEqual(search_response.json["data"]["results"], [])
+
+		index_response = self.get(self.discovery_path("method"), {"sid": self.sid})
+		indexed = next(item for item in index_response.json["data"]["methods"] if item.get("path") == path)
+		self.assertEqual(indexed["replaced_by"], "frappe.tests.test_api.test")
+
+		method_response = self.get(self.discovery_path("method", path), {"sid": self.sid})
+		self.assertEqual(method_response.status_code, 200)
+		self.assertEqual(method_response.json["data"]["replaced_by"], "frappe.tests.test_api.test")
 
 	def test_method_source_hidden_without_hook_v2(self):
 		real_get_hooks = frappe.get_hooks
@@ -1306,3 +1420,12 @@ def test(*, fail: int | bool = False, handled: int | bool = True, message: str =
 			1 / 0
 	else:
 		frappe.msgprint(message)
+
+
+@whitelist_for_tests()
+def replaced_discovery_method() -> str:
+	"""Old path kept for API discovery tests."""
+	return "replaced"
+
+
+replaced_discovery_method.replaced_by = "frappe.tests.test_api.test"

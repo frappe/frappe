@@ -70,7 +70,11 @@ def wait_for_job(job_id: str, wait_timeout: float = 10):
 	NOWAIT, so a test that writes the same rows fails instead of queueing. Returns quietly after
 	`wait_timeout` seconds if the job never runs, e.g. when no worker is up.
 	"""
+	from frappe.tests.utils.test_capabilities import TestService, is_test_service_available
 	from frappe.utils.background_jobs import is_job_enqueued
+
+	if not is_test_service_available(TestService.BACKGROUND_WORKER):
+		return
 
 	deadline = time.monotonic() + wait_timeout
 

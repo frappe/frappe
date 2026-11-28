@@ -132,7 +132,7 @@ class TestTheResolverSeam(IntegrationTestCase):
 			get_module_landing_route(
 				[{"type": "Link", "link_type": "DocType", "link_to": "System Settings"}]
 			),
-			"/desk/system-settings/System Settings",
+			"/desk/system-settings",
 		)
 
 	def test_a_child_table_is_not_somewhere_to_land(self):
@@ -724,9 +724,10 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.module = self.enterContext(sidebarless_module("Test Private Workspace Module"))
-		for email in (self.OWNER, self.STRANGER):
-			make_user(email, ["System Manager"])
-			self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+		self.owner = make_user(self.OWNER, ["System Manager"]).name
+		stranger = make_user(self.STRANGER, ["System Manager"]).name
+		for user in (self.owner, stranger):
+			self.addCleanup(frappe.delete_doc, "User", user, force=True, ignore_missing=True)
 		self.addCleanup(frappe.set_user, "Administrator")
 
 	def as_user(self, user):
@@ -748,7 +749,14 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 				"content": "[]",
 			}
 		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		self.addCleanup(
+			frappe.delete_doc,
+			"Workspace",
+			doc.name,
+			force=True,
+			ignore_missing=True,
+			ignore_permissions=True,
+		)
 		return doc
 
 	def items_for(self, user):
@@ -756,7 +764,7 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 		return get_module_sidebars().get(self.module, {}).get("items", [])
 
 	def test_the_owner_gets_a_link_to_their_private_page(self):
-		workspace = self.make_private_workspace("Test Derived Private Page", self.OWNER)
+		workspace = self.make_private_workspace("Test Derived Private Page", self.owner)
 
 		links = [item["link_to"] for item in self.items_for(self.OWNER)]
 
@@ -782,15 +790,15 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 		new_page(
 			{
 				"title": "Test Unstored Private Page",
-				"label": f"Test Unstored Private Page-{self.OWNER}",
+				"label": f"Test Unstored Private Page-{self.owner}",
 				"content": "[]",
 				"public": 0,
-				"for_user": self.OWNER,
+				"for_user": self.owner,
 				"module": self.module,
 				"type": "Workspace",
 			}
 		)
-		name = f"Test Unstored Private Page-{self.OWNER}"
+		name = f"Test Unstored Private Page-{self.owner}"
 		self.addCleanup(frappe.delete_doc, "Workspace", name, force=True, ignore_missing=True)
 
 		frappe.set_user("Administrator")
@@ -807,7 +815,7 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 				fields=["parent"],
 			)
 		}
-		self.assertEqual(holders, {self.OWNER}, "only its owner's layers may name a private page")
+		self.assertEqual(holders, {self.owner}, "only its owner's layers may name a private page")
 
 		# and it is in their sidebar, which is what the row is for
 		self.assertIn(name, [item["link_to"] for item in self.items_for(self.OWNER)])
@@ -817,7 +825,7 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 		forgotten: another user's sidebar is never handed the row.
 		"""
 		make_report(self.module, "Test Derived Private Neighbour Report")
-		workspace = self.make_private_workspace("Test Somebody Elses Page", self.OWNER)
+		workspace = self.make_private_workspace("Test Somebody Elses Page", self.owner)
 
 		links = [item["link_to"] for item in self.items_for(self.STRANGER)]
 
@@ -828,7 +836,7 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 		"""The derivation runs before the rule that drops a module holding nothing navigable, so a page
 		someone created in an otherwise empty module does not land on no dock.
 		"""
-		workspace = self.make_private_workspace("Test Only Page In The Module", self.OWNER)
+		workspace = self.make_private_workspace("Test Only Page In The Module", self.owner)
 
 		self.assertNotIn(self.module, self.stranger_payload(), "sanity: empty for everyone else")
 
@@ -845,7 +853,7 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 		"""The desk marks an item `derived` to say no document holds it, so no arrangement can name
 		it. A page that wrote its own row is held by one, and its owner may arrange it.
 		"""
-		self.make_private_workspace("Test Marked Private Page", self.OWNER)
+		self.make_private_workspace("Test Marked Private Page", self.owner)
 
 		item = next(i for i in self.items_for(self.OWNER) if i["link_type"] == "Workspace")
 
@@ -856,7 +864,7 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 		"""Every page made before rows were written is in this state, and nothing backfills them, so
 		the derivation stays as the fallback and still marks what it adds.
 		"""
-		workspace = self.make_private_workspace("Test Underived Private Page", self.OWNER)
+		workspace = self.make_private_workspace("Test Underived Private Page", self.owner)
 		from frappe.desk.doctype.custom_sidebar.custom_sidebar import remove_workspace_rows
 
 		remove_workspace_rows(workspace.name)
@@ -870,7 +878,7 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 		"""
 		from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
 
-		workspace = self.make_private_workspace("Test Legacy Stored Page", self.OWNER)
+		workspace = self.make_private_workspace("Test Legacy Stored Page", self.owner)
 		# stored while it was still public, which is the only way such a row was ever written
 		frappe.db.set_value("Workspace", workspace.name, {"public": 1, "for_user": ""})
 		add_site_sidebar_item(
@@ -879,7 +887,7 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 		)
 		layer = frappe.db.get_value("Custom Sidebar", {"module": self.module})
 		self.addCleanup(frappe.delete_doc, "Custom Sidebar", layer, force=True, ignore_permissions=True)
-		frappe.db.set_value("Workspace", workspace.name, {"public": 0, "for_user": self.OWNER})
+		frappe.db.set_value("Workspace", workspace.name, {"public": 0, "for_user": self.owner})
 
 		links = [item["link_to"] for item in self.items_for(self.OWNER)]
 
@@ -1070,8 +1078,8 @@ class TestOwnershipIsPerUser(IntegrationTestCase):
 			with system_write():
 				sidebar.insert(ignore_permissions=True)
 
-		make_user(self.USER, ["System Manager"])
-		self.addCleanup(frappe.delete_doc, "User", self.USER, force=True, ignore_missing=True)
+		self.user = make_user(self.USER, ["System Manager"]).name
+		self.addCleanup(frappe.delete_doc, "User", self.user, force=True, ignore_missing=True)
 		self.addCleanup(frappe.set_user, "Administrator")
 
 	def owner_for(self, user):
@@ -1086,10 +1094,10 @@ class TestOwnershipIsPerUser(IntegrationTestCase):
 		self.assertEqual(self.owner_for("Administrator"), self.winner)
 
 	def test_a_reader_who_cannot_see_the_winner_gets_the_next_claim_down(self):
-		user = frappe.get_doc("User", self.USER)
+		user = frappe.get_doc("User", self.user)
 		user.append("block_modules", {"module": self.winner})
 		user.save(ignore_permissions=True)
-		frappe.clear_cache(user=self.USER)
+		frappe.clear_cache(user=self.user)
 
 		self.assertEqual(self.owner_for(self.USER), self.runner_up)
 		self.assertEqual(

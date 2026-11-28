@@ -18,7 +18,7 @@ from frappe.flow.tests.test_fake_daemon import PENDING, FakeDaemon, child_pause,
 from frappe.flow.tests.test_live_server import LiveServerCase
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-from frappe.utils import get_url
+from frappe.utils import get_url, get_user_by_email
 
 OTHER = "api-other-user@example.com"
 MANAGER = "api-manager@example.com"
@@ -91,18 +91,22 @@ class TestAttachFile(IntegrationTestCase):
 
 
 def _ensure_user(email: str) -> str:
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": email,
-				"first_name": email.split("@")[0],
-				"send_welcome_email": 0,
-				"enabled": 1,
-			}
-		).insert(ignore_permissions=True)
-	frappe.get_doc("User", email).add_roles(FLOW_USER_ROLE)
-	return email
+	if not (user := get_user_by_email(email)):
+		user = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@")[0],
+					"send_welcome_email": 0,
+					"enabled": 1,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+	frappe.get_doc("User", user).add_roles(FLOW_USER_ROLE)
+	return user
 
 
 def _ensure_manager() -> str:
@@ -115,7 +119,9 @@ def _ensure_manager() -> str:
 
 def _portal_user(email: str) -> str:
 	"""A website user, such as a customer."""
-	if not frappe.db.exists("User", email):
+	if user := get_user_by_email(email):
+		return user
+	return (
 		frappe.get_doc(
 			{
 				"doctype": "User",
@@ -124,18 +130,29 @@ def _portal_user(email: str) -> str:
 				"user_type": "Website User",
 				"send_welcome_email": 0,
 			}
-		).insert(ignore_permissions=True)
-	return email
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 def _desk_user(email: str) -> str:
 	"""A desk user without Flow's roles."""
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
-		).insert(ignore_permissions=True)
-	frappe.db.set_value("User", email, "user_type", "System User")
-	return email
+	if not (user := get_user_by_email(email)):
+		user = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@")[0],
+					"send_welcome_email": 0,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+	frappe.db.set_value("User", user, "user_type", "System User")
+	return user
 
 
 class TestSubmitFeedback(IntegrationTestCase):
@@ -210,6 +227,20 @@ class TestSubmitFeedback(IntegrationTestCase):
 				self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), rating)
 				self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": agent}))
 
+	def test_a_thumbs_down_is_saved_when_its_memory_fails(self):
+		for failure in (
+			patch("frappe.flow.memory.memory.MAX_ACTIVE_MEMORIES", 0),
+			patch("frappe.flow.memory.store.sync", side_effect=RuntimeError("embedding down")),
+		):
+			run = self._run()
+			with self.subTest(failure.attribute), failure, patch("frappe.log_error"):
+				self.assertEqual(submit_feedback(run, "Down", comment="Wrong total."), {"rating": "Down"})
+				self.assertEqual(
+					frappe.db.get_value("Flow Run", run, ["feedback_rating", "feedback_comment"]),
+					("Down", "Wrong total."),
+				)
+				self.assertFalse(frappe.db.exists("Flow Agent Memory", {"source_run": run}))
+
 	def test_refuses_invalid_feedback(self):
 		for status, rating, comment, error in (
 			("Completed", "Sideways", None, "Rating"),
@@ -241,6 +272,15 @@ class TestSubmitFeedback(IntegrationTestCase):
 			frappe.set_user(user)
 			with self.subTest(user), self.assertRaises(frappe.PermissionError):
 				submit_feedback(name, rating, comment=comment)
+
+	def test_a_viewer_of_a_shared_chat_does_not_see_its_feedback(self):
+		run = self._run(feedback_rating="Down", feedback_comment="My manager is slow.")
+		session = frappe.db.get_value("Flow Run", run, "session")
+		self.assertEqual(api.session(session)["runs"][0]["feedback_comment"], "My manager is slow.")
+		viewer = _ensure_user("feedback-chat-viewer@example.com")
+		frappe.share.add("Flow Session", session, viewer)
+		frappe.set_user(viewer)
+		self.assertEqual(api.session(session)["runs"][0].keys(), {"name", "daemon_run_id", "status", "error"})
 
 
 class ApiCase(IntegrationTestCase):
@@ -306,8 +346,8 @@ class TestPasswordBox(ApiCase):
 		frappe.db.set_single_value("Google Settings", "enable", 1)
 		self.agent.append("tools", {"tool": "frappe/request_secret"})
 		self.agent.save()
-		_ensure_user(BOX_USER)
-		frappe.db.set_value("User", BOX_USER, "user_type", "System User")
+		user = _ensure_user(BOX_USER)
+		frappe.db.set_value("User", user, "user_type", "System User")
 		frappe.set_user(BOX_USER)
 		self.contacts = frappe.get_doc({"doctype": "Google Contacts", "email_id": "box@example.com"}).insert()
 
@@ -438,6 +478,21 @@ class TestSessionEndpoints(ApiCase):
 		with self.assertRaises(frappe.PermissionError):
 			api.screen_result(sid, "t4", screen={})
 
+	def test_a_users_chat_preferences_are_kept_and_come_with_boot(self):
+		other = _ensure_user("prefs-other-user@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(_ensure_user("prefs-user@example.com"))
+		self.assertEqual(api.boot()["prefs"], {})
+		api.set_prefs({"mode": "ask", "separateToolCalls": True})
+		# None follows the page's default
+		self.assertEqual(api.set_prefs({"mode": None}), {"mode": None, "separateToolCalls": True})
+		self.assertEqual(api.boot()["prefs"], {"mode": None, "separateToolCalls": True})
+		for bad in ({"mode": "everything"}, {"separateToolCalls": 1}, {"theme": None}):
+			self.assertRaises(frappe.ValidationError, api.set_prefs, bad)
+		# each user's own
+		frappe.set_user(other)
+		self.assertEqual(api.boot()["prefs"], {})
+
 	def test_boot_names_an_apps_agent_after_its_app_only_when_another_app_shares_its_name(self):
 		for name in ("crm/Support", "helpdesk/Support", "crm/Sales Coach"):
 			app = name.split("/")[0]
@@ -476,9 +531,10 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(api.boot()["providers"], [])
 		provider = frappe.get_doc({"doctype": "Flow Provider", "provider": "openai"}).insert()
 		self.assertEqual(api.boot()["providers"], [provider.name])
-		frappe.set_user(_ensure_user(OTHER))
+		other = _ensure_user(OTHER)
+		frappe.set_user(other)
 		data = api.boot()
-		self.assertEqual(data["user"]["name"], OTHER)
+		self.assertEqual(data["user"]["name"], other)
 		self.assertEqual(data["permissions"]["Flow Provider"], [])
 		self.assertEqual(data["permissions"]["Flow Model"], ["read"])
 
@@ -568,6 +624,16 @@ class TestSessionEndpoints(ApiCase):
 		frappe.db.delete("File", {"name": gone.name})
 		api.sync_session(name)
 		self.assertEqual([row.file for row in frappe.get_doc("Flow Session", name).attachments], [notes.name])
+
+	def test_another_users_file_is_refused_even_when_readable(self):
+		theirs = self.upload("theirs.txt", "their body")
+		frappe.db.set_value("File", theirs.name, "owner", OTHER)
+		name = self.create()
+		# attached to the chat, it could be deleted with it
+		for attach in (lambda: api.attach_file(theirs.name), lambda: api.run(name, "read", [theirs.name])):
+			with self.assertRaisesRegex(frappe.PermissionError, "files you uploaded"):
+				attach()
+		self.assertFalse(frappe.db.get_value("File", theirs.name, "attached_to_doctype"))
 
 	def test_blank_or_malformed_input_is_refused(self):
 		name = self.create()
@@ -743,9 +809,11 @@ class TestSessionEndpoints(ApiCase):
 			fields=["for_user", "type", "subject", "link"],
 			order_by="for_user asc",
 		)
-		self.assertEqual([log.for_user for log in logs], ["Administrator", viewer])
-		self.assertEqual((logs[1].type, logs[1].link), ("Share", get_url(f"/flow/s/{name}")))
-		self.assertIn("&lt;b&gt;Q3&lt;/b&gt;", logs[1].subject)
+		self.assertEqual(len(logs), 2)
+		self.assertEqual({log.for_user for log in logs}, {"Administrator", viewer})
+		shared = next(log for log in logs if log.for_user == viewer)
+		self.assertEqual((shared.type, shared.link), ("Share", get_url(f"/flow/s/{name}")))
+		self.assertIn("&lt;b&gt;Q3&lt;/b&gt;", shared.subject)
 
 	def test_a_chat_is_shared_only_with_active_flow_users(self):
 		name = self.create()
@@ -970,7 +1038,26 @@ class TestSessionEndpoints(ApiCase):
 		self.daemon.running = True
 		self.assertEqual(api.abort(name), {"status": "aborting"})
 
-	def test_set_model_sends_the_models_credentials_and_reasoning_effort(self):
+	def test_methods_that_change_something_refuse_get(self):
+		# GET skips the CSRF check
+		for method in (
+			api.create_session,
+			api.run,
+			api.resume,
+			api.abort,
+			api.cancel_pending,
+			api.set_model,
+			api.set_title,
+			api.set_approval_mode,
+			api.delete_session,
+			api.submit_feedback,
+			api.attach_file,
+			api.cleanup_attachments,
+		):
+			with self.subTest(method.__name__):
+				self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[method], ("POST",))
+
+	def test_set_model_sends_the_models_credentials_and_no_thinking_level(self):
 		name = self.create()
 		other = frappe.get_doc(
 			_model_doc(
@@ -981,10 +1068,7 @@ class TestSessionEndpoints(ApiCase):
 				extra_params='{"provider": {"zdr": true}}',
 			)
 		).insert()
-		self.assertEqual(
-			api.set_model(name, f" {other.name} ", reasoning_effort="high"),
-			{"model": other.name, "reasoning_effort": "high"},
-		)
+		self.assertEqual(api.set_model(name, f" {other.name} "), {"model": other.name})
 		self.assertEqual(
 			self.daemon.calls[-1],
 			(
@@ -995,15 +1079,10 @@ class TestSessionEndpoints(ApiCase):
 					"api_key": "sk-other",
 					"api_base": "https://other.example.com",
 					"model_params": {"provider": {"zdr": True}},
-					"reasoning_effort": "high",
 				},
 			),
 		)
 		self.assertEqual(frappe.db.get_value("Flow Session", name, "model"), other.name)
-		self.assertEqual(api.set_model(name, other.name, reasoning_effort="")["reasoning_effort"], None)
-		self.assertIsNone(self.daemon.calls[-1][3]["reasoning_effort"])
-		with self.assertRaisesRegex(frappe.ValidationError, "Reasoning effort must be one of"):
-			api.set_model(name, other.name, reasoning_effort="extreme")
 
 		# a model saved on the record, as from Desk, reaches the server too; other saves don't
 		session = frappe.get_doc("Flow Session", name)
@@ -1016,7 +1095,7 @@ class TestSessionEndpoints(ApiCase):
 		other.db_set("enabled", 0)
 		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
 			api.set_model(name, other.name)
-		self.assertEqual(len([c for c in self.daemon.calls if c[0] == "set_model"]), 3)
+		self.assertEqual(len([c for c in self.daemon.calls if c[0] == "set_model"]), 2)
 
 	def test_title_and_approval_mode_persist_on_both_sides(self):
 		name = self.create()

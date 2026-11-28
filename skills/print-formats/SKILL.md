@@ -52,7 +52,7 @@ pf.insert()
 | Value | Use it for |
 | --- | --- |
 | `PlutoPrint` | The default. Fast, no browser process. |
-| `chrome` | Formats that need scripts, CSS grid or a page range. Validation falls back to it when PlutoPrint cannot print a format. |
+| `chrome` | Formats that need scripts, CSS grid or a page range. Printing falls back to it when PlutoPrint cannot print a format; on save, a new format is switched to it and an existing one throws. |
 | `Typst` | Editor formats only, without HTML blocks. Allows Typst blocks. See [frappe/printing/typst_renderer.md](../../frappe/printing/typst_renderer.md). |
 
 A Typst block only prints with `Typst`, and saving fails otherwise. `validate_typst_renderer` names what blocks Typst.

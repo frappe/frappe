@@ -140,7 +140,6 @@ def test_cli_wires_redis_to_the_server_lifespan(tmp_path, monkeypatch):
 	monkeypatch.setattr("redis.asyncio.from_url", lambda *_args, **_kwargs: Client())
 	monkeypatch.setattr(cli, "_run_server", lambda app, _store, **kwargs: run_server(app, **kwargs))
 	monkeypatch.setattr("flow_harness.server.logs.setup_terminal_logging", lambda: None)
-	monkeypatch.setattr(cli, "_warm_litellm", lambda: None)
 	monkeypatch.setattr(cli, "_resolve_auth_token", lambda: None)
 	monkeypatch.setattr(cli, "_webui_dist", lambda: str(tmp_path))
 	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")

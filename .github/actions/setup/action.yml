@@ -13,6 +13,10 @@ inputs:
     required: false
     description: 'Whether to build assets'
     default: true
+  prebuilt-assets:
+    required: false
+    description: 'Download the assets built for the base commit instead of building, when the pull request changes no frontend file'
+    default: false
   enable-coverage:
     required: false
     default: false
@@ -68,11 +72,19 @@ runs:
   - uses: actions/setup-node@v6
     with:
       node-version: ${{ inputs.node-version }}
-      cache: yarn
-      cache-dependency-path: |
-        frappe-src/yarn.lock
-        frappe-src/studio/frontend/yarn.lock
-        frappe-src/flow/yarn.lock
+
+  - id: yarn-cache
+    shell: bash -e {0}
+    run: echo "dir=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
+
+  - name: Restore yarn cache
+    id: yarn-cache-restore
+    uses: actions/cache/restore@v4
+    with:
+      path: ${{ steps.yarn-cache.outputs.dir }}
+      key: yarn-${{ runner.os }}-${{ hashFiles('frappe-src/yarn.lock', 'frappe-src/studio/frontend/yarn.lock', 'frappe-src/flow/yarn.lock') }}
+      restore-keys: |
+        yarn-${{ runner.os }}-
 
   - id: os-release
     shell: bash -e {0}
@@ -81,6 +93,7 @@ runs:
   - uses: astral-sh/setup-uv@v6
     with:
       enable-cache: true
+      save-cache: ${{ github.ref == 'refs/heads/develop' }}
       cache-suffix: ubuntu-${{ steps.os-release.outputs.version }}
       cache-dependency-glob: |
         **/pyproject.toml
@@ -95,17 +108,24 @@ runs:
       sudo install -d /usr/share/postgresql-common/pgdg
       sudo curl -fsSL --retry 3 --retry-all-errors -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
       echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-      sudo apt-get -qq update \
-        -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/pgdg.list \
-        -o Dir::Etc::sourceparts=- \
-        -o APT::Get::List-Cleanup=0
+      sudo apt-get -qq update
 
   # the mariadb server runs as a service container; the client tools come
   # from ubuntu's archives so CI does not depend on mariadb.com mirrors
+  - shell: bash -e {0}
+    run: echo "APT_PACKAGES=libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev" >> $GITHUB_ENV
+
   - name: Install System Dependencies
     uses: awalsh128/cache-apt-pkgs-action@v1.6.3
     with:
-      packages: libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
+      packages: ${{ env.APT_PACKAGES }}
+
+  - shell: bash -e {0}
+    run: |
+      if ! command -v redis-server > /dev/null || ! command -v mariadb > /dev/null; then
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq --fix-missing $APT_PACKAGES
+      fi
 
   - shell: bash -e {0}
     run: |
@@ -159,17 +179,12 @@ runs:
       end_time=$(date +%s)
       echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
 
-  - name: Cache island toolchain
-    uses: actions/cache@v4
+  - name: Restore island toolchain
+    id: island-toolchain-restore
+    uses: actions/cache/restore@v4
     with:
       path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
       key: island-toolchain-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('frappe-src/island-toolchain/yarn.lock') }}
-
-  - name: Cache Chromium
-    uses: actions/cache@v4
-    with:
-      path: ${{ github.workspace }}/chromium
-      key: chromium-${{ runner.os }}-${{ hashFiles('frappe-src/frappe/utils/chromium/download.py') }}
 
   - shell: bash -e {0}
     run: |
@@ -206,6 +221,9 @@ runs:
     env:
       DB: ${{ inputs.db }}
       BUILD_ASSETS: ${{ inputs.build-assets }}
+      PREBUILT_ASSETS: ${{ inputs.prebuilt-assets }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      BASE_REF: ${{ github.base_ref }}
       ENABLE_SERVER_SCRIPTS: ${{ inputs.enable-server-scripts }}
     run: |
       # Create Site (asset build is CPU-bound and independent of the DB, so
@@ -236,9 +254,29 @@ runs:
         bench set-config -g server_script_enabled 1 --parse
       fi
 
+      # The assets of every commit on the base branch are published to its assets release.
+      # They match this checkout as long as the pull request changes no frontend file.
+      use_prebuilt_assets() {
+        [ "$PREBUILT_ASSETS" == "true" ] && [ -n "$BASE_SHA" ] || return 1
+        git -C apps/frappe fetch --quiet --depth 1 upstream "$BASE_SHA" || return 1
+        if git -C apps/frappe diff --name-only "$BASE_SHA" HEAD | grep -qE '\.(js|ts|vue|scss|css|less|html|svg)$|(^|/)package\.json$|(^|/)yarn\.lock$|^esbuild/|^island-toolchain/'; then
+          return 1
+        fi
+        curl -fsSL --retry 2 -o "$RUNNER_TEMP/assets.tar.gz" \
+          "https://github.com/${GITHUB_REPOSITORY}/releases/download/assets-${BASE_REF}/frappe-${BASE_SHA}.tar.gz" || return 1
+        tar -xzf "$RUNNER_TEMP/assets.tar.gz" -C apps/frappe --exclude manifest.json
+        # The build that is skipped also installs these; the Studio tests build an app with them.
+        yarn --cwd apps/frappe/studio/frontend install --frozen-lockfile --silent
+      }
+
       build_pid=""
       if [ "$BUILD_ASSETS" == "true" ]; then
-        CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
+        build_options="--force --production"
+        if use_prebuilt_assets; then
+          echo "Using the assets built for $BASE_SHA"
+          build_options="--production --using-cached"
+        fi
+        CI=Yes bench build $build_options &> ${GITHUB_WORKSPACE}/build_assets.log &
         build_pid=$!
       fi
 
@@ -259,7 +297,6 @@ runs:
 
       if [ "$DB" == "mariadb" ]; then
         bench --site test_site set-config monitor 1 --parse
-        bench --site test_site set-config use_mysqlclient 1 --parse
       fi
 
       if [ -n "$build_pid" ]; then
@@ -273,6 +310,20 @@ runs:
 
       end_time=$(date +%s)
       echo -e "\033[33mCreate Site + Build Assets: $((end_time - start_time)) seconds\033[0m"
+
+  - name: Save yarn cache
+    if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.yarn-cache-restore.outputs.cache-hit != 'true' }}
+    uses: actions/cache/save@v4
+    with:
+      path: ${{ steps.yarn-cache.outputs.dir }}
+      key: ${{ steps.yarn-cache-restore.outputs.cache-primary-key }}
+
+  - name: Save island toolchain
+    if: ${{ github.ref == 'refs/heads/develop' && inputs.build-assets == 'true' && steps.island-toolchain-restore.outputs.cache-hit != 'true' }}
+    uses: actions/cache/save@v4
+    with:
+      path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
+      key: ${{ steps.island-toolchain-restore.outputs.cache-primary-key }}
 
   - shell: bash -e {0}
     run: |

@@ -7,7 +7,7 @@ import os
 import sys
 
 import orjson
-from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.exceptions import Gone, HTTPException, NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response  # nosemgrep: frappe-monkey-patching-not-allowed
@@ -15,7 +15,6 @@ from werkzeug.wsgi import ClosingIterator
 
 import frappe
 import frappe.api
-import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
 import frappe.recorder
@@ -120,16 +119,8 @@ def application(request: Request):
 		if request.method == "OPTIONS":
 			response = Response()
 
-		elif frappe.form_dict.cmd:
-			from frappe.deprecation_dumpster import deprecation_warning
-
-			deprecation_warning(
-				"unknown",
-				"v17",
-				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`",
-			)
-			frappe.handler.handle()
-			response = frappe.utils.response.build_response("json")
+		elif request.path == "/" and (cmd := request.values.get("cmd")):
+			raise Gone(f"Calling methods with `cmd` is not supported, use /api/method/{cmd}")
 
 		elif request.path.startswith("/api/"):
 			response = frappe.api.handle(request)
@@ -242,6 +233,9 @@ def init_request(request):
 		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
 	if not streaming_request:
 		make_form_dict(request)
+
+	# Only the v1 router sets `cmd`, from the path. Apps' auth hooks read it as the method that runs.
+	frappe.local.form_dict.pop("cmd", None)
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = HTTPRequest()
@@ -414,13 +408,6 @@ def handle_exception(e):
 
 	elif isinstance(e, frappe.SessionStopped):
 		response = frappe.utils.response.handle_session_stopped()
-
-	elif (
-		http_status_code == 500
-		and (frappe.db and isinstance(e, frappe.db.InternalError))
-		and (frappe.db and (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))
-	):
-		http_status_code = 508
 
 	elif http_status_code == 401:
 		response = ErrorPage(

@@ -86,10 +86,10 @@ class TestClientCache(IntegrationTestCase):
 		with self.assertRedisCallCounts(1, exact=True):
 			self.assertIsNone(frappe.client_cache.get_value(TEST_KEY))
 
-		# Flushall should have results
+		# Flushdb should have results
 		frappe.client_cache.set_value(TEST_KEY, val)
 		self.assertEqual(frappe.client_cache.get_value(TEST_KEY), val)
-		frappe.cache.flushall()
+		frappe.cache.flushdb()
 		time.sleep(0.1)
 		with self.assertRedisCallCounts(1, exact=True):
 			self.assertIsNone(frappe.client_cache.get_value(TEST_KEY))
@@ -187,6 +187,17 @@ class TestClientCache(IntegrationTestCase):
 
 		with self.assertRedisCallCounts(0):
 			self.assertEqual(frappe.client_cache.get_value(TEST_KEY, generator=lambda: val), val)
+
+	def test_failed_generator_leaves_no_local_miss(self):
+		def failing_generator():
+			raise frappe.ValidationError
+
+		with self.assertRaises(frappe.ValidationError):
+			frappe.client_cache.get_value(TEST_KEY, generator=failing_generator)
+
+		self.addCleanup(setattr, frappe.client_cache, "healthy", frappe.client_cache.healthy)
+		frappe.client_cache.healthy = False
+		self.assertEqual(frappe.client_cache.get_value(TEST_KEY, generator=lambda: 42), 42)
 
 	def test_get_doc(self):
 		frappe.client_cache.get_doc("User", "Guest")

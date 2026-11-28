@@ -6,6 +6,7 @@ from frappe.desk.form.linked_with import get_linked_docs, get_linked_doctypes
 from frappe.desk.form.utils import _sort_field_fallback, add_comment, get_next
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_model_utils import set_user
+from frappe.utils import get_user_by_email
 
 
 class TestForm(IntegrationTestCase):
@@ -16,13 +17,13 @@ class TestForm(IntegrationTestCase):
 
 	def test_add_comment_ignores_client_supplied_author(self):
 		todo = frappe.get_doc(doctype="ToDo", description="comment author test").insert()
-		user = "test@example.com"
+		user = get_user_by_email("test@example.com")
 		with set_user(user):
 			comment = add_comment(
 				"ToDo", todo.name, "spoof attempt", comment_email="Administrator", comment_by="Administrator"
 			)
 
-		self.assertEqual(comment.comment_email, user)
+		self.assertEqual(comment.comment_email, "test@example.com")
 		self.assertEqual(comment.comment_by, frappe.utils.get_fullname(user))
 
 	def test_savedocs_accepts_native_dict(self):

@@ -358,8 +358,8 @@ build-backend = "flit_core.buildapi"
 # package_name = "~=1.1.0"
 
 # These apt dependencies will be installed from Ubuntu repositories when you host your app on Frappe Cloud
-[deploy.dependencies.apt]
-packages = []
+[tool.frappe-cloud]
+apt-dependencies = []
 
 [tool.ruff]
 line-length = 110

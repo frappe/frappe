@@ -23,6 +23,24 @@ class TestSystemSettings(IntegrationTestCase):
 		with self.set_user("test@example.com"):
 			self.assertEqual(load()["defaults"]["time_zone"], "Australia/Brisbane")
 
+	def test_submission_queue_timeout_cannot_be_more_than_one_hour(self):
+		with self.set_user("test@example.com"):
+			settings = frappe.get_doc("System Settings")
+			settings.submission_queue_timeout = 3601
+			self.assertRaises(frappe.ValidationError, settings.save)
+
+	@IntegrationTestCase.change_settings("System Settings", {"submission_queue_timeout": 3600})
+	def test_submission_queue_uses_submission_queue_timeout(self):
+		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+
+		with self.set_user("test@example.com"):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "Submission Queue Timeout"}).insert()
+			self.addCleanup(todo.unlock)
+			with patch("frappe.utils.background_jobs.enqueue") as enqueue:
+				queue_submission(todo, "submit", alert=False)
+
+		self.assertEqual(enqueue.call_args.kwargs["timeout"], 3600)
+
 
 class TestClassicChartsOnUpgrade(IntegrationTestCase):
 	PATCH = "frappe.patches.v17_0.keep_existing_sites_on_classic_charts"

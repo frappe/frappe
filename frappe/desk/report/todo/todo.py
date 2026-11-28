@@ -37,8 +37,22 @@ def execute(filters=None):
 		_("Priority") + "::60",
 		_("Date") + ":Date",
 		_("Description") + "::150",
-		_("Assigned To/Owner") + ":Data:120",
-		_("Assigned By") + ":Data:120",
+		{
+			"label": _("Assigned To/Owner"),
+			"fieldname": "owner",
+			"fieldtype": "Link",
+			"options": "User",
+			"ignore_user_permissions": 1,
+			"width": 120,
+		},
+		{
+			"label": _("Assigned By"),
+			"fieldname": "assigned_by",
+			"fieldtype": "Link",
+			"options": "User",
+			"ignore_user_permissions": 1,
+			"width": 120,
+		},
 		_("Reference") + "::200",
 	]
 

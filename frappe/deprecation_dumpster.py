@@ -24,6 +24,10 @@ import typing
 import warnings
 from importlib.metadata import version
 
+if typing.TYPE_CHECKING:
+	from frappe.model.document import Document
+	from frappe.model.meta import Meta
+
 
 def colorize(text, color_code):
 	if sys.stdout.isatty():
@@ -699,12 +703,13 @@ def get_tests_CompatFrappeTestCase():
 		@contextmanager
 		def secondary_connection(self):
 			"""Switch to secondary DB connection."""
+			# read before connect(), which rebinds frappe.local.db
+			current_conn = frappe.local.db
 			if self._secondary_connection is None:
 				frappe.connect()  # get second connection
 				self._secondary_connection = frappe.local.db
 
 			try:
-				current_conn = frappe.local.db
 				frappe.local.db = self._secondary_connection
 				yield
 			finally:
@@ -1055,3 +1060,112 @@ def get_gravatar(email: str) -> str:
 @deprecated("frappe.desk.page.setup_wizard.install_fixtures._", "2026-07-16", "v17", "Use N_ instead")
 def _(x, *args, **kwargs):
 	return x
+
+
+@deprecated(
+	"frappe.desk.form.load.get_title_values_for_link_and_dynamic_link_fields",
+	"2026-11-24",
+	"v18",
+	"Use frappe.desk.link_title.get_doc_link_titles, which fetches titles in one query per doctype.",
+)
+def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
+	import frappe
+
+	link_titles = {}
+
+	if not link_fields:
+		meta = frappe.get_meta(doc.doctype)
+		link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
+
+	for field in link_fields:
+		if not (doc_fieldvalue := getattr(doc, field.fieldname, None)):
+			continue
+
+		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
+
+		meta = frappe.get_meta(doctype) if doctype else None
+		if not meta or not meta.title_field or not meta.show_title_field_in_link:
+			continue
+
+		link_title = frappe.db.get_value(doctype, doc_fieldvalue, meta.title_field, cache=True, order_by=None)
+		link_titles.update({doctype + "::" + doc_fieldvalue: link_title or doc_fieldvalue})
+
+	return link_titles
+
+
+@deprecated(
+	"frappe.desk.form.load.get_title_values_for_table_and_multiselect_fields",
+	"2026-11-24",
+	"v18",
+	"Use frappe.desk.link_title.get_doc_link_titles, which fetches titles in one query per doctype.",
+)
+def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
+	import frappe
+
+	link_titles = {}
+
+	if not table_fields:
+		meta = frappe.get_meta(doc.doctype)
+		table_fields = meta.get_table_fields(include_computed=True)
+
+	for field in table_fields:
+		if not doc.get(field.fieldname):
+			continue
+
+		for value in doc.get(field.fieldname):
+			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(value))
+
+	return link_titles
+
+
+@deprecated(
+	"frappe.www.printview.set_title_values_for_link_and_dynamic_link_fields",
+	"2026-11-24",
+	"v18",
+	"Use frappe.desk.link_title.get_doc_link_titles, which fetches titles in one query per doctype.",
+)
+def set_title_values_for_link_and_dynamic_link_fields(
+	meta: "Meta", doc: "Document", parent_doc: "Document" | None = None
+) -> None:
+	import frappe
+
+	if parent_doc and not parent_doc.get("__link_titles"):
+		setattr(parent_doc, "__link_titles", {})
+	elif doc and not doc.get("__link_titles"):
+		setattr(doc, "__link_titles", {})
+
+	for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		# If link field, then get doctype from options
+		# If dynamic link field, then get doctype from dependent field
+		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
+
+		meta = frappe.get_meta(doctype)
+		if not meta or not meta.title_field or not meta.show_title_field_in_link:
+			continue
+
+		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
+		if parent_doc:
+			parent_doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
+		elif doc:
+			doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
+
+
+@deprecated(
+	"frappe.www.printview.set_title_values_for_table_and_multiselect_fields",
+	"2026-11-24",
+	"v18",
+	"Use frappe.desk.link_title.get_doc_link_titles, which fetches titles in one query per doctype.",
+)
+def set_title_values_for_table_and_multiselect_fields(meta: "Meta", doc: "Document") -> None:
+	import frappe
+
+	for field in meta.get_table_fields(include_computed=True):
+		if not doc.get(field.fieldname):
+			continue
+
+		_meta = frappe.get_meta(field.options)
+		for value in doc.get(field.fieldname):
+			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)

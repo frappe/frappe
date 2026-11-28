@@ -65,6 +65,10 @@
 	// greetings share one grid cell, so each one fades into the next
 	.setup-intro__hello {
 		min-height: calc(var(--spacing) * 18);
+		// a display size of its own: the type scale stops well below it
+		font-size: 56px;
+		font-weight: var(--font-weight-regular);
+		letter-spacing: 0.005em;
 		line-height: 1.2;
 
 		> span {

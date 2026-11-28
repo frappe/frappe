@@ -3,29 +3,33 @@
 
 import frappe
 from frappe.core.doctype.role.role import get_info_based_on_role
+from frappe.permissions import reset_perms
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestUser(IntegrationTestCase):
 	def test_disable_role(self):
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
+		user = get_user_by_email("test@example.com")
+		frappe.get_doc("User", user).add_roles("_Test Role 3")
 
 		role = frappe.get_doc("Role", "_Test Role 3")
 		role.disabled = 1
 		role.save()
 
-		self.assertTrue("_Test Role 3" not in frappe.get_roles("test@example.com"))
+		self.assertTrue("_Test Role 3" not in frappe.get_roles(user))
 
 		role = frappe.get_doc("Role", "_Test Role 3")
 		role.disabled = 0
 		role.save()
 
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
-		self.assertTrue("_Test Role 3" in frappe.get_roles("test@example.com"))
+		frappe.get_doc("User", user).add_roles("_Test Role 3")
+		self.assertTrue("_Test Role 3" in frappe.get_roles(user))
 
 	def test_change_desk_access(self):
 		"""if we change desk acecss from role, remove from user"""
-		frappe.delete_doc_if_exists("User", "test-user-for-desk-access@example.com")
+		if user := get_user_by_email("test-user-for-desk-access@example.com"):
+			frappe.delete_doc("User", user)
 		frappe.delete_doc_if_exists("Role", "desk-access-test")
 		user = frappe.get_doc(
 			doctype="User", email="test-user-for-desk-access@example.com", first_name="test"
@@ -50,8 +54,12 @@ class TestUser(IntegrationTestCase):
 		for user in sys_managers:
 			self.assertIn(role, frappe.get_roles(user))
 
+		self.assertIn("Administrator", sys_managers)
+		self.assertNotIn("Guest", get_info_based_on_role("Guest", field="name"))
+
 	def test_has_role_query_needs_parent_doctype(self):
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
+		user = get_user_by_email("test@example.com")
+		frappe.get_doc("User", user).add_roles("_Test Role 2")
 		frappe.set_user("test@example.com")
 		try:
 			self.assertRaises(
@@ -68,6 +76,27 @@ class TestUser(IntegrationTestCase):
 				fields=["parent"],
 				parent_doctype="User",
 			)
-			self.assertIn("test@example.com", [p.parent for p in parents])
+			self.assertIn(user, [p.parent for p in parents])
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_replicate_role_keeps_access_of_other_roles(self):
+		reset_perms("Help Article")
+		self.addCleanup(frappe.clear_cache)
+
+		contributor = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "kb-contributor@example.com",
+				"first_name": "KB Contributor",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Knowledge Base Contributor"}],
+			}
+		).insert()
+
+		editor_role = frappe.get_doc("Role", "Knowledge Base Editor")
+		copied_role = editor_role.replicate_role("Knowledge Base Editor", "_Test Knowledge Base Editor Copy")
+
+		self.assertTrue(frappe.db.exists("Custom DocPerm", {"parent": "Help Article", "role": copied_role}))
+		with self.set_user(contributor.name):
+			self.assertTrue(frappe.has_permission("Help Article", "read"))

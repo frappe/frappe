@@ -83,7 +83,7 @@
 						v-for="component in customVueComponents"
 						:key="component.component_name"
 						:data-vue-component-name="component.component_name"
-						class="user-component group/vue-component flex cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
+						class="user-component group/vue-component flex min-h-8 cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4': store.selectedVueComponent === component.component_name,
 						}"
@@ -92,11 +92,7 @@
 						:data-is-custom-vue-component="true"
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
-							<div
-								class="flex h-6 w-6 items-center justify-center rounded-4 bg-surface-green-1 text-ink-green-5"
-							>
-								<LucideCode class="h-3 w-3" />
-							</div>
+							<span class="lucide-code mx-1 h-4 w-4 text-ink-green-6" />
 							<p class="text-sm">{{ component.component_name }}</p>
 						</div>
 						<div class="invisible group-hover/vue-component:visible has-[.active-item]:visible">
@@ -121,26 +117,34 @@
 					<div
 						v-for="component in componentList"
 						:key="component.component_id"
-						class="group/component user-component flex cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
-						:class="{
-							'border border-outline-gray-4':
-								componentEditorStore.selectedComponent === component.component_id,
-						}"
-						draggable="true"
+						class="group/component flex min-h-8 select-none items-center justify-between rounded-4 p-1"
+						:class="
+							isBeingEdited(component)
+								? 'bg-surface-gray-1'
+								: [
+										'user-component cursor-grab hover:bg-surface-gray-1',
+										componentEditorStore.selectedComponent === component.component_id
+											? 'border border-outline-gray-4'
+											: '',
+									]
+						"
+						:draggable="!isBeingEdited(component)"
 						:data-component-name="component.component_id"
 						:data-is-studio-component="true"
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
-							<div
-								class="flex h-6 w-6 items-center justify-center rounded-4 bg-surface-purple-1 text-ink-purple-6"
-							>
-								<LucideBox class="h-3 w-3" />
-							</div>
+							<Tooltip :text="component.studio_app ? 'Component of this app' : 'Global component'">
+								<span
+									:class="component.studio_app ? 'lucide-box' : 'lucide-globe'"
+									class="mx-1 h-4 w-4 text-ink-purple-5"
+								/>
+							</Tooltip>
 							<p class="text-sm">
 								{{ component.component_name }}
 							</p>
 						</div>
-						<div class="invisible group-hover/component:visible has-[.active-item]:visible">
+						<span v-if="isBeingEdited(component)" class="px-1 text-xs text-ink-gray-5">Editing</span>
+						<div v-else class="invisible group-hover/component:visible has-[.active-item]:visible">
 							<Dropdown :options="getComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
@@ -180,10 +184,8 @@ import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import { confirm } from "@/utils/helpers"
 import type { leftPanelComponentTabOptions, FrappeUIComponent } from "@/types"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
-import type { CustomVueComponentMeta } from "@/types/vue"
-import LucideCode from "~icons/lucide/code"
-import LucideBox from "~icons/lucide/box"
+import type { StudioComponent } from "@/runtime/types/Studio/StudioComponent"
+import type { CustomVueComponentMeta } from "@/runtime/types/vue"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
@@ -203,15 +205,13 @@ const componentList = computed(() => {
 			)
 		: allComponents
 
-	// Filter out currently editing component to prevent recursion
-	if (!isStandard && componentEditorStore.studioComponentBlock) {
-		return filtered?.filter(
-			(component: StudioComponent) =>
-				component.component_id !== componentEditorStore.studioComponentBlock?.componentName,
-		)
-	}
 	return filtered
 })
+// A component cannot contain itself, so its row cannot be dragged while it is edited.
+function isBeingEdited(component: StudioComponent) {
+	return component.component_id === componentEditorStore.studioComponentBlock?.componentName
+}
+
 const customVueComponents = computed(() => {
 	if (!componentFilter.value) return store.customVueComponents
 	return store.customVueComponents.filter((comp) =>
@@ -269,7 +269,7 @@ const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 
 function createComponent() {
 	componentEditorStore.promptNewComponent({
-		onCreated: (component) => componentEditorStore.editComponent(component.component_id),
+		onCreated: (component) => componentEditorStore.editComponent(component.component_id, true),
 	})
 }
 
@@ -278,7 +278,7 @@ function getComponentMenu(component: StudioComponent) {
 		{
 			label: "Edit",
 			icon: "lucide-edit",
-			onClick: () => componentEditorStore.editComponent(component.component_id),
+			onClick: () => componentEditorStore.editComponent(component.component_id, true),
 		},
 		{
 			label: "Delete",
@@ -335,12 +335,7 @@ useEventListener(componentContainer, "click", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component) {
 		if (component.dataset.isStudioComponent) {
-			const componentName = component.dataset.componentName as string
-			componentEditorStore.selectedComponent = componentName
-			// if in edit mode, open the component in editor
-			if (canvasStore.fragmentData.fragmentId) {
-				componentEditorStore.editComponent(componentName)
-			}
+			componentEditorStore.selectedComponent = component.dataset.componentName as string
 		} else {
 			componentEditorStore.selectedComponent = null
 		}
@@ -369,7 +364,7 @@ useEventListener(componentContainer, "dragend", () => {
 useEventListener(componentContainer, "dblclick", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component && component.dataset.isStudioComponent) {
-		componentEditorStore.editComponent(component.dataset.componentName as string)
+		componentEditorStore.editComponent(component.dataset.componentName as string, true)
 	}
 })
 </script>

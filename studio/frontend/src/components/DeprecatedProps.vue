@@ -64,13 +64,13 @@
 // panel can't show them, so they are collected here to copy from and remove.
 import { computed, ref } from "vue"
 import { Tooltip } from "frappe-ui"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import Code from "@/components/Code.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
 import components from "@/data/components"
 import { isObjectEmpty } from "@/utils/helpers"
-import { isDynamicValue } from "@/utils/code"
+import { isDynamicValue } from "@/runtime/utils/code"
 import type { ComponentProps } from "@/types"
 import { Badge } from "frappe-ui"
 

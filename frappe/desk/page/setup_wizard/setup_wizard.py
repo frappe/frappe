@@ -11,7 +11,7 @@ from frappe.core.doctype.installed_applications.installed_applications import ge
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
-from frappe.utils import cint, now, strip
+from frappe.utils import cint, get_system_timezone, get_user_by_email, now, strip
 from frappe.utils.background_jobs import defer_enqueue_after_commit
 from frappe.utils.password import update_password
 from frappe.utils.synchronization import LockTimeoutError, filelock
@@ -97,6 +97,63 @@ def setup_complete(args: str | dict[str, Any]):
 	except LockTimeoutError:
 		# Duplicate request
 		return {"status": "ok"}
+
+
+# Set after a failed attempt, so the next login gets the desk wizard instead of another attempt.
+PREFILLED_SETUP_FAILED = "prefilled_setup_failed"
+
+
+def complete_prefilled_setup(login_manager=None):
+	"""On login, finish setup with the region Frappe Cloud saved at sign-up, so the site owner
+	skips the desk wizard. Only when an installed app asks for it with `setup_wizard_auto_complete`;
+	a site set up any other way keeps the wizard."""
+	args = get_prefilled_setup_args()
+	if not args:
+		return
+	# A failed setup rolls back; the login's own rows must already be in.
+	frappe.db.commit(chain=True)
+	# A login through an email link is a GET, which the framework rolls back at the end
+	# unless told to keep it: the finished setup, or the note of its failure, must stay.
+	frappe.local.flags.commit = True
+	try:
+		complete_app_setup(**args)
+	except Exception:
+		# Whatever an app's setup hook raised, the login goes through; the wizard takes over.
+		frappe.log_error(title="Setup from the saved region failed")
+		frappe.db.set_default(PREFILLED_SETUP_FAILED, 1)
+		# The login still succeeded; keep the wizard's failure out of its response.
+		frappe.clear_messages()
+		frappe.response.pop("setup_wizard_failure_message", None)
+
+
+def get_prefilled_setup_args() -> dict | None:
+	from frappe.core.doctype.installed_applications.installed_applications import has_non_admin_user
+	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
+
+	if frappe.is_setup_complete() or frappe.conf.skip_setup_wizard:
+		return None
+	if not any(frappe.get_hooks("setup_wizard_auto_complete")):
+		return None
+	if frappe.db.get_default(PREFILLED_SETUP_FAILED):
+		return None
+	if "System Manager" not in frappe.get_roles():
+		return None
+	if frappe.get_hooks("setup_wizard_url") or site_requires_builtin_wizard():
+		return None
+
+	settings = frappe.get_single("System Settings")
+	prefilled = settings.country and settings.time_zone and settings.currency
+	# Frappe Cloud v2 creates the owner but saves no region.
+	if not has_non_admin_user() or not (prefilled or is_v2_site()):
+		return None
+
+	return {
+		"country": settings.country,
+		"currency": settings.currency,
+		"timezone": settings.time_zone,
+		"language": frappe.db.get_value("Language", settings.language, "language_name") or "English",
+		"enable_telemetry": settings.enable_telemetry,
+	}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -259,7 +316,7 @@ def enable_setup_wizard_complete(app_name):
 
 def update_global_settings(args):  # nosemgrep
 	if args.language and args.language != "English":
-		set_default_language(get_language_code(args.lang))
+		set_default_language(get_language_code(args.language))
 	frappe.clear_cache()
 
 	update_system_settings(args)
@@ -289,9 +346,13 @@ def run_setup_success(args):  # nosemgrep
 		login_as_first_user(args)
 
 
-def login_as_first_user(args):
-	if args.get("email") and hasattr(frappe.local, "login_manager"):
-		frappe.local.login_manager.login_as(args.get("email"))
+def login_as_first_user(args):  # nosemgrep
+	email = args.get("email")
+	if not email or not hasattr(frappe.local, "login_manager"):
+		return
+
+	if user_id := get_user_by_email(email):
+		frappe.local.login_manager.login_as(user_id)
 
 
 def get_stages_hooks(args):  # nosemgrep
@@ -350,7 +411,17 @@ def handle_setup_exception(args):  # nosemgrep
 
 
 def update_system_settings(args):  # nosemgrep
+	defaults = {
+		"float_precision": 3,
+		"rounding_method": "Banker's Rounding",
+		"enable_scheduler": 1 if not frappe.in_test else 0,
+		"backup_limit": 3,  # Default for downloadable backups
+	}
 	if not args.get("country"):
+		# A site set up without a region (Frappe Cloud v2 saves none) still gets the site
+		# defaults, written directly: saving the doc would insist on a time zone and formats.
+		frappe.db.set_single_value("System Settings", defaults)
+		fill_required_system_settings(get_language_code(args.get("language")))
 		return
 
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
@@ -365,22 +436,38 @@ def update_system_settings(args):  # nosemgrep
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update(
 		{
+			**defaults,
 			"country": args.get("country"),
 			"language": get_language_code(args.get("language")) or "en",
 			"time_zone": args.get("timezone"),
 			"currency": args.get("currency"),
-			"float_precision": 3,
-			"rounding_method": "Banker's Rounding",
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
 			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
 			"number_format": number_format,
-			"enable_scheduler": 1 if not frappe.in_test else 0,
-			"backup_limit": 3,  # Default for downloadable backups
 		}
 	)
 	system_settings.save()
 	if args.get("allow_recording_first_session"):
 		frappe.db.set_default("session_recording_start", now())
+
+
+def fill_required_system_settings(language: str | None = None):
+	"""Write what the site runs on into the System Settings it requires but left empty, so a later
+	save of the doc, from the form or an app, gets past its mandatory fields."""
+	runs_on = {
+		"language": language or "en",
+		"time_zone": get_system_timezone(),
+		"date_format": "yyyy-mm-dd",
+		"time_format": "HH:mm:ss",
+		"number_format": "#,###.##",
+	}
+	missing = {
+		field: value
+		for field, value in runs_on.items()
+		if not frappe.db.get_single_value("System Settings", field)
+	}
+	if missing:
+		frappe.db.set_single_value("System Settings", missing)
 
 
 def create_or_update_user(args):  # nosemgrep
@@ -392,7 +479,10 @@ def create_or_update_user(args):  # nosemgrep
 	if " " in first_name:
 		first_name, last_name = first_name.split(" ", 1)
 
-	if user := frappe.db.get_value("User", email, ["first_name", "last_name"], as_dict=True):
+	user = frappe.db.get_value(
+		"User", {"email": email.strip().lower()}, ["name", "first_name", "last_name"], as_dict=True
+	)
+	if user and user.name not in frappe.STANDARD_USERS:
 		if user.first_name != first_name or user.last_name != last_name:
 			User = frappe.qb.DocType("User")
 			(
@@ -400,7 +490,7 @@ def create_or_update_user(args):  # nosemgrep
 				.set(User.first_name, first_name)
 				.set(User.last_name, last_name)
 				.set(User.full_name, args.get("full_name"))
-				.where(User.name == email)
+				.where(User.name == user.name)
 			).run()
 	else:
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
@@ -421,7 +511,7 @@ def create_or_update_user(args):  # nosemgrep
 		frappe.flags.mute_emails = _mute_emails
 
 	if args.get("password"):
-		update_password(email, args.get("password"))
+		update_password(user.name, args.get("password"))
 
 
 def set_timezone(timezone=None):
@@ -581,7 +671,6 @@ def email_setup_wizard_exception(traceback, args):  # nosemgrep
 
 	frappe.sendmail(
 		recipients=frappe.conf.setup_wizard_exception_email,
-		sender=frappe.session.user,
 		subject=f"Setup failed: {frappe.local.site}",
 		message=message,
 		delayed=False,

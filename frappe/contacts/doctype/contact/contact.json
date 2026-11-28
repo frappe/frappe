@@ -87,7 +87,9 @@
    "fieldtype": "Link",
    "in_global_search": 1,
    "label": "User Id",
-   "options": "User"
+   "options": "User",
+   "read_only_depends_on": "eval:!frappe.model.can_write(\"User\")",
+   "search_index": 1
   },
   {
    "fieldname": "cb00",
@@ -271,7 +273,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-31 16:01:30.937045",
+ "modified": "2026-11-23 22:46:58.446965",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",

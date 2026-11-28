@@ -2,12 +2,12 @@
 	<!-- a new chat's agent and skills, beside the composer's +; once it starts, the agent is kept and
 	     skills are in the + menu -->
 	<span class="relative flex-none">
-		<Tooltip :text="open === 'agent' ? '' : `Agent: ${agentTitle}`">
+		<Tooltip :text="open === 'agent' ? '' : __('Agent: {0}', [agentTitle])">
 			<button
 				ref="agentButton"
 				type="button"
-				:class="[BUTTON, open === 'agent' && 'bg-surface-gray-2']"
-				:aria-label="`Agent: ${agentTitle}`"
+				:class="[BUTTON, tall ? 'h-8 w-8' : 'h-7 w-7', open === 'agent' && 'bg-surface-gray-2']"
+				:aria-label="__('Agent: {0}', [agentTitle])"
 				:aria-expanded="open === 'agent'"
 				@click="toggle('agent')"
 			>
@@ -17,12 +17,12 @@
 		<AgentPicker v-if="open === 'agent'" @close="close" />
 	</span>
 	<span v-if="hasSkills" class="relative flex-none">
-		<Tooltip :text="open === 'skills' ? '' : 'Skills'">
+		<Tooltip :text="open === 'skills' ? '' : __('Skills')">
 			<button
 				ref="skillsButton"
 				type="button"
-				:class="[BUTTON, open === 'skills' && 'bg-surface-gray-2']"
-				aria-label="Skills"
+				:class="[BUTTON, tall ? 'h-8 w-8' : 'h-7 w-7', open === 'skills' && 'bg-surface-gray-2']"
+				:aria-label="__('Skills')"
 				:aria-expanded="open === 'skills'"
 				@click="toggle('skills')"
 			>
@@ -36,13 +36,17 @@
 <script setup>
 import { computed, inject, nextTick, ref } from "vue";
 import { Tooltip } from "frappe-ui";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { useAgent } from "./agent.js";
 import AgentPicker from "./AgentPicker.vue";
 import SkillPicker from "./SkillPicker.vue";
 
-// `insert` puts a picked skill in the draft, as the composer's "/" list does
-const props = defineProps({ insert: { type: Function, required: true } });
+// `insert` puts a picked skill in the draft, as the composer's "/" list does; `tall` as its + button
+const props = defineProps({
+	insert: { type: Function, required: true },
+	tall: { type: Boolean, default: false },
+});
 const flow = inject("flow");
 const page = inject("flowPage");
 const { current } = useAgent();
@@ -51,7 +55,7 @@ const open = ref(null); // "agent" | "skills"
 const agentButton = ref(null);
 const skillsButton = ref(null);
 const agentTitle = computed(
-	() => page.state.boot.agents.find((agent) => agent.name === current.value)?.title ?? "Agent"
+	() => page.state.boot.agents.find((agent) => agent.name === current.value)?.title ?? __("Agent")
 );
 // skills where there are some, or one can be added
 const hasSkills = computed(() => (flow.state.skills ?? []).length > 0 || page.can("Flow Skill", "create"));
@@ -72,7 +76,7 @@ function pick(word) {
 	props.insert(word);
 }
 
-// the composer's + button in a new chat, matched
+// the composer's + button, matched
 const BUTTON =
-	"grid h-8 w-8 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8";
+	"grid flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8";
 </script>

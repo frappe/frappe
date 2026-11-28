@@ -1,5 +1,8 @@
 <template>
 	<div class="studio isolate h-screen flex-col overflow-hidden bg-surface-gray-2">
+		<!-- Give page scripts a Vue instance. Keep the host outside the canvas so script edits
+		     remount the script without losing canvas state. -->
+		<PageScriptHost :key="pageScope.pageScriptVersion" />
 		<ComponentContextMenu ref="componentContextMenu"></ComponentContextMenu>
 		<StudioToolbar class="relative z-30" />
 		<div class="flex flex-col">
@@ -30,7 +33,7 @@
 			>
 				<template v-slot:header>
 					<div
-						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-outline-gray-2 bg-surface-base p-[0.4rem] text-sm text-ink-gray-8"
+						class="absolute left-0 right-0 top-0 z-20 flex h-11 items-center justify-between border-b border-outline-gray-2 bg-surface-base px-[0.4rem] text-sm text-ink-gray-8"
 					>
 						<div class="flex items-center gap-1 pl-2 text-xs">
 							<a @click="canvasStore.exitAllFragments" class="cursor-pointer">
@@ -57,21 +60,40 @@
 										title="Unsaved changes"
 										class="h-1.5 w-1.5 rounded-full bg-surface-amber-6"
 									></span>
+									<Tooltip
+										v-if="canvasStore.editingMode === 'component' && componentUsages.length"
+										:text="componentUsageTitles"
+									>
+										<span class="font-normal text-ink-gray-5">
+											· used in {{ componentUsages.length }}
+											{{ componentUsages.length === 1 ? "place" : "places" }}
+										</span>
+									</Tooltip>
 								</span>
 							</template>
 						</div>
 
 						<div class="ml-auto flex items-center gap-2">
-							<Button
-								v-if="canvasStore.editingMode === 'component'"
-								variant="subtle"
-								icon="lucide-settings"
-								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
-							></Button>
-							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
-								<template #prefix><span class="lucide-chevron-left !h-3 !w-3" /></template>
-								{{ parentFragmentName }}
-							</Button>
+							<template v-if="canvasStore.editingMode === 'component'">
+								<Button
+									variant="subtle"
+									class="text-xs"
+									title="Show the component's props and settings"
+									@click="blockController.clearSelection()"
+								>
+									<template #prefix><span class="lucide-settings-2 !h-3 !w-3" /></template>
+									Settings
+								</Button>
+								<Button
+									variant="subtle"
+									class="text-xs"
+									title="Open the component's script"
+									@click="store.navigateToComponentScript(canvasStore.fragmentData.fragmentId!)"
+								>
+									<template #prefix><span class="lucide-code !h-3 !w-3" /></template>
+									Script
+								</Button>
+							</template>
 							<Button variant="solid" class="text-xs" :loading="savingFragment" @click="saveFragmentMode">
 								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
 							</Button>
@@ -179,7 +201,7 @@
 import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
-import { usePageMeta, Dialog, Button, KeyboardShortcutsDialog } from "frappe-ui"
+import { usePageMeta, Dialog, Button, KeyboardShortcutsDialog, Tooltip } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
@@ -191,13 +213,18 @@ import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
 import PasteConflictDialog from "@/components/PasteConflictDialog.vue"
 import StudioCommandPalette from "@/components/CommandPalette/StudioCommandPalette.vue"
+import PageScriptHost from "@/runtime/components/PageScriptHost.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
+import blockController from "@/utils/blockController"
+import { usePageScope } from "@/runtime/stores/codeStore"
 import { studioPages } from "@/data/studioPages"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
-import { getBlockCopy, getRootBlock } from "@/utils/serializer"
+import { getBlockCopy } from "@/runtime/utils/serializer"
+import { getRootBlock } from "@/utils/blockTemplate"
 import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/completions/useStudioCompletions"
 import { toast } from "frappe-ui"
 
@@ -205,6 +232,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const pageScope = usePageScope()
 
 const getCompletions = useStudioCompletions()
 const getDynamicValueCompletions = useDynamicValueCompletions()
@@ -219,22 +247,23 @@ watchEffect(() => {
 	if (fragmentCanvas.value) {
 		canvasStore.activeCanvas = fragmentCanvas.value
 		nextTick(() => {
+			// a component opens with no block selected, so the right panel shows its settings
+			if (canvasStore.editingMode === "component") return
 			const fragmentRootBlock = fragmentCanvas.value?.getRootBlock()
-			if (fragmentRootBlock) {
-				canvasStore.activeCanvas?.selectBlock(fragmentRootBlock, null)
-				if (canvasStore.editingMode === "component") {
-					store.studioLayout.rightPanelActiveTab = "Interface"
-				}
-			}
+			if (fragmentRootBlock) canvasStore.activeCanvas?.selectBlock(fragmentRootBlock, null)
 		})
 	} else {
 		canvasStore.activeCanvas = pageCanvas.value
 	}
 })
 
-const parentFragmentName = computed(() => {
-	const parentFragment = canvasStore.fragmentStack[canvasStore.fragmentStack.length - 2]
-	return parentFragment?.fragmentName || "Page"
+const componentUsages = computed(() => useComponentEditorStore().componentUsages)
+const componentUsageTitles = computed(() => {
+	const titles = componentUsages.value.filter(Boolean)
+	const hidden = componentUsages.value.length - titles.length
+	const places = hidden === 1 ? "1 place" : `${hidden} places`
+	if (hidden) titles.push(titles.length ? `and ${hidden} more that you cannot access` : `${places} that you cannot access`)
+	return titles.join(", ")
 })
 
 const savingFragment = ref(false)

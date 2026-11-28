@@ -31,21 +31,21 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { call, dialog, Popover } from "frappe-ui"
-import BlockOutline from "@/components/BlockOutline.vue"
-import VariantRows from "@/components/VariantRows.vue"
-import Block from "@/utils/block"
+import BlockOutline from "@/runtime/components/BlockOutline.vue"
+import VariantRows from "@/runtime/components/VariantRows.vue"
+import Block from "@/runtime/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
-import useComponentStore from "@/stores/componentStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 import useStudioStore from "@/stores/studioStore"
-import { useBlockOutline } from "@/utils/useBlockOutline"
+import { useBlockOutline } from "@/runtime/utils/useBlockOutline"
 import {
 	getEditorVariantChoice,
 	keepDialogText,
 	setEditorVariantChoice,
 	variantOptionNames,
 	type VariantRow,
-} from "@/utils/variants"
+} from "@/runtime/utils/variants"
 import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 
 // The editor's variants pill, beside the zoom chip. It uses the collapsed form of the live

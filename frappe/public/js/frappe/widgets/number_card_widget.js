@@ -203,7 +203,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	async get_data() {
-		this.data = await frappe.xcall(this.settings.method, this.settings.args);
+		this.data = await frappe.xcall(this.settings.method, this.settings.args, "QUERY");
 		return this.settings.get_number(this.data);
 	}
 
@@ -477,11 +477,15 @@ export default class NumberCardWidget extends Widget {
 
 	get_percentage_stats() {
 		return frappe
-			.xcall("frappe.desk.doctype.number_card.number_card.get_percentage_difference", {
-				doc: this.card_doc,
-				filters: this.filters,
-				result: this.number,
-			})
+			.xcall(
+				"frappe.desk.doctype.number_card.number_card.get_percentage_difference",
+				{
+					doc: this.card_doc,
+					filters: this.filters,
+					result: this.number,
+				},
+				"QUERY"
+			)
 			.then((res) => {
 				if (res !== undefined) {
 					this.percentage_stat = frappe.utils.shorten_number(res);

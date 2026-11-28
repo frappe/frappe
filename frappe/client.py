@@ -104,14 +104,11 @@ def get(
 	:param filters: If name is not set, filter by these values and return the first match"""
 
 	if name:
-		doc = frappe.get_doc(doctype, name)
+		doc = frappe.read_doc(doctype, name)
 	elif filters or filters == {}:
-		doc = frappe.get_doc(doctype, frappe.parse_json(filters))
+		doc = frappe.read_doc(doctype, frappe.parse_json(filters))
 	else:
-		doc = frappe.get_doc(doctype)  # single
-
-	doc.check_permission()
-	doc.apply_fieldlevel_read_permissions()
+		doc = frappe.read_doc(doctype)  # single
 
 	return doc.as_dict(no_nulls=True)
 
@@ -173,10 +170,7 @@ def get_value(
 
 @frappe.whitelist()
 def get_single_value(doctype: str, field: str):
-	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
-
-	return frappe.db.get_single_value(doctype, field)
+	return frappe.read_doc(doctype).get(field)
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -343,8 +337,17 @@ def get_doc_permissions(doctype: str, docname: str | int):
 	:param doctype: DocType of the document to be evaluated
 	:param docname: `name` of the document to be evaluated
 	"""
-	doc = frappe.get_lazy_doc(doctype, docname)
-	return {"permissions": frappe.permissions.get_doc_permissions(doc)}
+	try:
+		doc = frappe.get_lazy_doc(doctype, docname)
+	except frappe.DoesNotExistError:
+		return {"permissions": {}}
+
+	permissions = frappe.permissions.get_doc_permissions(doc)
+	if not permissions.get("read"):
+		# same answer for missing and unreadable documents
+		return {"permissions": {}}
+
+	return {"permissions": permissions}
 
 
 @frappe.whitelist()
@@ -356,7 +359,7 @@ def get_password(doctype: str, name: str | int, fieldname: str):
 	:param fieldname: `fieldname` of the password property
 	"""
 	frappe.only_for("System Manager")
-	return frappe.get_lazy_doc(doctype, name, check_permission="read").get_password(fieldname)
+	return frappe.read_doc(doctype, name).get_password(fieldname)
 
 
 from frappe.deprecation_dumpster import get_js as _get_js
@@ -364,7 +367,7 @@ from frappe.deprecation_dumpster import get_js as _get_js
 get_js = frappe.whitelist()(_get_js)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def get_time_zone():
 	"""Return the default time zone."""
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}

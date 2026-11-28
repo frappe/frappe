@@ -1,5 +1,7 @@
 import { reactive, ref, watch } from "vue"
 
+import { __ } from "./translate.js"
+
 // Under Tailwind's md the frame is narrow: a phone, or a panel beside a Desk page. It shows one pane at
 // a time, so the sidebar slides over the chat and settings open as pages. A narrow frame worked by
 // a finger is a phone, which drops hover-only buttons and takes swipes and bigger rows.
@@ -61,9 +63,9 @@ export const CHAT_FONT_SIZE = { min: 12, max: 22, default: 15 }
 export const CHAT_FONT_WEIGHT = {
 	default: 420,
 	options: [
-		{ label: "Light", value: 360 },
-		{ label: "Regular", value: 420 },
-		{ label: "Medium", value: 500 },
+		{ label: __("Light", null, "Font weight"), value: 360 },
+		{ label: __("Regular", null, "Font weight"), value: 420 },
+		{ label: __("Medium", null, "Font weight"), value: 500 },
 	],
 }
 // a weight saved before the choices changed takes the nearest of them

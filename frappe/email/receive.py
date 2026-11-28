@@ -12,7 +12,7 @@ import re
 import ssl
 from contextlib import suppress
 from email.errors import HeaderParseError
-from email.header import decode_header
+from email.header import Header, decode_header
 from urllib.parse import unquote
 
 import chardet
@@ -469,8 +469,15 @@ class Email:
 			self.subject = "No Subject"
 			return
 
+		subject = self.decode_header_value(raw_subject).strip()
+
+		# Truncate to 140 chars (can be used as a document name)
+		self.subject = subject[:140] if subject else "No Subject"
+
+	@staticmethod
+	def decode_header_value(value: str | Header) -> str:
 		decoded_fragments = []
-		for fragment, charset in decode_header(raw_subject):
+		for fragment, charset in decode_header(value):
 			if isinstance(fragment, bytes):
 				charset = charset or "utf-8"
 				try:
@@ -480,10 +487,7 @@ class Email:
 					fragment = fragment.decode("utf-8", errors="replace")
 			decoded_fragments.append(fragment)
 
-		subject = "".join(decoded_fragments).strip()
-
-		# Truncate to 140 chars (can be used as a document name)
-		self.subject = subject[:140] if subject else "No Subject"
+		return "".join(decoded_fragments)
 
 	def set_from(self):
 		# gmail mailing-list compatibility
@@ -631,7 +635,7 @@ class Email:
 		if fname:
 			try:
 				fname = fname.replace("\n", " ").replace("\r", "")
-				fname = cstr(decode_header(fname)[0][0])
+				fname = self.decode_header_value(fname) or get_random_filename(content_type=content_type)
 			except Exception:
 				fname = get_random_filename(content_type=content_type)
 		else:
@@ -682,6 +686,12 @@ class Email:
 			except frappe.DuplicateEntryError:
 				# same file attached twice??
 				pass
+			except frappe.ValidationError:
+				frappe.log_error(
+					_("Unable to save email attachment {0}").format(attachment["fname"]),
+					reference_doctype=doc.doctype,
+					reference_name=doc.name,
+				)
 
 		return saved_attachments
 
@@ -788,6 +798,17 @@ class InboundMail(Email):
 		isnotification = self.mail.get("isnotification")
 		return isnotification and ("notification" in isnotification)
 
+	def is_auto_submitted(self):
+		"""Return True for automatic mails, such as out-of-office replies and bounces (RFC 3834)."""
+		auto_submitted = str(self.mail.get("Auto-Submitted") or "no").strip().lower()
+		precedence = str(self.mail.get("Precedence") or "").strip().lower()
+		return (
+			auto_submitted != "no"
+			or "X-Autoreply" in self.mail
+			or "X-Autorespond" in self.mail
+			or precedence in ("bulk", "junk")
+		)
+
 	def is_exist_in_system(self):
 		"""Check if this email already exists in the system(as communication document)."""
 		from frappe.core.doctype.communication.communication import Communication
@@ -795,12 +816,25 @@ class InboundMail(Email):
 		if not self.message_id:
 			return
 
-		return Communication.find_one_by_filters(
-			message_id=self.message_id,
-			email_account=self.email_account.name,
-			sent_or_received="Received",
-			order_by="creation DESC",
-		)
+		filters = {"email_account": self.email_account.name, "sent_or_received": "Received"}
+		if communication := Communication.find_one_by_filters(
+			message_id=self.message_id, order_by="creation DESC", **filters
+		):
+			return communication
+
+		if name := self.get_copy_communication_name(self.message_id):
+			# a copy this site sent of a received mail, e.g. to an assignee who is also this inbox
+			return Communication.find_one_by_filters(name=name, **filters)
+
+	@staticmethod
+	def get_copy_communication_name(message_id: str) -> str | None:
+		"""Return the Communication name in the Message-ID of a copy that this site sent of a received mail.
+
+		The Message-ID is `<random>.<communication>@<site>`, or `<communication>@<site>` for older copies.
+		"""
+		local_part, _, domain = message_id.rpartition("@")
+		if local_part and domain == frappe.local.site:
+			return local_part.rpartition(".")[2]
 
 	def is_sender_same_as_receiver(self):
 		return self.from_email == self.email_account.email_id
@@ -853,9 +887,9 @@ class InboundMail(Email):
 			if self.parent_email_queue() and self.parent_email_queue().communication:
 				communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)
 			else:
-				reference = self.in_reply_to
-				if "@" in self.in_reply_to:
-					reference, _ = self.in_reply_to.split("@", 1)
+				reference = (
+					self.get_copy_communication_name(self.in_reply_to) or self.in_reply_to.split("@", 1)[0]
+				)
 				communication = Communication.find(reference, ignore_error=True)
 
 		self._parent_communication = communication or ""
@@ -918,6 +952,10 @@ class InboundMail(Email):
 		"""
 		name = self.get_reference_name_from_subject()
 		email_fields = self.get_email_fields(doctype)
+		sender_is_system_user = bool(self.from_email and is_system_user(self.from_email))
+
+		if email_fields.sender_field and not sender_is_system_user:
+			name = frappe.db.get_value(doctype, {"name": name, email_fields.sender_field: self.from_email})
 
 		record = self.get_doc(doctype, name, ignore_error=True) if name else None
 
@@ -933,7 +971,7 @@ class InboundMail(Email):
 			}
 
 			# Sender check is not needed incase mail is from system user.
-			if email_fields.sender_field and not (len(subject) > 10 and is_system_user(self.from_email)):
+			if email_fields.sender_field and not (len(subject) > 10 and sender_is_system_user):
 				filters[email_fields.sender_field] = self.from_email
 
 			name = frappe.db.get_value(doctype, filters=filters)

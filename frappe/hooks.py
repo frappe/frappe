@@ -115,6 +115,7 @@ calendars = ["Event"]
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
+	"frappe.desk.page.setup_wizard.setup_wizard.complete_prefilled_setup",
 ]
 
 on_login = "frappe.desk.doctype.note.note._get_unseen_notes"
@@ -173,7 +174,10 @@ permission_query_conditions = {
 	"Dock": "frappe.desk.doctype.dock.dock.get_permission_query_conditions",
 	"DocType": "frappe.app_state.get_module_permission_query_conditions",
 	"Page": "frappe.app_state.get_module_permission_query_conditions",
-	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
+	"Workspace": [
+		"frappe.app_state.get_module_permission_query_conditions",
+		"frappe.desk.doctype.workspace.workspace.get_permission_query_conditions",
+	],
 	"Workspace Sidebar": "frappe.app_state.get_module_permission_query_conditions",
 	"Print Format": "frappe.app_state.get_module_permission_query_conditions",
 	"Notification": "frappe.app_state.get_module_permission_query_conditions",
@@ -216,6 +220,7 @@ has_permission = {
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
 	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
+	"Workspace": "frappe.desk.doctype.workspace.workspace.has_permission",
 	"Studio AI Session": "frappe.studio.permissions.has_session_permission",
 	"Studio AI Message": "frappe.studio.permissions.has_message_permission",
 	"Flow Session": "frappe.flow.permissions.has_session_permission",
@@ -240,6 +245,10 @@ jinja = {
 require_type_annotated_api_methods = True
 
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
+
+additional_timeline_content = {
+	"User": ["frappe.core.doctype.permission_log.permission_log.get_timeline_content"],
+}
 
 doc_events = {
 	"*": {
@@ -322,6 +331,7 @@ scheduler_events = {
 		# 10 minutes
 		"0/10 * * * *": [
 			"frappe.email.doctype.email_account.email_account.pull",
+			"frappe.storage.cache.sweep_cache",
 		],
 		# Hourly but offset by 30 minutes
 		"30 * * * *": [],

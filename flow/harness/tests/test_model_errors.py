@@ -189,3 +189,71 @@ def test_openrouter_rate_limit_waits_until_its_reset(monkeypatch):
 
 		assert (error.kind, error.retryable) == ("rate_limit", True)
 		assert error.retry_after_seconds == wait
+
+
+def test_a_provider_message_is_read_out_of_litellms_wrapping():
+	from litellm import exceptions as litellm_exceptions
+
+	request = httpx.Request("POST", "https://provider.test")
+	body = b'{"type": "error", "error": {"type": "rate_limit_error", "message": "slow down"}}'
+	cases = [
+		(
+			litellm_exceptions.APIError(
+				status_code=402,
+				message="APIError: OpenAIException - credit balance exhausted",
+				llm_provider="openai",
+				model="gpt-x",
+			),
+			"credit balance exhausted",
+		),
+		# Anthropic's body printed as bytes, in `detail` as well as the message
+		(
+			litellm_exceptions.RateLimitError(
+				message=f"AnthropicException - {body!r}",
+				llm_provider="anthropic",
+				model="claude-x",
+				response=httpx.Response(429, request=request),
+			),
+			"rate_limit_error: slow down",
+		),
+		# with the exception it says to catch after it
+		(
+			litellm_exceptions.ServiceUnavailableError(
+				message=f"AnthropicException - {body!r}. Handle with `litellm.ServiceUnavailableError`.",
+				llm_provider="anthropic",
+				model="claude-x",
+			),
+			"rate_limit_error: slow down",
+		),
+		# a message of its own that starts with a word and a colon
+		(
+			litellm_exceptions.APIConnectionError(
+				message="Timeout: request took too long",
+				llm_provider="openai",
+				model="gpt-x",
+			),
+			"Timeout: request took too long",
+		),
+	]
+	for native, detail in cases:
+		assert normalize_litellm_error(native, provider="grove").detail == detail, str(native)
+
+
+def test_a_run_error_says_what_the_provider_said_under_its_name():
+	from flow_harness.model.errors import ProviderError
+	from flow_harness.session.session import _run_error
+
+	def failure(provider, status_code=402):
+		return ProviderError(
+			kind="unknown",
+			retryable=False,
+			status_code=status_code,
+			provider=provider,
+			detail="credit balance exhausted",
+		)
+
+	assert _run_error(failure("grove")).message == "grove (402): credit balance exhausted"
+	assert _run_error(failure("openai")).message == "OpenAI API (402): credit balance exhausted"
+	assert _run_error(failure("openai", None)).message == "OpenAI API: credit balance exhausted"
+	assert _run_error(failure("grove")).status_code == 402
+	assert _run_error(RuntimeError("boom")).message == "RuntimeError: boom"

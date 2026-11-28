@@ -8,7 +8,7 @@ from frappe.core.doctype.user.test_user import test_user
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.permissions import add_permission, add_user_permission, reset_perms
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, set_request
+from frappe.utils import add_to_date, get_user_by_email, set_request
 from frappe.website.doctype.web_form.web_form import (
 	accept,
 	delete,
@@ -1649,7 +1649,10 @@ class TestWebForm(IntegrationTestCase):
 		frappe.clear_document_cache("Web Form", "manage-events")
 
 	def create_website_user(self, email):
-		if not frappe.db.exists("User", email):
+		if user := get_user_by_email(email):
+			return user
+
+		return (
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -1657,9 +1660,10 @@ class TestWebForm(IntegrationTestCase):
 					"first_name": "Web Form Key Holder",
 					"user_type": "Website User",
 				}
-			).insert(ignore_permissions=True)
-
-		return email
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
 
 	def create_web_form_request(
 		self, web_form_values=None, doc_values=None, expires_on=None, reference_docname=None

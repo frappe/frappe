@@ -1,13 +1,13 @@
 <template>
-	<SettingsPage title="Appearance" description="How Flow looks.">
+	<SettingsPage :title="__('Appearance')" :description="__('How Flow looks.')">
 		<template #actions>
-			<Button label="Reset to defaults" :disabled="isDefault" @click="reset" />
+			<Button :label="__('Reset to defaults')" :disabled="isDefault" @click="reset" />
 		</template>
 		<div class="divide-y divide-outline-gray-1">
-			<SettingsRow title="Theme" description="Follow the system, or pick one.">
+			<SettingsRow :title="__('Theme')" :description="__('Follow the system, or pick one.')">
 				<Select align="start" :model-value="colorScheme" :options="THEMES" class="w-36" @update:model-value="setColorScheme" />
 			</SettingsRow>
-			<SettingsRow title="Font size" description="The size of the chat's text. The rest of Flow scales with it." :saved="size">
+			<SettingsRow :title="__('Font size')" :description="FONT_SIZE_HELP" :saved="size">
 				<span class="flex items-center gap-2">
 					<!-- one box: the steps sit inside its border and round with its corners -->
 					<span
@@ -19,7 +19,7 @@
 							:min="CHAT_FONT_SIZE.min"
 							:max="CHAT_FONT_SIZE.max"
 							step="any"
-							aria-label="Font size"
+							:aria-label="__('Font size')"
 							class="min-w-0 flex-1 border-0 bg-transparent py-0 pl-2 pr-0 text-base tabular-nums text-ink-gray-8 [appearance:textfield] focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none"
 							@input="preview"
 							@change="commit"
@@ -40,7 +40,7 @@
 					<span class="text-base text-ink-gray-6">px</span>
 				</span>
 			</SettingsRow>
-			<SettingsRow title="Font weight" description="The weight of the chat's text." :saved="weight">
+			<SettingsRow :title="__('Font weight')" :description="FONT_WEIGHT_HELP" :saved="weight">
 				<Select
 					align="start"
 					:model-value="weight"
@@ -48,6 +48,9 @@
 					class="w-36"
 					@update:model-value="flow.setChatFontWeight"
 				/>
+			</SettingsRow>
+			<SettingsRow :title="__('Show each step separately')" :description="__('When off, steps are grouped into one line.')">
+				<Switch :model-value="separateToolCalls" :aria-label="__('Show each step separately')" @update:model-value="flow.setSeparateToolCalls" />
 			</SettingsRow>
 		</div>
 	</SettingsPage>
@@ -57,33 +60,43 @@
 import { computed, inject } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import { Select } from "frappe-ui/src/components/Select"
+import { Switch } from "frappe-ui/src/components/Switch"
 import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 
 import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT } from "../layout.js"
+import { __ } from "../translate.js"
 import SettingsPage from "./SettingsPage.vue"
 import SettingsRow from "./SettingsRow.vue"
 
 const THEMES = [
-	{ label: "System", value: "system" },
-	{ label: "Light", value: "light" },
-	{ label: "Dark", value: "dark" },
+	{ label: __("System"), value: "system" },
+	{ label: __("Light"), value: "light" },
+	{ label: __("Dark"), value: "dark" },
 ]
 const STEPS = [
-	{ by: 1, icon: "lucide-chevron-up", title: "Increase font size" },
-	{ by: -1, icon: "lucide-chevron-down", title: "Decrease font size" },
+	{ by: 1, icon: "lucide-chevron-up", title: __("Increase font size") },
+	{ by: -1, icon: "lucide-chevron-down", title: __("Decrease font size") },
 ]
+const FONT_SIZE_HELP = __("The size of the chat's text. The rest of Flow scales with it.")
+const FONT_WEIGHT_HELP = __("The weight of the chat's text.")
 const flow = inject("flow")
 const { colorScheme, setColorScheme } = useColorScheme()
 const size = computed(() => flow.state.prefs.chatFontSize)
 const weight = computed(() => flow.state.prefs.chatFontWeight)
+const separateToolCalls = computed(() => flow.state.prefs.separateToolCalls)
 
 const isDefault = computed(
-	() => colorScheme.value === "system" && size.value === CHAT_FONT_SIZE.default && weight.value === CHAT_FONT_WEIGHT.default,
+	() =>
+		colorScheme.value === "system" &&
+		size.value === CHAT_FONT_SIZE.default &&
+		weight.value === CHAT_FONT_WEIGHT.default &&
+		!separateToolCalls.value,
 )
 function reset() {
 	setColorScheme("system")
 	flow.setChatFontSize(CHAT_FONT_SIZE.default)
 	flow.setChatFontWeight(CHAT_FONT_WEIGHT.default)
+	flow.setSeparateToolCalls(false)
 }
 
 // a typed size applies as soon as it's complete and in range ("14." and "14.0" may be on their

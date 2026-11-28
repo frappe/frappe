@@ -78,6 +78,9 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 				: d.label || d.value,
 			value: d.value,
 			description: d.description ? __(d.description) : undefined,
+			image: d.image,
+			// a row with an image key shows an avatar, the initial when the image is empty
+			avatar: d.image !== undefined,
 		}));
 	}
 

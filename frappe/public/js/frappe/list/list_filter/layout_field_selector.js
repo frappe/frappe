@@ -8,7 +8,7 @@ export default class LayoutFieldSelector {
 		this.list_view = list_view;
 		this.meta = frappe.get_meta(doctype);
 		this.max_number_of_fields = 50;
-		this.subject_field = null;
+		this.set_subject_field(this.meta);
 		this.preserved_widths = preserved_widths || [];
 		this.fields = this.normalize_fields(fields || this.get_default_fields()).uniqBy(
 			(f) => f.fieldname
@@ -56,7 +56,6 @@ export default class LayoutFieldSelector {
 
 	get_default_fields() {
 		const fields = [];
-		this.set_subject_field(this.meta);
 		fields.push({ ...this.subject_field });
 
 		if (frappe.has_indicator(this.doctype)) {
@@ -80,20 +79,17 @@ export default class LayoutFieldSelector {
 			});
 		});
 
-		if (
-			this.meta.title_field &&
-			this.meta.title_field !== "name" &&
-			fields.every((f) => f.fieldname !== "name")
-		) {
-			const has_name = (this.meta.fields || []).some(
-				(f) => f.fieldname === "name" && (f.reqd || f.in_list_view)
-			);
-			if (has_name) {
-				fields.push({ label: __("ID"), fieldname: "name" });
-			}
+		if (this.shows_name_column()) {
+			fields.push({ label: __("ID"), fieldname: "name" });
 		}
 
 		return fields;
+	}
+
+	shows_name_column() {
+		return (
+			this.subject_field.fieldname !== "name" && !this.list_view.settings?.hide_name_column
+		);
 	}
 
 	set_subject_field(meta) {
@@ -243,6 +239,7 @@ export default class LayoutFieldSelector {
 	open_column_selector() {
 		this.sync_fields_from_dom();
 		const selected = this.fields.map((f) => f.fieldname);
+		let field_order = selected;
 
 		const d = new frappe.ui.Dialog({
 			title: __("{0} Fields", [__(this.doctype)]),
@@ -252,7 +249,8 @@ export default class LayoutFieldSelector {
 					label: __("Reset Fields"),
 					fieldtype: "Button",
 					fieldname: "reset_fields",
-					click: () => this.reset_column_options(d),
+					click: () =>
+						this.reset_column_options(d).then((fields) => (field_order = fields)),
 				},
 				{
 					fieldtype: "Data",
@@ -271,10 +269,9 @@ export default class LayoutFieldSelector {
 		});
 
 		d.set_primary_action(__("Save"), (dialog_values) => {
-			const values = dialog_values.fields || [];
+			const values = frappe.utils.sort_by_order(dialog_values.fields || [], field_order);
 
 			this.fields = [];
-			this.set_subject_field(this.meta);
 			this.fields.push({ ...this.subject_field });
 			this.set_status_field();
 
@@ -283,7 +280,7 @@ export default class LayoutFieldSelector {
 				if (value === this.subject_field.fieldname) continue;
 				if (value === "status_field") continue;
 
-				const field = frappe.meta.get_docfield(this.doctype, value);
+				const field = frappe.meta.get_field(this.doctype, value);
 				if (field) {
 					this.fields.push({
 						label: __(field.label, null, this.doctype),
@@ -343,16 +340,18 @@ export default class LayoutFieldSelector {
 	}
 
 	reset_column_options(dialog) {
-		frappe
+		return frappe
 			.xcall(
 				"frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
 				{ doctype: this.doctype }
 			)
 			.then((fields) => {
+				if (this.shows_name_column()) fields.push("name");
 				const field = dialog.get_field("fields");
 				field.df.options = this.get_doctype_field_options(fields);
 				dialog.refresh();
 				this.setup_column_selector_search(dialog);
+				return fields;
 			});
 	}
 
@@ -364,6 +363,9 @@ export default class LayoutFieldSelector {
 			if (!this.is_selectable_layout_field(field)) return;
 			candidates.push(field);
 		});
+		if (this.subject_field.fieldname !== "name") {
+			candidates.push(frappe.model.get_std_field("name"));
+		}
 
 		const label_counts = {};
 		candidates.forEach((field) => {

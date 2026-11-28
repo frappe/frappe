@@ -79,15 +79,27 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			frappe.utils.debounce((e) => {
 				this.set_options().then(() => {
 					let txt = e.target.value;
+					let parts = txt.trim().toLowerCase().split("%");
+					let pattern = {
+						test: (text) => {
+							text = String(text).toLowerCase();
+							let start = 0;
+							return parts.every((part) => {
+								let index = text.indexOf(part, start);
+								start = index + part.length;
+								return index !== -1;
+							});
+						},
+					};
 					let filtered_options = this._options.filter((opt) => {
 						let match = false;
 						if (this.values.includes(opt.value)) {
 							return true;
 						}
 						match =
-							Awesomplete.FILTER_CONTAINS(opt.label, txt) ||
-							Awesomplete.FILTER_CONTAINS(opt.value, txt) ||
-							Awesomplete.FILTER_CONTAINS(opt.description, txt);
+							pattern.test(opt.label) ||
+							pattern.test(opt.value) ||
+							pattern.test(opt.description);
 
 						return match;
 					});
@@ -115,12 +127,13 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			if ($(e.target).is("input")) {
 				return;
 			}
-			if (e.key === "Backspace") {
+			if (e.key === "Backspace" && !this.$input.prop("disabled")) {
 				this.set_value([]);
 			}
 		});
 
 		this.$list_wrapper.on("show.bs.dropdown", () => {
+			if (this.$input.prop("disabled")) return false;
 			this.set_options().then(() => {
 				if (!this._selected_values || !this._selected_values.length) {
 					this._selected_values = this.process_options(this.values);

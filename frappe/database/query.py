@@ -1,4 +1,5 @@
 import datetime
+import json
 import re
 import warnings
 from functools import lru_cache
@@ -62,6 +63,20 @@ IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
 }
 # A NULL column's stand-in in db_query-style IFNULL filters; no real date is 0001-01-01.
 IFNULL_FALLBACK_VALUES = {**IS_SET_EMPTY_VALUES, "Date": "0001-01-01", "Datetime": "0001-01-01"}
+
+
+class EscapedLikeCriterion(Criterion):
+	def __init__(self, criterion: Criterion):
+		super().__init__()
+		self.criterion = criterion
+		criterion.has_escape_clause = True
+
+	def nodes_(self):
+		yield self
+		yield from self.criterion.nodes_()
+
+	def get_sql(self, **kwargs: Any) -> str:
+		return f"{self.criterion.get_sql(**kwargs)} ESCAPE '!'"
 
 
 class JSONColumnCast(functions.Cast):
@@ -160,6 +175,71 @@ def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctyp
 	to_val = convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
 
 	return (from_val, to_val)
+
+
+def get_between_date_filter(value, df=None) -> str:
+	"""Handle datetime filter bounds for between filter values.
+
+	If date is passed but fieldtype is datetime then
+	        from part is converted to start of day and to part is converted to end of day.
+	If any of filter part (to or from) are missing then:
+	        start or end of current day is assumed as fallback.
+	If fieldtypes match with filter values then:
+	        no change is applied.
+	"""
+	from frappe.utils.data import convert_type_for_between_filters
+
+	fieldtype = (df and df.fieldtype) or "Datetime"
+
+	from_date = frappe.utils.nowdate()
+	to_date = frappe.utils.nowdate()
+
+	if value and isinstance(value, list | tuple):
+		if len(value) >= 1:
+			from_date = value[0]
+		if len(value) >= 2:
+			to_date = value[1]
+
+	if fieldtype == "Datetime":
+		from_date = convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
+		return f"'{frappe.db.format_datetime(from_date)}' AND '{frappe.db.format_datetime(to_date)}'"
+
+	return f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
+
+
+def get_additional_filter_field(additional_filters_config, f, value):
+	additional_filter = additional_filters_config[f.operator.lower()]
+	f = frappe._dict(frappe.get_attr(additional_filter["get_field"])())
+	if f.query_value:
+		for option in f.options:
+			option = frappe._dict(option)
+			if option.value == value:
+				f.value = option.query_value
+	return f
+
+
+def get_date_range(operator: str, value: str):
+	from frappe.utils import get_timespan_date_range
+
+	timespan_map = {
+		"1 week": "week",
+		"1 month": "month",
+		"3 months": "quarter",
+		"6 months": "6 months",
+		"1 year": "year",
+	}
+	period_map = {
+		"previous": "last",
+		"next": "next",
+	}
+
+	if operator != "timespan":
+		timespan = f"{period_map[operator]} {timespan_map[value]}"
+	else:
+		timespan = value
+
+	return get_timespan_date_range(timespan)
 
 
 if TYPE_CHECKING:
@@ -299,7 +379,6 @@ class Engine:
 		self.is_postgres = db_type == "postgres"
 		self.is_sqlite = db_type == "sqlite"
 		self.user = user or frappe.session.user
-		self.parent_doctype = parent_doctype
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
@@ -322,13 +401,14 @@ class Engine:
 			self.table = qb.DocType(table)
 
 		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
+		self.parent_doctype = parent_doctype if parent_doctype and frappe.is_table(self.doctype) else None
 
 		if frappe.flags.get("ignore_user_permissions_for_doctype") == self.doctype:
 			self.ignore_user_permissions = True
 
 		if self.apply_permissions:
 			self.check_select_permission()
-			self.permission_doctype = parent_doctype or self.doctype
+			self.permission_doctype = self.parent_doctype or self.doctype
 			self.permission_table = (
 				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
 			)
@@ -659,8 +739,6 @@ class Engine:
 		additional_filters_config = get_additional_filters_from_hooks()
 		if operator.lower() in additional_filters_config:
 			f = frappe._dict(doctype=doctype or self.doctype, fieldname=field, operator=operator, value=value)
-			from frappe.model.db_query import get_additional_filter_field
-
 			resolved = get_additional_filter_field(additional_filters_config, f, value)
 			operator = resolved.get("operator")
 			value = resolved.get("value", value)
@@ -687,17 +765,37 @@ class Engine:
 		if isinstance(value, Document):
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
+		escape_like = False
+
+		if (
+			isinstance(field, str)
+			and field in ("_assign", "_liked_by")
+			and _operator.casefold() in ("in", "not in")
+			and _value
+		):
+			values = _value.split(",") if isinstance(_value, str) else _value
+			if members := [v for v in values if v]:
+				member_operator = "=" if _operator.casefold() == "in" else "!="
+				criteria = [
+					self._build_criterion_for_simple_filter(field, v, member_operator, doctype)
+					for v in members
+				]
+				if empty_members := [v for v in values if not v]:
+					criteria.append(
+						self._build_criterion_for_simple_filter(field, empty_members, _operator, doctype)
+					)
+				return Criterion.any(criteria) if member_operator == "=" else Criterion.all(criteria)
 
 		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
 		# single member; treat them as `like`/`not like` against the serialized value.
 		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
 			_operator = "like" if _operator == "=" else "not like"
 			if isinstance(_value, str) and _value:
-				_value = f"%{_value}%"
+				member = json.dumps(_value).replace("!", "!!").replace("%", "!%").replace("_", "!_")
+				_value = f"%{member}%"
+				escape_like = True
 
 		if _operator.lower() in ("timespan", "previous", "next"):
-			from frappe.model.db_query import get_date_range
-
 			_value = get_date_range(_operator.lower(), _value)
 			_operator = "between"
 
@@ -712,8 +810,6 @@ class Engine:
 			if isinstance(_value, list | tuple) and len(_value) == 2:
 				_value = _apply_datetime_field_filter_conversion(_value, doctype or self.doctype, field)
 			elif isinstance(_value, str):
-				from frappe.model.db_query import get_between_date_filter
-
 				target_meta = frappe.get_meta(doctype or self.doctype)
 				df = target_meta.get_field(field)
 				_value = tuple(
@@ -815,7 +911,8 @@ class Engine:
 				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
 				_value = tuple(fallback_value if v is None else v for v in _value)
 
-			return operator_fn(comparison_field, _value)
+			criterion = operator_fn(comparison_field, _value)
+			return EscapedLikeCriterion(criterion) if escape_like else criterion
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
 		"""Parses a nested filter list like [cond1, 'and', cond2, 'or', cond3, ...] into a pypika Criterion."""
@@ -1078,8 +1175,11 @@ class Engine:
 		if fieldname in OPTIONAL_FIELDS:
 			return
 
-		# Skip field permission check if doctype has no permissions defined
 		meta = frappe.get_meta(doctype)
+		if not parent_doctype and meta.istable:
+			parent_doctype = self.parent_doctype or self.doctype
+
+		# Skip field permission check if doctype has no permissions defined
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 
@@ -1110,6 +1210,21 @@ class Engine:
 		permitted_fields = permission_source(doctype, parent_doctype, permission_type)
 
 		if fieldname not in permitted_fields:
+			df = meta.get_field(fieldname)
+			if (
+				df
+				and df.fieldtype in frappe.model.table_fields
+				and df.permlevel
+				in meta.get_permlevel_access(permission_type, parenttype=parent_doctype, user=self.user)
+			):
+				frappe.throw(
+					_("{0} is a table field. Use one of its fields instead, for example {1}.").format(
+						frappe.bold(f"{doctype}.{fieldname}"), frappe.bold(f"{fieldname}.name")
+					),
+					frappe.ValidationError,
+					title=_("Invalid Field"),
+				)
+
 			frappe.throw(
 				_("You do not have permission to access field: {0}").format(
 					frappe.bold(f"{doctype}.{fieldname}")
@@ -1834,7 +1949,7 @@ class Engine:
 		# build conditions from: if_owner constraint OR user permissions
 		conditions = []
 
-		if self.requires_owner_constraint(role_permissions):
+		if frappe.permissions.requires_owner_constraint(role_permissions):
 			# skip user perm check if owner constraint is required
 			conditions.append(table.owner == self.user)
 		elif user_perm_conditions := self.get_user_permission_conditions(doctype, table):
@@ -1926,24 +2041,6 @@ class Engine:
 		if frappe.only_has_select_perm(doctype, user=self.user):
 			return "select"
 		return "read"
-
-	def requires_owner_constraint(self, role_permissions):
-		"""Return True if "select" or "read" isn't available without being creator."""
-		if not role_permissions.get("has_if_owner_enabled"):
-			return
-
-		if_owner_perms = role_permissions.get("if_owner")
-		if not if_owner_perms:
-			return
-
-		# has select or read without if owner, no need for constraint
-		for perm_type in ("select", "read"):
-			if role_permissions.get(perm_type) and perm_type not in if_owner_perms:
-				return
-
-		# not checking if either select or read if present in if_owner_perms
-		# because either of those is required to perform a query
-		return True
 
 	def build_match_conditions(self, as_condition: bool = True) -> str | list:
 		"""Build permission-based conditions for the doctype."""
@@ -2701,7 +2798,8 @@ class SQLFunctionParser:
 		elif "`" in arg:
 			if parsed := self.engine._parse_backtick_field_notation(arg):
 				table_name, field_name = parsed
-				self.engine.check_select_field_permission(table_name, field_name)
+				parent_doctype = self.engine.parent_doctype if table_name == self.engine.doctype else None
+				self.engine.check_select_field_permission(table_name, field_name, parent_doctype)
 				return Table(f"tab{table_name}")[field_name]
 			else:
 				frappe.throw(
@@ -2751,4 +2849,6 @@ class SQLFunctionParser:
 
 	def _check_function_field_permission(self, field_name: str):
 		if self.engine.apply_permissions and self.engine.doctype:
-			self.engine.check_select_field_permission(self.engine.doctype, field_name)
+			self.engine.check_select_field_permission(
+				self.engine.doctype, field_name, self.engine.parent_doctype
+			)

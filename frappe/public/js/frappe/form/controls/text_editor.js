@@ -1,5 +1,5 @@
 import Quill from "quill";
-import ImageResize from "frappe-quill-image-resize";
+import ImageResize from "./text_editor_image_resize";
 import MagicUrl from "quill-magic-url";
 
 Quill.register("modules/imageResize", ImageResize);
@@ -400,20 +400,6 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			e.stopPropagation();
 		});
 
-		const imageResizeModule = this.quill.getModule("imageResize");
-		if (imageResizeModule) {
-			imageResizeModule.checkImage = (evt) => {
-				if (imageResizeModule.img) {
-					// Delete / Backspace key pressed
-					if (evt.keyCode == 46 || evt.keyCode == 8) {
-						const blot = Quill.find(imageResizeModule.img);
-						if (blot) blot.deleteAt(0);
-					}
-					imageResizeModule.hide();
-				}
-			};
-		}
-
 		// font size dropdown
 		let $font_size_label = this.$wrapper.find(".ql-size .ql-picker-label:first");
 		let $default_font_size = this.$wrapper.find(".ql-size .ql-picker-item:first");
@@ -438,7 +424,10 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 					: this.get_toolbar_options(),
 				table: true,
 				imageResize: {},
-				magicUrl: true,
+				magicUrl: {
+					globalRegularExpression: /(https?:\/\/|www\.)[\w.-]+\.[\w.-]+([/?#]\S*)?/gi,
+					urlRegularExpression: /(https?:\/\/|www\.)[\w.-]+\.[\w.-]+([/?#]\S*)?/i,
+				},
 				mention: this.get_mention_options(),
 				keyboard: {
 					bindings: this.get_keyboard_bindings(),

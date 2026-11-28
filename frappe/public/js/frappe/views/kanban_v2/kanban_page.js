@@ -76,6 +76,11 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.wrapper = wrapper;
 		this.page = wrapper.page;
 
+		this.make_layout();
+		this.make_selection_bar();
+	}
+
+	make_layout() {
 		this.page.page_form.removeClass("hide row").addClass("flex").show();
 		this.page.page_form.addClass("list-page-form");
 		this.$filter_section = $(
@@ -88,8 +93,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 		this.setup_board_height_sync();
 		this.apply_page_shell();
-
-		this.make_selection_bar();
 	}
 
 	show_empty(opts) {
@@ -136,9 +139,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			.appendTo(this.wrapper);
 		this.render_selection_bar();
 		// opening or closing the sidebar resizes the board without a window resize
-		new ResizeObserver(() => this.selected_ids.length && this.place_selection_bar()).observe(
-			this.$container[0]
+		this._selection_bar_observer = new ResizeObserver(
+			() => this.selected_ids.length && this.place_selection_bar()
 		);
+		this._selection_bar_observer.observe(this.$container[0]);
 
 		const done = () => {
 			if (this.board) {
@@ -159,16 +163,24 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.$selection_bar.on("click", ".kn-sel-delete", () =>
 			this.confirm_delete(this.selected_ids, done)
 		);
+		this.bind_page_events();
+	}
 
+	bind_page_events() {
+		this.add_clear_selection_shortcut(this.page);
+		// each board route has its own page, so leaving it means leaving the board
+		$(this.wrapper).on("hide", () => this.teardown_board(true));
+	}
+
+	/** Escape clears the selection while `scope.wrapper` shows; it replaces only `scope`'s own. */
+	add_clear_selection_shortcut(scope) {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "escape",
 			action: () => this.clear_selection(),
 			condition: () => this.selected_ids.length > 0,
 			description: __("Clear selection"),
-			page: this.page,
+			page: scope,
 		});
-		// each board route has its own page, so leaving it means leaving the board
-		$(this.wrapper).on("hide", () => this.teardown_board(true));
 	}
 
 	render_selection_bar() {
@@ -201,6 +213,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 		if (clear_route) this.current_board = null;
 		if (clear_route) {
+			// a swimlane load still in flight must not mount after this
+			this._mount_seq = (this._mount_seq || 0) + 1;
 			this.cleanup_board_height_sync();
 			this.restore_page_shell();
 		}
@@ -357,8 +371,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	async load_from_route() {
 		// the hide handler undoes the layout, so re-apply it each time the page shows
 		this.apply_page_shell();
+		return this.load_board(this.get_board_name_from_route());
+	}
 
-		const board_name = this.get_board_name_from_route();
+	/** Loads the board again from its saved record, as after its settings are saved. */
+	reload_board() {
+		this.current_board = null;
+		return this.load_from_route();
+	}
+
+	async load_board(board_name) {
 		if (!board_name) {
 			this.show_empty({
 				icon: "columns-3",
@@ -369,7 +391,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (this.current_board === board_name && this.board) return;
 		this.current_board = board_name;
 
-		this.page.set_title(board_name, null, true);
+		this.set_title(board_name);
 
 		let board;
 		try {
@@ -381,6 +403,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			});
 			return;
 		}
+		// left or switched to another board while the record loaded
+		if (this.current_board !== board_name) return;
 
 		this.board_doc = board;
 		// a standard board ships with an app, so its setup changes only in developer mode
@@ -391,22 +415,31 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// only boards shipped by an app have translations
 		const title =
 			board.is_standard === "Yes" ? __(board.kanban_board_name) : board.kanban_board_name;
-		this.page.set_title(title, null, true);
+		this.set_title(title);
 
 		await frappe.model.with_doctype(this.doctype);
+		if (this.current_board !== board_name) return;
 		this.setup_meta();
 		this.setup_toolbar();
 		// before the board loads: it reads its filters from the boxes and the panel
 		await this.setup_quick_filters();
 		this.sync_filter_group_to_board();
 		this.mount_board();
-		// so opening Kanban without a board name comes back here
+		this.remember_board(board_name);
+		this.setup_group_button();
+	}
+
+	set_title(title) {
+		this.page.set_title(title, null, true);
+	}
+
+	/** So opening Kanban without a board name comes back here. */
+	remember_board(board_name) {
 		frappe.model.user_settings.save(this.doctype, "last_view", "Kanban").then(() =>
 			frappe.model.user_settings.save(this.doctype, "Kanban", {
 				last_kanban_board: board_name,
 			})
 		);
-		this.setup_group_button();
 	}
 
 	setup_meta() {
@@ -880,12 +913,13 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			size: "sm",
 			css_class: "settings-button mr-0 hidden-xs",
 			title: __("Settings"),
-			onclick: () =>
-				frappe.require("kanban_settings.bundle.js", () =>
-					frappe.views.open_kanban_settings(this)
-				),
+			onclick: () => this.open_settings(),
 		});
 		$parent.append(this.$settings_btn);
+	}
+
+	open_settings() {
+		frappe.require("kanban_settings.bundle.js", () => frappe.views.open_kanban_settings(this));
 	}
 
 	setup_group_button($parent) {
@@ -1014,6 +1048,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (!this.filter_group) return;
 		this.filters = this.filter_group.get_filters();
 		this.sync_filter_ui();
+		this.reload_for_filters();
+	}
+
+	reload_for_filters() {
 		// popover open/close fires on_change without a change, so skip the reload
 		const key = JSON.stringify(this.get_effective_filters());
 		if (key === this._loaded_key) return;
@@ -1202,11 +1240,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	lane_filter(field, lane) {
-		if (field === "_assign") {
-			return lane.unset
-				? [[this.doctype, "_assign", "is", "not set"]]
-				: [[this.doctype, "_assign", "like", `%${lane.value}%`]];
-		}
 		return lane.unset
 			? [[this.doctype, field, "is", "not set"]]
 			: [[this.doctype, field, "=", lane.value]];
@@ -2181,10 +2214,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const head = document.createElement("div");
 		head.className = "flex items-center gap-2";
 		const email_line =
-			fullname === user
+			!info.email || fullname === info.email
 				? ""
 				: `<div class="text-xs text-ink-gray-5" style="word-break:break-all">${frappe.utils.escape_html(
-						user
+						info.email
 				  )}</div>`;
 		head.innerHTML = `${frappe.ui.avatar.html({
 			image: info.image || undefined,
@@ -2462,5 +2495,103 @@ frappe.views.KanbanV2View = class KanbanV2View {
 			);
 		}
 		return search_params;
+	}
+};
+
+/**
+ * A Kanban Board record shown inside another page's element, with the same cards, swimlanes,
+ * selection bar and card sheet as its Kanban page. The host page brings its own toolbar: this
+ * adds no title, filter bar, quick filters or settings button, and leaves the route alone.
+ * Always the v2 engine, whatever the board's "Use Kanban v2" says.
+ *
+ *   await frappe.require("kanban.bundle.js");
+ *   const board = new frappe.views.KanbanV2Embed({
+ *     container: frm.fields_dict.tasks_html.wrapper,
+ *     board_name: "PROJ-0014",
+ *     filters: [["Task", "project", "=", "PROJ-0014"]], // always applied
+ *   });
+ *   await board.ready;
+ *   board.set_filters([["Task", "subject", "like", "%design%"]]); // replaces the last set
+ *   board.set_group_by("_assign"); // a field from board.group_by_options, or null
+ *   board.refresh();
+ *   if (!board.board_locked) board.open_settings(); // true for a standard board outside developer mode
+ *   board.destroy();
+ *
+ * The container must have a height: the board fills it and its columns scroll inside.
+ * Escape clears the board's selection while the board shows.
+ */
+frappe.views.KanbanV2Embed = class KanbanV2Embed extends frappe.views.KanbanV2Page {
+	constructor({ container, board_name, filters }) {
+		super($('<div class="kanban-v2-embed">').appendTo(container)[0]);
+		this.board_name = board_name;
+		this.fixed_filters = filters || [];
+		this.extra_filters = [];
+		this.ready = this.load_board(board_name);
+	}
+
+	make_layout() {
+		this.$container = $('<div class="kanban-v2-container">').appendTo(this.wrapper);
+		this.setup_board_height_sync();
+	}
+
+	bind_page_events() {
+		// a scope of its own, so boards sharing a page keep their own shortcut
+		this.shortcut_scope = { wrapper: $(this.wrapper) };
+		this.add_clear_selection_shortcut(this.shortcut_scope);
+	}
+
+	restore_page_shell() {}
+	sync_board_height() {}
+	set_title() {}
+	setup_toolbar() {}
+	setup_quick_filters() {}
+	setup_group_button() {}
+	remember_board() {}
+
+	get_effective_filters(extra) {
+		return super.get_effective_filters([
+			...this.fixed_filters,
+			...this.extra_filters,
+			...(extra || []),
+		]);
+	}
+
+	/** Filters on top of the fixed ones, e.g. from the host's search box. */
+	set_filters(filters) {
+		this.extra_filters = filters || [];
+		if (!this.destroyed) this.reload_for_filters();
+	}
+
+	async set_group_by(fieldname) {
+		await this.ready;
+		return super.set_group_by(fieldname);
+	}
+
+	/** A call that lands after destroy(), such as a settings save, must not build a board. */
+	mount_board() {
+		if (!this.destroyed) super.mount_board();
+	}
+
+	/** Does nothing on a locked board: a standard one outside developer mode can't be saved. */
+	async open_settings() {
+		await this.ready;
+		if (this.board_doc && !this.board_locked && !this.destroyed) super.open_settings();
+	}
+
+	refresh() {
+		if (this.board) this.board.refresh();
+	}
+
+	reload_board() {
+		this.current_board = null;
+		return this.load_board(this.board_name);
+	}
+
+	destroy() {
+		this.destroyed = true;
+		this.teardown_board(true);
+		this._selection_bar_observer.disconnect();
+		frappe.ui.keys.off("escape", this.shortcut_scope);
+		$(this.wrapper).remove();
 	}
 };

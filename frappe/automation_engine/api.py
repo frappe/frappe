@@ -88,7 +88,7 @@ def get_param_options(
 	return resolver(doctype, parsed_params, search_text) if resolver else []
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def run_manually(automation: str, docname: str | None = None) -> dict:
 	"""Queue a one-off run of `automation` against `docname` (Manual trigger / test button)."""
 	rule = frappe.get_doc("Automation Flow", automation)
@@ -177,10 +177,19 @@ def _walk_values(value):
 
 
 def _user_options(doctype, params, search_text):
-	filters = {"enabled": 1}
+	or_filters = None
 	if search_text:
-		filters["name"] = ("like", f"%{search_text}%")
-	return frappe.get_all("User", filters=filters, fields=["name", "full_name"], limit=20)
+		or_filters = [
+			[field, "like", f"%{search_text}%"]
+			for field in ("name", "first_name", "middle_name", "last_name", "email")
+		]
+	return frappe.get_all(
+		"User",
+		filters={"enabled": 1},
+		or_filters=or_filters,
+		fields=["name", "full_name", "email", "user_image"],
+		limit=20,
+	)
 
 
 def _notification_recipient_options(doctype, params, search_text):
@@ -208,7 +217,7 @@ OPTION_RESOLVERS = {
 TRIAL_SAVEPOINT = "automation_trial"
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def trial_run(
 	automation: str, docname: str | None = None, branch_overrides: dict | str | None = None
 ) -> dict:

@@ -19,7 +19,9 @@ from ldap3.utils.hashed import hashed
 import frappe
 from frappe import _, safe_encode
 from frappe.model.document import Document
+from frappe.rate_limiter import rate_limit
 from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
+from frappe.utils import get_user_by_email
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -69,6 +71,12 @@ class LDAPSettings(Document):
 
 	def validate(self):
 		self.default_user_type = self.default_user_type or "Website User"
+
+		if self.default_user_type == "System User" and not self.default_role:
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("default_role")))),
+				frappe.MandatoryError,
+			)
 
 		if not self.enabled:
 			return
@@ -210,8 +218,8 @@ class LDAPSettings(Document):
 		user: User = None
 		role: str = None
 
-		if frappe.db.exists("User", user_data["email"]):
-			user = frappe.get_doc("User", user_data["email"])
+		if user_id := get_user_by_email(user_data["email"]):
+			user = frappe.get_doc("User", user_id)
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		elif not self.do_not_create_new_user:
 			doc = user_data | {
@@ -355,10 +363,10 @@ class LDAPSettings(Document):
 				hashed_password = hashed(HASHED_SALTED_SHA, safe_encode(password))
 				changes = {"userPassword": [(MODIFY_REPLACE, [hashed_password])]}
 				if conn.modify(entry_dn, changes=changes):
-					if logout_sessions:
+					if logout_sessions and (user_id := get_user_by_email(user)):
 						from frappe.sessions import clear_sessions
 
-						clear_sessions(user=user, force=True)
+						clear_sessions(user=user_id, force=True)
 					frappe.msgprint(_("Password changed successfully."))
 				else:
 					frappe.throw(_("Failed to change password."))
@@ -370,16 +378,20 @@ class LDAPSettings(Document):
 	def convert_ldap_entry_to_dict(self, user_entry: Entry):
 		# support multiple email values
 		email = user_entry[self.ldap_email_field].value
+		if not email:
+			frappe.throw(_("Your LDAP account has no email address. Please contact your LDAP administrator."))
 
 		if isinstance(email, list):
-			# check if any of the email in the list already exist
-			for e in email:
-				if frappe.db.exists("User", e):
-					email = e
-					break
-			else:
-				# if none of the email exist, use the first email
-				email = email[0]
+			# use the first email that already belongs to a user, else the first one
+			existing = frappe.get_all(
+				"User",
+				filters={
+					"email": ("in", [e.strip().lower() for e in email]),
+					"name": ("not in", frappe.STANDARD_USERS),
+				},
+				pluck="email",
+			)
+			email = next((e for e in email if e.strip().lower() in existing), email[0])
 
 		data = {
 			"username": user_entry[self.ldap_username_field].value,
@@ -403,7 +415,8 @@ class LDAPSettings(Document):
 		return data
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
+@rate_limit(key="usr", limit=10, seconds=60)
 def login():
 	# LDAP LOGIN LOGIC
 	args = frappe.form_dict

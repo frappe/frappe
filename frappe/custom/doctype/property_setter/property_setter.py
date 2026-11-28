@@ -41,9 +41,12 @@ class PropertySetter(Document):
 
 	def validate(self):
 		self.validate_fieldtype_change()
+		self.validate_decimal_length()
 
 		if self.is_new():
-			delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)
+			delete_property_setter(
+				self.doc_type, self.property, self.field_name, self.row_name, self.doctype_or_field
+			)
 
 		frappe.clear_cache(doctype=self.doc_type)
 
@@ -53,6 +56,18 @@ class PropertySetter(Document):
 	def validate_fieldtype_change(self):
 		if self.property == "fieldtype" and self.field_name in not_allowed_fieldtype_change:
 			frappe.throw(_("Field type cannot be changed for {0}").format(self.field_name))
+
+	def validate_decimal_length(self):
+		if self.doctype_or_field != "DocField" or self.property != "length":
+			return
+
+		df = frappe.get_meta(self.doc_type).get_field(self.field_name)
+		if not df:
+			return
+
+		from frappe.core.doctype.doctype.doctype import validate_decimal_length
+
+		validate_decimal_length(frappe._dict(df.as_dict(), length=self.value), df)
 
 	def on_update(self):
 		if frappe.flags.in_patch:
@@ -103,7 +118,7 @@ def make_property_setter(
 	return property_setter
 
 
-def delete_property_setter(doc_type, property=None, field_name=None, row_name=None):
+def delete_property_setter(doc_type, property=None, field_name=None, row_name=None, doctype_or_field=None):
 	"""delete other property setters on this, if this is new"""
 	filters = {"doc_type": doc_type}
 	if property:
@@ -113,6 +128,8 @@ def delete_property_setter(doc_type, property=None, field_name=None, row_name=No
 		filters["field_name"] = field_name
 	if row_name:
 		filters["row_name"] = row_name
+	if doctype_or_field:
+		filters["doctype_or_field"] = doctype_or_field
 
 	_delete_property_setters(filters)
 

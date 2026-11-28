@@ -29,7 +29,9 @@ const CodeView = await loadComponent("chat/tools/CodeView.vue");
 const CodeCard = await loadComponent("chat/tools/CodeCard.vue");
 const FunctionCard = await loadComponent("chat/tools/FunctionCard.vue");
 const SnippetView = await loadComponent("chat/tools/SnippetView.vue");
-const JsonView = await loadComponent("chat/tools/JsonView.vue");
+const ResultView = await loadComponent("chat/tools/ResultView.vue");
+const ApiView = await loadComponent("chat/tools/ApiView.vue");
+const ArgsView = await loadComponent("chat/tools/ArgsView.vue");
 
 function mount(t, component, props) {
 	const el = document.createElement("div");
@@ -59,6 +61,12 @@ test("create tables only the fields the records use, before and after the run", 
 	assert.deepEqual(texts(card, "tbody tr:first-child td"), ["Alpha", "10", ""]);
 	assert.deepEqual(texts(card, "tbody tr:last-child td"), ["Beta", "", "2 rows"]);
 
+	// a record with no child rows says so beside the ones that have some, with nothing to open
+	const emptied = { doctype: "Sales Invoice", records: [{ items: [] }, { items: [{ qty: 1 }] }] };
+	const bare = mount(t, CreateView, { arguments: emptied });
+	assert.deepEqual(texts(bare, "tbody td"), ["0 rows", "1 row"]);
+	assert.equal(bare.querySelector("details"), null);
+
 	const result = json({ doctype: "Sales Invoice", created: ["INV-001", "INV-002"] });
 	const step = mount(t, CreateView, { arguments: createArgs, result });
 	assert.equal(texts(step, "th")[0], "Name");
@@ -76,9 +84,42 @@ test("read_records links each record to its Desk form, skipping fields nothing f
 	assert.deepEqual(texts(el, "th"), ["Name", "Status", "Customer"]);
 	assert.deepEqual(hrefs(el), ["/app/sales-invoice/INV-001", "/app/sales-invoice/INV-002"]);
 	assert.equal(presentTool("read_records", {}, result).stat, "2 records");
+	assert.equal(presentTool("read_records", {}, result).done, "Read records");
 	assert.equal(
 		presentTool("read_records", {}, json({ total: 134, records: rows })).stat,
 		"2 of 134 records"
+	);
+});
+
+test("a structured cell opens as JSON where it is a JSON field, and in words anywhere else", async (t) => {
+	const open = async (el) => {
+		const fold = el.querySelector("details");
+		fold.open = true;
+		fold.dispatchEvent(new Event("toggle"));
+		await nextTick();
+		return fold;
+	};
+	const settings = { theme: "dark", tabs: ["a", "b"] };
+	const field = json({ total: 1, records: [{ name: "U-1", settings }] });
+	const read = await open(mount(t, ReadView, { arguments: { doctype: "User" }, result: field }));
+	assert.equal(read.querySelector("pre").textContent, JSON.stringify(settings, null, 2));
+
+	const returned = json({ results: [{ name: "INV-1", result: { name: "INV-1", settings, tags: ["a", "b"] } }] });
+	const args = { doctype: "Sales Invoice", names: ["INV-1"], action: "make_payment" };
+	const el = mount(t, NamesView, { arguments: args, result: returned });
+	// a list of plain values reads on its line
+	assert.equal(texts(el, "tbody td").at(-1), "a, b");
+	const fold = await open(el);
+	assert.equal(fold.querySelector("pre"), null);
+	assert.deepEqual(texts(fold, "td"), ["Theme", "dark", "Tabs", "a, b"]);
+
+	// rows inside a record read a row per line: no count that nothing opens
+	const addresses = [{ city: "Pune" }, { city: "Mumbai", pin: 400001 }];
+	const deep = json({ results: [{ name: "INV-1", result: { name: "INV-1", customer: { addresses } } }] });
+	const inside = await open(mount(t, NamesView, { arguments: args, result: deep }));
+	assert.deepEqual(
+		[...inside.querySelectorAll("td")].map((cell) => cell.textContent),
+		["Addresses", "City: Pune\nCity: Mumbai, Pin: 400001"]
 	);
 });
 
@@ -166,6 +207,10 @@ test("update shows the values it applies to its targets", (t) => {
 	assert.deepEqual(texts(el, "th"), ["Name"]);
 	assert.deepEqual(texts(el, "tbody tr:last-child td").at(-1), "INV-001");
 	assert.equal(presentTool("update", args, json({ updated: ["INV-001"] })).stat, "1 updated");
+	// clearing a child table
+	const cleared = mount(t, NamesView, { arguments: { ...args, values: { items: [] } } });
+	assert.deepEqual(texts(cleared, "td").slice(0, 2), ["Items", "0 rows"]);
+	assert.equal(cleared.querySelector("details"), null);
 });
 
 // A child table unfolds under its row on a click; in a values list it is already open.
@@ -191,6 +236,10 @@ test("run_action names its verb and shows what each record did, structured retur
 	const el = mount(t, NamesView, { arguments: rename, result });
 	assert.deepEqual(texts(el, "th"), ["Name", "Renamed To"]);
 	assert.deepEqual(texts(el, "tbody td").slice(-2), ["OLD", "NEW"]);
+	// the table says the new name, so the arguments' line would only repeat it
+	assert.ok(!el.textContent.includes("New Name"));
+	const asked = mount(t, NamesView, { arguments: rename });
+	assert.ok(asked.textContent.includes("New Name"));
 	assert.equal(presentTool("run_action", rename, result).label, "Renaming");
 	assert.equal(presentTool("run_action", rename, result).stat, "renamed");
 
@@ -201,6 +250,9 @@ test("run_action names its verb and shows what each record did, structured retur
 	});
 	assert.equal(presentTool("run_action", submit, submitted).label, "Submitting");
 	assert.equal(presentTool("run_action", submit, submitted).stat, "1 done");
+	// a workflow step or a document's own method reads by its name
+	assert.equal(presentTool("run_action", { ...submit, action: "Send for Review" }).label, "Send for Review");
+	assert.equal(presentTool("run_action", { ...submit, action: "make_payment" }).label, "Make payment");
 
 	const returning = (outcome) =>
 		mount(t, NamesView, {
@@ -210,7 +262,7 @@ test("run_action names its verb and shows what each record did, structured retur
 	// a returned record fills the row's columns; one under another name is what amend made
 	for (const [outcome, columns, cells] of [
 		[{ name: "INV-1", action: "Approve" }, ["Name", "Action"], ["INV-1", "Approve"]],
-		[{ name: "INV-1-1" }, ["Name", "Renamed To"], ["INV-1", "INV-1-1"]],
+		[{ name: "INV-1-1" }, ["Name", "Amended As"], ["INV-1", "INV-1-1"]],
 	]) {
 		const el = returning(outcome);
 		assert.deepEqual(texts(el, "th"), columns);
@@ -223,15 +275,14 @@ test("run_action names its verb and shows what each record did, structured retur
 	});
 });
 
-test("execute keeps the code and pretty-prints what it returned", (t) => {
+test("execute keeps the code and shows what it returned in words", (t) => {
 	const el = mount(t, CodeView, {
 		arguments: { code: "return 1", description: "Count invoices" },
 		result: { content: '{"total":2}' },
 	});
 	assert.ok(el.textContent.includes("Result"));
-	const [source, result] = [...el.querySelectorAll("pre")];
-	assert.equal(source.textContent, "return 1");
-	assert.equal(result.textContent, '{\n  "total": 2\n}');
+	assert.deepEqual(texts(el, "pre"), ["return 1"]);
+	assert.deepEqual(texts(el, "td"), ["Total", "2"]);
 	assert.equal(
 		presentTool("execute", { description: "Count invoices" }).subject,
 		"Count invoices"
@@ -248,17 +299,30 @@ test("execute's card keeps its code behind Show code", async (t) => {
 	assert.ok(el.querySelector("pre").textContent.includes("result = 1"), el.innerHTML);
 });
 
-test("a function call reads by its title, not its dotted path", () => {
+test("a function call reads by its dotted path, as code; a document's own method by its title", () => {
 	const args = { doctype: "", names: [], action: "frappe.desk.form.assign_to.add" };
-	assert.equal(presentTool("run_action", args).subject, "Assign To: Add");
-	assert.equal(presentTool("run_action", args).label, "Running a Function");
+	const path = args.action;
+	assert.equal(presentTool("run_action", args).subject, path);
+	assert.equal(presentTool("run_action", args).codeSubject, true);
+	assert.equal(presentTool("run_action", args).label, "Calling API");
+	assert.equal(presentTool("run_action", args).done, "Called APIs");
+	assert.equal(presentTool("call_api", { method: path }).label, "Calling API");
 	const denied = json({ status: "denied", action: "Assign To: Add" });
-	assert.equal(presentTool("run_action", args, denied).subject, "Assign To: Add");
-	assert.equal(presentTool("run_action", args, { content: "Error: not permitted" }).subject, "Assign To: Add");
+	assert.equal(presentTool("run_action", args, denied).subject, path);
+	assert.equal(presentTool("run_action", args, { content: "Error: not permitted" }).subject, path);
 	const result = json({ action: args.action, title: "Assign To: Add", result: [] });
-	assert.equal(presentTool("run_action", args, result).subject, "Assign To: Add");
+	assert.equal(presentTool("run_action", args, result).subject, path);
 	assert.equal(presentTool("run_action", args, result).stat, "");
-	assert.equal(presentTool("run_action", { action: "submit", doctype: "Sales Invoice" }).subject, "Sales Invoice");
+	const submit = presentTool("run_action", { action: "submit", doctype: "Sales Invoice" });
+	assert.equal(submit.subject, "Sales Invoice");
+	assert.equal(submit.codeSubject, false);
+	assert.equal(presentTool("call_api", { method: path }).subject, path);
+	assert.equal(presentTool("call_api", { method: path }).codeSubject, true);
+	assert.equal(presentTool("describe_api", { method: path }).subject, path);
+	assert.equal(presentTool("describe_api", { method: path }).codeSubject, true);
+	const own = presentTool("describe_api", { method: "add_comment", doctype: "ToDo" });
+	assert.equal(own.subject, "ToDo: Add Comment");
+	assert.equal(own.codeSubject, false);
 });
 
 test("a function's card shows the server's lines in words, not a records table", (t) => {
@@ -268,28 +332,58 @@ test("a function's card shows the server's lines in words, not a records table",
 	const submit = presentTool("run_action", { action: "submit", doctype: "ToDo", names: ["a"] });
 	assert.equal(submit.argsComponent, submit.resultComponent);
 	const prompt = "Assign To: Add\nToDo: Call the courier about the delayed Pune shipment\nAssign To: Administrator";
+	const api = presentTool("call_api", { method: args.action });
+	assert.equal(api.argsComponent, fn.argsComponent);
+	assert.equal(api.resultComponent, ApiView);
+	assert.equal(fn.resultComponent, ApiView);
 	const el = mount(t, FunctionCard, { arguments: args, call: { prompt } });
 	const rows = [...el.querySelectorAll("tr")].map((row) => [...row.children].map((cell) => cell.textContent));
 	assert.deepEqual(rows, [
 		["ToDo", "Call the courier about the delayed Pune shipment"],
 		["Assign To", "Administrator"],
 	]);
+	// a failed or denied row opens with the arguments alone
+	assert.equal(mount(t, FunctionCard, { arguments: args }).textContent, "");
 });
 
-test("a result its view cannot read, saved before its tool's return changed or cut, shows as text without a count, except under execute's code", () => {
+test("a function's return shows without the path and title its row already says", (t) => {
+	const wrapped = (result) => json({ action: "app.api.skills", title: "Api: Skills", result });
+	const skills = [{ name: "greeting", description: "Says hello" }];
+	const el = mount(t, ApiView, { arguments: {}, result: wrapped({ skills }) });
+	assert.deepEqual(texts(el, "tr > td:first-child").slice(0, 1), ["Skills"]);
+	assert.deepEqual(texts(el, "th"), ["Name", "Description"]);
+	assert.deepEqual(texts(el, "td td"), ["greeting", "Says hello"]);
+	assert.ok(!el.textContent.includes("app.api.skills"));
+	assert.equal(el.querySelector("pre"), null);
+	assert.equal(mount(t, ApiView, { result: wrapped(null) }).textContent, "No result");
+	assert.equal(mount(t, ApiView, { result: wrapped("s-123") }).textContent, "s-123");
+});
+
+test("a result its view cannot read, saved before its tool's return changed or cut, goes to the view of any return without a count, except under execute's code", (t) => {
 	const saved = json([{ name: "A" }, { name: "B" }]);
 	const read = presentTool("read_records", {}, saved);
 	assert.equal(read.stat, "");
-	assert.equal(read.resultComponent, JsonView);
-	assert.equal(presentTool("find_doctypes", {}, saved).stat, "");
+	assert.equal(read.resultComponent, ResultView);
 	// a cut result is no longer JSON
 	const cut = {
 		content: '[{"name": "A"}, {"na\n\n[Cut to the first 50 KB of 2.0 MB.]',
 		details: { truncation: { truncated: true } },
 	};
-	assert.equal(presentTool("read_records", {}, cut).resultComponent, JsonView);
-	assert.equal(presentTool("run_report", {}, cut).resultComponent, JsonView);
+	assert.equal(presentTool("read_records", {}, cut).resultComponent, ResultView);
+	assert.equal(presentTool("run_report", {}, cut).resultComponent, ResultView);
 	assert.equal(presentTool("execute", {}, cut).resultComponent, CodeView);
+	// an older return is still drawn; half a record is not
+	assert.deepEqual(texts(mount(t, ResultView, { result: saved }), "td"), ["A", "B"]);
+	assert.equal(mount(t, ResultView, { result: cut }).textContent, "Too large to show here");
+	// cut text keeps its lines, so it still shows, whatever it starts with
+	for (const content of ["line one\n\n[Cut the middle]", "[10:00] started\n[10:01] done\n\n[Cut the middle]"])
+		assert.ok(
+			mount(t, ResultView, { result: { content, details: cut.details } }).textContent.includes(
+				content.split("\n")[0]
+			)
+		);
+	for (const empty of [{}, [], null, ""])
+		assert.equal(mount(t, ResultView, { result: json(empty) }).textContent, "No result");
 });
 
 test("search hits group under the source they came from", (t) => {
@@ -306,30 +400,24 @@ test("search hits group under the source they came from", (t) => {
 	assert.equal(presentTool("search_knowledge", {}, json(hits)).stat, "3 hits");
 });
 
-test("lookups report a count and open nothing", () => {
+test("lookups open nothing; a screen read names its page", () => {
 	const cases = [
-		[
-			"find_doctypes",
-			json({ total: 2, doctypes: [{ name: "A" }, { name: "B" }] }),
-			"2 matches",
-		],
-		[
-			"find_doctypes",
-			json({ total: 52, doctypes: [{ name: "A" }, { name: "B" }] }),
-			"2 of 52 matches",
-		],
-		["describe", json({ fields: [1, 2, 3] }), "3 fields"],
-		["update_memory", json({ memory_id: "m1", action: "added" }), "added"],
-		["load_skill", { content: "do the thing" }, ""],
+		["find_doctypes", json({ total: 2, doctypes: [{ name: "A" }, { name: "B" }] })],
+		["describe", json({ fields: [1, 2, 3] })],
+		["find_apis", json([{ path: "a.b" }, { path: "a.c" }])],
+		["describe_api", json({ params: [{ name: "doctype" }] })],
+		["update_memory", json({ memory_id: "m1", action: "added" })],
+		["load_skill", { content: "do the thing" }],
 		// a sub-agent row keeps the core's own look
-		["subagent", null, ""],
+		["subagent", null],
 	];
-	for (const [name, result, stat] of cases) {
+	for (const [name, result] of cases) {
 		const presented = presentTool(name, {}, result);
-		assert.equal(presented.stat, stat, name);
 		assert.equal(presented.expandable, false, name);
 		assert.equal(presented.resultComponent, undefined, name);
 	}
+	assert.equal(presentTool("read_screen", {}, json({ title: "Sales Order" })).subject, "Sales Order");
+	assert.equal(presentTool("read_screen", {}).subject, "");
 });
 
 test("an approval card gets the view, a custom tool always shows its output, and the server's file tools keep the core's rows", (t) => {
@@ -338,9 +426,36 @@ test("an approval card gets the view, a custom tool always shows its output, and
 	assert.equal(presentTool("read_records", {}).resultComponent, ReadView);
 
 	const presented = presentTool("send_email", { to: "a@b.c" }, json({ sent: true }));
-	assert.equal(presented.resultComponent, JsonView);
-	const el = mount(t, JsonView, { arguments: {}, result: json({ sent: true }) });
-	assert.equal(el.querySelector("pre").textContent, '{\n  "sent": true\n}');
+	assert.equal(presented.resultComponent, ResultView);
+	const sent = json({ sent: true, to: ["a@b.c", "d@e.f"], headers: { reply_to: "x@y.z" } });
+	const el = mount(t, ResultView, { arguments: {}, result: sent });
+	// a line per field, a list's items under each other, a record inside by its own fields
+	assert.deepEqual(texts(el, "td:first-child"), ["Sent", "To", "Headers", "Reply To"]);
+	assert.deepEqual(texts(el, "span"), ["true", "a@b.c", "d@e.f", "x@y.z"]);
+	assert.equal(el.querySelector("pre"), null);
+	assert.equal(mount(t, ResultView, { result: { content: "Sent to a@b.c" } }).textContent, "Sent to a@b.c");
+
+	// its card: the arguments in words, unless its author wrote a prompt
+	assert.equal(presented.argsComponent, ArgsView);
+	const args = { to: "a@b.c" };
+	const dumped = { prompt: `Send Email\n${JSON.stringify(args, null, 2)}` };
+	assert.deepEqual(texts(mount(t, ArgsView, { arguments: args, call: dumped }), "td"), ["To", "a@b.c"]);
+	assert.deepEqual(texts(mount(t, ArgsView, { arguments: args }), "td"), ["To", "a@b.c"]);
+	const written = { prompt: "Send Email\nMail the invoice to a@b.c" };
+	assert.equal(
+		mount(t, ArgsView, { arguments: args, call: written }).textContent,
+		"Mail the invoice to a@b.c"
+	);
+	// a tool called with no arguments keeps the plain card, and its row has nothing to open
+	const bare = presentTool("ping", {});
+	assert.equal(bare.argsComponent, undefined);
+	assert.equal(bare.body, undefined);
+
+	// a part's table leaves the scrolling to the box around it
+	const capped = (el) => el.querySelectorAll(".max-h-\\[260px\\]").length;
+	const rows = [{ name: "a" }, { name: "b" }];
+	assert.equal(capped(mount(t, ResultView, { result: json(rows) })), 1);
+	assert.equal(capped(mount(t, ResultView, { result: json({ rows }) })), 1);
 
 	const read = { content: "import frappe", details: { total_lines: 1 } };
 	assert.deepEqual(presentTool("read", { path: "flow/hooks.py" }, read), {});

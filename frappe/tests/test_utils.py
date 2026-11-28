@@ -13,6 +13,7 @@ from mimetypes import guess_type
 from typing import Literal
 from unittest.mock import patch
 
+import responses
 from hypothesis import given
 from hypothesis import strategies as st
 from PIL import Image
@@ -438,12 +439,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "NGN Zero only."),
 				("Fail", ""),
 			],
-			"MRO": [
-				(5000, "MRO Five Thousand only."),
-				(5000.0, "MRO Five Thousand only."),
-				(1.4, "MRO One and Two Khoums only."),
+			"MRU": [
+				(5000, "MRU Five Thousand only."),
+				(5000.0, "MRU Five Thousand only."),
+				(1.4, "MRU One and Two Khoums only."),
 				(0.2, "One Khoums only."),
-				(0, "MRO Zero only."),
+				(0, "MRU Zero only."),
 				("Fail", ""),
 			],
 			"USD": [
@@ -659,6 +660,14 @@ class TestHTMLUtils(IntegrationTestCase):
 		self.assertNotIn("onload", clean)
 
 		self.assertIsNone(sanitize_svg(None))
+
+	def test_md_to_html_with_html_tag_over_lines(self):
+		from frappe.utils import md_to_html
+
+		source = '<table border="1"\n\tstyle="width:100%">\n<tr><td>Snack</td></tr>\n</table>'
+		html = md_to_html(source)
+		self.assertIn("<td>Snack</td>", html)
+		self.assertIsNone(html.toc_html)
 
 
 class TestValidationUtils(IntegrationTestCase):
@@ -901,6 +910,25 @@ class TestImage(IntegrationTestCase):
 			dst.write(src.read())
 		self.addCleanup(os.remove, public)
 		self.assertTrue(get_image_thumbnail_uri("/files/thumbnail_public.jpg").startswith("data:image/"))
+
+	def test_image_thumbnail_fetch_rechecks_resolved_address(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.local._print_thumbnail_cache = {}
+		url = "https://images.example.com/photo.jpg"
+		addresses = iter(("93.184.216.34", "127.0.0.1"))
+
+		def getaddrinfo(host, *args, **kwargs):
+			return [(2, 1, 6, "", (next(addresses), 0))]
+
+		with (
+			open(frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"), "rb") as image,
+			responses.RequestsMock(assert_all_requests_are_fired=False) as mocked,
+			patch("socket.getaddrinfo", side_effect=getaddrinfo),
+		):
+			mocked.add(responses.GET, url, body=image.read())
+			self.assertEqual(get_image_thumbnail_uri(url), url)
+			self.assertFalse(mocked.calls)
 
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
@@ -1948,11 +1976,14 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertIn(frappe.local.site, get_sites())
 
 	def test_get_site_info(self):
-		info = get_site_info()
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=["System Manager"], generated_id=True) as user:
+			info = get_site_info()
 
 		installed_apps = [app["app_name"] for app in info["installed_apps"]]
 		self.assertIn("frappe", installed_apps)
-		self.assertGreaterEqual(len(info["users"]), 1)
+		self.assertIn(user.email, [u["email"] for u in info["users"]])
 
 	def test_get_url_to_form(self):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
@@ -2587,3 +2618,30 @@ class TestMsgPrint(UnitTestCase):
 		self.assertEqual(str(raised.exception), "first<br>second")
 		printed.assert_called_once()
 		self.assertNotIn("<br>", printed.call_args.args[0])
+
+
+class TestAddUserInfo(IntegrationTestCase):
+	def test_add_user_info_by_id_or_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as user:
+			user_info = {}
+			frappe.utils.add_user_info([user.name, user.email.upper(), None], user_info)
+
+			self.assertEqual(user_info[user.name].name, user.name)
+			self.assertEqual(user_info[user.email.upper()].name, user.name)
+
+	def test_add_user_info_prefers_the_id(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as other:
+			legacy = frappe.new_doc(
+				"User", email=f"legacy_{other.email}", first_name="Legacy", send_welcome_email=0
+			)
+			legacy.flags.skip_email_from_name = True
+			legacy.insert(set_name=other.email)
+			self.addCleanup(legacy.delete, force=True, ignore_permissions=True)
+
+			user_info = {}
+			frappe.utils.add_user_info(other.email, user_info)
+			self.assertEqual(user_info[other.email].name, legacy.name)

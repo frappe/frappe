@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import getseries, parse_naming_series
-from frappe.utils.data import evaluate_filters
+from frappe.utils.data import cint, evaluate_filters, get_link_to_form
 
 
 class DocumentNamingRule(Document):
@@ -33,6 +33,7 @@ class DocumentNamingRule(Document):
 
 	def validate(self):
 		self.validate_fields_in_conditions()
+		self.validate_duplicate()
 
 	def clear_doctype_map(self):
 		frappe.cache_manager.clear_doctype_map(self.doctype, self.document_type)
@@ -53,18 +54,57 @@ class DocumentNamingRule(Document):
 					)
 				)
 
+	def validate_duplicate(self):
+		if self.disabled or frappe.flags.in_fixtures:
+			return
+
+		candidates = frappe.get_all(
+			self.doctype,
+			filters={
+				"document_type": self.document_type,
+				"priority": cint(self.priority),
+				"disabled": 0,
+				"name": ("!=", self.name),
+			},
+			pluck="name",
+		)
+		if not candidates:
+			return
+
+		other_conditions = {name: set() for name in candidates}
+		for d in frappe.get_all(
+			"Document Naming Rule Condition",
+			filters={"parent": ("in", candidates), "parenttype": self.doctype},
+			fields=["parent", "field", "condition", "value"],
+		):
+			other_conditions[d.parent].add((d.field, d.condition, d.value))
+
+		conditions = {(d.field, d.condition, d.value) for d in self.conditions}
+		for name in candidates:
+			if other_conditions[name] == conditions:
+				frappe.throw(
+					_("Document Naming Rule {0} already has the same priority and conditions").format(
+						get_link_to_form(self.doctype, name)
+					),
+					title=_("Duplicate Naming Rule"),
+				)
+
 	def apply(self, doc):
 		"""
 		Apply naming rules for the given document. Will set `name` if the rule is matched.
-
-		Conditions are evaluated one at a time: Filters.optimize collapses repeated equalities on a
-		field into an `in`, which would read the rows as alternatives rather than requirements.
 		"""
-		if not all(
-			evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value)])
-			for d in self.conditions
-		):
+		if not self.matches(doc):
 			return
 
 		prefix = parse_naming_series(self.prefix, doc=doc)
 		doc.name = prefix + getseries(prefix, self.prefix_digits)
+
+	def matches(self, doc):
+		"""
+		Conditions are evaluated one at a time: Filters.optimize collapses repeated equalities on a
+		field into an `in`, which would read the rows as alternatives rather than requirements.
+		"""
+		return all(
+			evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value)])
+			for d in self.conditions
+		)

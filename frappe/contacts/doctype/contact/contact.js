@@ -69,6 +69,7 @@ frappe.ui.form.on("Contact", {
 				frappe.call({
 					method: "frappe.contacts.doctype.contact.contact.address_query",
 					args: { links: filtered_links },
+					type: "QUERY",
 					callback: function (r) {
 						if (r && r.message) {
 							frm.set_query("address", function () {
@@ -144,7 +145,7 @@ frappe.ui.form.on("Contact", {
 		if (frm.doc.sync_with_google_contacts) {
 			frappe.db.get_value(
 				"Google Contacts",
-				{ email_id: frappe.session.user },
+				{ email_id: frappe.session.user_email },
 				"name",
 				(r) => {
 					if (r && r.name) {

@@ -51,6 +51,7 @@ def get_activity_timeline(
 		*milestones,
 		*(get_version_activities(doc, user_info, version_fields) if show("version") else []),
 	]
+	activities += get_controller_activities(doc, {a["key"] for a in activities})
 	if visible is not None:
 		# comment/log/attachment_log share one fetcher; drop the leftover types here
 		activities = [a for a in activities if a["type"] in visible]
@@ -122,6 +123,17 @@ def get_more_milestone_activities(doctype: str, name: str | int, start: int) -> 
 		"has_more_milestones": has_more,
 		"next_milestone_start": next_start,
 	}
+
+
+def get_controller_activities(doc: "Document", known_keys: set[str]) -> list[dict]:
+	"""Rows the controller adds through an optional `get_additional_activities(self)`.
+
+	Each row has type, key, timestamp, author and data, like Frappe's rows, with `key`
+	and `timestamp` as strings. A row whose key Frappe already returned is dropped.
+	"""
+	if not hasattr(doc, "get_additional_activities"):
+		return []
+	return [row for row in doc.get_additional_activities() or [] if row["key"] not in known_keys]
 
 
 def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
@@ -249,7 +261,7 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 		+ comment_log_data.info_logs
 		+ comment_log_data.like_logs
 		+ comment_log_data.workflow_logs
-		+ comment_log_data.shared
+		+ comment_log_data.share_logs
 	)
 	frappe.utils.add_user_info({c.owner for c in all_rows if c.owner}, user_info)
 
@@ -304,7 +316,7 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 		out.append(add_activity_record(c, author, "info", f"{author['fullname']} {activity_text(c.content)}"))
 
 	# docshare.py writes these already naming both the actor and who was shared with.
-	for c in comment_log_data.shared:
+	for c in comment_log_data.share_logs:
 		author = get_author_info(c.owner, user_info)
 		out.append(add_activity_record(c, author, "shared", activity_text(c.content)))
 

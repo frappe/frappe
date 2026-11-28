@@ -1,19 +1,19 @@
 import { dialog, toast, call } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { usePageScope } from "@/stores/codeStore"
-import useComponentStore from "@/stores/componentStore"
+import { usePageScope } from "@/runtime/stores/codeStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 import { studioPages } from "@/data/studioPages"
-import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
+import { hasBuiltPageScript } from "@/runtime/data/studioPageScripts"
 import {
 	showPasteConflictDialog,
 	type PasteConflictChoice,
 	type PasteConflictKind,
 } from "@/components/PasteConflictDialog.vue"
 import PasteWarningToast from "@/components/PasteWarningToast.vue"
-import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
+import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/runtime/utils/serializer"
 import { setClipboardData } from "@/utils/helpers"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import type { BlockOptions } from "@/types"
 
 const CLIPBOARD_FORMAT = "studio-copied-blocks"
@@ -188,7 +188,7 @@ function getClipboardSource(): ClipboardSource {
 		origin: window.location.origin,
 		app: store.activeApp!.name,
 		page: page.name,
-		hasPageScript: Boolean(page.script?.trim()) || hasCompiledPageScript(page.name),
+		hasPageScript: Boolean(page.script?.trim()) || hasBuiltPageScript(page.name),
 	}
 }
 
@@ -410,7 +410,7 @@ async function createMissingDependencies(
 	)
 	if (store.activePage?.name === pageName) store.syncPageModified(result)
 	if (components?.length && overwriteConflicts) {
-		await Promise.all(components.map(({ name }) => useComponentStore().reloadComponent(name)))
+		await Promise.all(components.map(({ component_id }) => useComponentStore().reloadComponent(component_id)))
 	}
 	if (files?.length) await store.setCustomComponents()
 	if (resources?.length || variables?.length) {

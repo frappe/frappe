@@ -34,20 +34,29 @@ class FlowKnowledgeSettings(Document):
 		if cint(self.chunk_overlap) >= cint(self.chunk_size):
 			frappe.throw(_("Chunk Overlap must be smaller than Chunk Size."), title=_("Invalid Chunking"))
 
-	def _guard_model_change(self):
-		"""Existing vectors only make sense in the embedding space they were created in.
-		Changing the model (even at the same dimension) while chunks exist is blocked;
-		rebuild sets self.flags.allow_embedding_model_change to bypass."""
-		if self.flags.allow_embedding_model_change:
+	def on_update(self):
+		if not (self.embedding_model and self.has_value_changed("embedding_model")):
 			return
+		from frappe.flow.knowledge import attachment_store
+		from frappe.flow.knowledge.ingest import reembed_all
+
+		# chat attachments are not embedded again: old chats lose search over them
+		frappe.db.after_commit.add(attachment_store.drop_table)
+		reembed_all()
+		if frappe.db.exists("Flow Agent Memory", {"status": "Active"}):
+			frappe.enqueue("frappe.flow.memory.store.ensure_table", queue="long", enqueue_after_commit=True)
+
+	def _guard_model_change(self):
+		"""Without a model, the chunks can't be embedded again."""
 		previous = self.get_doc_before_save()
-		if previous is None or previous.embedding_model == self.embedding_model:
+		removed = previous and previous.embedding_model and not self.embedding_model
+		if not removed:
 			return
 		chunk_count = frappe.db.count("Flow Knowledge Chunk")
 		if chunk_count:
 			frappe.throw(
 				_(
-					"{0} knowledge chunks were embedded with the current model. Delete all knowledge sources before changing the embedding model."
+					"{0} knowledge chunks were embedded with the current model. Delete all knowledge sources before removing the embedding model."
 				).format(chunk_count),
 				title=_("Embedding Model In Use"),
 			)

@@ -110,8 +110,8 @@
 <script setup lang="ts">
 import { ref, computed, toValue, watchEffect } from "vue"
 import { Combobox, Button, Tooltip, Badge } from "frappe-ui"
-import Block from "@/utils/block"
-import { getComponentSlots } from "@/utils/components"
+import Block from "@/runtime/utils/block"
+import { getComponentSlots } from "@/utils/componentSlots"
 import PropsEditor from "@/components/PropsEditor.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
 import EmptyState from "@/components/EmptyState.vue"

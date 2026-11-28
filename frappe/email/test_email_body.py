@@ -3,12 +3,16 @@
 
 import base64
 import os
+import re
+from email import charset
+from email.mime.multipart import MIMEMultipart
 
 import frappe
 from frappe import safe_decode
 from frappe.core.doctype.communication.communication import Communication
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
 from frappe.email.email_body import (
+	add_attachment,
 	get_email,
 	get_header,
 	inline_style_in_html,
@@ -83,14 +87,37 @@ This is the text version of this email
 		self.assertTrue(result.count("\n") == result.count("\r"))
 
 	def test_image(self):
-		img_signature = """
+		content_id = re.search(r"Content-ID: <(\w+)>", self.email_string).group(1)
+		img_signature = f"""
 Content-Type: image/svg+xml
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Content-Disposition: inline; filename="frappe-favicon.svg"
+Content-Disposition: inline; filename="{content_id}.svg"
 """
 		self.assertTrue(img_signature in self.email_string)
 		self.assertTrue(self.img_base64 in self.email_string)
+
+	def test_inline_image_filename_uses_content_id(self):
+		for image_name, extension, content_type in (
+			("Screenshot 2026-01-01 at 6.07.26\u202fPM.png", ".png", "image/png"),
+			("photo.jpeg", ".jpeg", "image/jpeg"),
+			("logo.svg", ".svg", "image/svg+xml"),
+			("Screenshot 6.07.26\u202fPM", "", "application/octet-stream"),
+			("photo.png?fid=abc", "", "application/octet-stream"),
+		):
+			with self.subTest(image_name=image_name):
+				mail = get_email(
+					recipients=["test@example.com"],
+					sender="me@example.com",
+					subject="Inline Image",
+					content=f'<img embed="files/{image_name}">',
+					inline_images=[{"filename": f"files/{image_name}", "filecontent": b"image"}],
+				)
+				part = next(part for part in mail.msg_root.walk() if part.get("Content-ID"))
+				content_id = part["Content-ID"].strip("<>")
+
+				self.assertEqual(part.get_filename(), f"{content_id}{extension}")
+				self.assertEqual(part.get_content_type(), content_type)
 
 	def test_text_content(self):
 		text_content = """
@@ -346,6 +373,30 @@ Hello <script>alert(1)</script> world.
 		self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", communication.content)
 		self.assertNotIn("<script>", communication.content)
 		frappe.db.rollback()
+
+	def use_default_utf8_charset(self):
+		"""Reset the global `utf-8` charset to the Python default for this test."""
+		self.addCleanup(charset.CHARSETS.__setitem__, "utf-8", charset.CHARSETS["utf-8"])
+		charset.add_charset("utf-8", charset.SHORTEST, charset.BASE64, "utf-8")
+
+	def test_text_attachment_does_not_depend_on_global_charset(self):
+		self.use_default_utf8_charset()
+		parent = MIMEMultipart()
+
+		add_attachment("README.md", "# Notes\nPlain ASCII text.\n", parent=parent)
+
+		part = parent.get_payload(0)
+		self.assertEqual(part["Content-Type"], 'text/markdown; charset="utf-8"')
+		self.assertEqual(part["Content-Transfer-Encoding"], "quoted-printable")
+		self.assertEqual(part.get_payload(decode=True), b"# Notes\nPlain ASCII text.\n")
+
+	def test_email_does_not_change_global_charset(self):
+		self.use_default_utf8_charset()
+		default_utf8_charset = charset.CHARSETS["utf-8"]
+
+		get_email(recipients=["test@example.com"], sender="me@example.com", msg="<p>Hello</p>")
+
+		self.assertEqual(charset.CHARSETS["utf-8"], default_utf8_charset)
 
 
 def fixed_column_width(string, chunk_size):

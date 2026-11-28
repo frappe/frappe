@@ -1,7 +1,7 @@
 import frappe
+from frappe.desk.link_title import get_doc_link_titles
 from frappe.model import no_value_fields, table_fields
 from frappe.utils.caching import http_cache
-from frappe.www.printview import set_title_values_for_link_and_dynamic_link_fields
 
 
 @frappe.whitelist()
@@ -47,7 +47,7 @@ def get_preview_data(doctype: str, docname: str | int):
 	doc = None
 	if meta.show_title_field_in_link and meta.title_field:
 		doc = frappe.get_doc(doctype, docname)
-		set_title_values_for_link_and_dynamic_link_fields(meta, doc)
+		setattr(doc, "__link_titles", get_doc_link_titles(doc, with_children=False))
 
 	for key, val in preview_data.items():
 		if val and meta.has_field(key) and key not in [image_field, title_field, "name"]:

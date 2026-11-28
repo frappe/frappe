@@ -277,8 +277,9 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 		data.message = "";
 	}
 
-	if (data.message.search(/<br>|<p>|<li>/) == -1) {
-		msg = frappe.utils.replace_newlines(data.message);
+	let message = data.message;
+	if (!frappe.utils.is_html(message)) {
+		message = frappe.utils.replace_newlines(message);
 	}
 
 	if (data.title || !msg_exists) {
@@ -312,7 +313,7 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 		// append a <hr> if another msg already exists
 	}
 
-	frappe.msg_dialog.msg_area.append(data.message);
+	frappe.msg_dialog.msg_area.append(message);
 
 	// make msgprint always appear on top
 	frappe.msg_dialog.$wrapper.css("z-index", 2000);

@@ -8,6 +8,7 @@ from frappe.desk.doctype.todo.todo import ToDo
 from frappe.model.document import _accepts_method_argument
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.utils import get_user_by_email
 
 
 class TestHooks(IntegrationTestCase):
@@ -59,7 +60,7 @@ class TestHooks(IntegrationTestCase):
 		frappe.client_cache.delete_value("app_hooks")
 
 		# Init User and Address
-		username = "test@example.com"
+		username = get_user_by_email("test@example.com")
 		user = frappe.get_doc("User", username)
 		user.add_roles("System Manager")
 		address = frappe.new_doc("Address")
@@ -284,7 +285,12 @@ class TestAPIHooks(FrappeAPITestCase):
 				headers={"Authorization": "Bearer set_test_example_user"},
 			)
 			# Test!
-			self.assertTrue(response.json.get("message") == "test@example.com")
+			self.assertTrue(response.json.get("message") == get_user_by_email("test@example.com"))
+
+	def test_auth_hook_sees_the_method_that_runs(self):
+		with self.patch_hooks({"auth_hooks": ["frappe.tests.test_hooks.block_ping"]}):
+			response = self.get("/api/method/frappe.ping?cmd=frappe.auth.get_logged_user")
+			self.assertEqual(response.status_code, 403)
 
 
 def custom_has_permission(doc, ptype, user):
@@ -297,6 +303,15 @@ def custom_auth():
 	_auth_type, token = frappe.get_request_header("Authorization", "Bearer ").split(" ")
 	if token == "set_test_example_user":
 		frappe.set_user("test@example.com")
+
+
+def block_ping():
+	if frappe.form_dict.cmd:
+		path = f"/api/method/{frappe.form_dict.cmd}"
+	else:
+		path = frappe.request.path
+	if path == "/api/method/frappe.ping":
+		raise frappe.PermissionError
 
 
 class CustomToDo(ToDo):

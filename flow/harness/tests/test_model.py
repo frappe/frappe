@@ -375,6 +375,22 @@ def test_opencode_go_routes_each_family_to_its_wire_protocol():
 		get_model("opencode-go")
 
 
+def test_grove_sends_claude_to_its_anthropic_api_and_the_rest_to_its_openai_api():
+	gateway = "https://ai.example.com/"
+	for name, route, base in (
+		("grove/claude-sonnet-5-5", "anthropic/claude-sonnet-5-5", "https://ai.example.com/anthropic"),
+		("grove/gpt-6-luna", "openai/gpt-6-luna", "https://ai.example.com/openai/v1"),
+		("grove/deepseek-v4.1-flash", "openai/deepseek-v4.1-flash", "https://ai.example.com/openai/v1"),
+	):
+		model = get_model(name, api_key="grove-key", api_base=gateway)
+		assert isinstance(model, LiteLLMModel), name
+		assert (model.name, model._api_base, model.provider, model.model) == (route, base, "grove", name)
+
+	for name, api_base in (("grove", gateway), ("grove/gpt-6-luna", None)):
+		with pytest.raises(ValueError, match="grove/<model-id>"):
+			get_model(name, api_base=api_base)
+
+
 def test_stop_reason_prefers_the_provider_signal_over_tool_presence():
 	assert _stop_reason("length", has_tools=True) == "length"
 	assert _stop_reason("content_filter", has_tools=True) == "error"

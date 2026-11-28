@@ -147,9 +147,9 @@ frappe.ui.form.Control = class BaseControl {
 			this.refresh_input &&
 			this.refresh_input();
 
-		var value = this.get_value();
-
-		this.show_translatable_button(value);
+		if (this.df.translatable) {
+			this.show_translatable_button(this.get_value());
+		}
 	}
 	show_translatable_button(value) {
 		// Disable translation non-string fields or special string fields
@@ -271,7 +271,7 @@ frappe.ui.form.Control = class BaseControl {
 					: this.get_input_value()
 				: undefined;
 		} else {
-			return this.value || undefined;
+			return this.value;
 		}
 	}
 	set_model_value(value) {

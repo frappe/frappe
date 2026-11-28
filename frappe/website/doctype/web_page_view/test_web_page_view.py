@@ -150,6 +150,8 @@ class TestWebPageView(IntegrationTestCase):
 		previous_request = getattr(frappe.local, "request", None)
 		self.addCleanup(setattr, frappe.local, "request", previous_request)
 		frappe.local.request = Request(builder.get_environ())
+		self.addCleanup(setattr, frappe.local, "request_ip", getattr(frappe.local, "request_ip", None))
+		frappe.local.request_ip = "127.0.0.1"
 
 		with self.change_settings("Website Settings", enable_view_tracking=1):
 			# `make_view_log` queues the row rather than inserting it, and decides `is_unique`
@@ -193,7 +195,7 @@ class TestWebPageView(IntegrationTestCase):
 
 		_, data, _, _, summary = website_analytics({**filters, "range": "Daily"})
 
-		self.assertEqual(data, [(self._path("pricing"), 2, 1), (self._path("about"), 1, 1)])
+		self.assertEqual(data, ((self._path("pricing"), 2, 1), (self._path("about"), 1, 1)))
 		self.assertEqual([s["value"] for s in summary], [3, 2])
 
 		# Every bucket the chart produces has to land on one of the labels it is plotted

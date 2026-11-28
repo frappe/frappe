@@ -28,8 +28,9 @@ def get_size(path: Path):
 	return f"{size / 1024:.1f}K"
 
 
-def get_context(context):
-	context.no_cache = True
+@frappe.whitelist()
+def get_backup_files():
+	frappe.only_for("System Manager")
 	backup_limit = frappe.get_system_settings("backup_limit")
 	backups_path = Path(get_site_path("private", "backups"))
 	backup_files = [
@@ -45,7 +46,7 @@ def get_context(context):
 
 	backup_files.sort(key=lambda x: x[1], reverse=True)
 
-	return {"files": backup_files[:backup_limit]}
+	return backup_files[:backup_limit]
 
 
 def cleanup_old_backups(backups: dict[str, list[Path]], limit: int):

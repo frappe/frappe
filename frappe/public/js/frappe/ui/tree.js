@@ -442,7 +442,11 @@ frappe.ui.Tree = class {
 				theme: obj.danger ? "red" : undefined,
 				disabled: !!reason,
 				description: reason || undefined,
-				onclick: () => obj.click(node),
+				onclick: () => {
+					this.set_selected_node(node);
+					this.select_link(node);
+					obj.click(node);
+				},
 			};
 		});
 	}
@@ -469,6 +473,8 @@ frappe.ui.Tree = class {
 					title: label,
 					onclick: (e) => {
 						e.stopPropagation();
+						this.set_selected_node(node);
+						this.select_link(node);
 						obj.click(node);
 					},
 				})

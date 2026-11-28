@@ -2,6 +2,7 @@ import datetime
 import re
 from contextlib import contextmanager
 from decimal import Decimal
+from functools import lru_cache
 from itertools import batched
 
 import psycopg
@@ -201,11 +202,13 @@ class PostgresExceptionUtil:
 		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
 		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
 		# retry instead of surfacing as an unhandled query error.
-		return isinstance(e, errors.DeadlockDetected | errors.SerializationFailure)
+		return isinstance(
+			e, errors.DeadlockDetected | errors.SerializationFailure | frappe.QueryDeadlockError
+		)
 
 	@staticmethod
 	def is_timedout(e):
-		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable)
+		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable | frappe.QueryTimeoutError)
 
 	@staticmethod
 	def is_read_only_mode_error(e) -> bool:
@@ -261,7 +264,7 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_statement_timeout(e):
-		return PostgresDatabase.is_timedout(e) or isinstance(e, frappe.QueryTimeoutError)
+		return PostgresDatabase.is_timedout(e)
 
 	@staticmethod
 	def is_data_too_long(e):
@@ -1079,8 +1082,14 @@ def _integral_floats_as_ints(row, integer_positions):
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
+	return _modify_query(str(query))
+
+
+# Values are bound separately, so the same query text repeats across requests
+@lru_cache(maxsize=1024)
+def _modify_query(query: str) -> str:
 	# replace ` with " only where a backtick delimits an identifier
-	query = convert_backtick_identifiers(str(query))
+	query = convert_backtick_identifiers(query)
 	query = replace_locate_with_strpos(query)
 	query = MYSQL_SYNTAX_PATTERN.sub(_rewrite_mysql_syntax, query)
 	# select from requires ""

@@ -2,11 +2,13 @@
 	<!-- the child's thread, drawn by the same list as the session's -->
 	<MessageList v-if="thread" :key="id" :conversation="thread" />
 	<LoadingState v-else-if="flow.state.loading" class="flex-1 justify-center text-sm text-ink-gray-4" />
-	<div v-else class="flex flex-1 items-center justify-center text-sm text-ink-gray-4">Starting…</div>
+	<div v-else class="flex flex-1 items-center justify-center text-sm text-ink-gray-4">{{ __("Starting…") }}</div>
 </template>
 
 <script setup>
 import { computed, inject, provide, ref } from "vue"
+
+import { __ } from "../translate.js"
 
 import LoadingState from "./LoadingState.vue"
 import MessageList from "./MessageList.vue"

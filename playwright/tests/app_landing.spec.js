@@ -30,9 +30,9 @@ function framework_landing(page) {
 
 async function framework_tile_href(page) {
 	await page.evaluate(() => frappe.set_route("desktop"));
-	const tile = page.locator(".desktop-icon", { hasText: "Framework" }).locator(".icon-title");
-	await expect(tile).toBeVisible();
-	return tile.getAttribute("href");
+	const tile = page.locator(".desktop-icon", { hasText: "Framework" });
+	await expect(tile.locator(".icon-title")).toBeVisible();
+	return tile.locator("a.icon-title, .module-folder-app").first().getAttribute("href");
 }
 
 test.describe("Where an app's icon leads", () => {
@@ -126,6 +126,31 @@ test.describe("Where an app's icon leads", () => {
 		});
 
 		expect(route).toBe("/crm");
+	});
+});
+
+test.describe("Clicking a dock entry", () => {
+	test.afterEach(async ({ api }) => {
+		await api.call(SAVE_USER_DOCK, { app: "frappe", items: "[]" });
+	});
+
+	test("opens a web address in a new tab and leaves the desk where it was", async ({
+		page,
+		desk,
+		api,
+		context,
+	}) => {
+		await context.route("https://example.com/**", (route) =>
+			route.fulfill({ body: "outside" })
+		);
+		await save_user_dock(page, desk, api, [{ ...url_row, title: "Example", icon: "book" }]);
+		const desk_url = page.url();
+
+		const new_tab = context.waitForEvent("page");
+		await page.locator('#desk-dock .dock-item[aria-label="Example"]').click();
+
+		await expect(await new_tab).toHaveURL("https://example.com/");
+		expect(page.url()).toBe(desk_url);
 	});
 });
 

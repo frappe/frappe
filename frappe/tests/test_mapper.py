@@ -62,4 +62,4 @@ class TestMapper(IntegrationTestCase):
 			)
 
 		self.assertEqual(doc.doctype, "Contact")
-		self.assertEqual(doc.email_ids[0].email_id, "test@example.com")
+		self.assertEqual(doc.email_ids[0].email_id, note.owner)

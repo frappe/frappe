@@ -4,7 +4,7 @@
 		:key="tab"
 		:spec="tab === 'bases' ? SPECS.knowledge_bases : SPECS.knowledge_sources"
 		:filters="filters"
-		title="Knowledge"
+		:title="__('Knowledge')"
 		:description="DESCRIPTION"
 	>
 		<template #tabs><TabButtons v-model="tab" :options="tabs" class="mb-4" /></template>
@@ -23,7 +23,7 @@
 			</div>
 		</template>
 	</DocPanel>
-	<DocForm v-else :spec="SPECS.knowledge_settings" title="Knowledge" :description="DESCRIPTION">
+	<DocForm v-else :spec="SPECS.knowledge_settings" :title="__('Knowledge')" :description="DESCRIPTION">
 		<TabButtons v-model="tab" :options="tabs" class="mb-4" />
 	</DocForm>
 </template>
@@ -36,17 +36,18 @@ import DocForm from "./DocForm.vue";
 import DocPanel from "./DocPanel.vue";
 import { searchLinks } from "./links.js";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import { __ } from "@flow/ui-core/translate.js";
 import { SPECS } from "./specs.js";
 
-const DESCRIPTION = "Sources agents can search.";
+const DESCRIPTION = __("Sources agents can search.");
 
 const page = inject("flowPage");
 const tabs = computed(() =>
 	[
-		{ label: "Bases", value: "bases" },
-		{ label: "Sources", value: "sources" },
+		{ label: __("Bases"), value: "bases" },
+		{ label: __("Sources"), value: "sources" },
 		page.can("Flow Knowledge Settings", "read")
-			? { label: "Settings", value: "settings" }
+			? { label: __("Settings"), value: "settings" }
 			: null,
 	].filter(Boolean)
 );
@@ -70,7 +71,7 @@ watch([tab, query], async ([value, text], _, onCleanup) => {
 	}
 });
 const baseOptions = computed(() => [
-	{ label: "All knowledge bases", value: "" },
+	{ label: __("All knowledge bases"), value: "" },
 	...bases.value,
 	...(base.value && !bases.value.some((option) => option.value === base.value)
 		? [{ label: base.value, value: base.value }]

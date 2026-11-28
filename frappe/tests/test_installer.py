@@ -1,9 +1,12 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import copy
+import json
 from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
+from frappe.defaults import _clear_cache
 from frappe.installer import add_module_defs, install_app, remove_from_installed_apps
 from frappe.tests import IntegrationTestCase
 
@@ -133,11 +136,35 @@ class TestInstallAppOrdering(IntegrationTestCase):
 		)
 
 
+class TestRemoveFromInstalledApps(IntegrationTestCase):
+	def test_the_removed_apps_hooks_do_not_run(self):
+		"""`clear_cache` can write the hooks back to redis before it drops the request-cached
+		app list, so they still hold the removed app's. The save that follows must not run them."""
+		installed = frappe.db.get_global("installed_apps")
+		self.addCleanup(frappe.clear_cache)
+		self.addCleanup(frappe.db.set_global, "installed_apps", installed)
+		stale = copy.deepcopy(dict(frappe.get_hooks()))
+		on_update = stale.setdefault("doc_events", {}).setdefault("*", {}).setdefault("on_update", [])
+		on_update.append(f"{FAKE_APP}.hooks.on_update")
+		frappe.db.set_global("installed_apps", json.dumps([*frappe.get_installed_apps(), FAKE_APP]))
+		frappe.clear_cache()
+
+		def clear_and_recache(parent):
+			_clear_cache(parent)
+			frappe.cache.set_value("app_hooks", stale)
+
+		with patch("frappe.installer._clear_cache", clear_and_recache):
+			remove_from_installed_apps(FAKE_APP)
+
+		self.assertNotIn(FAKE_APP, frappe.get_installed_apps())
+
+
 class TestAddModuleDefs(IntegrationTestCase):
 	def test_skips_modules_the_app_already_has(self):
 		modules = frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name")
 
-		add_module_defs("frappe")
+		with patch("frappe.get_module_list", return_value=modules):
+			add_module_defs("frappe")
 
 		self.assertCountEqual(
 			frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name"), modules

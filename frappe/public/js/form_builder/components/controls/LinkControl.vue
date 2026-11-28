@@ -37,26 +37,28 @@ let content = computed({
 	set: (value) => emit("update:modelValue", value),
 });
 
+function set_table_filter() {
+	if (props.args?.is_table_field) {
+		props.df.filters = { ...props.df.filters, istable: 1 };
+	} else if (props.df.filters && "istable" in props.df.filters) {
+		delete props.df.filters.istable;
+	}
+}
+
 onMounted(() => {
 	if (link.value) {
-		if (props.args?.is_table_field) {
-			if (props.df.filters) {
-				// update filters
-				props.df.filters.istable = 1;
-			} else {
-				// add filters
-				props.df.filters = { istable: 1 };
-			}
-		} else {
-			// reset filters
-			if (props.df.filters && "istable" in props.df.filters) {
-				delete props.df.filters.istable;
-			}
-		}
-
+		set_table_filter();
 		link_control.value;
 	}
 });
+
+watch(
+	() => props.args?.is_table_field,
+	() => {
+		set_table_filter();
+		if (link_control.value) link_control.value.df.filters = props.df.filters;
+	}
+);
 
 watch(
 	() => content.value,

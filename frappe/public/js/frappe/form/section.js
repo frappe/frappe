@@ -177,3 +177,5 @@ export default class Section {
 		// this.on_section_toggle && this.on_section_toggle(show);
 	}
 }
+
+frappe.ui.form.Section = Section;

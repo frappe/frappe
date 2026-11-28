@@ -8,18 +8,18 @@ from frappe.flow import api
 from frappe.flow.memory import store as memory_store
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run", "Flow Skill")
 
 
 def _user(email: str, *roles: str) -> str:
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			{"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
-		).insert(ignore_permissions=True)
+	if not (user := get_user_by_email(email)):
+		new_user = frappe.new_doc("User", email=email, first_name=email.split("@")[0], send_welcome_email=0)
+		user = new_user.insert(ignore_permissions=True).name
 	if roles:
-		frappe.get_doc("User", email).add_roles(*roles)
-	return email
+		frappe.get_doc("User", user).add_roles(*roles)
+	return user
 
 
 def _agent() -> str:
@@ -90,6 +90,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"set_model": {"session": session.name, "model": "m"},
 			"set_title": {"session": session.name, "title": "t"},
 			"set_approval_mode": {"session": session.name, "mode": "Ask"},
+			"set_prefs": {"prefs": {}},
 			"delete_session": {"session": session.name},
 			"list_shares": {"session": session.name},
 			"share_session": {"session": session.name, "user": "Administrator"},
@@ -103,8 +104,10 @@ class TestFlowAccess(IntegrationTestCase):
 			"skills": {"session": session.name},
 			"save_secret": {"session": session.name, "call_id": "c1", "password": "x"},
 		}
-		self.assertEqual(set(calls), set(api.__all__))
+		# except is_enabled, which every user gets in boot too
+		self.assertEqual(set(calls), set(api.__all__) - {"is_enabled"})
 		frappe.set_user(outsider)
+		self.assertIsInstance(api.is_enabled(), bool)
 		for name, kwargs in calls.items():
 			with self.subTest(name), self.assertRaises(frappe.PermissionError):
 				getattr(api, name)(**kwargs)

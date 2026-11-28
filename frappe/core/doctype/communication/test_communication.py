@@ -1,20 +1,22 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import email
 import json
 from datetime import timedelta
+from email.utils import parseaddr
 from typing import TYPE_CHECKING
 
 import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
 from frappe.core.doctype.communication.email import add_attachments, make, undo_email_send
 from frappe.email import relink
+from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, now_datetime
+from frappe.utils import add_to_date, get_url_to_form, now_datetime
 
 if TYPE_CHECKING:
 	from frappe.contacts.doctype.contact.contact import Contact
-	from frappe.email.doctype.email_account.email_account import EmailAccount
 
 
 class TestCommunication(IntegrationTestCase):
@@ -669,10 +671,10 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 
 	def test_cc(self):
 		def test(assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False):
+			user = self.new_user(email="cc+1@test.com", thread_notify=thread_notify)
 			if set_user_as:
 				frappe.set_user(set_user_as)
 
-			user = self.new_user(email="cc+1@test.com", thread_notify=thread_notify)
 			comm = self.new_communication(recipients=["to@test.com"], cc=cc_list)
 			res = comm.get_mail_cc_with_displayname(include_sender=include_sender)
 
@@ -714,6 +716,68 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		self.assertCountEqual(to_list + cc_list, mail_receivers)
 		doc.delete()
 		comm.delete()
+
+	def new_inbound_communication(self, assignee, in_reply_to=None) -> Communication:
+		reference = frappe.new_doc("ToDo", description="Inbound mail").insert(ignore_permissions=True)
+		frappe.new_doc(
+			"ToDo",
+			description="Assigned",
+			allocated_to=assignee.name,
+			reference_type="ToDo",
+			reference_name=reference.name,
+		).insert(ignore_permissions=True)
+
+		comm = self.new_communication(recipients=["support@example.com"])
+		comm.db_set(
+			{
+				"reference_doctype": "ToDo",
+				"reference_name": reference.name,
+				"sent_or_received": "Received",
+				"in_reply_to": in_reply_to,
+			}
+		)
+		return comm
+
+	def test_inbound_notification_is_addressed_to_assignee(self):
+		assignee = self.new_user(email="inbound.assignee@example.com", thread_notify=1)
+
+		with self.set_user("test@example.com"):
+			comm = self.new_inbound_communication(assignee)
+			comm.send_email(is_inbound_mail_communcation=True)
+
+		queue = EmailQueue.find_one_by_filters(communication=comm.name)
+		message = email.message_from_string(queue.message)
+
+		self.assertCountEqual(message["To"].split(", "), ["test@example.com", assignee.email])
+		self.assertIsNone(message["CC"])
+		self.assertFalse(queue.show_as_cc)
+		self.assertCountEqual(
+			[row.recipient for row in queue.recipients], ["test@example.com", assignee.email]
+		)
+
+	def test_inbound_copy_of_reply_is_a_notification_from_the_account(self):
+		assignee = self.new_user(email="inbound.assignee@example.com", thread_notify=1)
+
+		with self.set_user("test@example.com"):
+			parent = self.new_communication(recipients=["sender@test.com"])
+			comm = self.new_inbound_communication(assignee, in_reply_to=parent.name)
+			comm.send_email(is_inbound_mail_communcation=True)
+
+		queue = EmailQueue.find_one_by_filters(communication=comm.name)
+		message = email.message_from_string(queue.message)
+		html = next(
+			part.get_payload(decode=True).decode()
+			for part in message.walk()
+			if part.get_content_type() == "text/html"
+		)
+		account = EmailAccount.find_outgoing(match_by_doctype="ToDo")
+
+		self.assertEqual(parseaddr(message["From"]), (account.name, account.email_id))
+		self.assertEqual(message["Reply-To"], comm.get_incoming_email_account().email_id)
+		self.assertIn(f"New Email on {comm.reference_name}", html)
+		self.assertIn("sender@test.com", html)
+		self.assertIn("Test content", html)
+		self.assertIn(get_url_to_form("ToDo", comm.reference_name), html)
 
 	def test_add_attachments_by_filename(self):
 		to_list = ["to <to@test.com>"]

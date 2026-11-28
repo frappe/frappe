@@ -44,7 +44,7 @@ class Workspace(DeskViews):
 		# A standard workspace stays the live, app-owned base; a site's customization is a
 		# separate delta merged on top here. Use a fresh (non-cached) doc on the merge path
 		# so we never mutate the shared cached document.
-		customization = get_customization(self.page_name)
+		customization = get_shown_customization(self.page_name)
 		if customization:
 			self.doc = frappe.get_doc("Workspace", self.page_name)
 			apply_customization(self.doc, customization)
@@ -371,8 +371,13 @@ def get_desktop_page(page: str | dict):
 	Return:
 	        dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
+	from frappe.desk.doctype.workspace.workspace import has_permission
+
 	try:
 		workspace = Workspace(frappe.parse_json(page))
+		if not has_permission(workspace.doc):
+			frappe.throw(_("You do not have access to this workspace."), frappe.PermissionError)
+
 		workspace.build_workspace()
 		return {
 			"charts": workspace.charts,
@@ -395,7 +400,7 @@ def _overlay_customization_properties(pages: list) -> bool:
 	"""
 	resequenced = False
 	for page in pages:
-		customization = get_customization(page.name)
+		customization = get_shown_customization(page.name)
 		if not customization:
 			continue
 		page["is_customized"] = True
@@ -422,6 +427,12 @@ def _overlay_customization_properties(pages: list) -> bool:
 			page["sequence_id"] = customization.sequence_id
 			resequenced = True
 	return resequenced
+
+
+def get_shown_customization(workspace: str):
+	customization = get_customization(workspace)
+	if customization and frappe.db.get_value("Workspace", workspace, "standard", cache=True):
+		return customization
 
 
 @request_cache

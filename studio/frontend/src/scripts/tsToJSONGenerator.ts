@@ -75,7 +75,8 @@ const configMap: Record<string, any> = {
 		perComponent: true,
 	},
 	studio: {
-		srcFolders: ["src/types/studio_components"],
+		srcFolders: ["src/runtime/components/core"],
+		folderScan: true,
 		destFolder: "src/json_types/studio",
 		tsconfigPath: "tsconfig.json",
 	},

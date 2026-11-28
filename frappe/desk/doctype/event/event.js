@@ -69,31 +69,6 @@ frappe.ui.form.on("Event", {
 	},
 });
 
-frappe.ui.form.on("Event Participants", {
-	event_participants_remove: function (frm, cdt, cdn) {
-		if (cdt && !cdn.includes("new-event-participants")) {
-			frappe.call({
-				type: "POST",
-				method: "frappe.desk.doctype.event.event.delete_communication",
-				args: {
-					event: frm.doc,
-					reference_doctype: cdt,
-					reference_docname: cdn,
-				},
-				freeze: true,
-				callback: function (r) {
-					if (r.exc) {
-						frappe.show_alert({
-							message: __("{0}", [r.exc]),
-							indicator: "orange",
-						});
-					}
-				},
-			});
-		}
-	},
-});
-
 frappe.desk.eventParticipants = class eventParticipants {
 	constructor(frm, doctype) {
 		this.frm = frm;

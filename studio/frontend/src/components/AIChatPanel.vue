@@ -231,9 +231,9 @@ import { marked } from "marked"
 import DOMPurify from "dompurify"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { usePageScope } from "@/stores/codeStore"
+import { usePageScope } from "@/runtime/stores/codeStore"
 import { AIChatController } from "@/components/AIChatController"
-import { getBlockInstance, getBlockString } from "@/utils/serializer"
+import { getBlockInstance, getBlockString } from "@/runtime/utils/serializer"
 import type { BlockOptions } from "@/types"
 import { studioSettings } from "@/data/studioSettings"
 import LucideSparkle from "~icons/lucide/sparkle"
@@ -343,9 +343,7 @@ const controller = new AIChatController({
 	savePage: () => store.savePage(),
 	reloadSession,
 	scrollToBottom,
-	reloadPageData: ({ resources, variables, script, router, modified }) => {
-		// the router editor opens from the app doc, so it must see what the agent saved
-		if (router) store.reloadActiveAppRouterScript()
+	reloadPageData: ({ resources, variables, script, modified }) => {
 		const page = store.activePage
 		if (!page) return
 		if (resources) pageScope.setPageResources(page)

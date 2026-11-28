@@ -1,0 +1,10 @@
+@import "frappe-ui/style.css";
+
+:root {
+	color-scheme: light;
+	background-color: var(--surface-base);
+}
+
+[data-theme="dark"] {
+	color-scheme: dark;
+}

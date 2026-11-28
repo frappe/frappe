@@ -210,6 +210,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 					no_letterhead: 0,
 					trigger_print: 0,
 				},
+				type: "QUERY",
 				callback: (r) => resolve(r.exc ? null : r.message),
 				error: () => resolve(null),
 			});

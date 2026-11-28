@@ -5,7 +5,7 @@ import {
 	FRAPPE_UI_CHARTS,
 	STUDIO_COMPONENTS,
 	FRAMEWORK_UI_COMPONENTS,
-} from "../utils/constants.js"
+} from "../runtime/utils/constants.js"
 import { writeFileSync } from "fs"
 import fs from "fs"
 import { build } from "vite"
@@ -19,6 +19,7 @@ import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
 import frameworkui from "@framework/ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
+import databaseAppImports from "../../vite/databaseAppImports.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
 import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
@@ -76,10 +77,12 @@ const { values: argv } = parseArgs({
 		base: { type: "string" },
 		"custom-components": { type: "string" },
 		"page-scripts": { type: "string" },
+		"component-scripts": { type: "string" },
 		"router-file": { type: "string" },
 		icons: { type: "string" },
 		"app-folder": { type: "string" },
 		"tailwind-content": { type: "string", multiple: true },
+		"database-app": { type: "boolean" },
 	},
 	strict: false,
 })
@@ -96,10 +99,12 @@ await generateAppBuild(
 	argv.base,
 	argv["custom-components"],
 	argv["page-scripts"],
+	argv["component-scripts"],
 	argv.icons,
 	argv["router-file"],
 	argv["app-folder"],
 	argv["tailwind-content"],
+	argv["database-app"],
 )
 
 export async function generateAppBuild(
@@ -109,22 +114,36 @@ export async function generateAppBuild(
 	base,
 	customComponentsJson,
 	pageScriptsJson,
+	componentScriptsJson,
 	icons,
 	routerFile,
 	appFolder,
 	tailwindContent = [],
+	databaseApp = false,
 ) {
 	if (!appName) return
+	if (databaseApp && !appFolder) throw new Error("--database-app requires --app-folder")
 
 	const componentList = components ? components.split(",") : []
 	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
 	// pageScripts: [{ page_name, file_path }]
 	const pageScripts = pageScriptsJson ? JSON.parse(pageScriptsJson) : []
+	// componentScripts: { component_id: file_path }
+	const componentScripts = componentScriptsJson ? JSON.parse(componentScriptsJson) : {}
 	const componentSources = findComponentSources(componentList, customComponents)
-	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile)
+	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile, componentScripts)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	const iconList = icons ? icons.split(",") : []
-	await buildWithVite(appName, tempRendererPath, outDir, base, iconList, appFolder, tailwindContent)
+	await buildWithVite(
+		appName,
+		tempRendererPath,
+		outDir,
+		base,
+		iconList,
+		appFolder,
+		tailwindContent,
+		databaseApp,
+	)
 	deleteRendererFile(tempRendererPath)
 }
 
@@ -171,7 +190,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 	}
 }
 
-function getRendererContent(componentSources, pageScripts = [], routerFile = null) {
+function getRendererContent(componentSources, pageScripts = [], routerFile = null, componentScripts = {}) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
@@ -192,7 +211,7 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 			: ""
 	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
 	const studioImports = studioComponents
-		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
+		.map((comp) => `import ${comp} from "@/runtime/components/core/${comp}/${comp}.vue"`)
 		.join("\n")
 	const customComponentNames = Object.keys(customComponents)
 	const customImports = customComponentNames
@@ -216,7 +235,7 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 	// Rollup chunk each page script (and the modules it imports); codeStore loads them on
 	// navigation.
 	const pageScriptImport = pageScripts.length
-		? `import { setPageScriptImporters } from "@/data/studioPageScripts"`
+		? `import { setPageScriptImporters } from "@/runtime/data/studioPageScripts"`
 		: ""
 	const pageScriptSetup = pageScripts.length
 		? `setPageScriptImporters({
@@ -226,19 +245,35 @@ ${pageScripts
 })`
 		: ""
 
-	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
+	// A chunk per component script, keyed by component id. componentStore loads one when a page
+	// that uses the component loads.
+	const componentScriptEntries = Object.entries(componentScripts)
+	const componentScriptImport = componentScriptEntries.length
+		? `import { setComponentScriptImporters } from "@/runtime/data/studioComponentScripts"`
+		: ""
+	const componentScriptSetup = componentScriptEntries.length
+		? `setComponentScriptImporters({
+${componentScriptEntries
+	.map(
+		([componentId, filePath]) => `	${JSON.stringify(componentId)}: () => import(${JSON.stringify(filePath)}),`,
+	)
+	.join("\n")}
+})`
+		: ""
+
+	// An app without a router file falls back to Studio's own routing.
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : ""
 
-	const rendererContent = `import "@/index.css"
+	const rendererContent = `import "@/runtime/index.css"
 import { createApp, defineAsyncComponent } from "vue"
 import { createPinia } from "pinia"
-import "@/setupFrappeUIResource"
-import { createAppRouter } from "@/router/app_router"
-import ErrorPage from "@/pages/ErrorPage.vue"
-import AppRenderer from "@/AppRenderer.vue"
+import "@/runtime/setupFrappeUIResource"
+import { createAppRouter } from "@/runtime/router/app_router"
+import ErrorPage from "@/runtime/pages/ErrorPage.vue"
+import AppRenderer from "@/runtime/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
-import { initSocket } from "@/socket"
+import { initSocket } from "@/runtime/socket"
 ${routerImport}
 
 ${frappeUIImports}
@@ -248,6 +283,7 @@ ${frameworkUIImports}
 ${studioImports}
 ${customImports}
 ${pageScriptImport}
+${componentScriptImport}
 
 const app = createApp(AppRenderer)
 const pinia = createPinia()
@@ -260,6 +296,7 @@ ${componentRegistrations}
 window.__APP_COMPONENTS__ = app._context.components
 
 ${pageScriptSetup}
+${componentScriptSetup}
 
 createAppRouter(${routerConfig})
 	.then((router) => app.use(router).mount("#app"))
@@ -308,6 +345,7 @@ async function buildWithVite(
 	icons = [],
 	appFolder,
 	tailwindContent = [],
+	databaseApp = false,
 ) {
 	outDir = outDir || path.resolve(__dirname, `../../../../frappe/public/app_builds/${appName}`)
 	basePath = basePath || `/assets/frappe/app_builds/${appName}/`
@@ -324,13 +362,23 @@ async function buildWithVite(
 				buildConfig: false,
 				jinjaBootData: false,
 			}),
+			// Before studioRootAlias, so it sees @app/ specifiers as written.
+			databaseApp && databaseAppImports(appFolder),
 			studioRootAlias(),
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 			// resolves @framework/ui's own deps from studio's node_modules
 			frameworkui(),
 		],
 		resolve: {
-			alias: [...frameworkUIAlias(APPS_DIR), { find: "@", replacement: path.resolve(__dirname, "../") }],
+			alias: [
+				...frameworkUIAlias(APPS_DIR),
+				// Built apps use compiled source and do not need the browser compiler or registry.
+				{
+					find: /^@\/runtime\/browserRuntime\/appRuntime$/,
+					replacement: path.resolve(__dirname, "../runtime/browserRuntime/noBrowserRuntime.ts"),
+				},
+				{ find: "@", replacement: path.resolve(__dirname, "../") },
+			],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: [
@@ -361,7 +409,6 @@ async function buildWithVite(
 			outDir: outDir,
 			emptyOutDir: true,
 			target: "es2015",
-			sourcemap: true,
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {

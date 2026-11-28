@@ -14,21 +14,39 @@ function stubURL(name) {
 		`))
 	return stubs.get(name)
 }
-// the chat search palette: while open, its query field and a way to close it
-stubs.set("ChatSearch", moduleURL(`
-	import { h } from ${JSON.stringify(vue)}
-	export default {
+// frappe-ui's command palette: while open, its query field, its rows as options and a way to close it
+const palette = moduleURL(`
+	import { h, inject, provide } from ${JSON.stringify(vue)}
+	const piece = { render() { return this.$slots.default?.() } }
+	export const CommandPalette = {
 		props: ["open", "query"],
-		emits: ["update:open", "update:query"],
-		render() {
-			if (!this.open) return null
-			return h("div", { "data-stub": "ChatSearch" }, [
-				h("input", { "aria-label": "Search chats", value: this.query, onInput: (e) => this.$emit("update:query", e.target.value) }),
-				h("button", { title: "Close search", onClick: () => this.$emit("update:open", false) }),
-			])
+		emits: ["update:open", "update:query", "select"],
+		setup(props, { slots, emit }) {
+			provide("palette", { props, emit })
+			return () => props.open ? h("div", { "data-stub": "CommandPalette" }, [
+				slots.default?.(),
+				h("button", { title: "Close search", onClick: () => emit("update:open", false) }),
+			]) : null
 		},
 	}
-`))
+	export const CommandPaletteInput = {
+		inheritAttrs: false,
+		setup() {
+			const { props, emit } = inject("palette")
+			return () => h("input", { "aria-label": "Search chats", value: props.query, onInput: (e) => emit("update:query", e.target.value) })
+		},
+	}
+	export const CommandPaletteItem = {
+		props: ["value"],
+		setup(props, { slots }) {
+			const { emit } = inject("palette")
+			return () => h("button", { role: "option", onClick: () => emit("select", props.value) }, slots.default?.())
+		},
+	}
+	export const CommandPaletteList = piece
+	export const CommandPaletteGroup = piece
+	export const CommandPaletteEmpty = { render: () => null }
+`)
 const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([]); export const dialog = {}`)
 // a test sets the dialog.* calls it expects, or opens one on the stack
 export const { dialog, dialogs: dialogStack } = await import(dialogs)
@@ -209,6 +227,7 @@ const components = new Set([
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 	"SubagentView.vue", "TranscriptDialog.vue", "WorkspacePanel.vue", "FilesBar.vue", "FileTree.vue", "LoadingState.vue", "AddToChat.vue",
 	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue", "TitleField.vue", "KeyButton.vue",
+	"ChatSearch.vue",
 ])
 const compiled = new Map()
 
@@ -244,6 +263,8 @@ async function componentURL(url) {
 			resolved = widgets
 		} else if (specifier === "frappe-ui/src/composables/usePortalTarget") {
 			resolved = portalTarget
+		} else if (specifier === "frappe-ui/experimental") {
+			resolved = palette
 		} else if (specifier === "frappe-ui") {
 			resolved = frappeUI
 		} else if (specifier === "@flow/ui-core") {

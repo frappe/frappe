@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import { get_country_flag_url } from "./country_flag_url.js";
 import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
@@ -920,6 +921,9 @@ Object.assign(frappe.utils, {
 
 		return email_list;
 	},
+	extract_email: function (address) {
+		return address.match(/<([^>]+)>\s*$/)?.[1].trim() || address.trim();
+	},
 	supportsES6: (function () {
 		try {
 			new Function("(a = 0) => a");
@@ -1125,6 +1129,14 @@ Object.assign(frappe.utils, {
 
 	deep_equal(a, b) {
 		return deep_equal(a, b);
+	},
+
+	sort_by_order(values, order) {
+		const position = (value) => {
+			const index = order.indexOf(value);
+			return index === -1 ? order.length : index;
+		};
+		return [...values].sort((a, b) => position(a) - position(b));
 	},
 
 	file_name_ellipsis(filename, length) {
@@ -1491,70 +1503,6 @@ Object.assign(frappe.utils, {
 	// --- Desktop Icon grid -----------------------------------------------------------
 	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
 	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
-	get_route_for_icon(desktop_icon) {
-		let route;
-		if (!desktop_icon) return;
-		let item = {};
-		if (desktop_icon.link_type == "External" && desktop_icon.link) {
-			route = desktop_icon.link;
-		} else {
-			let sidebar = frappe.utils.sidebar_for_module(
-				desktop_icon.module || desktop_icon.label
-			);
-			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
-				let first_link = sidebar.items.find((i) => i.type == "Link");
-				if (first_link) {
-					if (first_link.link_type === "Report") {
-						let args = {
-							type: first_link.link_type,
-							name: first_link.link_to,
-						};
-
-						// the body reads `first_link.report.*`, so a link whose report has been
-						// deleted (no `report` payload) has to skip it, not fall through to it
-						if (first_link.report) {
-							args.is_query_report =
-								first_link.report.report_type === "Query Report" ||
-								first_link.report.report_type == "Script Report";
-							args.report_ref_doctype = first_link.report.ref_doctype;
-						}
-
-						route = frappe.utils.generate_route(args);
-					} else if (first_link.link_type == "Workspace") {
-						let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
-						if (workspaces) {
-							if (workspaces.public) {
-								route = "/desk/" + frappe.router.slug(first_link.link_to);
-							} else {
-								route = "/desk/private/" + frappe.router.slug(workspaces.title);
-							}
-						}
-					} else if (first_link.link_type === "URL") {
-						route = first_link.url;
-					} else if (first_link.link_type == "Page") {
-						route = frappe.utils.generate_route({
-							type: first_link.link_type,
-							name: first_link.link_to,
-							route: first_link.route
-								? `${first_link.link_to}/${first_link.route}`
-								: undefined,
-							route_options: first_link.route_options
-								? JSON.parse(first_link.route_options)
-								: undefined,
-						});
-					} else {
-						route = frappe.utils.generate_route({
-							type: first_link.link_type,
-							name: first_link.link_to,
-							tab: first_link.tab,
-						});
-					}
-				}
-			}
-		}
-		return route;
-	},
-
 	get_desktop_icon(icon_name, variant) {
 		let exists = false;
 		let icon_data = this.get_desktop_icon_by_label(icon_name);
@@ -1622,7 +1570,9 @@ Object.assign(frappe.utils, {
 	},
 
 	flag(country_code) {
-		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
+		return `<img loading="lazy" src="${get_country_flag_url(
+			country_code
+		)}" width="20" height="15" alt="">`;
 	},
 
 	is_emoji(str) {
@@ -1705,7 +1655,7 @@ Object.assign(frappe.utils, {
 				let doctype_slug = frappe.router.slug(item.doctype);
 
 				if (frappe.model.is_single(item.doctype)) {
-					route = `${doctype_slug}/${item.doctype}`;
+					route = doctype_slug;
 				} else {
 					switch (item.doc_view) {
 						case "List":
@@ -2086,11 +2036,8 @@ Object.assign(frappe.utils, {
 		return this.cleanup_filters(filters);
 	},
 	cleanup_filters(filters) {
-		if (filters.length && filters[0].length == 5) {
-			filters.pop();
-			return filters;
-		}
-		return filters;
+		if (!Array.isArray(filters)) return filters;
+		return filters.map((filter) => (filter.length == 5 ? filter.slice(0, 4) : filter));
 	},
 	get_filter_from_json(filter_json, doctype) {
 		// convert json to filter array

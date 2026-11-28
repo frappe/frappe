@@ -10,10 +10,20 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
+from frappe.deprecation_dumpster import (
+	set_title_values_for_link_and_dynamic_link_fields,
+	set_title_values_for_table_and_multiselect_fields,
+)
+from frappe.desk.link_title import get_doc_link_titles
 from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
-from frappe.utils.print_utils import HTML_PDF_GENERATORS, resolve_pdf_generator
+from frappe.utils.print_utils import (
+	HTML_PDF_GENERATORS,
+	convert_uom,
+	parse_float_and_unit,
+	resolve_pdf_generator,
+)
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
@@ -59,7 +69,10 @@ def get_context(context) -> PrintContext:
 	if frappe.form_dict.doc:
 		doc = frappe.form_dict.doc
 	else:
-		doc = frappe.get_lazy_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+		doctype = frappe.form_dict.doctype
+		if frappe.db.exists("DocType", doctype, True) != doctype:
+			raise frappe.DoesNotExistError(doctype="DocType")
+		doc = frappe.get_lazy_doc(doctype, frappe.form_dict.name)
 
 	settings = frappe.parse_json(frappe.form_dict.settings)
 
@@ -67,7 +80,9 @@ def get_context(context) -> PrintContext:
 
 	meta = frappe.get_meta(doc.doctype)
 
-	print_format, standalone = resolve_print_format(None, meta)
+	print_format, standalone = resolve_print_format(
+		None, meta, frappe._dict(doctype=frappe.form_dict.doctype, name=frappe.form_dict.name)
+	)
 
 	print_format_name = getattr(print_format, "name", "Standard")
 	pdf_generator = resolve_pdf_generator(print_format, frappe.form_dict.get("pdf_generator"))
@@ -93,8 +108,11 @@ def get_context(context) -> PrintContext:
 	if standalone:
 		validate_print_permission(doc)
 
+		from frappe.printing.layout import has_page_specific_zone
 		from frappe.utils.print_format_generator import get_html
 
+		context["print_from_pdf"] = has_page_specific_zone(getattr(print_format, "format_data", None))
+		context["open_pdf"] = context["print_from_pdf"] and cint(frappe.form_dict.trigger_print)
 		body = get_html(
 			doctype=frappe.form_dict.doctype,
 			name=frappe.form_dict.name,
@@ -103,9 +121,10 @@ def get_context(context) -> PrintContext:
 			letterhead=letterhead,
 			no_letterhead=frappe.form_dict.no_letterhead,
 			style=frappe.form_dict.style,
-			trigger_print=cint(frappe.form_dict.trigger_print),
+			trigger_print=cint(frappe.form_dict.trigger_print) and not context["print_from_pdf"],
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
 			settings=settings,
+			print_filename=context["print_filename"],
 		)
 	else:
 		body = get_rendered_template(
@@ -157,7 +176,9 @@ def cast_client_values(document: "Document"):
 				del frappe.local.message_log[messages:]
 
 
-def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
+def get_print_format_doc(
+	print_format_name: str, meta: "Meta", doc: "Document | None" = None
+) -> "PrintFormat" | None:
 	"""Return print format document."""
 	requested = print_format_name or frappe.form_dict.format
 	print_format_name = requested or meta.default_print_format or "Standard"
@@ -167,26 +188,28 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 
 	def fetch(name):
 		try:
-			doc = frappe.get_doc("Print Format", name)
+			print_format = frappe.get_doc("Print Format", name)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return None
-		if can_print_with(doc):
-			return doc
-		if name == requested and name != meta.default_print_format:
-			check_print_format_roles(doc)
+		if can_print_with(print_format):
+			return print_format
+		if name == requested and name != meta.default_print_format and not has_share_key(doc):
+			check_print_format_roles(print_format)
 		return None
 
 	# a renamed or deleted format — or a caller interpolating a missing name into
 	# the url — resolves to the doctype's default, like an omitted name does
-	if doc := fetch(print_format_name):
-		return doc
+	if print_format := fetch(print_format_name):
+		return print_format
 	if meta.default_print_format in (None, "", "Standard", print_format_name):
 		return None
 	return fetch(meta.default_print_format)
 
 
-def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat", bool]:
+def resolve_print_format(
+	print_format_name: "str | None", meta: "Meta", doc: "Document | None" = None
+) -> tuple["PrintFormat", bool]:
 	"""Resolve a print format name to its document — falling back to the doctype's
 	default beta format — and whether it renders through the beta renderer."""
 	from frappe.printing.doctype.print_format.classic_converter import (
@@ -194,14 +217,16 @@ def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple
 		uses_beta_renderer,
 	)
 
-	print_format = get_print_format_doc(print_format_name, meta=meta) or get_default_print_format(meta.name)
+	print_format = get_print_format_doc(print_format_name, meta=meta, doc=doc) or get_default_print_format(
+		meta.name
+	)
 	return print_format, uses_beta_renderer(print_format)
 
 
 def get_print_filename(doc: "Document") -> str:
 	from frappe.core.doctype.file.utils import get_safe_file_name
 
-	return get_safe_file_name(doc.name)
+	return get_safe_file_name(cstr(doc.name))
 
 
 def get_rendered_template(
@@ -278,8 +303,6 @@ def get_rendered_template(
 				</script>
 			"""
 
-	convert_markdown(doc)
-
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
@@ -304,46 +327,7 @@ def set_link_titles(doc: "Document") -> None:
 	if not doc.get("__link_titles"):
 		setattr(doc, "__link_titles", {})
 
-	meta = frappe.get_meta(doc.doctype)
-	set_title_values_for_link_and_dynamic_link_fields(meta, doc)
-	set_title_values_for_table_and_multiselect_fields(meta, doc)
-
-
-def set_title_values_for_link_and_dynamic_link_fields(
-	meta: "Meta", doc: "Document", parent_doc: "Document" | None = None
-) -> None:
-	if parent_doc and not parent_doc.get("__link_titles"):
-		setattr(parent_doc, "__link_titles", {})
-	elif doc and not doc.get("__link_titles"):
-		setattr(doc, "__link_titles", {})
-
-	for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
-		if not doc.get(field.fieldname):
-			continue
-
-		# If link field, then get doctype from options
-		# If dynamic link field, then get doctype from dependent field
-		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
-
-		meta = frappe.get_meta(doctype)
-		if not meta or not meta.title_field or not meta.show_title_field_in_link:
-			continue
-
-		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
-		if parent_doc:
-			parent_doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
-		elif doc:
-			doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
-
-
-def set_title_values_for_table_and_multiselect_fields(meta: "Meta", doc: "Document") -> None:
-	for field in meta.get_table_fields(include_computed=True):
-		if not doc.get(field.fieldname):
-			continue
-
-		_meta = frappe.get_meta(field.options)
-		for value in doc.get(field.fieldname):
-			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)
+	doc.__link_titles.update(get_doc_link_titles(doc))
 
 
 def convert_markdown(doc: "Document") -> None:
@@ -352,7 +336,7 @@ def convert_markdown(doc: "Document") -> None:
 		if field.fieldtype == "Text Editor":
 			value = doc.get(field.fieldname)
 			if value and "<!-- markdown -->" in value:
-				doc.set(field.fieldname, frappe.utils.md_to_html(value))
+				doc.set(field.fieldname, frappe.utils.sanitize_html(frappe.utils.md_to_html(value)))
 
 
 @frappe.whitelist()
@@ -403,17 +387,59 @@ def get_html_and_style(
 			frappe.clear_last_message()
 			html = None
 
+	print_style = get_print_style(style=style, print_format=print_format)
 	return {
 		"html": html,
-		"style": get_print_style(style=style, print_format=print_format),
-		"page_style": None if is_beta else get_preview_page_css(print_format),
+		"style": print_style,
+		"page_style": None
+		if is_beta
+		else get_preview_page_css(print_format, f"<style>{print_style}</style>{cstr(html)}"),
 	}
 
 
-def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
+def get_preview_page_css(print_format: "PrintFormat" | None = None, html: str = "") -> str:
+	from bs4 import BeautifulSoup
+
+	from frappe.utils.pdf import get_print_format_styles
+	from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
 	from frappe.utils.print_format_generator import page_size_mm
 
-	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
+	soup = BeautifulSoup(html, "html.parser")
+	page_options = {
+		style.name: style.value
+		for style in get_print_format_styles(soup)
+		if style.name in ("page-size", "orientation")
+		or (style.name in ("page-width", "page-height") and re.fullmatch(PAGE_LENGTH, style.value.strip()))
+	}
+	paper_size = print_format and print_format.paper_size
+	if any(page_options.get(key) for key in ("page-size", "page-width", "page-height")):
+		paper_size = None
+	elif not paper_size:
+		css = "".join(cstr(tag.string) for tag in soup.find_all("style"))
+		page_options = get_page_rule_size(css) | page_options
+	if receipt_width := RECEIPT_WIDTHS.get(paper_size):
+		page_width, page_height = parse_float_and_unit(receipt_width)["value"], 0
+	elif paper_size:
+		page_width, page_height = page_size_mm(
+			{
+				"pdf_page_size": paper_size,
+				"pdf_page_width": print_format.paper_width,
+				"pdf_page_height": print_format.paper_height,
+			}
+		)
+	elif page_options.get("page-width") and page_options.get("page-height"):
+		page_width, page_height = (
+			convert_uom(length["value"], length["unit"], "mm", only_number=True)
+			for length in (parse_float_and_unit(page_options[key]) for key in ("page-width", "page-height"))
+		)
+	else:
+		page_width, page_height = page_size_mm(
+			{"pdf_page_size": page_options["page-size"]}
+			if page_options.get("page-size")
+			else frappe.get_cached_doc("Print Settings")
+		)
+	if cstr(page_options.get("orientation")).lower() == "landscape" and page_width < page_height:
+		page_width, page_height = page_height, page_width
 	return frappe.get_template("templates/print_formats/preview_page.css").render(
 		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)}
 	)
@@ -515,7 +541,7 @@ def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
 
 
 def run_before_print(doc: "Document", print_settings: dict) -> None:
-	"""Prepare Link titles and fire the document's ``before_print`` hook.
+	"""Prepare Link titles and markdown values and fire the document's ``before_print`` hook.
 
 	Shared by the legacy template renderer and the builder generator so both
 	prepare the document the same way before rendering."""
@@ -523,6 +549,17 @@ def run_before_print(doc: "Document", print_settings: dict) -> None:
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
+	convert_markdown(doc)
+
+
+def has_share_key(doc: "Document | dict | None") -> bool:
+	key = frappe.form_dict.key
+	if not doc or not doc.get("name") or not isinstance(key, str):
+		return False
+	try:
+		return validate_key(key, doc) is not False
+	except frappe.exceptions.LinkExpired:
+		return False
 
 
 def validate_key(key: str, doc: "Document") -> None:
@@ -556,7 +593,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		return (
 			frappe.db.get_value(
 				"Letter Head",
-				{"is_default": 1},
+				{"is_default": 1, "letter_head_for": "DocType"},
 				["content", "footer", "header_script", "footer_script", "custom_css"],
 				as_dict=True,
 			)

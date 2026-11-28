@@ -20,6 +20,8 @@ from frappe.utils import (
 	get_build_version,
 	get_system_timezone,
 	md_to_html,
+	parse_addr,
+	split_emails,
 )
 from frappe.utils.data import get_url_to_workspace
 from frappe.utils.user import is_portal_user
@@ -71,27 +73,43 @@ def get_comment_list(doctype, name):
 		or_filters=[["owner", "=", frappe.session.user], ["published", "=", 1]],
 	)
 
-	communications = frappe.get_all(
-		"Communication",
-		fields=[
-			"name",
-			"creation",
-			"owner",
-			"owner as comment_email",
-			"sender_full_name as comment_by",
-			"content",
-			"recipients",
-		],
-		filters=dict(
-			reference_doctype=doctype,
-			reference_name=name,
-		),
-		or_filters=[
-			["recipients", "like", f"%{frappe.session.user}%"],
-			["cc", "like", f"%{frappe.session.user}%"],
-			["bcc", "like", f"%{frappe.session.user}%"],
-		],
-	)
+	communications = []
+	if frappe.session.user != "Guest":
+		user_email = frappe.utils.get_email_address()
+		communications = frappe.get_all(
+			"Communication",
+			fields=[
+				"name",
+				"creation",
+				"owner",
+				"sender as comment_email",
+				"sender_full_name as comment_by",
+				"content",
+				"recipients",
+				"cc",
+				"bcc",
+			],
+			filters=dict(
+				reference_doctype=doctype,
+				reference_name=name,
+			),
+			or_filters=[
+				["recipients", "like", f"%{user_email}%"],
+				["cc", "like", f"%{user_email}%"],
+				["bcc", "like", f"%{user_email}%"],
+			],
+		)
+
+		# "like" also matches longer addresses (ann@ inside joann@)
+		communications = [
+			c
+			for c in communications
+			if any(
+				parse_addr(address)[1].lower() == user_email
+				for field in ("recipients", "cc", "bcc")
+				for address in split_emails(c.get(field))
+			)
+		]
 
 	return sorted((comments + communications), key=lambda comment: comment["creation"], reverse=True)
 
@@ -235,7 +253,7 @@ def abs_url(path):
 	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
 	if not path:
 		return
-	if path.startswith("http://") or path.startswith("https://"):
+	if path.lower().startswith(("http://", "https://")):
 		return path
 	if path.startswith("tel:"):
 		return path

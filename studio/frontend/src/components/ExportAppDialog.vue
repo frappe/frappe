@@ -83,14 +83,25 @@ async function update() {
 	}
 }
 
-function confirmChange() {
-	if (!exportedTo.value) return Promise.resolve(true)
+async function confirmChange() {
+	if (!exportedTo.value) return true
 	if (!enableExport.value) {
-		return ask("Disable App Export", [
+		const segments: Prompt["segments"] = [
 			"This copies the page and router scripts back into the app and deletes its export folder ",
 			{ path: exportFolder(exportedTo.value) },
 			".",
-		])
+		]
+		const data: any = await studioApps.runDocMethod.submit({
+			name: store.activeApp?.app_name,
+			method: "get_discarded_export_files",
+		})
+		const discarded: string[] = data?.message || []
+		if (discarded.length) {
+			segments.push(" The database cannot store these files, so they go with it: ")
+			discarded.forEach((path, index) => segments.push(index ? ", " : "", { path }))
+			segments.push(".")
+		}
+		return ask("Disable App Export", segments)
 	}
 	return ask("Change Frappe App", [
 		"The export folder moves from ",
@@ -124,11 +135,11 @@ async function exportApp() {
 }
 
 async function disableAppExport() {
-	const data = await studioApps.runDocMethod.submit({
+	await studioApps.runDocMethod.submit({
 		name: store.activeApp?.app_name,
 		method: "disable_app_export",
+		confirm_discarded: true,
 	})
-	if (data?.message) toast.warning("App export disabled", { description: data.message, duration: Infinity })
-	else toast.success("App export disabled")
+	toast.success("App export disabled")
 }
 </script>

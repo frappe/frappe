@@ -118,7 +118,7 @@ class DocumentNamingSettings(Document):
 		)
 
 	def validate_set_series(self):
-		if self.transaction_type and not self.naming_series_options:
+		if self.transaction_type and not (self.naming_series_options or "").strip():
 			frappe.throw(_("Please set the series to be used."))
 
 	def set_series_options_in_meta(self, doctype: str, options: str) -> None:

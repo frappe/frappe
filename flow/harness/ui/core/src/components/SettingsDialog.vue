@@ -17,11 +17,11 @@
 						@click="stepBack"
 					>
 						<span class="lucide-chevron-left size-5" aria-hidden="true" />
-						<DialogTitle as="span" class="text-md">{{ back ? sectionLabel : "Settings" }}</DialogTitle>
+						<DialogTitle as="span" class="text-md">{{ back ? sectionLabel : __("Settings") }}</DialogTitle>
 					</button>
-					<DialogTitle v-else class="px-2 text-md-semibold text-ink-gray-9">Settings</DialogTitle>
+					<DialogTitle v-else class="px-2 text-md-semibold text-ink-gray-9">{{ __("Settings") }}</DialogTitle>
 					<span class="flex-1" />
-					<DialogClose class="grid h-9 w-9 place-items-center rounded-6 text-ink-gray-7 hover:bg-surface-gray-2" title="Close">
+					<DialogClose class="grid h-9 w-9 place-items-center rounded-6 text-ink-gray-7 hover:bg-surface-gray-2" :title="__('Close')">
 						<span class="lucide-x size-4" aria-hidden="true" />
 					</DialogClose>
 				</header>
@@ -114,6 +114,7 @@ import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
 
 import { layout } from "../layout.js"
 import { provideSettingsBack } from "../settingsBack.js"
+import { __ } from "../translate.js"
 
 // The settings shell: the dialog, its sidebar and its type scale are shared. A host
 // names its tabs in `groups` and fills one slot per tab id with its own panel.

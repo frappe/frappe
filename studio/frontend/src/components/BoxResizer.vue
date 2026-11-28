@@ -28,6 +28,7 @@
 		class="pointer-events-auto absolute bottom-[-5px] right-[-5px] h-[12px] w-[12px] cursor-nwse-resize rounded-full border-[2.5px] border-outline-blue-4 bg-surface-base"
 		:class="{
 			'border-outline-purple-4': targetBlock.isStudioComponent,
+			'border-outline-green-5': targetBlock.isCustomVueComponent,
 		}"
 		v-show="!resizing"
 		@mousedown.stop="handleBottomCornerResize"
@@ -37,7 +38,7 @@
 <script setup lang="ts">
 import { pxToNumber } from "@/utils/helpers"
 import { computed, onMounted, ref, watch, inject } from "vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import guidesTracker from "@/utils/guidesTracker"
 import useCanvasStore from "@/stores/canvasStore"
 

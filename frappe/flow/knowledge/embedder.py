@@ -48,19 +48,19 @@ def _embedding_config() -> dict[str, Any]:
 
 
 def _model_config(model: str) -> dict[str, Any]:
-	from frappe.flow.lib.model import resolve_provider_credentials
+	from frappe.flow.lib.model import litellm_route, resolve_provider_credentials
 
 	doc = frappe.get_doc("Flow Model", model)
 	if not doc.enabled:
 		frappe.throw(_("Flow Model {0} is disabled.").format(model), title=_("Model Disabled"))
 
-	provider_creds = resolve_provider_credentials(doc.model_id)
+	provider_creds = resolve_provider_credentials(doc.model_id, doc.provider)
+	model_id, base_url = litellm_route(doc.model_id, doc.base_url or provider_creds.get("base_url"))
 	config: dict[str, Any] = {
 		**doc.model_params(),
-		"model": doc.model_id,
+		"model": model_id,
 		"api_key": doc.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or "",
 	}
-	base_url = doc.base_url or provider_creds.get("base_url")
 	if base_url:
 		config["api_base"] = base_url
 	return config

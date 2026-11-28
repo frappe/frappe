@@ -400,6 +400,13 @@ def get_timezone_utc_offset(timezone: str) -> str:
 	return f"{sign}{hours:02d}:{minutes:02d}"
 
 
+def validate_time_zone(time_zone: str) -> None:
+	from zoneinfo import available_timezones
+
+	if time_zone not in available_timezones():
+		frappe.throw(frappe._("{0} is not a valid Time Zone").format(frappe.bold(time_zone)))
+
+
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
 	if utc_timestamp.tzinfo is None:
 		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo("UTC"))
@@ -1629,6 +1636,8 @@ def in_words(integer: int, in_million=True) -> str:
 		ret = num2words(integer, lang="en")
 	except OverflowError:
 		ret = num2words(integer, lang="en")
+	if locale and locale.startswith("es"):
+		ret = re.sub(r"\b(veinti)?uno(?= mil| bill)", lambda m: "veintiún" if m.group(1) else "un", ret)
 	return ret.replace("-", " ")
 
 
@@ -1722,9 +1731,14 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 			with open(path, "rb") as f:
 				content = f.read()
 		else:
-			import requests
+			from requests.adapters import Retry
 
-			r = requests.get(url, timeout=5, stream=True, allow_redirects=False)
+			from frappe.utils.safe_exec import get_safe_request_session
+
+			session = get_safe_request_session()
+			for adapter in session.adapters.values():
+				adapter.max_retries = Retry(total=0, read=False)
+			r = session.get(url, timeout=5, stream=True, allow_redirects=False)
 			r.raise_for_status()
 			chunks, total = [], 0
 			for chunk in r.iter_content(8192):
@@ -2626,8 +2640,8 @@ def to_markdown(html: str) -> str:
 		pass
 
 
-def md_to_html(markdown_text: str) -> "UnicodeWithAttrs" | None:
-	"""Convert the given markdown text to HTML and returns it."""
+def md_to_html(markdown_text: str) -> "UnicodeWithAttrs":
+	"""Convert the given markdown text to HTML and returns it. Returns the text unconverted if markdown2 fails."""
 	from markdown2 import MarkdownError
 	from markdown2 import markdown as _markdown
 
@@ -2640,13 +2654,15 @@ def md_to_html(markdown_text: str) -> "UnicodeWithAttrs" | None:
 		"html-classes": {"table": "table table-bordered", "img": "screenshot"},
 	}
 
+	markdown_text = markdown_text or ""
 	try:
-		return UnicodeWithAttrs(_markdown(markdown_text or "", extras=extras))
-	except MarkdownError:
-		pass
+		return UnicodeWithAttrs(_markdown(markdown_text, extras=extras))
+	# markdown2 2.5.5 asserts on HTML tags that span lines: trentm/python-markdown2#686
+	except (MarkdownError, AssertionError):
+		return UnicodeWithAttrs(markdown_text)
 
 
-def markdown(markdown_text: str) -> "UnicodeWithAttrs" | None:
+def markdown(markdown_text: str) -> "UnicodeWithAttrs":
 	"""Convert the given markdown text to HTML and returns it."""
 	return md_to_html(markdown_text)
 
@@ -2691,6 +2707,8 @@ def guess_date_format(date_string: str) -> str:
 		r"%d/%b/%Y",
 		r"%d %b %Y",
 		r"%d %B %Y",
+		r"%d %b %y",
+		r"%d %B %y",
 		r"%d-%b-%Y",
 		r"%d-%b-%y",
 		r"%d-%m-%Y",
@@ -2863,8 +2881,8 @@ def validate_python_code(string: str, fieldname: str | None = None, is_expressio
 
 class UnicodeWithAttrs(str):
 	def __init__(self, text):
-		self.toc_html = text.toc_html
-		self.metadata = text.metadata
+		self.toc_html = getattr(text, "toc_html", None)
+		self.metadata = getattr(text, "metadata", None)
 
 
 def format_timedelta(o: datetime.timedelta | str) -> str:

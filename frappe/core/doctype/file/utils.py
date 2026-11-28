@@ -550,6 +550,8 @@ def decode_file_content(content: bytes) -> bytes:
 
 
 def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
+	from frappe.core.doctype.file.file import _without_unreadable_attachments
+
 	filters = {"file_url": str(path)}
 	if name:
 		filters["name"] = str(name)
@@ -559,7 +561,7 @@ def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
-	for file_data in files:
+	for file_data in _without_unreadable_attachments(files):
 		# the database collation ignores case, the filesystem does not
 		if file_data.file_url != filters["file_url"]:
 			continue
@@ -583,3 +585,21 @@ def check_path_safety(base_path: str, requested_path: str) -> bool:
 		)
 		return False
 	return True
+
+
+def get_files_index() -> dict[str, list[dict]]:
+	"""Every stored File, storage v1 and v2, split by privacy. Lists rows whose bytes are not on disk too."""
+	rows = frappe.get_all(
+		"File",
+		filters={"is_folder": 0},
+		or_filters=[["file_url", "like", "/files/%"], ["file_url", "like", "/private/files/%"]],
+		fields=["file_name", "file_url", "file_size", "is_private", "blob"],
+		order_by="name",
+	)
+	index = {"files_index": [], "private_files_index": []}
+	for row in rows:
+		item = {"name": row.file_name, "file_url": row.file_url, "size": cint(row.file_size)}
+		if row.blob:
+			item["file_blob"] = row.blob
+		index["private_files_index" if row.is_private else "files_index"].append(item)
+	return index

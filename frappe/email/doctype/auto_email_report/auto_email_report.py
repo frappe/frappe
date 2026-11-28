@@ -7,7 +7,7 @@ from datetime import timedelta
 from email.utils import formataddr
 
 import frappe
-from frappe import _
+from frappe import STANDARD_USERS, _
 from frappe.desk.query_report import build_xlsx_data, get_reference_report
 from frappe.email.email_body import get_formatted_html
 from frappe.model.document import Document
@@ -21,6 +21,7 @@ from frappe.utils import (
 	get_link_to_form,
 	get_quarter_start,
 	get_url_to_report,
+	get_user_display_id,
 	get_year_start,
 	getdate,
 	global_date_format,
@@ -31,6 +32,7 @@ from frappe.utils import (
 )
 from frappe.utils.csvutils import to_csv
 from frappe.utils.pdf import get_pdf
+from frappe.utils.print_utils import resolve_pdf_generator
 from frappe.utils.xlsxutils import make_xlsx
 
 
@@ -75,10 +77,30 @@ class AutoEmailReport(Document):
 			self.name = append_number_if_name_exists("Auto Email Report", self.name)
 
 	def validate(self):
+		self.validate_user_permission()
 		self.validate_report_count()
 		self.validate_emails()
 		self.validate_report_format()
 		self.validate_mandatory_fields()
+
+	def validate_user_permission(self):
+		user = frappe.session.user
+		if not self.user or self.user == user:
+			return
+
+		if self.user not in STANDARD_USERS and "System Manager" in frappe.get_roles(user):
+			return
+
+		if frappe.has_permission("User", "impersonate", user=user):
+			return
+
+		frappe.throw(
+			_("{0} is not allowed to generate this report based on the permissions of {1}.").format(
+				frappe.bold(get_user_display_id(user)), frappe.bold(get_user_display_id(self.user))
+			),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)
 
 	@property
 	def sender_email(self):
@@ -190,7 +212,7 @@ class AutoEmailReport(Document):
 			is_excel = self.format == "XLSX"
 
 			xlsx_data, column_widths, styles = build_xlsx_data(
-				report_data, [], 1, ignore_visible_idx=True, build_styles=is_excel
+				report_data, include_indentation=1, build_styles=is_excel
 			)
 
 			if is_excel:
@@ -211,7 +233,7 @@ class AutoEmailReport(Document):
 			if len(columns) > 8:
 				options["orientation"] = "landscape"
 			html = get_formatted_html(subject=self.name, message=self.get_html_table(columns, data))
-			return get_pdf(html, options)
+			return get_pdf(html, options, pdf_generator=resolve_pdf_generator())
 
 		else:
 			frappe.throw(_("Invalid Output Format"))
@@ -312,6 +334,7 @@ def download(name: str):
 	"""Download report locally"""
 	auto_email_report = frappe.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
+	auto_email_report.validate_user_permission()
 	data = auto_email_report.get_report_content()
 
 	if not data:
@@ -328,6 +351,7 @@ def send_now(name: str):
 	"""Send Auto Email report now"""
 	auto_email_report = frappe.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
+	auto_email_report.validate_user_permission()
 	auto_email_report.send()
 
 

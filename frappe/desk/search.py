@@ -14,7 +14,7 @@ from frappe import _, bold, is_whitelisted
 from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model import get_permitted_fields
-from frappe.model.db_query import get_order_by
+from frappe.model.qb_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, sbool, unique
 from frappe.utils.caching import http_cache
@@ -101,7 +101,7 @@ def search_link(
 def get_image_field(doctype: str) -> str | None:
 	"""The DocType's image_field, if it is a real column this user may read."""
 	# select-only access covers the search fields, not the image
-	if not frappe.has_permission(doctype, "read"):
+	if frappe.only_has_select_perm(doctype) or not frappe.has_permission(doctype, "read"):
 		return None
 	meta = frappe.get_meta(doctype)
 	if not meta.image_field:
@@ -180,6 +180,10 @@ def search_widget(
 			)
 			ignore_user_permissions = False
 
+	if ignore_user_permissions:
+		# past user permissions, return only what a link dropdown shows
+		searchfield, filter_fields = None, None
+
 	start = cint(start)
 	page_length = cint(page_length)
 
@@ -205,6 +209,7 @@ def search_widget(
 		filters = {}
 
 	if query:  # Query = custom search query i.e. python function
+		query = frappe.override_whitelisted_method(query)
 		meta = frappe.get_meta(doctype)
 		# For translated doctypes, pass empty txt, no offset and a large page_length so the custom
 		# query returns all records without SQL-level text filtering or paging; Python-level
@@ -395,6 +400,9 @@ def validate_ignore_user_permissions(form_doctype: str, link_fieldname: str, lin
 		# a read-only or hidden field has no search box, so only a crafted request names it
 		return not any(field.read_only or field.hidden for field in fields)
 
+	if not can_fill_form(form_doctype):
+		return False
+
 	meta = frappe.get_meta(form_doctype)
 	matched_child_field = None
 	locked_child_field = False
@@ -495,6 +503,16 @@ def validate_ignore_user_permissions(form_doctype: str, link_fieldname: str, lin
 	return True
 
 
+def can_fill_form(doctype: str) -> bool:
+	"""Whether the user may create or edit `doctype`, or for a child table, a form that holds it."""
+	from frappe.desk.form.linked_with import get_parent_doctypes
+
+	forms = get_parent_doctypes([doctype])[doctype] if frappe.is_table(doctype) else [doctype]
+	return any(
+		has_permission(form, ptype, print_logs=False) for form in forms for ptype in ("create", "write")
+	)
+
+
 def get_std_fields_list(meta, key):
 	# get additional search fields
 	sflist = ["name"]
@@ -521,6 +539,8 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 
 	results = []
 	meta = frappe.get_meta(doctype)
+	# a random ID tells the reader less than the search fields, so it goes last
+	random_id = (meta.autoname or "").lower() in ("hash", "uuid")
 	if meta.show_title_field_in_link:
 		for item in res:
 			item = list(item)
@@ -539,7 +559,8 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 				# remove redundant title ("label") value
 				del item[2]
 
-			autosuggest_row = {"value": item[0], "description": to_string(item[1:])}
+			description = [*item[2:], item[1]] if random_id else item[1:]
+			autosuggest_row = {"value": item[0], "description": to_string(description)}
 			if label:
 				autosuggest_row["label"] = label
 
@@ -561,17 +582,22 @@ def scrub_custom_query(query, key, txt):
 
 
 def relevance_sorter(key, query, as_dict):
-	value = _(key.name if as_dict else key[0])
-	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
+	name = cstr(key.name if as_dict else key[0])
+	value = _(name)
+	return (not any(text.casefold().startswith(query.casefold()) for text in (name, value)), value)
 
 
 def filter_translated(values: list, txt: str, get_values: Callable[[Any], list]) -> list:
-	"""Return rows where a translated value from `get_values(row)` contains txt as `LIKE %txt%` would match it."""
+	"""Return rows where a value from `get_values(row)` or its translation contains txt as `LIKE %txt%` would."""
 	if not txt:
 		return values
 
 	return [
-		row for row in values if any(like_contains(_(cstr(value)) or "", txt) for value in get_values(row))
+		row
+		for row in values
+		if any(
+			like_contains(text, txt) for value in get_values(row) for text in (cstr(value), _(cstr(value)))
+		)
 	]
 
 
@@ -600,9 +626,10 @@ def find_like_part(value: str, part: str, start: int) -> int:
 
 
 def get_translated_relevance(name: str, txt: str) -> float:
-	"""Position of txt in the translated name, like the SQL `_relevance` (no match ranks last)."""
-	position = _(cstr(name)).casefold().find(txt.replace("%", "").casefold())
-	return math.inf if position < 0 else position
+	"""Position of txt in the name or its translation, like the SQL `_relevance` (no match ranks last)."""
+	txt = txt.replace("%", "").casefold()
+	positions = (text.casefold().find(txt) for text in (cstr(name), _(cstr(name))))
+	return min((position for position in positions if position >= 0), default=math.inf)
 
 
 MAX_MENTIONS_PAGE_LENGTH = 20

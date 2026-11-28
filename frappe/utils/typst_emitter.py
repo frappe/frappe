@@ -20,7 +20,7 @@ import filetype
 import frappe
 from frappe import _
 from frappe.printing.fieldtypes import MERGE_IMAGE_FIELDTYPES, is_image_column
-from frappe.printing.layout import iter_nodes
+from frappe.printing.layout import iter_nodes, zone_repeats, zone_show_on
 from frappe.translate import get_parent_language
 from frappe.utils.html_utils import unescape_html
 from frappe.utils.jinja_globals import is_rtl
@@ -58,6 +58,12 @@ BLOCKER_FIELDTYPES = {
 	"Field Template": "Field Template block",
 }
 
+ZONE_PAGE_CONDITIONS = {
+	"first_page": "counter(page).get().first() == 1",
+	"last_page": "counter(page).get().first() == counter(page).final().first()",
+	"after_first_page": "counter(page).get().first() > 1",
+}
+
 PAGE_NUMBER_POSITIONS = {
 	"Top Left": ("header", "left"),
 	"Top Center": ("header", "center"),
@@ -65,6 +71,13 @@ PAGE_NUMBER_POSITIONS = {
 	"Bottom Left": ("footer", "left"),
 	"Bottom Center": ("footer", "center"),
 	"Bottom Right": ("footer", "right"),
+}
+
+PAGE_NUMBER_TOKEN = re.compile(r"\{(page|page_count)\}")
+# the semicolon ends the expression, so text right after a token such as "(" stays text
+PAGE_NUMBER_COUNTERS = {
+	"page": '#context counter(page).display("1");',
+	"page_count": "#context counter(page).final().first();",
 }
 
 RIGHT_ALIGNED_FIELDTYPES = frozenset({"Currency", "Float", "Int", "Percent"})
@@ -254,6 +267,29 @@ def typst_font_paths() -> list[str]:
 	return [os.path.abspath(path)] if os.path.isdir(path) else []
 
 
+_typst_fonts = {}
+
+
+def typst_fonts():
+	"""The fonts Typst prints with. Scanning every system font costs more than the
+	compile itself, so one set is kept per process and rebuilt when the site or its
+	cached families change."""
+	import os
+
+	import typst
+
+	paths = typst_font_paths()
+	# family dirs never hold a dot; dotted entries are fetch sentinels and scratch dirs
+	families = sorted(name for name in os.listdir(paths[0]) if "." not in name) if paths else []
+	key = (*paths, *families)
+	fonts = _typst_fonts.get(key)
+	if fonts is None:
+		fonts = typst.Fonts(font_paths=paths)
+		_typst_fonts.clear()
+		_typst_fonts[key] = fonts
+	return fonts
+
+
 def compile_typst_source(source: str) -> bytes:
 	"""Compile standalone Typst markup in a confined tempdir, against the same
 	font set prints use."""
@@ -267,7 +303,7 @@ def compile_typst_source(source: str) -> bytes:
 		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(path, "w") as f:
 			f.write(source)
-		return typst.compile(path, root=tmp, font_paths=typst_font_paths())
+		return typst.compile(path, root=tmp, font_paths=typst_fonts())
 
 
 def font_family(font: str | None) -> str:
@@ -453,17 +489,48 @@ def _fr_widths(columns) -> list[str]:
 
 
 def _list_markers(value: str) -> str:
-	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them.
+	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them;
+	Quill's `data-list` and `ql-indent-N` pick the marker, its counter and indent.
 
 	Innermost lists are marked first so a nested list does not take its items
 	from the list around it."""
 
+	def number(n, level):
+		if level % 3 == 1:
+			letters = ""
+			while n:
+				n, rest = divmod(n - 1, 26)
+				letters = chr(97 + rest) + letters
+			return letters
+		if level % 3 == 2:
+			numerals = ""
+			for size, numeral in zip(
+				(1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),
+				("m", "cm", "d", "cd", "c", "xc", "l", "xl", "x", "ix", "v", "iv", "i"),
+				strict=True,
+			):
+				count, n = divmod(n, size)
+				numerals += numeral * count
+			return numerals
+		return str(n)
+
 	def mark(match):
-		body = match.group(2)
-		if match.group(1).lower() == "ol":
-			items = re.split(r"<li[^>]*>", body, flags=re.I)[1:]
-			return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
-		return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", body, flags=re.I)
+		default = "ordered" if match.group(1).lower() == "ol" else "bullet"
+		counters = [0] * 9
+		items = []
+		for tag, item in re.findall(r"(<li\b[^>]*>)((?:(?!<li\b).)*)", match.group(2), flags=re.I | re.S):
+			kind = re.search(r'data-list="([^"]*)"', tag)
+			kind = kind.group(1) if kind else default
+			level = re.search(r"ql-indent-([1-8])", tag)
+			level = int(level.group(1)) if level else 0
+			counters[level + 1 :] = [0] * (8 - level)
+			if kind == "ordered":
+				counters[level] += 1
+				marker = number(counters[level], level) + "."
+			else:
+				marker = {"checked": "\u2611", "unchecked": "\u2610"}.get(kind, "\u2022")
+			items.append("<x-li>" + "\u2003\u2002" * level + f"{marker} {item}")
+		return "\n" + "".join(items)
 
 	pattern = re.compile(r"<(ol|ul)[^>]*>((?:(?!<[ou]l[^>]*>).)*?)</\1>", re.I | re.S)
 	while True:
@@ -482,8 +549,13 @@ def _text_value(html_ish: str) -> str:
 	value = _list_markers(value)
 	value = re.sub(r"<br\s*/?>[ \t]*\n?", "\n", value, flags=re.I)
 	value = re.sub(r"</(p|div|tr|li|h[1-6])>[ \t]*\n?", "\n", value, flags=re.I)
+	value = re.sub(r"</t[dh]>(?=<t[dh])", " ", value, flags=re.I)
 	value = frappe.utils.strip_html(value)
-	return unescape_html(value).strip()
+	return re.sub(r"^[^\S\u2002\u2003]+", "", unescape_html(value).rstrip())
+
+
+def _ltr_email(value: str, df) -> str:
+	return f"\u2066{value}\u2069" if value and df and df.get("options") == "Email" else value
 
 
 class TypstEmitter:
@@ -588,12 +660,13 @@ class TypstEmitter:
 		header/footer slots (repeated on every page, like Chromium's repeating
 		frame) and the margins grow by their measured heights."""
 		self.prepare()
-		in_page_header = bool(repeat_header_footer and self.header_src)
-		in_page_footer = bool(repeat_header_footer and self.footer_src)
+		in_page_header = bool(zone_repeats(self.layout, "header", repeat_header_footer) and self.header_src)
+		in_page_footer = bool(zone_repeats(self.layout, "footer", repeat_header_footer) and self.footer_src)
 		lines = [
+			f"#set document(title: {q(f'{self.doc.doctype}: {self.doc.name}')})",
 			self._page_setup(
-				header_zone=self.header_src if in_page_header else None,
-				footer_zone=self.footer_src if in_page_footer else None,
+				header_zone=self._on_its_pages("header", self.header_src) if in_page_header else None,
+				footer_zone=self._on_its_pages("footer", self.footer_src) if in_page_footer else None,
 				header_height_pt=header_height_pt,
 				footer_height_pt=footer_height_pt,
 			),
@@ -607,6 +680,10 @@ class TypstEmitter:
 			lines.append(self.footer_src)
 		return "\n".join(line for line in lines if line), self.assets
 
+	def _on_its_pages(self, kind: str, source: str) -> str:
+		condition = ZONE_PAGE_CONDITIONS.get(zone_show_on(self.layout, kind))
+		return f"#context if {condition} [{source}]" if condition else source
+
 	def _page_setup(self, header_zone=None, footer_zone=None, header_height_pt=0, footer_height_pt=0) -> str:
 		pf = self.print_format
 		top = self._margin_mm("top")
@@ -619,7 +696,8 @@ class TypstEmitter:
 			f"right: {self._margin_mm('right')}mm)"
 		)
 		page_width, page_height = self._page_size_mm()
-		args = [f"width: {page_width}mm", f"height: {page_height}mm", f"margin: {margins}"]
+		height = "auto" if self.generator.page_options().get("fit-height") else f"{page_height}mm"
+		args = [f"width: {page_width}mm", f"height: {height}", f"margin: {margins}"]
 		background = self._page_background()
 		if background:
 			args.append(f"background: {background}")
@@ -920,6 +998,7 @@ class TypstEmitter:
 
 	def _field_body(self, section, df) -> str:
 		fieldtype = df.get("fieldtype") or "Data"
+		in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
 		if fieldtype == "Typst":
 			return self._typst_block(df)
 		if fieldtype == "Divider":
@@ -928,7 +1007,6 @@ class TypstEmitter:
 			height = frappe.utils.flt(df.get("height")) or 13
 			return f"#v({pt(height)}pt)"
 		if fieldtype == "Table":
-			in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
 			return self._table(df, keep_together=section.get("keep_together") or in_zone)
 		if fieldtype == "Barcode":
 			return self._barcode(df)
@@ -946,14 +1024,18 @@ class TypstEmitter:
 		if fieldtype == "Repeater":
 			return self._repeater(df)
 		if fieldtype == "Static Text":
-			return self._static_text(df)
+			return self._static_text(df, in_zone)
 		return self._data_field(section, df)
 
-	def _static_text(self, df) -> str:
+	def _static_text(self, df: dict, in_zone: bool = False) -> str:
 		text = (df.get("_text") if "_text" in df else _(df.get("text") or "")).strip()
 		if not text:
 			return ""
-		out = self._text_props(df, typst_escape(text).replace("\n", " \\\n"))
+		parts = PAGE_NUMBER_TOKEN.split(text) if in_zone else [text]
+		markup = "".join(
+			PAGE_NUMBER_COUNTERS[part] if i % 2 else typst_escape(part) for i, part in enumerate(parts)
+		)
+		out = self._text_props(df, markup.replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out
@@ -972,7 +1054,7 @@ class TypstEmitter:
 
 	def _formatted_value(self, df):
 		if df.get("fieldtype") == "Linked Field" or df.get("_value") is not None:
-			return _text_value(df.get("_value") or "")
+			return _ltr_email(_text_value(df.get("_value") or ""), df)
 		fieldname = df.get("fieldname")
 		if not fieldname:
 			return ""
@@ -982,7 +1064,9 @@ class TypstEmitter:
 			return ""
 		if df.get("fieldtype") == "Check":
 			return _("Yes") if frappe.utils.cint(value) else _("No")
-		return _text_value(self.doc.get_formatted(fieldname))
+		if df.get("fieldtype") == "Attach":
+			return frappe.utils.cstr(value).rsplit("/", 1)[-1]
+		return _ltr_email(_text_value(self.doc.get_formatted(fieldname)), df)
 
 	def _label_color(self, df=None) -> str:
 		return (
@@ -1061,6 +1145,9 @@ class TypstEmitter:
 	def _read_site_file(self, src: str) -> bytes | None:
 		import base64
 		import os
+		from urllib.parse import parse_qs, unquote, urlsplit
+
+		from frappe.core.doctype.file.utils import find_file_by_url
 
 		if src.startswith("data:"):
 			try:
@@ -1069,12 +1156,14 @@ class TypstEmitter:
 				return None
 		if src.startswith(("http://", "https://")):
 			return None
-		src = src.split("?", 1)[0]
+		url = urlsplit(src)
+		src, fid = unquote(url.path), parse_qs(url.query).get("fid", [None])[0]
+		if "\0" in src:
+			return None
 		if src.startswith("/private/files/"):
 			# private files are permission-gated through the File doctype — the
 			# browser path enforces this over HTTP, so the direct read must too
-			file_names = frappe.get_all("File", filters={"file_url": src}, pluck="name")
-			if not any(frappe.has_permission("File", doc=name, ptype="read") for name in file_names):
+			if frappe.session.user == "Guest" or not find_file_by_url(src):
 				return None
 			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
@@ -1102,7 +1191,12 @@ class TypstEmitter:
 			with open(path, "rb") as f:
 				return f.read()
 		except OSError:
-			return None
+			if src.startswith("/assets/"):
+				return None
+			from frappe.utils.chromium.page import read_blob_for_url, read_file_for_url
+
+			stored = read_blob_for_url(src[1:], fid) or read_file_for_url(src[1:], fid)
+			return base64.b64decode(stored[0]) if stored else None
 
 	@staticmethod
 	def _dimension(width) -> str | None:
@@ -1119,6 +1213,12 @@ class TypstEmitter:
 			return None
 
 	def _embed_image(self, src) -> str | None:
+		import io
+		from contextlib import suppress
+		from xml.etree import ElementTree
+
+		from PIL import Image, ImageFile
+
 		if not src:
 			return None
 		src = str(src)
@@ -1128,10 +1228,23 @@ class TypstEmitter:
 		name = None
 		if data is not None:
 			kind = filetype.image_match(data)
-			if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
-				name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
-			elif not kind and src.split("?", 1)[0].lower().endswith(".svg"):
-				name = self._asset("svg", data)
+			with suppress(OSError, SyntaxError, Image.DecompressionBombError):
+				if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
+					# Typst rejects a cut GIF; verify() skips GIFs, and load() passes one once
+					# frappe.utils.image sets LOAD_TRUNCATED_IMAGES, which Parser does not read
+					if kind.extension == "gif":
+						parser = ImageFile.Parser()
+						parser.feed(data)
+						parser.close()
+					else:
+						with Image.open(io.BytesIO(data)) as image:
+							image.verify()
+					name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
+				elif not kind and src.split("?", 1)[0].lower().endswith(".svg"):
+					# Typst reads every SVG as UTF-8, whatever encoding its XML declaration names
+					root = ElementTree.fromstring(data, ElementTree.XMLParser(encoding="utf-8"))
+					if root.tag.rpartition("}")[2] == "svg":
+						name = self._asset("svg", data)
 		self._embedded[src] = name
 		return name
 
@@ -1200,7 +1313,8 @@ class TypstEmitter:
 					if not isinstance(tok, dict):
 						continue
 					if tok.get("t") == "f":
-						parts.append(_text_value(row.get_formatted(tok.get("v"))))
+						value = _text_value(row.get_formatted(tok.get("v")))
+						parts.append(_ltr_email(value, row.meta.get_field(tok.get("v"))))
 					else:
 						parts.append(str(tok.get("v") or ""))
 				text = "".join(parts)
@@ -1325,14 +1439,27 @@ class TypstEmitter:
 				fieldname = mf.get("fieldname")
 				if not fieldname or mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES:
 					continue
-				value = _text_value(format_field_value(row, mf))
-				if not value:
+				raw = format_field_value(row, mf)
+				value = _text_value("" if raw is None else str(raw))
+				if not value.strip():
 					continue
+				value = _ltr_email(value, row.meta.get_field(fieldname))
+				label = ""
+				if mf.get("show_label"):
+					doctype = row.get("doctype")
+					label = (
+						_(frappe.get_meta(doctype).get_label(fieldname) or fieldname, context=doctype) + ":"
+					)
 				if first_text:
-					lines.append(f"#text(weight: 500, {q(value)})")
+					line = f"#text(weight: 500, {q(value)})"
+					if label:
+						line = f"#text(weight: 600, {q(label)}) {line}"
 					first_text = False
 				else:
-					lines.append(muted_text(value))
+					line = muted_text(value)
+					if label:
+						line = f'#text(size: 0.85em, weight: 600, fill: rgb("{MUTED}"), {q(label)}) {line}'
+				lines.append(line)
 			if not lines:
 				body = ""
 			elif len(lines) == 1:
@@ -1359,7 +1486,9 @@ class TypstEmitter:
 			if not name:
 				return ""
 			return f'#box(width: 100%, height: 75pt)[#image("{name}", width: 100%, height: 100%, fit: "contain")]'
-		return f"#text({q(_text_value(format_field_value(row, col)))})"
+		email_df = col if col.get("options") else getattr(row, "meta", None) and row.meta.get_field(fieldname)
+		value = _ltr_email(_text_value(format_field_value(row, col)), email_df)
+		return f"#text({q(value)})"
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:
 		size = pt(frappe.utils.cint(col.get("image_size")), 40)

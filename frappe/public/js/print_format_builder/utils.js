@@ -396,7 +396,7 @@ export const FIELD_PLUCK_KEYS = [
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
 	(key) => key !== "table_cell_padding" && key !== "table_radius"
 );
-export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation"];
+export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation", "show_on"];
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections
@@ -572,6 +572,7 @@ const SAFE_HTML_ATTRS = new Set([
 	"cite",
 	"class",
 	"colspan",
+	"data-list",
 	"datetime",
 	"dir",
 	"height",
@@ -581,6 +582,7 @@ const SAFE_HTML_ATTRS = new Set([
 	"scope",
 	"span",
 	"src",
+	"style",
 	"title",
 	"width",
 	"align",
@@ -588,6 +590,21 @@ const SAFE_HTML_ATTRS = new Set([
 	"border",
 	"cellpadding",
 	"cellspacing",
+]);
+
+const SAFE_STYLE_PROPERTIES = new Set([
+	"background-color",
+	"color",
+	"direction",
+	"font-family",
+	"font-size",
+	"text-align",
+]);
+
+const SAFE_STYLE_VALUES = new Map([
+	["display", "block"],
+	["margin-left", "auto"],
+	["margin-right", "auto"],
 ]);
 
 const UNSAFE_HTML_TAGS = "iframe, frame, frameset, object, embed, applet, form, base, meta, link";
@@ -651,6 +668,16 @@ export function sanitize_html(html) {
 						child.removeAttribute(attr.name);
 				} else if (name === "href") {
 					if (!/^https?:/i.test(attr.value.trim())) child.removeAttribute(attr.name);
+				} else if (name === "style") {
+					for (const property of [...child.style]) {
+						if (
+							!SAFE_STYLE_PROPERTIES.has(property) &&
+							SAFE_STYLE_VALUES.get(property) !==
+								child.style.getPropertyValue(property)
+						)
+							child.style.removeProperty(property);
+					}
+					if (!child.style.length) child.removeAttribute(attr.name);
 				}
 			}
 			clean(child);
@@ -679,10 +706,12 @@ export function text_field_paths(text, meta) {
 		.filter((path) => {
 			const [fieldname, target] = path.split(".");
 			const df = meta?.fields?.find((f) => f.fieldname === fieldname);
-			if (!target) return !!df || fieldname === "name";
+			if (!target) return (!!df && df.fieldtype !== "Table") || fieldname === "name";
 			return (
 				df?.fieldtype === "Link" &&
-				!!frappe.get_meta(df.options)?.fields?.some((f) => f.fieldname === target)
+				!!frappe
+					.get_meta(df.options)
+					?.fields?.some((f) => f.fieldname === target && f.fieldtype !== "Table")
 			);
 		});
 }

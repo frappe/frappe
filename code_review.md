@@ -101,9 +101,8 @@ Check these first. Ask for the missing piece before reading the code.
 
 ### Tests
 
-- New features ship with a test that fails without the change. Ask for a test on a bug fix only when the fix is non-trivial or the bug has come back before; do not ask on a small, obvious fix or a CI or tooling change. A test that only checks nothing raised, or asserts on generated SQL, proves nothing.
+- Do not ask for tests. The author decides whether a change needs one. A test that only checks nothing raised, or asserts on generated SQL, proves nothing.
 - Presentation-only changes — spacing, colour, an icon, a label — take a before and after screenshot, not a test: pinning pixels, class names or wording breaks on the next design change and proves nothing.
-- Text and markup a caller or a user depends on is behaviour, not presentation. A response message, a permission error, the semantics of rendered HTML: still test it.
 - Test through public interfaces as a real user, not Administrator. Permission tests use `get_list`, not `get_all`. Fixtures use `example.com`.
 - Flaky tests are fixed, not disabled. Changed behaviour updates the existing tests. A deleted test, a loosened assertion or a case moved from rejected to accepted needs a reason in the description.
 
@@ -116,6 +115,6 @@ Check these first. Ask for the missing piece before reading the code.
 
 ## Writing the review
 
-- Comment on the exact line, with a suggestion block when the fix is a one-liner. The review body is for asks with no line, such as missing tests or a wrong title.
+- Comment on the exact line, with a suggestion block when the fix is a one-liner. The review body is for asks with no line, such as a wrong title.
 - One concern per comment, in short plain sentences. Say what is wrong and what to do instead. Show code when that is clearer than words.
 - Back the ask with the issue, the docs or this guide.

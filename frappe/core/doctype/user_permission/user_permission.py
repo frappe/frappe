@@ -34,6 +34,7 @@ class UserPermission(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.apply_to_all_doctypes = 0 if self.applicable_for else 1
 		self.validate_user_permission()
 		self.validate_default_permission()
 
@@ -271,8 +272,8 @@ def clear_user_permissions(user: str, for_doctype: str):
 
 @frappe.whitelist()
 def get_user_permission_list(allow: str, txt: str | None = None, start: int = 0, page_length: int = 50):
-	"""One page of User Permissions for `allow`, with each user's name and image joined in.
-	`txt` searches the user, their name, the value and the applicable doctype."""
+	"""One page of User Permissions for `allow`, with each user's name, email and image joined in.
+	`txt` searches the user, their email, their name, the value and the applicable doctype."""
 	frappe.only_for("System Manager")
 
 	up = frappe.qb.DocType("User Permission")
@@ -288,6 +289,7 @@ def get_user_permission_list(allow: str, txt: str | None = None, start: int = 0,
 			up.applicable_for,
 			up.apply_to_all_doctypes,
 			user.full_name,
+			user.email,
 			user.user_image,
 		)
 		.where(up.allow == allow)
@@ -300,6 +302,7 @@ def get_user_permission_list(allow: str, txt: str | None = None, start: int = 0,
 		like = f"%{txt}%"
 		query = query.where(
 			up.user.like(like)
+			| user.email.like(like)
 			| user.full_name.like(like)
 			| up.for_value.like(like)
 			| up.applicable_for.like(like)

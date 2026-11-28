@@ -1,15 +1,19 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
 from typing import Any
 
 import frappe
+from frappe import _
 from frappe.database.query import _cast_autoincrement_name
 from frappe.model import is_default_field
-from frappe.query_builder import Order
-from frappe.query_builder.functions import Count
+from frappe.model.utils.mask import as_aliased_field, mask_dict_results
+from frappe.query_builder import Field, Order
+from frappe.query_builder.functions import Avg, Count, Max, Min, Sum
 from frappe.query_builder.terms import SubQuery
 from frappe.query_builder.utils import DocType
+from frappe.utils import cint
 
 
 @frappe.whitelist()
@@ -32,6 +36,106 @@ def set_list_settings(doctype: str, values: str | dict[str, Any]):
 	doc.save()
 
 
+ASSIGNED_TO = "_assign"
+AGGREGATES = {"COUNT": Count, "SUM": Sum, "AVG": Avg, "MIN": Min, "MAX": Max}
+IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+@frappe.whitelist()
+def get_assignee_groups(
+	doctype: str,
+	fields: str | list,
+	group_by: str,
+	filters: str | list | dict | None = None,
+	order_by: str | None = None,
+	limit_start: int | str = 0,
+	limit_page_length: int | str = 20,
+) -> list[dict]:
+	"""Grouped rows like `frappe.client.get_list`, a record counting under each of its assignees."""
+	group_fields = [f.strip() for f in group_by.split(",")]
+	if ASSIGNED_TO not in group_fields or not all(IDENTIFIER.match(f) for f in group_fields):
+		frappe.throw(_("Group by must be fieldnames including {0}").format(ASSIGNED_TO))
+	aggregates = [_parse_aggregate(f) for f in frappe.parse_json(fields) if isinstance(f, dict)]
+
+	# The matching records the user can read, with the columns the groups need.
+	columns = {f for f in group_fields if f != ASSIGNED_TO} | {
+		fieldname for _fn, fieldname, _as in aggregates
+	}
+	columns.discard("name")
+	name = _cast_autoincrement_name(DocType(doctype).name, doctype).as_("name")
+	records = frappe.qb.get_query(
+		doctype,
+		filters=frappe.parse_json(filters),
+		fields=[name, *sorted(columns)],
+		ignore_permissions=False,
+	).as_("records")
+
+	# Each record's users, from its open assignments as `_assign` is kept.
+	ToDo = DocType("ToDo")
+	assignments = (
+		frappe.qb.from_(ToDo)
+		.select(ToDo.reference_name, ToDo.allocated_to)
+		.distinct()
+		.where(
+			(ToDo.reference_type == doctype)
+			& ToDo.status.notin(("Cancelled", "Closed"))
+			& ToDo.allocated_to.isnotnull()
+			& (ToDo.allocated_to != "")
+		)
+	).as_("assignments")
+
+	terms = {
+		f: Field("allocated_to", table=assignments) if f == ASSIGNED_TO else Field(f, table=records)
+		for f in group_fields
+	}
+	for fn, fieldname, alias in aggregates:
+		terms[alias] = AGGREGATES[fn](Field(fieldname, table=records))
+
+	query = (
+		frappe.qb.from_(records)
+		.left_join(assignments)
+		.on(Field("reference_name", table=assignments) == Field("name", table=records))
+		.select(*(term.as_(key) for key, term in terms.items()))
+		.groupby(*(terms[f] for f in group_fields))
+	)
+	for part in (order_by or "").split(","):
+		if not part.strip():
+			continue
+		key, _sep, direction = part.strip().partition(" ")
+		direction = direction.strip().lower() or "asc"
+		if key not in terms or direction not in ("asc", "desc"):
+			frappe.throw(_("Cannot sort groups by {0}").format(part.strip()))
+		query = query.orderby(terms[key], order=Order[direction])
+	if limit := cint(limit_page_length):
+		query = query.limit(limit).offset(cint(limit_start))
+
+	rows = query.run(as_dict=True)
+	masked = {df.fieldname: df for df in frappe.get_meta(doctype).get_masked_fields()}
+	to_mask = [masked[f] for f in group_fields if f in masked] + [
+		as_aliased_field(masked[fieldname], alias)
+		for fn, fieldname, alias in aggregates
+		if fieldname in masked and fn != "COUNT"
+	]
+	return mask_dict_results(rows, to_mask) if to_mask else rows
+
+
+# `{"SUM": "amount", "as": "total"}`, as `frappe.client.get_list` takes it, as (function, fieldname, alias).
+def _parse_aggregate(field: dict) -> tuple[str, str, str]:
+	alias = field.get("as")
+	functions = [(fn, fieldname) for fn, fieldname in field.items() if fn != "as"]
+	if (
+		len(functions) != 1
+		or functions[0][0].upper() not in AGGREGATES
+		or not isinstance(functions[0][1], str)
+		or not IDENTIFIER.match(functions[0][1])
+		or not isinstance(alias, str)
+		or not IDENTIFIER.match(alias)
+	):
+		frappe.throw(_("Invalid aggregate {0}").format(frappe.as_json(field)))
+	fn, fieldname = functions[0]
+	return fn.upper(), fieldname, alias
+
+
 @frappe.whitelist()
 def get_group_by_count(doctype: str, current_filters: str | list, field: str) -> list[dict]:
 	current_filters = frappe.parse_json(current_filters)
@@ -47,12 +151,12 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 			ignore_permissions=False,
 		)
 
-		return (
+		query = (
 			frappe.qb.from_(ToDo)
 			.from_(User)
 			.select(ToDo.allocated_to.as_("name"), count)
 			.where(
-				(ToDo.status != "Cancelled")
+				ToDo.status.notin(("Cancelled", "Closed"))
 				& (ToDo.allocated_to == User.name)
 				& (User.user_type == "System User")
 				& (ToDo.reference_type == doctype)
@@ -61,8 +165,10 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 			.groupby(ToDo.allocated_to)
 			.orderby(count, order=Order.desc)
 			.limit(50)
-			.run(as_dict=True)
 		)
+		data = query.run(as_dict=True)
+		_add_titles_and_descriptions(data, "User")
+		return data
 
 	meta = frappe.get_meta(doctype)
 
@@ -93,12 +199,45 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 	else:
 		data = data[0:50]
 
-	# Add in title if it's a link field and `show_title_field_in_link` is set
-	if (field_meta := meta.get_field(field)) and field_meta.fieldtype == "Link":
-		link_meta = frappe.get_meta(field_meta.options)
-		if link_meta.show_title_field_in_link:
-			title_field = link_meta.get_title_field()
-			for item in data:
-				item.title = frappe.get_value(field_meta.options, item.name, title_field)
+	if field in ("owner", "modified_by"):
+		_add_titles_and_descriptions(data, "User")
+	elif (field_meta := meta.get_field(field)) and field_meta.fieldtype == "Link":
+		_add_titles_and_descriptions(data, field_meta.options)
 
 	return data
+
+
+def _add_titles_and_descriptions(data: list[dict], doctype: str) -> None:
+	"""Label each row and describe it below its label as a Link field's search shows its options.
+
+	Titles come as before; the other search fields only for users who may select `doctype`.
+	"""
+	from frappe.desk.search import build_for_autosuggest, get_std_fields_list
+
+	meta = frappe.get_meta(doctype)
+	show_title = meta.show_title_field_in_link and meta.title_field
+	can_select = frappe.has_permission(doctype, "select")
+	fields = [
+		fieldname
+		for fieldname in get_std_fields_list(meta, "name")
+		if fieldname == "name"
+		or (show_title and fieldname == meta.title_field)
+		or (can_select and (df := meta.get_field(fieldname)) and not df.is_virtual and not df.permlevel)
+	]
+	if not data or fields == ["name"]:
+		return
+
+	rows = frappe.get_all(
+		doctype, filters={"name": ("in", [item.name for item in data])}, fields=fields, as_list=True
+	)
+	if show_title:
+		# as `search_widget` selects them: the title as the label, right after the name
+		title_index = fields.index(meta.title_field)
+		rows = [(row[0], row[title_index], *row[1:]) for row in rows]
+
+	options = {option["value"]: option for option in build_for_autosuggest(rows, doctype)}
+	for item in data:
+		option = options.get(item.name, {})
+		if show_title:
+			item.title = option.get("label")
+		item.description = option.get("description")

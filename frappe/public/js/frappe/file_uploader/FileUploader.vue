@@ -226,7 +226,6 @@
 			:file="files[crop_image_with_index]"
 			:fixed_aspect_ratio="restrictions.crop_image_aspect_ratio"
 			@toggle_image_cropper="toggle_image_cropper(-1)"
-			@upload_after_crop="trigger_upload = true"
 		/>
 		<FileBrowser
 			ref="file_browser"
@@ -266,6 +265,9 @@ const props = defineProps({
 		default: null,
 	},
 	fieldname: {
+		default: null,
+	},
+	field_doctype: {
 		default: null,
 	},
 	folder: {
@@ -328,7 +330,6 @@ let show_file_browser = ref(false);
 let show_web_link = ref(false);
 let show_image_cropper = ref(false);
 let crop_image_with_index = ref(-1);
-let trigger_upload = ref(false);
 let close_dialog = ref(false);
 let hide_dialog_footer = ref(false);
 let allow_take_photo = ref(false);
@@ -519,6 +520,7 @@ function check_restrictions(file) {
 }
 
 function upload_files() {
+	let promise;
 	if (show_file_browser.value) {
 		promise = upload_via_file_browser();
 	} else if (show_web_link.value) {
@@ -644,6 +646,7 @@ async function upload_file(file, i) {
 					if (response.server_messages.length) {
 						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
+					show_upload_error(file);
 				} else if (xhr.status === 413) {
 					reject();
 					file.failed = true;
@@ -656,16 +659,7 @@ async function upload_file(file, i) {
 					file.error_message = response.server_messages.length
 						? response.server_messages.join("\n")
 						: __("File upload failed.");
-
-					if (show_web_link.value && web_link.value && file.file_url) {
-						web_link.value.invalid_input(__(file.error_message));
-					} else if (!files.value.includes(file)) {
-						frappe.msgprint({
-							title: __("Upload Failed"),
-							message: __(file.error_message),
-							indicator: "red",
-						});
-					}
+					show_upload_error(file);
 				} else {
 					reject();
 					file.failed = true;
@@ -714,6 +708,7 @@ async function upload_file(file, i) {
 			if (props.doctype) form_data.append("doctype", props.doctype);
 			if (props.docname) form_data.append("docname", props.docname);
 			if (props.fieldname) form_data.append("fieldname", props.fieldname);
+			if (props.field_doctype) form_data.append("field_doctype", props.field_doctype);
 			if (props.method) form_data.append("method", props.method);
 			if (file.optimize) form_data.append("optimize", true);
 			if (props.attach_doc_image) {
@@ -733,6 +728,18 @@ async function upload_file(file, i) {
 			: null;
 		await send_chunk(chunk_blob, chunk_index, chunk_byte_offset);
 		chunk_byte_offset += CHUNK_SIZE;
+	}
+}
+
+function show_upload_error(file) {
+	if (show_web_link.value && web_link.value && file.file_url) {
+		web_link.value.invalid_input(file.error_message);
+	} else if (!files.value.includes(file)) {
+		frappe.msgprint({
+			title: __("Upload Failed"),
+			message: file.error_message,
+			indicator: "red",
+		});
 	}
 }
 
@@ -834,6 +841,7 @@ defineExpose({
 	toggle_all_private,
 	wrapper_ready,
 	close_dialog,
+	hide_dialog_footer,
 });
 </script>
 

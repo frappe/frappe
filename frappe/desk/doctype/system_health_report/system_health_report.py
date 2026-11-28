@@ -24,6 +24,7 @@ from contextlib import contextmanager
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 from frappe.model.document import Document
+from frappe.utils import get_user_display_id
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date, cint
@@ -336,12 +337,12 @@ class SystemHealthReport(Document):
 
 	@health_check("Storage")
 	def fetch_storage_details(self):
-		from frappe.desk.page.backups.backups import get_context
+		from frappe.desk.page.backups.backups import get_backup_files
 
 		self.backups_size = get_directory_size("private", "backups") / (1024 * 1024)
 		self.private_files_size = get_directory_size("private", "files") / (1024 * 1024)
 		self.public_files_size = get_directory_size("public", "files") / (1024 * 1024)
-		self.onsite_backups = len(get_context(frappe._dict()).get("files", []))
+		self.onsite_backups = len(get_backup_files())
 
 	@health_check("Users")
 	def fetch_user_stats(self):
@@ -363,7 +364,8 @@ class SystemHealthReport(Document):
 		)
 		self.active_sessions = frappe.db.count("Sessions")
 		self.last_10_active_users = "\n".join(
-			frappe.get_all(
+			get_user_display_id(user)
+			for user in frappe.get_all(
 				"User",
 				{"enabled": 1},
 				order_by="last_active desc",

@@ -437,6 +437,32 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
+def read_doc(doctype: str, name: str | int | dict | None = None, /) -> "Document":
+	"""Return a document as the current user is allowed to see it.
+
+	Raises `frappe.PermissionError` without read permission, then removes the fields the user can't
+	read and masks masked fields. Use it for documents sent to the user. The returned document can't
+	be saved; use `frappe.get_doc` for documents you change.
+
+	:param doctype: DocType of the document.
+	:param name: Name of the document, or filters to find it. Omit it for a Single DocType.
+	"""
+	doc = get_doc(doctype) if name is None else get_doc(doctype, name)
+	doc.check_permission("read")
+	doc.apply_fieldlevel_read_permissions()
+	return doc
+
+
+def _get_cached_link_value(doctype: str, name, field_tuple: tuple) -> dict | None:
+	"""Row an earlier link validation or `get_value(cache=True)` cached in this transaction."""
+	if not isinstance(name, str):
+		return None
+	rows = frappe.db.value_cache[doctype][name].get(field_tuple)
+	# get_value caches tuples too, under the same key
+	if rows and isinstance(rows[0], dict):
+		return rows[0]
+
+
 def get_lazy_doc(
 	doctype: str, name: str, *, for_update=None, check_permission: str | bool | None = None
 ) -> "Document":
@@ -851,6 +877,7 @@ class Document(_DocumentBase):
 
 			self.init_from_dict(d)
 		self.flags.pop("ignore_children", None)
+		self.flags.pop("read_permissions_applied", None)
 
 		assert self.name, "document must have a name after loading from db"
 
@@ -1132,6 +1159,14 @@ class Document(_DocumentBase):
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
 
+		if self.flags.read_permissions_applied:
+			frappe.throw(
+				_("{0} {1} has fields removed for reading and can't be saved.").format(
+					_(self.doctype), self.name
+				),
+				title=_("Not Allowed"),
+			)
+
 		self.check_if_locked()
 		self._set_defaults()
 		self._restore_masked_fields_from_db()
@@ -1149,6 +1184,8 @@ class Document(_DocumentBase):
 
 		if self._action != "cancel":
 			self._validate()
+		else:
+			self.set_workflow_state_on_cancel()
 
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
@@ -1346,13 +1383,18 @@ class Document(_DocumentBase):
 
 	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
-		self.modified = now()
-		self.modified_by = frappe.session.user
+		keep = self.flags.keep_user_and_timestamp
+		if not (keep and self.modified):
+			self.modified = now()
+			self.modified_by = frappe.session.user
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
 		if self.is_new() and not (
-			frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate
+			frappe.flags.in_install
+			or frappe.flags.in_patch
+			or frappe.flags.in_migrate
+			or (keep and self.creation)
 		):
 			self.creation = self.modified
 			self.owner = self.modified_by
@@ -1398,7 +1440,7 @@ class Document(_DocumentBase):
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
-			d._sanitize_content()
+			d._sanitize_content(getattr(self, "_action", None))
 			d._save_passwords()
 			d._validate_length()
 		if self.is_new():
@@ -1490,6 +1532,12 @@ class Document(_DocumentBase):
 			if self._action != "save":
 				set_workflow_state_on_action(self, workflow, self._action)
 
+	def set_workflow_state_on_cancel(self):
+		from frappe.model.workflow import set_workflow_state_on_action
+
+		if workflow := self.meta.get_workflow(self):
+			set_workflow_state_on_action(self, workflow, "cancel")
+
 	def validate_set_only_once(self):
 		"""Validate that fields are not changed if not in insert"""
 		set_only_once_fields = self.meta.get_set_only_once_fields()
@@ -1554,6 +1602,7 @@ class Document(_DocumentBase):
 		if frappe.session.user == "Administrator":
 			return
 
+		self.flags.read_permissions_applied = True
 		all_fields = self.meta.fields.copy()
 		for table_field in self.meta.get_table_fields(include_computed=True):
 			all_fields += frappe.get_meta(table_field.options).fields or []
@@ -1728,9 +1777,9 @@ class Document(_DocumentBase):
 		original_modified = get_datetime(self._original_modified) if self._original_modified else None
 		if previous_modified != original_modified:
 			frappe.msgprint(
-				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
-				+ (f" ({previous.modified}, {self.modified}). ")
-				+ _("Please refresh to get the latest document."),
+				_(
+					"Error: {0} ({1}) has been modified after you have opened it. Please refresh to get the latest document."
+				).format(self.name, self.doctype),
 				raise_exception=frappe.TimestampMismatchError,
 			)
 
@@ -1767,7 +1816,7 @@ class Document(_DocumentBase):
 						frappe.DocstatusTransitionError,
 					)
 				self._action = "submit"
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif to_docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
@@ -1778,10 +1827,10 @@ class Document(_DocumentBase):
 		elif from_docstatus == DocStatus.SUBMITTED:
 			if to_docstatus.is_submitted():
 				self._action = "update_after_submit"
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif to_docstatus.is_cancelled():
 				self._action = "cancel"
-				self.check_permission("cancel")
+				self._check_transition_permission("cancel")
 			elif to_docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
@@ -1791,6 +1840,11 @@ class Document(_DocumentBase):
 
 		elif from_docstatus == DocStatus.CANCELLED:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
+
+	def _check_transition_permission(self, permtype):
+		self.check_permission(permtype)
+		if (doc_before_save := self.get_doc_before_save()) and not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, permtype, doc_before_save, throw=True)
 
 	def set_parent_in_children(self):
 		"""Updates `parent` and `parenttype` property in all children."""
@@ -1930,8 +1984,14 @@ class Document(_DocumentBase):
 				# Regular doctypes: bulk fetch with chunking
 				result_dict = {}
 				field_tuple = tuple(fields)
+				uncached_names = []
+				for name in names:
+					if row := _get_cached_link_value(doctype, name, field_tuple):
+						result_dict[name] = row
+					else:
+						uncached_names.append(name)
 
-				for name_chunk in _chunk(names, 1000):
+				for name_chunk in _chunk(uncached_names, 1000):
 					results = frappe.db.get_all(
 						doctype,
 						filters={"name": ("in", name_chunk)},
@@ -2135,7 +2195,8 @@ class Document(_DocumentBase):
 		if not self.docstatus.is_draft():
 			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
 
-		self.check_permission("write")
+		if not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, "write", self.name, throw=True)
 
 		self.run_method("before_discard")
 		self.db_set("docstatus", DocStatus.CANCELLED)
@@ -2145,6 +2206,8 @@ class Document(_DocumentBase):
 	@frappe.whitelist()
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
+		if not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		return self._rename(name=name, merge=merge, force=force)
 
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
@@ -2374,9 +2437,11 @@ class Document(_DocumentBase):
 		if not doc_to_compare and (amended_from := self.get("amended_from")):
 			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
+		from frappe.core.doctype.version.version import has_agent
+
 		version = frappe.new_doc("Version")
 
-		if not doc_to_compare and not self.flags.updater_reference:
+		if not doc_to_compare and not (self.flags.updater_reference or has_agent()):
 			return
 
 		if version.update_version_info(doc_to_compare, self):
@@ -2527,7 +2592,7 @@ class Document(_DocumentBase):
 			{
 				"doctype": "Comment",
 				"comment_type": comment_type,
-				"comment_email": comment_email or frappe.session.user,
+				"comment_email": comment_email,
 				"comment_by": comment_by,
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
@@ -2657,6 +2722,8 @@ class Document(_DocumentBase):
 		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
 		if enqueue_after_commit is None:
 			enqueue_after_commit = True
+		if enqueue_after_commit:
+			frappe.db.after_rollback.add(self.unlock)
 
 		return enqueue(
 			"frappe.model.document.execute_action",
@@ -2765,7 +2832,10 @@ class Document(_DocumentBase):
 
 		from frappe.deferred_insert import deferred_insert
 
+		creation, owner = self.creation, self.owner
 		self.set_user_and_timestamp()
+		self.creation = creation or self.modified
+		self.owner = owner or self.modified_by
 
 		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 		deferred_insert(doctype=self.doctype, records=doc)
@@ -3107,13 +3177,22 @@ class Document(_DocumentBase):
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
-				elif fieldtype == "Read Only" and not isinstance(value, str):
+				elif fieldtype == "Read Only" and value is not None and not isinstance(value, str):
 					value = cstr(value)
 
 				elif (fieldtype in datetime_fields and value == "") or (
 					getattr(df, "unique", False) and cstr(value).strip() == ""
 				):
 					value = None
+
+				elif (
+					convert_dates_to_str
+					and fieldtype in ("Datetime", "Date")
+					and isinstance(value, str)
+					and frappe.db.db_type == "sqlite"
+				):
+					# SQLite keeps the text as given; the other databases cast it to the column's type
+					value = get_datetime(value) if fieldtype == "Datetime" else getdate(value)
 
 			if convert_dates_to_str and isinstance(value, DatetimeTypes):
 				value = str(value)
@@ -3264,6 +3343,10 @@ class Document(_DocumentBase):
 			None,
 		)
 
+	def _has_hash_name(self):
+		"""Whether the name was generated by the `hash` rule, so a collision can be retried with a new one."""
+		return self.meta.autoname == "hash" and bool(self.flags.name_from_hash)
+
 	def _handle_hash_conflict(self):
 		"""Regenerate hash name in case of collisions"""
 		self.flags.retry_count = (self.flags.retry_count or 0) + 1
@@ -3291,11 +3374,11 @@ class Document(_DocumentBase):
 		# On postgres we can't implcitly ignore PK collision
 		# So instruct pg to ignore `name` field conflicts
 		if (
-			(ignore_if_duplicate or self.meta.autoname == "hash")
+			(ignore_if_duplicate or self._has_hash_name())
 			and frappe.db.db_type == "postgres"
 			and (self.flags.retry_count or 0) < 5
 		):
-			if self.meta.autoname == "hash":
+			if self._has_hash_name():
 				# A hash name that collides has to be regenerated, so only `name` may be skipped.
 				conflict_handler = "on conflict (name) do nothing"
 				returning = "RETURNING name"
@@ -3332,12 +3415,12 @@ class Document(_DocumentBase):
 				list(d.values()),
 			)
 			if (
-				frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not name
+				frappe.db.db_type == "postgres" and self._has_hash_name() and not name
 			):  # To avoid a transaction block, we regen in try (pg specific)
 				return self._handle_hash_conflict()
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
-				if self.meta.autoname == "hash":
+				if self._has_hash_name():
 					# hash collision? try again
 					return self._handle_hash_conflict()
 
@@ -3415,6 +3498,9 @@ class Document(_DocumentBase):
 				self.show_unique_validation_message(e)
 			else:
 				raise
+
+		# link validation reads rows from this cache, so drop the stale ones
+		frappe.db.value_cache.pop(self.doctype, None)
 
 	def db_update_all(self):
 		"""Raw update parent + children
@@ -3740,7 +3826,14 @@ class Document(_DocumentBase):
 
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			validate_phone_number_with_country_code(phone, phone_field.fieldname)
+			validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
+
+		for attach_field in self.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
+			file_url = self.get(attach_field.fieldname)
+			if isinstance(file_url, str) and has_unsafe_url_scheme(file_url):
+				frappe.throw(
+					_("'{0}' is not a valid URL").format(frappe.bold(file_url)), title=_("Invalid URL")
+				)
 
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
@@ -3886,13 +3979,15 @@ class Document(_DocumentBase):
 						title=_("Cannot Update After Submit"),
 					)
 
-	def _sanitize_content(self):
+	def _sanitize_content(self, action=None):
 		"""Sanitize HTML and Email in field values. Used to prevent XSS.
 
 		- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
 		if frappe.flags.in_install:
 			return
+
+		action = action or getattr(self, "_action", None)
 
 		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			if not value or not isinstance(value, str):
@@ -3915,9 +4010,9 @@ class Document(_DocumentBase):
 				df.get("ignore_xss_filter")
 				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options") == "Email")
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code", "JSON")
-				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()
-				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))
+				# fields locked after submit can't change, so leave them as stored
+				or (action == "update_after_submit" and not df.get("allow_on_submit") and not self.is_new())
 			):
 				continue
 

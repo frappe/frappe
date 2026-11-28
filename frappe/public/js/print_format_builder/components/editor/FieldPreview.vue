@@ -62,7 +62,11 @@
 		>
 			{{ df.label }}
 		</div>
-		<div class="value" :class="{ 'text-muted': !preview_value }" :style="value_text_style(df)">
+		<div
+			class="value"
+			:class="{ 'text-muted': !preview_value, 'value--colored': df.value_color }"
+			:style="value_text_style(df)"
+		>
 			<img
 				v-if="df.fieldtype == 'Attach Image' && preview_doc[df.fieldname]"
 				:style="{ maxWidth: '100%', width: df.width || '100%' }"
@@ -72,6 +76,7 @@
 			<a
 				v-else-if="df.fieldtype == 'Attach' && preview_doc[df.fieldname]"
 				:href="preview_doc[df.fieldname]"
+				:style="value_text_style(df)"
 				@click.prevent
 				>{{ String(preview_doc[df.fieldname]).split("/").pop() }}</a
 			>

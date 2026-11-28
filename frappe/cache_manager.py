@@ -51,6 +51,7 @@ global_cache_keys = (
 	"information_schema:counts",
 	"db_tables",
 	"server_script_autocompletion_items",
+	"flow_enabled",
 	*doctype_map_keys,
 )
 

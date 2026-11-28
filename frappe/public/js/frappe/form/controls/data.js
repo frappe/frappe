@@ -242,6 +242,9 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		}
 	}
 	set_input_attributes() {
+		if (this.df.options == "Email") {
+			this.$input.attr("dir", "ltr");
+		}
 		if (
 			["Data", "Link", "Dynamic Link", "Password", "Select", "Read Only"].includes(
 				this.df.fieldtype

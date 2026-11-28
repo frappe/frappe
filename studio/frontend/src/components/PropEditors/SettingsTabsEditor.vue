@@ -56,7 +56,7 @@ import { computed } from "vue"
 import { Button, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import { navItem, settingsPanel, tabBlockName } from "@/utils/blockTemplate/familyTemplates"
 
 const props = defineProps<{ block: Block; label?: string }>()

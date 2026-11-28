@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.website.doctype.web_form.web_form import get_published_web_forms
 from frappe.website.doctype.web_form_request.web_form_request import (
 	InvalidFieldsInValuesError,
@@ -24,7 +25,7 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 class TestWebFormRequest(IntegrationTestCase):
 	def setUp(self):
-		self.user = "test@example.com"
+		self.user = get_user_by_email("test@example.com")
 		user = frappe.get_doc("User", self.user)
 		user.add_roles("Website Manager")
 		self.addCleanup(user.remove_roles, "Website Manager")
@@ -88,7 +89,7 @@ class TestWebFormRequest(IntegrationTestCase):
 		participant_event = self.create_event(
 			event_type="Private",
 			event_participants=[
-				{"reference_doctype": "User", "reference_docname": self.user, "email": self.user}
+				{"reference_doctype": "User", "reference_docname": self.user, "email": "test@example.com"}
 			],
 		)
 
@@ -111,7 +112,7 @@ class TestWebFormRequest(IntegrationTestCase):
 		event = self.create_event(
 			event_type="Private",
 			event_participants=[
-				{"reference_doctype": "User", "reference_docname": self.user, "email": self.user}
+				{"reference_doctype": "User", "reference_docname": self.user, "email": "test@example.com"}
 			],
 		)
 		create_for_document("manage-events", event.name)

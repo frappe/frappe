@@ -8,10 +8,10 @@ from frappe.utils.caching import site_cache
 
 def get_jenv(*, restrict_globals=None):
 	import frappe
-	from frappe.utils.safe_exec import get_safe_globals, is_render_exec_enabled, render_safe_globals
+	from frappe.utils.safe_exec import get_safe_globals, render_safe_globals
 
 	if restrict_globals is None:
-		restrict_globals = is_render_exec_enabled()
+		restrict_globals = True
 
 	local_key = "jenv_restricted" if restrict_globals else "jenv_unrestricted"
 	if jenv := getattr(frappe.local, local_key, None):
@@ -69,8 +69,8 @@ def _get_jenv():
 	return jenv
 
 
-def get_template(path):
-	jenv = get_jenv()
+def get_template(path, *, restrict_globals=None):
+	jenv = get_jenv(restrict_globals=restrict_globals)
 	# Note: jenv globals are reapplied here because we don't have true "global"/"local" separation.
 	# Ideally globals should never change as per Jinja design.
 	return jenv.get_template(path, globals=jenv.globals)
@@ -123,7 +123,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	from jinja2 import TemplateError
 	from jinja2.sandbox import SandboxedEnvironment
 
-	from frappe import _, get_traceback, throw
+	from frappe import _, throw
 
 	if context is None:
 		context = {}
@@ -131,19 +131,14 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	try:
 		if is_path or guess_is_path(template):
 			is_path = True
-			compiled_template = get_template(template)
+			compiled_template = get_template(template, restrict_globals=restrict_globals)
 		else:
 			jenv: SandboxedEnvironment = get_jenv(restrict_globals=restrict_globals)
 			if safe_render and ".__" in template:
 				throw(_("Illegal template"))
 			compiled_template = jenv.from_string(template)
 	except TemplateError:
-		import html
-
-		throw(
-			title="Jinja Template Error",
-			msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
-		)
+		_throw_render_error(_("Jinja Template Error"), template=template)
 
 	import time
 
@@ -155,14 +150,30 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 		with safe_render_flags():
 			return compiled_template.render(context)
 	except Exception as e:
-		import html
-
-		throw(title="Context Error", msg=f"<pre>{html.escape(get_traceback())}</pre>", exc=e)
+		_throw_render_error(_("Context Error"), exc=e)
 	finally:
 		if is_path:
 			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
 		else:
 			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds")
+
+
+def _throw_render_error(title, template=None, exc=frappe.ValidationError):
+	"""Show the traceback only to users allowed to see it; log it for everyone else."""
+	import html
+
+	from frappe.utils.logger import get_logger
+	from frappe.utils.response import is_traceback_allowed
+
+	traceback = frappe.get_traceback()
+	if is_traceback_allowed():
+		source = f"<pre>{html.escape(template)}</pre>" if template else ""
+		msg = f"{source}<pre>{html.escape(traceback)}</pre>"
+	else:
+		get_logger("render-template").error(f"{title}\n{traceback}")
+		msg = frappe._("There was an error while rendering this template.")
+
+	frappe.throw(msg, title=title, exc=exc)
 
 
 def guess_is_path(template):

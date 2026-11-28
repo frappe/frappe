@@ -12,7 +12,7 @@
 	<template v-else-if="isOverlayNode"></template>
 
 	<StudioComponentWrapper
-		v-else-if="block.isStudioComponent"
+		v-else-if="block.isStudioComponent && !isMissingStudioComponent"
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 		:breakpoint="breakpoint"
@@ -118,24 +118,25 @@ import {
 import type { ComponentPublicInstance } from "vue"
 import { useEventListener } from "@vueuse/core"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
-import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
+import SlotScopeProvider from "@/runtime/components/SlotScopeProvider.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 import StudioComponentEditorWrapper from "@/components/StudioComponentEditorWrapper.vue"
-import { customVueComponentsRegistry } from "@/utils/customVueComponents"
+import { customVueComponentsRegistry } from "@/runtime/utils/customVueComponents"
 
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
 import { getBlockInfo, getComponentRoot, isObjectEmpty } from "@/utils/helpers"
 import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
-import { getEditorVariantChoice } from "@/utils/variants"
-import { isDynamicValue } from "@/utils/code"
+import { getEditorVariantChoice } from "@/runtime/utils/variants"
+import { isDynamicValue } from "@/runtime/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { SlotScope } from "@/types"
-import type HTML from "@/components/AppLayout/HTML.vue"
-import MissingComponent from "@/components/MissingComponent.vue"
-import { usePageScope } from "@/stores/codeStore"
+import type { HTML } from "@/runtime/components/core"
+import MissingComponent from "@/runtime/components/MissingComponent.vue"
+import { usePageScope } from "@/runtime/stores/codeStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 
 const props = withDefaults(
 	defineProps<{
@@ -154,6 +155,7 @@ defineOptions({
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const componentStore = useComponentStore()
 const pageScope = usePageScope()
 
 const isComponentReady = ref(false)
@@ -194,6 +196,10 @@ const isOverlayNode = computed(() => {
 	)
 })
 
+const isMissingStudioComponent = computed(
+	() => props.block.isStudioComponent && componentStore.isComponentMissing(props.block.componentName),
+)
+
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
 
@@ -202,7 +208,9 @@ const componentName = computed(() => {
 	if (props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
 	}
-	if (!name || isUnregistered(name)) return h(MissingComponent, { componentName: props.block.componentName })
+	if (isMissingStudioComponent.value || !name || isUnregistered(name)) {
+		return h(MissingComponent, { componentName: props.block.componentName })
+	}
 	return name
 })
 
@@ -213,6 +221,7 @@ const isUnregistered = (name: unknown) =>
 
 const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
+const componentScriptContext = inject<ComputedRef | null>("componentScriptContext", null)
 const evaluationContext = computed(() => {
 	return {
 		...slotScope?.value,
@@ -245,7 +254,12 @@ const vModelListeners = computed(() => {
 		if (propValue?.$type === "variable") {
 			const eventName = `update:${propName}`
 			listeners[eventName] = (newValue: any) => {
-				pageScope.setValueInVariable(propValue.name, newValue, evaluationContext.value)
+				pageScope.setValueInVariable(
+					propValue.name,
+					newValue,
+					evaluationContext.value,
+					componentScriptContext?.value,
+				)
 			}
 		}
 	})

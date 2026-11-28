@@ -178,7 +178,7 @@ rendered only when you supply it — neither ships default buttons).
 
 | Component     | Props                                                   | Emits                        | Region slots                                                     |
 | ------------- | ------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
-| `EmailItem`   | `{ email }`                                             | —                            | `#header` (`{ email }`), `#actions`, `#footer` (`{ email }`)     |
+| `EmailItem`   | `{ email, hideSubject? }`                               | —                            | `#header` (`{ email }`), `#actions`, `#footer` (`{ email }`)     |
 | `CommentItem` | `{ comment, editable?, editorClass?, uploadFunction? }` | `save(content)`, `discard()` | `#header` (`{ comment }`), `#actions`, `#footer` (`{ comment }`) |
 
 `CommentItem` renders through frappe-ui's `Editor` + `CommentKit` (from
@@ -189,7 +189,8 @@ passes through to the editor.
 
 `EmailItem`'s default header is responsive: from `sm` up it's one row (name, status,
 time, actions); below that the time moves to its own line under the name, with
-To/Cc/Bcc following.
+To/Cc/Bcc following, then the subject. Pass `hideSubject` where
+every email in the thread has the same subject.
 
 `LogItem` / `VersionItem` are one-liners with no regions — replace the whole row via
 `#item-{type}` if you need to change them.

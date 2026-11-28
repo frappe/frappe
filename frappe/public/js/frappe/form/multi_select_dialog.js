@@ -150,6 +150,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	show_child_results() {
+		this.child_search_filters = [];
+		this.child_search_id = (this.child_search_id || 0) + 1;
 		this.get_child_result().then((r) => {
 			this.child_results = r.message || [];
 			this.render_child_datatable();
@@ -225,6 +227,42 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			disableReorderColumn: true,
 		});
 		this.$child_wrapper.find(".dt-scrollable").css("height", "300px");
+		this.$child_wrapper.on(
+			"keydown",
+			".dt-filter",
+			frappe.utils.debounce(() => this.search_child_rows(), 500)
+		);
+	}
+
+	async search_child_rows() {
+		const fieldnames = ["parent", ...this.child_columns];
+		const { columnmanager } = this.child_datatable;
+		this.child_search_filters = Object.entries(columnmanager.getAppliedFilters())
+			.map(([col_index, value]) => [fieldnames[col_index - 1], value])
+			.filter(
+				([fieldname]) =>
+					fieldname &&
+					!frappe.model.is_numeric_field(
+						frappe.meta.get_docfield(this.child_doctype, fieldname)
+					)
+			)
+			.map(([fieldname, value]) => [this.child_doctype, fieldname, "like", `%${value}%`]);
+		if (!this.child_search_filters.length) return;
+
+		const search_id = (this.child_search_id = (this.child_search_id || 0) + 1);
+		const r = await this.get_child_result();
+		if (search_id !== this.child_search_id) return;
+		this.child_results = this.child_results.slice(
+			0,
+			this.child_datatable.datamanager.rows.length
+		);
+		const loaded = new Set(this.child_results.map((d) => d.name));
+		const new_rows = (r.message || []).filter((d) => !loaded.has(d.name));
+		if (!new_rows.length) return;
+
+		this.child_results.push(...new_rows);
+		this.child_datatable.appendRows(new_rows.map((d) => Object.values(d).slice(1)));
+		columnmanager.applyFilter(columnmanager.getAppliedFilters());
 	}
 
 	get_primary_filters() {
@@ -646,6 +684,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	async get_filtered_parents_for_child_search() {
 		const parent_search_args = this.get_args_for_search();
 		parent_search_args.filter_fields = ["name"];
+		if (!parent_search_args.query) {
+			parent_search_args.filters.push(...(this.child_search_filters || []));
+		}
 		const [results, _] = await this.perform_search(parent_search_args);
 
 		let parent_names = [];
@@ -662,6 +703,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	add_custom_child_filters(filters) {
+		(this.child_search_filters || []).forEach((filter) => {
+			filters.push([filter[1], filter[2], filter[3]]);
+		});
 		if (this.add_filters_group && this.filter_group) {
 			this.filter_group.get_filters().forEach((filter) => {
 				if (filter[0] == this.child_doctype) {
@@ -687,6 +731,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				limit_page_length: this.child_page_length + 5,
 				order_by: "parent",
 			},
+			type: "QUERY",
 		});
 	}
 };

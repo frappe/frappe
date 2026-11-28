@@ -9,6 +9,7 @@ from frappe.core.doctype.module_def.test_module_def import custom_module
 from frappe.desk.desktop import get_desktop_page, update_onboarding_step
 from frappe.desk.doctype.sidebar.test_sidebar import no_developer_mode
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 USER = "test-onboarding@example.com"
 ROLE = "Test Onboarding Role"
@@ -38,8 +39,9 @@ class OnboardingTestCase(IntegrationTestCase):
 		return name
 
 	def make_user(self, roles: list[str]) -> str:
-		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
-		frappe.get_doc(
+		if user := get_user_by_email(USER):
+			frappe.delete_doc("User", user, force=True)
+		user = frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": USER,
@@ -48,8 +50,8 @@ class OnboardingTestCase(IntegrationTestCase):
 				"roles": [{"role": role} for role in roles],
 			}
 		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "User", USER, force=True, ignore_missing=True)
-		return USER
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
+		return user.name
 
 	def make_step(self, title: str, **fields) -> str:
 		self.addCleanup(frappe.delete_doc, "Onboarding Step", title, force=True, ignore_missing=True)

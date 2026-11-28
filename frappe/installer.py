@@ -426,6 +426,7 @@ def remove_from_installed_apps(app_name):
 			"DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps)
 		)
 		_clear_cache("__global")
+		frappe.client_cache.delete_value("app_hooks")
 		frappe.local.doc_events_hooks = None
 		with filelock(APP_STATE_LOCK):
 			if app_name in frappe.get_disabled_apps():
@@ -854,8 +855,11 @@ def _update_config_file(key: str, value, config_file: str):
 	else:
 		site_config[key] = value
 
-	with open(config_file, "w") as f:
+	temp_file = f"{config_file}.{os.getpid()}.tmp"
+	with open(temp_file, "w") as f:  # nosemgrep
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
+	shutil.copymode(config_file, temp_file)
+	os.replace(temp_file, config_file)
 
 	if hasattr(frappe.local, "conf"):
 		frappe.local.conf[key] = value
@@ -1022,7 +1026,9 @@ def rename_conflicting_custom_module(module: str, app: str) -> str | None:
 	# The collision is on the title, not the module. Two sidebars may share a module but cannot
 	# share a name, so a site sidebar titled "Leads" collides with an app's "Leads" whichever
 	# modules the two belong to.
-	if held := frappe.db.get_value("Sidebar", {"title": module}, "name"):
+	if frappe.db.table_exists("Sidebar") and (
+		held := frappe.db.get_value("Sidebar", {"title": module}, "name")
+	):
 		rename_doc(
 			doctype="Sidebar",
 			old=held,
@@ -1290,7 +1296,7 @@ def validate_database_sql(path: str, _raise: bool = True) -> None:
 				exc=frappe.ExecutableNotFound,
 			)
 		try:
-			frappe.utils.execute_in_shell(f"{executable} -m1 __Auth {path}", check_exit_code=True)
+			frappe.utils.execute_in_shell([executable, "-m1", "__Auth", path], check_exit_code=True)
 			return
 		except Exception:
 			error_message = "Table `__Auth` not found in file."

@@ -6,7 +6,7 @@ from frappe import _
 from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
 from frappe.model.document import Document
 from frappe.permissions import add_permission, add_user_permission
-from frappe.utils import get_link_to_form
+from frappe.utils import get_link_to_form, get_user_display_id
 from frappe.utils.modules import get_modules_from_app
 
 
@@ -37,8 +37,24 @@ class UserType(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_mandatory_for_custom_type()
 		self.set_modules()
 		self.add_select_perm_doctypes()
+
+	def validate_mandatory_for_custom_type(self):
+		if self.is_standard:
+			return
+
+		required = ["role"]
+		if self.apply_user_permission_on:
+			required.append("user_id_field")
+
+		for fieldname in required:
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
 
 	def clear_cache(self):
 		super().clear_cache()
@@ -247,15 +263,16 @@ def user_linked_with_permission_on_doctype(doc, user):
 		return True
 	else:
 		label = frappe.get_meta(doc.apply_user_permission_on).get_field(doc.user_id_field).label
+		user_display_id = frappe.bold(get_user_display_id(user))
 
 		frappe.msgprint(
 			_(
 				"To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
 			).format(
 				frappe.bold(doc.role),
-				frappe.bold(user),
+				user_display_id,
 				frappe.bold(label),
-				frappe.bold(user),
+				user_display_id,
 				frappe.bold(doc.apply_user_permission_on),
 			)
 		)

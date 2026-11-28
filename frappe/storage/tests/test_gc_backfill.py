@@ -2,13 +2,21 @@
 # License: MIT. See LICENSE
 import hashlib
 import io
+import json
 import os
+import sqlite3
+from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
+
+from pypika.queries import Table
 
 import frappe
 import frappe.storage
+from frappe.database.sqlite.query_parameters import convert_frappe_query_parameters
+from frappe.query_builder.utils import get_query_builder, prepare_query
 from frappe.storage import backfill, gc
-from frappe.storage.blob import put_blob
+from frappe.storage.blob import other_site_key_criterion, put_blob
 from frappe.storage.gc import collect_garbage
 from frappe.storage.memory_driver import fake
 from frappe.storage.tests import storage_v2, unique_bytes
@@ -45,8 +53,72 @@ def gc_cutoff():
 	return add_to_date(now_datetime(), hours=-gc.MIN_AGE_HOURS)
 
 
+class FakeBucketClient:
+	"""boto3 stand-in holding objects keyed by (bucket, key)."""
+
+	def __init__(self, objects: dict, error: Exception | None = None):
+		self.objects = objects
+		self.error = error
+		self.calls = 0
+
+	def get_paginator(self, name):
+		return SimpleNamespace(paginate=self.paginate)
+
+	def paginate(self, Bucket, Prefix):
+		self.calls += 1
+		yield {
+			"Contents": [
+				{"Key": key} for bucket, key in self.objects if bucket == Bucket and key.startswith(Prefix)
+			]
+		}
+
+	def get_object(self, Bucket, Key):
+		self.calls += 1
+		if self.error:
+			raise self.error
+		return {"Body": io.BytesIO(self.objects[(Bucket, Key)])}
+
+
+@contextmanager
+def backup_bucket(objects: dict, bucket: str = "files", error: Exception | None = None):
+	"""Make the S3 storage driver a fake bucket client, so no test reaches a real bucket."""
+	client = FakeBucketClient(objects, error)
+	if not hasattr(frappe.local, "storage_driver_instances"):
+		frappe.local.storage_driver_instances = {}
+	driver = SimpleNamespace(client=client, bucket=bucket)
+	with (
+		patch.dict(frappe.conf, {"storage_driver_config": {"bucket": bucket}}),
+		patch.dict(frappe.local.storage_driver_instances, {"s3": driver}),
+	):
+		yield client
+
+
+def index_key(site: str | None = None) -> str:
+	"""The key Pilot gives a backup run's File index."""
+	site = site or frappe.local.site
+	return f"sites/{site}/backups_metadata/20261117_162033-{site.replace('.', '_')}-files-index.json"
+
+
+def index_body(public=(), private=()) -> bytes:
+	"""A File index as Pilot writes it, with one v1 item that has no blob."""
+
+	def items(blobs):
+		return [{"name": "f", "file_url": f"/files/{blob}/f", "size": 1, "file_blob": blob} for blob in blobs]
+
+	v1_item = {"name": "v1.txt", "file_url": "/files/v1.txt", "size": 1}
+	return json.dumps(
+		{"files_index": [*items(public), v1_item], "private_files_index": items(private)}
+	).encode()
+
+
 class TestCollectGarbage(IntegrationTestCase):
 	"""GC on orphan blobs. Uses fake() so no bytes touch the site dirs."""
+
+	def setUp(self):
+		"""Keep GC off the site's real S3 bucket; a test opts in through backup_bucket()."""
+		no_bucket = patch.dict(frappe.conf, {"storage_driver_config": None})
+		no_bucket.start()
+		self.addCleanup(no_bucket.stop)
 
 	def put(self, content=None):
 		with storage_v2():
@@ -139,6 +211,176 @@ class TestCollectGarbage(IntegrationTestCase):
 
 				self.assertEqual(stats, {**empty_stats(), "upload_sessions_expired": expired})
 				self.assert_kept(store, blob)
+
+	def old_blobs(self, count):
+		blobs = [self.put() for _ in range(count)]
+		for blob in blobs:
+			backdate(blob.name)
+		return blobs
+
+	def assert_deleted(self, store, *blobs):
+		for blob in blobs:
+			self.assertFalse(frappe.db.exists("File Blob", blob.name))
+			self.assertFalse(store.exists(blob.key))
+
+	def rekey(self, store, blob, key):
+		"""Store the blob's bytes at ``key`` and point its row there."""
+		store.write(key, io.BytesIO(b"rekeyed"), is_private=bool(blob.is_private))
+		frappe.db.set_value("File Blob", blob.name, "key", key, update_modified=False)
+		blob.key = key
+
+	def test_blobs_under_another_sites_prefix_are_not_collected(self):
+		"""A key under another site's prefix belongs to a former name or a restored source site.
+
+		The driver refuses to delete those bytes, so collecting would only drop the row
+		that relocation and old backups still need."""
+		with fake() as store:
+			foreign, own, plain = self.old_blobs(3)
+			self.rekey(store, foreign, f"sites/other.example/storage/{foreign.name}/a.txt")
+			self.rekey(store, own, f"sites/{frappe.local.site}/storage/{own.name}/a.txt")
+
+			collect_garbage()
+
+			self.assert_kept(store, foreign)
+			self.assert_deleted(store, own, plain)
+
+	def test_other_site_check_escapes_like_wildcards(self):
+		"""An underscore in this site's name must not match another site's prefix."""
+		with fake() as store:
+			lookalike, own = self.put(), self.put()
+			self.rekey(store, lookalike, f"sites/aXb.example/storage/{lookalike.name}/a.txt")
+			self.rekey(store, own, f"sites/a_b.example/storage/{own.name}/a.txt")
+
+		blob = frappe.qb.DocType("File Blob")
+		with patch.object(frappe.local, "site", "a_b.example"):
+			query = (
+				frappe.qb.from_(blob)
+				.select(blob.name)
+				.where(blob.name.isin([lookalike.name, own.name]))
+				.where(other_site_key_criterion(blob))
+			)
+			matched = query.run(pluck=True)
+
+		self.assertEqual(matched, [lookalike.name])
+
+	def test_other_site_check_works_on_sqlite(self):
+		"""SQLite has no default LIKE escape, so the check must not depend on one."""
+		keys = {
+			"own": "sites/a_b.example/storage/x/a.txt",
+			"lookalike": "sites/aXb.example/storage/x/a.txt",
+			"other": "sites/other.example/storage/x/a.txt",
+			"legacy": "public/abc/x/a.txt",
+		}
+		blob = Table("blob_check")
+		with patch.object(frappe.local, "site", "a_b.example"):
+			query = (
+				get_query_builder("sqlite")
+				.from_(blob)
+				.select(blob.label)
+				.where(other_site_key_criterion(blob))
+				.orderby(blob.label)
+			)
+			sql, params = prepare_query(query)
+		connection = sqlite3.connect(":memory:")
+		connection.execute('create table blob_check (label text, "key" text)')
+		connection.executemany("insert into blob_check values (?, ?)", keys.items())
+
+		matched = [row[0] for row in connection.execute(*convert_frappe_query_parameters(sql, params))]
+
+		self.assertEqual(matched, ["lookalike", "other"])
+
+	def test_blobs_listed_in_a_backup_index_are_kept(self):
+		"""A blob that a backup's File index lists stays, so that backup can still be restored."""
+		with fake() as store:
+			public, private, orphan = self.old_blobs(3)
+			body = index_body(public=[public.name], private=[private.name])
+			with backup_bucket({("files", index_key()): body}):
+				collect_garbage()
+
+			self.assert_kept(store, public, private)
+			self.assert_deleted(store, orphan)
+
+	def test_kept_blobs_do_not_stall_later_batches(self):
+		"""Kept blobs are left out by the query, so a batch of them cannot stop the loop early."""
+		with fake() as store:
+			first, second, orphan = self.old_blobs(3)
+			kept = {first.name, second.name}
+
+			found = gc.get_orphan_blobs(gc_cutoff(), 1000, gc.blob_reference_columns(), kept)
+			self.assertFalse(kept & {row.name for row in found})
+			self.assertIn(orphan.name, {row.name for row in found})
+
+			with backup_bucket({("files", index_key()): index_body(public=sorted(kept))}):
+				collect_garbage(batch_size=1)
+			self.assert_kept(store, first, second)
+			self.assert_deleted(store, orphan)
+
+	def test_only_this_sites_index_files_are_read(self):
+		"""Month metadata and other sites' indexes share the bucket but pin nothing here."""
+		with fake() as store:
+			(blob,) = self.old_blobs(1)
+			month_key = f"sites/{frappe.local.site}/backups_metadata/2026-11.json"
+			objects = {
+				("files", month_key): json.dumps({"20261117_162033": {"files": "x.tar"}}).encode(),
+				("files", index_key("other.example.com")): index_body(public=[blob.name]),
+			}
+			with backup_bucket(objects):
+				collect_garbage()
+
+			self.assert_deleted(store, blob)
+
+	def test_an_unreadable_backup_index_deletes_no_blobs(self):
+		"""Without a complete set of indexed blobs, GC must fail closed."""
+		cases = {
+			"read error": ({}, RuntimeError("bucket unreachable")),
+			"invalid json": ({"body": b"{not json"}, None),
+		}
+		for label, (body, error) in cases.items():
+			with self.subTest(label), fake() as store:
+				(blob,) = self.old_blobs(1)
+				objects = {("files", index_key()): body.get("body", index_body())}
+				with (
+					backup_bucket(objects, error=error),
+					patch.object(gc, "expire_upload_sessions", return_value=2),
+					patch("frappe.logger", return_value=MagicMock()),
+				):
+					stats = collect_garbage()
+
+				self.assertEqual(stats, {**empty_stats(), "upload_sessions_expired": 2})
+				self.assert_kept(store, blob)
+
+	def test_without_an_s3_bucket_gc_reads_no_index(self):
+		"""Sites without S3 storage keep today's GC and make no bucket calls."""
+		with fake() as store:
+			(blob,) = self.old_blobs(1)
+			with (
+				backup_bucket({("files", index_key()): index_body(public=[blob.name])}) as client,
+				patch.dict(frappe.conf, {"storage_driver_config": None}),
+			):
+				collect_garbage()
+
+			self.assertEqual(client.calls, 0)
+			self.assert_deleted(store, blob)
+
+	def test_runs_without_backups_keep_collecting(self):
+		"""A site with no backup indexes yet is not blocked."""
+		with fake() as store:
+			(blob,) = self.old_blobs(1)
+			with backup_bucket({}):
+				collect_garbage()
+
+			self.assert_deleted(store, blob)
+
+	def test_index_files_in_another_bucket_do_not_keep_blobs(self):
+		"""GC sees only the storage bucket; backups kept elsewhere pin nothing and GC deletes as before."""
+		with fake() as store:
+			(blob,) = self.old_blobs(1)
+			with backup_bucket(
+				{("pilot-backups", index_key()): index_body(public=[blob.name])}, bucket="files"
+			):
+				collect_garbage()
+
+			self.assert_deleted(store, blob)
 
 	def test_failing_upload_sweep_is_logged_and_counts_zero(self):
 		with patch.object(gc, "expire_stale_upload_sessions", side_effect=Exception("disk gone")):
@@ -395,3 +637,44 @@ class TestBackfill(IntegrationTestCase):
 		self.assertIsNone(backfill.locate("/private/files/a/../../secrets.txt"))
 		self.assertEqual(backfill.locate("/files/logo.png"), (False, "logo.png"))
 		self.assertEqual(backfill.locate("/private/files/a/b.png"), (True, "a/b.png"))
+
+
+class TestFilesIndex(IntegrationTestCase):
+	def test_lists_stored_files_by_privacy_with_their_blobs(self):
+		from frappe.core.doctype.file.utils import get_files_index
+
+		tag = frappe.generate_hash(length=10)
+		public = insert_file_row(
+			file_name=f"public-{tag}.txt", file_url=f"/files/public-{tag}.txt", file_size=3
+		)
+		private = insert_file_row(
+			file_name=f"private-{tag}.txt",
+			file_url=f"/private/files/private-{tag}.txt",
+			file_size=5,
+			is_private=1,
+		)
+		insert_file_row(file_name=f"folder-{tag}", is_folder=1)
+		insert_file_row(file_name=f"link-{tag}.png", file_url=f"https://example.com/link-{tag}.png")
+		with fake(), storage_v2():
+			stored = frappe.get_doc(
+				doctype="File", file_name=f"blob-{tag}.txt", content=unique_bytes(), is_private=1
+			).insert()
+
+		index = get_files_index()
+
+		listed = {group: [item for item in items if tag in item["name"]] for group, items in index.items()}
+		self.assertEqual(
+			listed["files_index"], [{"name": public.file_name, "file_url": public.file_url, "size": 3}]
+		)
+		self.assertCountEqual(
+			listed["private_files_index"],
+			[
+				{"name": private.file_name, "file_url": private.file_url, "size": 5},
+				{
+					"name": stored.file_name,
+					"file_url": stored.file_url,
+					"size": stored.file_size,
+					"file_blob": stored.blob,
+				},
+			],
+		)

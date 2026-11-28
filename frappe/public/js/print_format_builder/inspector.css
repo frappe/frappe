@@ -345,6 +345,42 @@ body.pfb-dragging * {
 	outline: none;
 }
 
+.print-format-doc .ql-snow a {
+	color: var(--text-color);
+}
+
+.print-format-doc .ql-editor {
+	color: inherit;
+	line-height: inherit;
+	text-align: inherit;
+}
+
+.print-format-doc .ql-editor a[href]:not(.btn) {
+	text-decoration: none;
+}
+
+.print-format-doc .ql-snow .ql-editor code {
+	background-color: transparent;
+	padding: 0;
+}
+
+/* quill.scss sets this padding with !important, through these tokens */
+.print-format-doc .ql-code-block-container,
+.print-format-doc .ql-snow .ql-editor .ql-code-block-container {
+	--padding-xs: 0;
+	--padding-sm: 0;
+	background-color: transparent;
+	color: inherit;
+}
+
+.print-format-doc .ql-editor ol {
+	padding-left: revert;
+}
+
+.print-format-doc .ql-editor li {
+	margin: 0;
+}
+
 .pfb-static-text-input {
 	resize: vertical;
 	margin-bottom: 6px;

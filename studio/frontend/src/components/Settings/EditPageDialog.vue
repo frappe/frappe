@@ -22,7 +22,7 @@ import { ref, watch } from "vue"
 import { Button, Dialog, ErrorMessage, toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import PageMetaFields from "@/components/PageMetaFields.vue"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 const props = defineProps<{ page: StudioPage | null }>()
 const open = defineModel<boolean>("open", { required: true })

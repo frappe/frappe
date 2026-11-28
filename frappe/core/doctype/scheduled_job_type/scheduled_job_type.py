@@ -11,6 +11,7 @@ from croniter import CroniterBadCronError, croniter
 
 import frappe
 from frappe import _
+from frappe.app_state import get_disabled_modules
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
@@ -76,6 +77,12 @@ class ScheduledJobType(Document):
 	@property
 	def is_app_disabled(self) -> bool:
 		"""True when this job belongs to an app that is disabled on this site."""
+		if self.server_script:
+			disabled_modules = get_disabled_modules()
+			return (
+				bool(disabled_modules)
+				and frappe.db.get_value("Server Script", self.server_script, "module") in disabled_modules
+			)
 		return bool(self.method) and self.method.split(".", 1)[0] in frappe.get_disabled_apps()
 
 	def enqueue(self, force=False) -> bool:
@@ -212,7 +219,7 @@ class ScheduledJobType(Document):
 		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def execute_event(doc: str | dict):
 	frappe.only_for("System Manager")
 	doc = frappe.parse_json(doc)

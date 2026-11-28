@@ -56,7 +56,7 @@ def _trigger(agent_name: str, **overrides: Any) -> dict:
 
 
 def _user(email: str, *roles: str) -> str:
-	frappe.get_doc(
+	user = frappe.get_doc(
 		{
 			"doctype": "User",
 			"email": email,
@@ -65,7 +65,7 @@ def _user(email: str, *roles: str) -> str:
 			"roles": [{"role": role} for role in roles],
 		}
 	).insert(ignore_permissions=True)
-	return email
+	return user.name
 
 
 class _Bag:
@@ -131,34 +131,16 @@ class TestDispatch(IntegrationTestCase):
 			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
 		enqueue.assert_not_called()
 
-	def test_dispatch_checks_the_condition_as_the_run_as_user(self):
-		open_doc = frappe.get_doc({"doctype": "ToDo", "description": "open one"}).insert()
-		closed_doc = frappe.get_doc(
-			{"doctype": "ToDo", "description": "closed one", "status": "Closed"}
-		).insert()
-		script = "status = frappe.db.get_value('ToDo', doc.name, 'status')\nresult = status == 'Closed'"
-		for condition, doc, fires in (
-			("doc.status == 'Closed'", open_doc, False),
-			("doc.status == 'Closed'", closed_doc, True),
-			(script, open_doc, False),
-			(script, closed_doc, True),
-			("doc.status.no_such_method()", closed_doc, False),  # a failing condition skips
-		):
-			with self.subTest(condition=condition, status=doc.status):
-				self.trigger.condition = condition
-				self.trigger.save()
-				with patch("frappe.enqueue") as enqueue, patch("frappe.log_error"):
-					dispatch(doc, "after_insert")
-				self.assertEqual(enqueue.call_count, int(fires))
+	def test_dispatch_skips_what_the_run_user_cannot_read_and_leaves_the_condition_to_the_job(self):
+		reader = _user("dispatch-reader@example.com", FLOW_USER_ROLE)
+		frappe.db.set_value("Flow Trigger", self.trigger.name, {"run_as": reader, "condition": "False"})
+		theirs = frappe.get_doc({"doctype": "ToDo", "description": "theirs", "allocated_to": reader}).insert()
+		not_theirs = frappe.get_doc({"doctype": "ToDo", "description": "not theirs"}).insert()
 
-		# checked as run_as, not as the user whose change fired it
-		self.trigger.run_as = _user("dispatch-service@example.com", "System Manager", FLOW_USER_ROLE)
-		self.trigger.condition = f"frappe.session.user == '{self.trigger.run_as}'"
-		self.trigger.save()
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(closed_doc, "after_insert")
-		enqueue.assert_called_once()
-		self.assertEqual(frappe.session.user, "Administrator")  # restored afterward
+		for doc, fires in ((theirs, True), (not_theirs, False)):
+			with self.subTest(doc=doc.description), patch("frappe.enqueue") as enqueue:
+				dispatch(doc, "after_insert")
+				self.assertEqual(enqueue.call_count, int(fires))
 
 
 class TestDispatchScheduled(IntegrationTestCase):
@@ -317,17 +299,122 @@ class TestFire(IntegrationTestCase):
 				self.assertEqual(frappe.get_doc("Flow Session", run.session).owner, account)
 				self.assertEqual(self.daemon.configs[run.session]["user_context"]["user"], account)
 
+	def test_a_flow_users_own_trigger_keeps_its_session_from_system_managers(self):
+		from frappe.flow.lib.session import LogRecorder
+		from frappe.patches.v17_0.keep_flow_user_trigger_sessions_private import execute
+
+		member = _user("trigger-member@example.com", FLOW_USER_ROLE)
+		manager = _user("trigger-manager@example.com", "System Manager", FLOW_USER_ROLE)
+		viewer = _user("trigger-viewer@example.com", "System Manager")
+		# open to managers unless a Flow User's trigger ran as them
+		cases = (
+			(member, member, False),
+			(member, manager, True),
+			(manager, None, True),
+			(manager, member, True),
+		)
+		triggers, runs = [], {}
+		for owner, run_as, seen in cases:
+			trigger = frappe.get_doc(
+				_trigger(
+					self.agent.name,
+					title=f"Owned Trigger {len(runs)}",
+					event="Scheduled",
+					target_doctype=None,
+					doc_event=None,
+					cron_expression="0 9 * * 5",
+					prompt_template="weekly",
+				)
+			).insert()
+			trigger.db_set({"owner": owner, "run_as": run_as})
+			triggers.append(trigger)
+			runs[fire(trigger.name)] = seen
+
+		def check():
+			for name, seen in runs.items():
+				run = frappe.get_doc("Flow Run", name)
+				for doc in (run, frappe.get_doc("Flow Session", run.session)):
+					with self.subTest(doc.doctype, owner=doc.owner, seen=seen):
+						self.assertTrue(frappe.has_permission(doc.doctype, "read", doc, user=doc.owner))
+						self.assertEqual(frappe.has_permission(doc.doctype, "read", doc, user=viewer), seen)
+						listed = frappe.get_list(doc.doctype, filters={"name": doc.name}, user=viewer)
+						self.assertEqual(bool(listed), seen)
+
+		check()
+		# its owner cannot hide a session a manager's trigger started
+		shown = frappe.get_doc("Flow Session", {"owner": member, "personal_trigger": 0})
+		shown.personal_trigger = 1
+		self.assertRaises(frappe.CannotChangeConstantError, shown.save)
+
+		frappe.db.set_value("Flow Session", {"owner": ("in", (member, manager))}, "personal_trigger", 0)
+		execute()
+		check()
+
+		# a run the log recorder adds stays with its session
+		for name, seen in runs.items():
+			session = frappe.get_doc("Flow Session", frappe.db.get_value("Flow Run", name, "session"))
+			frappe.db.set_value("Flow Run", name, "status", "Completed")
+			added = LogRecorder(session)._find_or_create_run()
+			self.assertEqual(frappe.has_permission("Flow Run", "read", added, user=viewer), seen)
+
+		for trigger in triggers:
+			trigger.delete()
+		frappe.get_doc(_trigger(self.agent.name, title=triggers[0].name)).insert()
+		check()
+
 	def test_fire_skips_without_running_the_agent(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "open", "status": "Open"}).insert()
 		for case, values, target in (
 			("disabled", {"enabled": 0}, todo.name),
 			("target gone", {"enabled": 1}, "does-not-exist"),
 			("condition false, rechecked after load", {"condition": "doc.status == 'Closed'"}, todo.name),
+			(
+				"the run user cannot read the target",
+				{"condition": None, "run_as": _user("fire-reader@example.com", FLOW_USER_ROLE)},
+				todo.name,
+			),
 		):
 			with self.subTest(case):
 				frappe.db.set_value("Flow Trigger", self.trigger.name, values)
 				self.assertIsNone(fire(self.trigger.name, target_doctype="ToDo", target_name=target))
 				self.assertEqual(self.turns(), [])
+
+	def test_the_condition_and_template_see_only_the_docs_fields(self):
+		from jinja2.exceptions import UndefinedError
+
+		from frappe.flow.triggers.triggers import _eval_condition, _Fields
+
+		fields = _Fields(name="x", items=[frappe._dict(qty=2), frappe._dict(qty=3)])
+		self.assertEqual(fields.items[1].qty, 3)  # a field, not dict.items
+		self.assertTrue(_eval_condition("len(doc.items) == 2 and doc.items[0].qty == 2", fields))
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "template test"}).insert()
+		for template in ("{{ frappe.db.get_value('User', 'Administrator', 'name') }}", "{{ doc.save() }}"):
+			with self.subTest(template):
+				frappe.db.set_value("Flow Trigger", self.trigger.name, "prompt_template", template)
+				with self.assertRaises(UndefinedError):
+					fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+
+	def test_the_prompt_leaves_out_fields_the_run_user_cannot_read(self):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		make_property_setter("ToDo", "description", "permlevel", 1, "Int")
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		reader = _user("fire-fields@example.com", FLOW_USER_ROLE)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "secret note", "allocated_to": reader})
+		todo.insert()
+		frappe.db.set_value(
+			"Flow Trigger",
+			self.trigger.name,
+			{"run_as": reader, "prompt_template": "{{ doc.name }}: {{ doc.description }}"},
+		)
+
+		run = frappe.get_doc(
+			"Flow Run", fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		)
+		self.assertIn(todo.name, run.input)
+		self.assertNotIn("secret note", run.input)
+		self.assertNotIn("None", run.input)  # a hidden field prints blank
 
 
 RUNNER = "trigger-runner@example.com"
@@ -415,7 +502,7 @@ class TestShippedTriggers(IntegrationTestCase):
 	def setUp(self):
 		self.model = frappe.get_doc(_model()).insert()
 		Agent(name="Researcher", model=self.model.name, instructions="Research.").sync()
-		_user(RUNNER, FLOW_USER_ROLE)
+		self.runner = _user(RUNNER, FLOW_USER_ROLE)
 		self.started = frappe.utils.now()
 
 	def tearDown(self):
@@ -432,6 +519,15 @@ class TestShippedTriggers(IntegrationTestCase):
 
 		return patch("frappe.get_hooks", side_effect=hooks)
 
+	def test_run_as_takes_the_users_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[FLOW_USER_ROLE], generated_id=True, first_name="Runner") as user:
+			Trigger(
+				title="By email", agent="Researcher", cron="0 8 * * *", prompt="x", run_as=user.email
+			).sync()
+			self.assertEqual(frappe.db.get_value("Flow Trigger", "frappe/By email", "run_as"), user.name)
+
 	def test_names_are_the_apps_own_unless_named_with_their_app(self):
 		trigger = Trigger(title="Daily", agent="Researcher", cron="0 8 * * *", prompt="x")
 		self.assertEqual((trigger.name, trigger.agent), ("frappe/Daily", "frappe/Researcher"))
@@ -444,11 +540,11 @@ class TestShippedTriggers(IntegrationTestCase):
 		doc = frappe.get_doc("Flow Trigger", "frappe/Research new todo")
 		self.assertEqual(
 			(doc.agent, doc.app, doc.is_system_generated, doc.enabled, doc.run_as, doc.doc_event),
-			("frappe/Researcher", "frappe", 1, 1, RUNNER, "after_insert"),
+			("frappe/Researcher", "frappe", 1, 1, self.runner, "after_insert"),
 		)
 
 		# switching off works even once its user is gone
-		frappe.db.set_value("User", RUNNER, "enabled", 0)
+		frappe.db.set_value("User", self.runner, "enabled", 0)
 		doc.enabled = 0
 		doc.save()
 		for field, value in (("run_as", None), ("prompt_template", "Mine now.")):

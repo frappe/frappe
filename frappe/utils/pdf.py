@@ -232,7 +232,7 @@ def pdf_contains_js(file_content: bytes):
 			for key, value in obj.items():
 				if key == "/Parent":
 					continue
-				if key in ("/JS", "/JavaScript"):
+				if key == "/JS":
 					return True
 				if has_javascript(value, seen):
 					return True
@@ -282,14 +282,7 @@ def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
 	Avoid exhausting memory in loading image.
 	"""
 	for page in reader.pages:
-		try:
-			xobjects = page["/Resources"]["/XObject"]
-		except KeyError:
-			continue
-		for xobj in xobjects.values():
-			xobj = xobj.get_object()
-			if xobj.get("/Subtype") != "/Image":
-				continue
+		for _image_id, xobj in _image_xobjects(page):
 			width = int(xobj.get("/Width", 0))
 			height = int(xobj.get("/Height", 0))
 			if width * height > max_pixels:

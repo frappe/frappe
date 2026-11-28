@@ -3,6 +3,8 @@
 
 from unittest.mock import patch
 
+import responses
+
 import frappe
 from frappe.automation_engine.actions.base import (
 	USER_CONTROL,
@@ -19,8 +21,10 @@ from frappe.automation_engine.actions.core import (
 	SendNotification,
 	SetFieldValue,
 )
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
+from frappe.utils.logging import get_log_db
 
 
 def make_todo(**kwargs):
@@ -175,7 +179,7 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], [todo.owner])
+		self.assertEqual(captured["recipients"], [frappe.db.get_value("User", todo.owner, "email")])
 
 	def test_send_notification_resolves_the_assignees_token(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "notify-assignees", "public": 1}).insert()
@@ -192,7 +196,7 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], ["Administrator"])
+		self.assertEqual(captured["recipients"], [frappe.db.get_value("User", "Administrator", "email")])
 
 	def test_send_notification_dedupes_resolved_recipients(self):
 		todo = make_todo()
@@ -212,7 +216,9 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], [todo.owner, "other@example.com"])
+		self.assertEqual(
+			captured["recipients"], [frappe.db.get_value("User", todo.owner, "email"), "other@example.com"]
+		)
 
 	def test_send_notification_skips_sending_when_a_token_resolves_to_nobody(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "notify-nobody", "public": 1}).insert()
@@ -228,6 +234,19 @@ class TestActions(IntegrationTestCase):
 		finally:
 			frappe.sendmail = original
 		self.assertEqual(calls, [])
+
+	def test_send_notification_skips_a_guest_owner(self):
+		todo = make_todo()
+		todo.owner = "Guest"
+		with patch("frappe.sendmail") as sendmail, patch("frappe.log_error") as log_error:
+			result = SendNotification().execute(
+				todo,
+				{"channel": "Email", "recipients": ["@owner"], "subject": "s", "message": "m"},
+				{},
+			)
+		self.assertEqual(result, "No recipients to notify")
+		sendmail.assert_not_called()
+		log_error.assert_not_called()
 
 	def test_assign_to_user_accepts_assignees_as_a_json_string(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "assign-me-json", "public": 1}).insert()
@@ -275,6 +294,32 @@ class TestActions(IntegrationTestCase):
 			frappe.sendmail = original
 		self.assertEqual(captured["recipients"], ["a@example.com"])
 		self.assertEqual(captured["reference_name"], todo.name)
+
+	def test_send_notification_emails_users_and_addresses(self):
+		todo = make_todo()
+		with test_user(roles=[], generated_id=True) as user, patch("frappe.sendmail") as sendmail:
+			SendNotification().execute(
+				todo,
+				{
+					"channel": "Email",
+					"recipients": [user.name, "outside@example.com", "not_an_email"],
+					"subject": "s",
+					"message": "m",
+				},
+				{},
+			)
+
+		self.assertEqual(sendmail.call_args.kwargs["recipients"], [user.email, "outside@example.com"])
+		self.assertTrue(
+			get_log_db().exists(
+				"Error Log",
+				{
+					"reference_doctype": "ToDo",
+					"reference_name": todo.name,
+					"error": ("like", "%not_an_email%"),
+				},
+			)
+		)
 
 
 class FakeResponse:
@@ -338,7 +383,7 @@ class TestCallWebhook(IntegrationTestCase):
 		todo = make_todo(description="hello")
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=FakeResponse(text="done")) as request,
+			patch("requests.Session.request", return_value=FakeResponse(text="done")) as request,
 		):
 			result = CallWebhook().execute(
 				todo,
@@ -363,7 +408,7 @@ class TestCallWebhook(IntegrationTestCase):
 	def test_failed_status_fails_the_step(self):
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=FakeResponse(status_code=500, text="boom")),
+			patch("requests.Session.request", return_value=FakeResponse(status_code=500, text="boom")),
 		):
 			self.assertRaises(
 				frappe.ValidationError,
@@ -379,14 +424,14 @@ class TestCallWebhook(IntegrationTestCase):
 			"http://10.1.2.3/hook",
 			"http://127.0.0.1:8000/hook",
 		):
-			with patch("requests.request") as request:
+			with patch("requests.Session.request") as request:
 				self.assertRaises(AutomationParamError, CallWebhook().execute, None, {"url": url}, {})
 				request.assert_not_called()
 
 	def test_a_host_resolving_internally_is_blocked(self):
 		with (
 			public_dns({"sneaky.example.com": "10.0.0.5"}),
-			patch("requests.request") as request,
+			patch("requests.Session.request") as request,
 		):
 			self.assertRaises(
 				AutomationParamError,
@@ -401,7 +446,7 @@ class TestCallWebhook(IntegrationTestCase):
 		redirect = FakeResponse(status_code=302, headers={"Location": "http://169.254.169.254/"})
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=redirect) as request,
+			patch("requests.Session.request", return_value=redirect) as request,
 		):
 			self.assertRaises(
 				AutomationParamError,
@@ -419,7 +464,7 @@ class TestCallWebhook(IntegrationTestCase):
 		]
 		with (
 			public_dns({"example.com": "93.184.216.34", "other.example.com": "93.184.216.35"}),
-			patch("requests.request", side_effect=responses) as request,
+			patch("requests.Session.request", side_effect=responses) as request,
 		):
 			result = CallWebhook().execute(None, {"url": "https://example.com/hook"}, {})
 
@@ -433,11 +478,29 @@ class TestCallWebhook(IntegrationTestCase):
 		redirect = FakeResponse(status_code=302, headers={"Location": "https://example.com/hook"})
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=redirect),
+			patch("requests.Session.request", return_value=redirect),
 		):
 			self.assertRaises(
 				AutomationParamError, CallWebhook().execute, None, {"url": "https://example.com/hook"}, {}
 			)
+
+	def test_a_host_resolving_internally_when_sent_is_blocked(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		addresses = iter(("93.184.216.34", "10.0.0.5"))
+
+		def getaddrinfo(host, *args, **kwargs):
+			return [(2, 1, 6, "", (next(addresses), 0))]
+
+		with (
+			patch("socket.getaddrinfo", side_effect=getaddrinfo),
+			responses.RequestsMock(assert_all_requests_are_fired=False) as mocked,
+		):
+			mocked.add(responses.POST, "https://example.com/hook")
+			self.assertRaises(
+				frappe.ValidationError, CallWebhook().execute, None, {"url": "https://example.com/hook"}, {}
+			)
+			self.assertFalse(mocked.calls)
 
 
 class TestRunScript(IntegrationTestCase):

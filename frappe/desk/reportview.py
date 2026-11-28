@@ -23,7 +23,16 @@ from frappe.utils import add_user_info, cint, cstr, format_duration, get_link_to
 from frappe.utils.data import sbool
 from frappe.utils.html_utils import clean_html
 
-DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
+DISALLOWED_PARAMS = (
+	"cmd",
+	"data",
+	"ignore_permissions",
+	"ignore_user_permissions",
+	"view",
+	"user",
+	"csrf_token",
+	"join",
+)
 SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg", "min", "max")
 DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
 _FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
@@ -168,6 +177,10 @@ def validate_fields(data):
 		fieldname = extract_fieldnames(field)[0]
 		if not fieldname:
 			raise_invalid_field(fieldname)
+
+		if fieldname.rsplit(".", 1)[-1].strip("`") == "_comments":
+			data.fields.remove(field)
+			continue
 
 		if is_standard(fieldname):
 			continue
@@ -524,6 +537,9 @@ def export_query():
 	export_in_background = int(form_params.pop("export_in_background", 0))
 
 	if export_in_background:
+		if frappe.request and frappe.request.method != "POST":
+			frappe.throw_permission_error()
+
 		user = frappe.session.user
 		user_email = frappe.get_cached_value("User", user, "email")
 		frappe.enqueue(
@@ -550,6 +566,14 @@ def run_report_view_export_job(user_email, form_params, csv_params):
 
 	report_name, file_extension, content = _export_query(form_params, csv_params, populate_response=False)
 	send_report_email(user_email, report_name, file_extension, content, attached_to_name=report_name)
+
+
+def _restrict_to_names(form_params, doctype, names):
+	from frappe.types.filter import Filters
+
+	filters = Filters(form_params.get("filters") or [], doctype=doctype)
+	filters.append(("name", "in", names), doctype)
+	form_params["filters"] = filters
 
 
 def _export_query(form_params, csv_params, populate_response=True):
@@ -581,14 +605,14 @@ def _export_query(form_params, csv_params, populate_response=True):
 		visible_names = None
 
 	if selection := form_params.pop("selected_items", None):
-		form_params["filters"] = {"name": ("in", frappe.parse_json(selection))}
+		_restrict_to_names(form_params, doctype, frappe.parse_json(selection))
 
 	# visible_names is the client's ordered display sequence
 	# When present, take precedence over generic filters/order/pagination: fetch
 	# exactly those rows, then reorder in Python below.
 	# Mirrors the visible_idx pattern in Query Report.
 	if visible_names:
-		form_params["filters"] = {"name": ("in", visible_names)}
+		_restrict_to_names(form_params, doctype, visible_names)
 		form_params["order_by"] = None
 		form_params.pop("page_length", None)
 		form_params.pop("limit_page_length", None)
@@ -768,6 +792,7 @@ def get_field_info(fields, parent_doctype, group_by: str | None = None):
 
 		doctype = doctype or parent_doctype
 		options = None
+		ignore_user_permissions = 0
 
 		# Special-case the primary `name` column on the parent doctype
 		if doctype == parent_doctype and fieldname == "name":
@@ -787,6 +812,7 @@ def get_field_info(fields, parent_doctype, group_by: str | None = None):
 				fieldtype = df.fieldtype
 				translatable = df.translatable or False
 				options = df.options
+				ignore_user_permissions = df.ignore_user_permissions or 0
 
 				if df.fieldtype == "Link" and options and frappe.get_meta(options).translated_doctype:
 					translatable = True
@@ -807,6 +833,7 @@ def get_field_info(fields, parent_doctype, group_by: str | None = None):
 				"fieldtype": fieldtype,
 				"translatable": translatable,
 				"options": options,
+				"ignore_user_permissions": ignore_user_permissions,
 			}
 		)
 
@@ -1232,6 +1259,7 @@ def get_stats(stats: str | list, doctype: str, filters: str | list | dict | None
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_filter_dashboard_data(stats: str | list, doctype: str, filters: str | list | dict | None = None):
 	"""get tags info"""
 	tags = frappe.parse_json(stats)

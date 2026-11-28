@@ -1,4 +1,5 @@
 import type { BlockOptions, BlockStyleMap } from "@/types";
+import { getBlockInstance } from "@/runtime/utils/serializer";
 import { familyTemplates } from "./familyTemplates";
 
 
@@ -8,8 +9,7 @@ type CoreTemplate =
 	| "fit-container"
 	| "header"
 	| "fallback-component"
-	| "empty-component"
-	| "missing-component";
+	| "empty-component";
 type FamilyTemplate = keyof typeof familyTemplates;
 
 
@@ -128,18 +128,11 @@ function getBlockTemplate(type: CoreTemplate | FamilyTemplate): BlockOptions {
 					width: "100%",
 				} as BlockStyleMap,
 			};
-
-		case "missing-component":
-			return {
-				componentName: "HTML",
-				originalElement: "__raw_html__",
-				innerHTML: `<div style="color:#E86C13;background:#F8F8F8;display:flex;width:300px;height:150px;align-items:center;font-size:16px;justify-content:center"><p>Component Missing</p></div>`,
-				baseStyles: {
-					height: "fit-content",
-					width: "fit-content",
-				} as BlockStyleMap,
-			};
 	}
+}
+
+export function getRootBlock() {
+	return getBlockInstance(getBlockTemplate("body"));
 }
 
 export default getBlockTemplate;

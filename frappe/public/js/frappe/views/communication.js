@@ -400,7 +400,7 @@ frappe.views.CommunicationComposer = class {
 				},
 				options: () =>
 					formats.map((format) => ({
-						label: format,
+						label: __(format),
 						selected:
 							!!fields.attach_document_print.get_value() &&
 							fields.select_print_format.get_value() === format,
@@ -1095,6 +1095,10 @@ frappe.views.CommunicationComposer = class {
 		$more.remove();
 	}
 
+	is_own_email(sender) {
+		return [cstr(sender), frappe.session.user_email].includes(this.last_email.sender);
+	}
+
 	setup_recipients_if_reply() {
 		if (!this.is_a_reply || !this.last_email) return;
 		let sender = this.dialog.get_value("sender");
@@ -1105,7 +1109,7 @@ frappe.views.CommunicationComposer = class {
 			bcc: this.dialog.fields_dict.bcc,
 		};
 		// If same user replies to their own email, set recipients to last email recipients
-		if (this.last_email.sender == sender) {
+		if (this.is_own_email(sender)) {
 			fields.recipients.set_value(this.as_recipient_list(this.last_email.recipients));
 			if (this.reply_all) {
 				fields.cc.set_value(this.as_recipient_list(this.last_email.cc));
@@ -1115,18 +1119,11 @@ frappe.views.CommunicationComposer = class {
 			fields.recipients.set_value(this.as_recipient_list(this.last_email.sender));
 			if (this.reply_all) {
 				// if sending reply add ( last email's recipients - sender's email_id ) to cc.
-				const recipients = this.last_email.recipients.split(",").map((r) => r.trim());
-				if (!this.cc) {
-					this.cc = "";
+				const cc = frappe.utils.split_emails(this.cc);
+				for (const r of frappe.utils.split_emails(this.last_email.recipients)) {
+					if (!cc.includes(r)) cc.push(r);
 				}
-				const cc_array = this.cc.split(",").map((r) => r.trim());
-				if (this.cc && !this.cc.endsWith(", ")) {
-					this.cc += ", ";
-				}
-				this.cc += recipients
-					.filter((r) => !cc_array.includes(r) && r != sender)
-					.join(", ");
-				this.cc = this.cc.replace(sender + ", ", "");
+				this.cc = cc.filter((r) => frappe.utils.extract_email(r) != sender).join(", ");
 				fields.cc.set_value(this.as_recipient_list(this.cc));
 			}
 		}
@@ -1138,7 +1135,7 @@ frappe.views.CommunicationComposer = class {
 		if (!this.forward && !this.recipients && this.last_email) {
 			this.recipients = this.last_email.sender;
 			// If same user replies to their own email, set recipients to last email recipients
-			if (this.last_email.sender == this.sender) {
+			if (this.is_own_email(this.sender)) {
 				this.recipients = this.last_email.recipients;
 			}
 
@@ -1152,19 +1149,16 @@ frappe.views.CommunicationComposer = class {
 			this.recipients = this.frm && this.frm.timeline.get_recipient();
 		}
 
+		let is_reply = Boolean(this.last_email);
 		if (!this.subject && this.frm) {
 			// get subject from last communication
 			const last = this.frm.timeline.get_last_email();
 
 			if (last) {
 				this.subject = last.subject;
+				is_reply = true;
 				if (!this.recipients) {
 					this.recipients = last.sender;
-				}
-
-				// prepend "Re:"
-				if (strip(this.subject.toLowerCase().split(":")[0]) != "re") {
-					this.subject = __("Re: {0}", [this.subject]);
 				}
 			}
 
@@ -1185,6 +1179,22 @@ frappe.views.CommunicationComposer = class {
 			// converting to str for int names
 			if (!cstr(this.subject).includes(identifier)) {
 				this.subject = `${this.subject} (${identifier})`;
+			}
+		}
+
+		if (is_reply && this.subject) {
+			const add_prefix = (subject) =>
+				this.forward ? __("Fw: {0}", [subject]) : __("Re: {0}", [subject]);
+			const prefix = this.forward ? /^\s*fwd?\s*:/i : /^\s*re\s*:/i;
+			const translated_prefix = add_prefix("").trim().toLowerCase();
+			if (
+				!prefix.test(this.subject) &&
+				!this.subject.trim().toLowerCase().startsWith(translated_prefix)
+			) {
+				this.subject = add_prefix(this.subject);
+				if (!this.title) {
+					this.dialog.set_title(this.subject);
+				}
 			}
 		}
 
@@ -1232,7 +1242,8 @@ frappe.views.CommunicationComposer = class {
 
 	async set_values() {
 		for (const fieldname of ["recipients", "cc", "bcc"]) {
-			await this.dialog.set_value(fieldname, this.as_recipient_list(this[fieldname]));
+			const recipients = this.as_recipient_list(this[fieldname]);
+			if (recipients.length) await this.dialog.set_value(fieldname, recipients);
 		}
 		await this.dialog.set_value("sender", this.sender || "");
 
@@ -1319,7 +1330,7 @@ frappe.views.CommunicationComposer = class {
 		const fields = this.dialog.fields_dict;
 		const lang = fields.print_language?.get_value() || "";
 		const parts = [
-			fields.select_print_format?.get_value(),
+			__(fields.select_print_format?.get_value()),
 			fields.select_letter_head?.get_value(),
 			this._language_labels?.[lang] || lang,
 		];
@@ -1381,6 +1392,7 @@ frappe.views.CommunicationComposer = class {
 					fieldtype: "Link",
 					options: "Letter Head",
 					default: fields.select_letter_head?.get_value(),
+					get_query: () => ({ filters: { letter_head_for: "DocType" } }),
 				},
 				{
 					label: __("Print Language"),
@@ -1430,7 +1442,11 @@ frappe.views.CommunicationComposer = class {
 			return;
 		}
 		frappe.db
-			.get_value("Letter Head", { disabled: 0, is_default: 1 }, "name")
+			.get_value(
+				"Letter Head",
+				{ disabled: 0, is_default: 1, letter_head_for: "DocType" },
+				"name"
+			)
 			.then(({ message }) => {
 				if (message?.name) {
 					this.dialog.set_value("select_letter_head", message.name);
@@ -1883,7 +1899,7 @@ frappe.views.CommunicationComposer = class {
 	async get_signature(sender_email) {
 		let signature = frappe.boot.user.email_signature;
 
-		if (!signature) {
+		if (!signature && frappe.model.can_read("Email Account")) {
 			let filters = {
 				add_signature: 1,
 			};

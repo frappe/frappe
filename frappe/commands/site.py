@@ -12,7 +12,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import CallbackManager
+from frappe.utils import CallbackManager, get_user_by_email
 from frappe.utils.bench_helper import CliCtxObj
 
 
@@ -262,6 +262,7 @@ def _restore(
 	from pathlib import Path
 
 	from frappe.installer import extract_files
+	from frappe.utils import get_bench_relative_path
 	from frappe.utils.backups import decrypt_backup
 
 	# Check for the backup file in the backup directory, as well as the main bench directory
@@ -278,11 +279,7 @@ def _restore(
 			click.secho(f"File {sql_file_path} not found.", fg="red")
 			sys.exit(1)
 
-	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
-	if err:
-		click.secho("Failed to detect type of backup file", fg="red")
-		sys.exit(1)
-	is_encrypted = "encrypted data" in out.decode().split(":")[-1].strip()
+	is_encrypted = _is_encrypted(sql_file_path)
 
 	# ---- Progress reporting: total = 2 mandatory (locate + restore) + optional phases
 
@@ -337,7 +334,8 @@ def _restore(
 	# the site dir, so no post-extract os.remove() is needed here.
 	if with_public_files:
 		_phase("Restoring public files")
-		if encryption_key:
+		with_public_files = get_bench_relative_path(with_public_files)
+		if encryption_key and _is_encrypted(with_public_files):
 			with decrypt_backup(with_public_files, encryption_key):
 				extract_files(site, with_public_files)
 		else:
@@ -345,7 +343,8 @@ def _restore(
 
 	if with_private_files:
 		_phase("Restoring private files")
-		if encryption_key:
+		with_private_files = get_bench_relative_path(with_private_files)
+		if encryption_key and _is_encrypted(with_private_files):
 			with decrypt_backup(with_private_files, encryption_key):
 				extract_files(site, with_private_files)
 		else:
@@ -443,12 +442,7 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 		click.secho("Partial restore is not supported for SQLite databases", fg="red")
 		sys.exit(1)
 
-	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
-	if err:
-		click.secho("Failed to detect type of backup file", fg="red")
-		sys.exit(1)
-
-	if "encrypted data" in out.decode().split(":")[-1].strip():
+	if _is_encrypted(sql_file_path):
 		key = _get_encryption_key(provided_key=encryption_key, non_interactive=non_interactive)
 
 		with decrypt_backup(sql_file_path, key):
@@ -476,6 +470,14 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 
 		partial_restore(sql_file_path, verbose)
 	frappe.destroy()
+
+
+def _is_encrypted(file_path: str) -> bool:
+	err, out = frappe.utils.execute_in_shell(["file", file_path], check_exit_code=True)
+	if err:
+		click.secho("Failed to detect type of backup file", fg="red")
+		sys.exit(1)
+	return "encrypted data" in out.decode().split(":")[-1].strip()
 
 
 def _get_encryption_key(provided_key: str | None = None, non_interactive: bool = False) -> str:
@@ -757,7 +759,7 @@ def disable_user(context: CliCtxObj, email):
 	site = get_site(context)
 	with frappe.init_site(site):
 		frappe.connect()
-		user = frappe.get_doc("User", email)
+		user = frappe.get_doc("User", get_user_id(email))
 		user.enabled = 0
 		user.save(ignore_permissions=True)
 		frappe.db.commit()
@@ -887,7 +889,8 @@ def _use(site, sites_path="."):
 def use(site, sites_path="."):
 	from frappe.installer import update_site_config
 
-	if os.path.exists(os.path.join(sites_path, site)):
+	site = os.path.basename(os.path.normpath(site))
+	if os.path.exists(os.path.join(sites_path, site, "site_config.json")):
 		sites_path = os.getcwd()
 		conifg = os.path.join(sites_path, "common_site_config.json")
 		update_site_config("default_site", site, validate=False, site_config_path=conifg)
@@ -952,6 +955,12 @@ def use(site, sites_path="."):
 @click.option("--verbose", default=False, is_flag=True, help="Add verbosity")
 @click.option("--compress", default=False, is_flag=True, help="Compress private and public files")
 @click.option("--old-backup-metadata", default=False, is_flag=True, help="Use older backup metadata")
+@click.option(
+	"--for-mariadb",
+	default=False,
+	is_flag=True,
+	help="On a SQLite site, write the database as MariaDB SQL that can be restored on a MariaDB site",
+)
 @pass_context
 def backup(
 	context: CliCtxObj,
@@ -967,6 +976,7 @@ def backup(
 	include="",
 	exclude="",
 	old_backup_metadata=False,
+	for_mariadb=False,
 ):
 	"Backup"
 
@@ -996,6 +1006,7 @@ def backup(
 				force=True,
 				old_backup_metadata=old_backup_metadata,
 				rollback_callback=rollback_callback,
+				for_mariadb=for_mariadb,
 			)
 		except Exception as e:
 			error_msg = str(e).strip() or "Database or site_config.json may be corrupted"
@@ -1184,6 +1195,7 @@ def _drop_site(
 			sys.exit(1)
 
 	click.secho("Dropping site database and user", fg="green")
+	frappe.db.close()
 
 	frappe.flags.root_login = db_root_username
 	frappe.flags.root_password = db_root_password
@@ -1248,6 +1260,18 @@ def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessi
 		set_user_password(site, "Administrator", admin_password, logout_all_sessions)
 
 
+def get_user_id(user: str) -> str:
+	"""Return the ID of the user with this ID or email, or exit if there is none."""
+	if user in frappe.STANDARD_USERS:
+		return user
+
+	if user_id := frappe.db.get_value("User", user) or get_user_by_email(user):
+		return user_id
+
+	click.echo(f"User {user} does not exist")
+	sys.exit(1)
+
+
 def set_user_password(site, user, password, logout_all_sessions=False):
 	from frappe.utils.password import update_password
 
@@ -1258,9 +1282,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 			password = getpass.getpass(f"{user}'s password for {site}: ")
 
 		frappe.connect()
-		if not frappe.db.exists("User", user):
-			print(f"User {user} does not exist")
-			sys.exit(1)
+		user = get_user_id(user)
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
 		frappe.db.set_value("User", user, "last_password_reset_date", frappe.utils.today())
@@ -1281,6 +1303,9 @@ def set_last_active_for_user(context: CliCtxObj, user=None):
 
 	with frappe.init_site(site):
 		frappe.connect()
+		if user:
+			user = get_user_id(user)
+
 		if not user:
 			user = get_system_users(limit=1)
 			if len(user) > 0:
@@ -1313,7 +1338,7 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 				event,
 				message=message,
 				room=room,
-				user=user,
+				user=get_user_id(user) if user else None,
 				doctype=doctype,
 				docname=docname,
 				after_commit=after_commit,
@@ -1366,9 +1391,7 @@ def browse(
 	sid = ""
 	login_path = ""
 	if user:
-		if not frappe.db.exists("User", user):
-			click.echo(f"User {user} does not exist")
-			sys.exit(1)
+		user = get_user_id(user)
 
 		if frappe.conf.developer_mode or user == "Administrator":
 			frappe.utils.set_request(path="/")
@@ -1636,15 +1659,18 @@ def get_standard_tables():
 	import re
 
 	tables = []
-	sql_file = os.path.join(
-		"..",
-		"apps",
-		"frappe",
-		"frappe",
-		"database",
-		frappe.conf.db_type,
-		f"framework_{frappe.conf.db_type}.sql",
-	)
+	database_folder = os.path.join("..", "apps", "frappe", "frappe", "database", frappe.conf.db_type)
+	if frappe.conf.db_type == "sqlite":
+		import sqlite3
+		from contextlib import closing
+
+		framework_db = os.path.join(database_folder, "framework_sqlite.db")
+		with closing(sqlite3.connect(f"file:{framework_db}?immutable=1", uri=True)) as connection:
+			return [
+				row[0] for row in connection.execute("select name from sqlite_master where type = 'table'")
+			]
+
+	sql_file = os.path.join(database_folder, f"framework_{frappe.conf.db_type}.sql")
 	content = open(sql_file).read().splitlines()
 
 	for line in content:

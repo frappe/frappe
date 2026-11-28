@@ -279,3 +279,36 @@ frappe.ui.form.qz_fail = function (e) {
 		20
 	);
 };
+
+frappe.ui.form.attach_pdf = function (doctype, name, args = {}) {
+	const format = args.format || frappe.get_meta(doctype)?.default_print_format;
+	const print_format = locals[":Print Format"]?.[format] || {};
+	if (print_format.custom_format || print_format.raw_printing) {
+		args = { ...args, pdf_generator: print_format.pdf_generator || "chrome" };
+	}
+	return frappe
+		.xcall(
+			"frappe.utils.print_format.attach_pdf",
+			Object.assign({ doctype, name }, args),
+			"POST",
+			{ freeze: true, freeze_message: __("Attaching PDF...") }
+		)
+		.then((file) => {
+			const link = `<a href="${encodeURI(
+				file.file_url
+			)}" target="_blank">${frappe.utils.escape_html(file.file_name)}</a>`;
+			frappe.show_alert(
+				{
+					message: __("Attached {0}", [link]),
+					subtitle: file.kept_previous
+						? __("The earlier PDF is protected, so it was kept.")
+						: "",
+					indicator: "green",
+				},
+				10
+			);
+			const frm = frappe.views.formview?.[doctype]?.frm;
+			if (frm?.docname === name) frm.sidebar?.reload_docinfo();
+			return file;
+		});
+};

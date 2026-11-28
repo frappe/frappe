@@ -47,12 +47,16 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	}
 
 	get_linked_docs(args) {
-		return frappe.xcall("frappe.desk.form.linked_with.get", {
-			doctype: this.frm.doctype,
-			docname: this.docname,
-			limit: this.page_length + 1,
-			...args,
-		});
+		return frappe.xcall(
+			"frappe.desk.form.linked_with.get",
+			{
+				doctype: this.frm.doctype,
+				docname: this.docname,
+				limit: this.page_length + 1,
+				...args,
+			},
+			"QUERY"
+		);
 	}
 
 	load_more($doctype_table) {

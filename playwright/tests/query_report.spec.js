@@ -54,14 +54,14 @@ test.describe("Query Report", () => {
 		});
 	});
 
-	test("add custom column in report", async ({ page, desk }) => {
+	test("add custom column in report", async ({ page, desk, admin }) => {
 		await page.goto("/desk/query-report/Permitted Documents For User");
 
 		await expect(page.locator(".page-form.flex")).toHaveCount(1, { timeout: 60000 });
 
 		// set each filter in one go: typing it out makes the report run with partial values
 		const input_user = page.locator(`${REPORT_PAGE} input[data-fieldname="user"]`);
-		await input_user.fill("test@erpnext.com");
+		await input_user.fill(await admin.user_id("test@erpnext.com"));
 		await input_user.blur();
 		const input_role = page.locator(`${REPORT_PAGE} input[data-fieldname="doctype"]`);
 		await input_role.fill("Role");
@@ -158,6 +158,40 @@ test.describe("Query Report", () => {
 				return frappe.query_report.columns.find((col) => col.id === id).width;
 			}, auto_column)
 		).toBeNull();
+	});
+
+	test("restores the filters of a prepared report run", async ({ page, api, admin }) => {
+		await admin.insert_doc(
+			"Report",
+			{
+				report_name: "Test Prepared ToDo Report",
+				ref_doctype: "ToDo",
+				report_type: "Query Report",
+				is_standard: "No",
+				prepared_report: 1,
+				validate_filters: 1,
+				query: "select name, status from tabToDo",
+				filters: [{ fieldname: "status", label: "Status", fieldtype: "MultiSelectList" }],
+			},
+			true
+		);
+		await page.goto("/desk/query-report/Test Prepared ToDo Report");
+		const { message } = await api.call(
+			"frappe.core.doctype.prepared_report.prepared_report.make_prepared_report",
+			{ report_name: "Test Prepared ToDo Report", filters: { status: ["Open"] } }
+		);
+		await expect
+			.poll(async () => (await api.get_doc("Prepared Report", message.name)).data.status, {
+				timeout: 30000,
+			})
+			.toBe("Completed");
+
+		await page.goto(
+			`/desk/query-report/Test Prepared ToDo Report?prepared_report_name=${message.name}`
+		);
+		await expect
+			.poll(() => page.evaluate(() => frappe.query_report.get_filter_value("status")))
+			.toEqual(["Open"]);
 	});
 
 	const save_report_and_open = async (page, desk, report, update_name) => {

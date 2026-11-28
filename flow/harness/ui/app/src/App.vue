@@ -12,23 +12,23 @@
 			@submit.prevent="connect"
 		>
 			<div>
-				<div class="text-xl font-medium text-ink-gray-9">Connect to flow</div>
-				<div class="mt-1 text-base text-ink-gray-5">Point this UI at a running Flow daemon.</div>
+				<div class="text-xl font-medium text-ink-gray-9">{{ __("Connect to flow") }}</div>
+				<div class="mt-1 text-base text-ink-gray-5">{{ __("Point this UI at a running Flow daemon.") }}</div>
 			</div>
 			<label class="flex flex-col gap-1">
-				<span class="text-sm font-medium text-ink-gray-7">Daemon URL</span>
+				<span class="text-sm font-medium text-ink-gray-7">{{ __("Daemon URL") }}</span>
 				<input
 					v-model="baseUrl"
-					placeholder="same origin (dev proxy)"
+					:placeholder="__('same origin (dev proxy)')"
 					class="h-8 rounded-5 border border-outline-gray-2 bg-surface-base px-2.5 text-base text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 				/>
 			</label>
 			<label class="flex flex-col gap-1">
-				<span class="text-sm font-medium text-ink-gray-7">Auth token</span>
+				<span class="text-sm font-medium text-ink-gray-7">{{ __("Auth token") }}</span>
 				<input
 					v-model="token"
 					type="password"
-					placeholder="Leave empty unless the daemon requires one"
+					:placeholder="__('Leave empty unless the daemon requires one')"
 					class="h-8 rounded-5 border border-outline-gray-2 bg-surface-base px-2.5 text-base text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 				/>
 			</label>
@@ -40,7 +40,7 @@
 				class="h-8 rounded-5 bg-surface-gray-10 text-base font-medium text-ink-base hover:opacity-90"
 				:disabled="checking"
 			>
-				{{ checking ? "Connecting…" : "Connect" }}
+				{{ checking ? __("Connecting…") : __("Connect") }}
 			</button>
 		</form>
 	</div>
@@ -50,6 +50,7 @@
 import { onMounted, ref } from "vue"
 import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 import { DaemonClient, FlowChat, LoadingState, createFlowStore } from "@flow/ui-core"
+import { __ } from "@flow/ui-core/translate.js"
 
 const CONNECTION_KEY = "flow.ui.connection"
 // past this, a slow or stuck daemon gets the form back while the check goes on
@@ -79,8 +80,8 @@ async function tryConnect(config, { silent = false } = {}) {
 	} catch (err) {
 		if (own !== attempt) return
 		// a refused token shows even on the silent check: only the form can fix it
-		if (err?.status === 401) error.value = "The daemon refused the auth token."
-		else if (!silent) error.value = err?.message ?? "Could not reach the daemon."
+		if (err?.status === 401) error.value = __("The daemon refused the auth token.")
+		else if (!silent) error.value = err?.message ?? __("Could not reach the daemon.")
 	} finally {
 		if (own === attempt) checking.value = false
 	}

@@ -54,6 +54,15 @@
 {% endif %}
 
 {% const getEscapedValue = (v) => v === null ? "null" : frappe.utils.escape_html(v) %}
+{% if data.agent %}
+<h4>{{ __("Agent") }}</h4>
+<p>
+	{{ getEscapedValue(data.agent.name) }} · {{ __("via {0}", [getEscapedValue(data.agent.via)]) }}
+	{% if data.agent.reference_doctype && data.agent.reference_name %}
+	· {{ frappe.utils.get_form_link(data.agent.reference_doctype, data.agent.reference_name, true) }}
+	{% endif %}
+</p>
+{% endif %}
 {% const htmlDiffs = (doc.__onload && doc.__onload.html_diffs) || {} %}
 {% if data.changed && data.changed.length %}
 <h4>{{ __("Values Changed") }}</h4>

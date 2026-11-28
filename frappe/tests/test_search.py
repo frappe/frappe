@@ -12,6 +12,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.link_title import get_report_link_titles
 from frappe.desk.search import (
 	awesomebar_search,
+	build_for_autosuggest,
 	get_link_title,
 	get_names_for_mentions,
 	like_contains,
@@ -21,6 +22,7 @@ from frappe.desk.search import (
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
+from frappe.utils import get_user_by_email
 
 
 class TestSearch(IntegrationTestCase):
@@ -28,6 +30,13 @@ class TestSearch(IntegrationTestCase):
 		if self._testMethodName == "test_link_field_order":
 			setup_test_link_field_order(self)
 			self.addCleanup(teardown_test_link_field_order, self)
+
+	def test_random_id_comes_last_in_link_descriptions(self):
+		self.assertEqual(frappe.get_meta("Flow Knowledge Source").autoname, "hash")
+		rows = build_for_autosuggest([("a1b2c3d4e5", "Guide", "guide.pdf")], "Flow Knowledge Source")
+		self.assertEqual(
+			rows, [{"value": "a1b2c3d4e5", "label": "Guide", "description": "guide.pdf, a1b2c3d4e5"}]
+		)
 
 	def test_search_field_sanitizer(self):
 		results = search_link("DocType", "User", query=None, filters=None, page_length=20, searchfield="name")
@@ -55,30 +64,32 @@ class TestSearch(IntegrationTestCase):
 
 	def test_only_enabled_in_mention(self):
 		email = "test_disabled_user_in_mentions@example.com"
-		frappe.delete_doc("User", email)
-		if not frappe.db.exists("User", email):
-			user = frappe.new_doc("User")
-			user.update(
-				{
-					"email": email,
-					"first_name": email.split("@", 1)[0],
-					"enabled": False,
-					"allowed_in_mentions": True,
-				}
-			)
-			# saved when roles are added
-			user.add_roles(
-				"System Manager",
-			)
+		if existing := get_user_by_email(email):
+			frappe.delete_doc("User", existing)
+
+		user = frappe.new_doc("User")
+		user.update(
+			{
+				"email": email,
+				"first_name": email.split("@", 1)[0],
+				"enabled": False,
+				"allowed_in_mentions": True,
+			}
+		)
+		# saved when roles are added
+		user.add_roles(
+			"System Manager",
+		)
 
 		names_for_mention = [
 			user.get("id") for user in get_names_for_mentions("test_disabled_user_in_mentions")
 		]
-		self.assertNotIn(email, names_for_mention)
+		self.assertNotIn(user.name, names_for_mention)
 
 	def test_allowed_in_mentions_cache_invalidation(self):
 		email = "test_allowed_in_mentions@example.com"
-		frappe.delete_doc("User", email, ignore_missing=True)
+		if existing := get_user_by_email(email):
+			frappe.delete_doc("User", existing)
 
 		user = frappe.new_doc("User")
 		user.update(
@@ -94,16 +105,16 @@ class TestSearch(IntegrationTestCase):
 
 		# Populate the users_for_mentions cache.
 		names_for_mention = [user.get("id") for user in get_names_for_mentions("test_allowed_in_mentions")]
-		self.assertIn(email, names_for_mention)
+		self.assertIn(user.name, names_for_mention)
 
 		# Changing Allowed In Mentions should invalidate the cache.
 		user.allowed_in_mentions = False
 		user.save()
 
 		names_for_mention = [user.get("id") for user in get_names_for_mentions("test_allowed_in_mentions")]
-		self.assertNotIn(email, names_for_mention)
+		self.assertNotIn(user.name, names_for_mention)
 
-		frappe.delete_doc("User", email)
+		frappe.delete_doc("User", user.name)
 
 	def test_search_link_start_paginates(self):
 		# a plain doctype; translated ones are paged differently (see below)
@@ -171,16 +182,18 @@ class TestSearch(IntegrationTestCase):
 		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
 		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", None)
 
-		test_user = "test_search_image_user@example.com"
-		if not frappe.db.exists("User", test_user):
-			frappe.get_doc(
+		email = "test_search_image_user@example.com"
+		if not (test_user := get_user_by_email(email)):
+			user = frappe.get_doc(
 				{
 					"doctype": "User",
-					"email": test_user,
+					"email": email,
 					"first_name": "Test Search Image User",
 					"user_type": "System User",
 				}
-			).insert(ignore_permissions=True).add_roles("System Manager")
+			).insert(ignore_permissions=True)
+			user.add_roles("System Manager")
+			test_user = user.name
 			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
 		add_user_permission("User", test_user, test_user)
 		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
@@ -321,6 +334,8 @@ class TestSearch(IntegrationTestCase):
 			self.assertIn(
 				"Country", results, "Search results for 'pay' in French should include 'Country' ('Pays')"
 			)
+			output = search_widget(doctype="DocType", txt="countr", page_length=20)
+			self.assertEqual("Country", output[0][0])
 
 	def test_doctype_search_in_foreign_language(self):
 		def do_search(txt: str):
@@ -461,7 +476,7 @@ class TestSearch(IntegrationTestCase):
 	def as_search_reader(self):
 		"""Run as a normal user, who can read the translated search doctype."""
 		email = "translated-search-reader@example.com"
-		if not frappe.db.exists("User", email):
+		if not get_user_by_email(email):
 			frappe.get_doc(
 				{"doctype": "User", "email": email, "first_name": "Search Reader", "send_welcome_email": 0}
 			).insert(ignore_permissions=True)
@@ -726,17 +741,18 @@ class TestSearch(IntegrationTestCase):
 		self.addCleanup(lambda: frappe.delete_doc("Test Search Linked", restricted_doc.name, force=True))
 
 		# Create a test user with restricted permissions
-		test_user = "test_search_user@example.com"
-		if not frappe.db.exists("User", test_user):
+		email = "test_search_user@example.com"
+		if not (test_user := get_user_by_email(email)):
 			user = frappe.get_doc(
 				{
 					"doctype": "User",
-					"email": test_user,
+					"email": email,
 					"first_name": "Test Search User",
 					"user_type": "System User",
 				}
 			).insert(ignore_permissions=True)
 			user.add_roles("System Manager")
+			test_user = user.name
 			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
 
 		# Add user permission to restrict the user to only allowed_doc
@@ -976,16 +992,18 @@ class TestSearch(IntegrationTestCase):
 		allowed = frappe.get_doc({"doctype": target, "title": "Allowed Document"}).insert()
 		restricted = frappe.get_doc({"doctype": target, "title": "Restricted Document"}).insert()
 
-		test_user = "test_search_child_user@example.com"
-		if not frappe.db.exists("User", test_user):
-			frappe.get_doc(
+		email = "test_search_child_user@example.com"
+		if not (test_user := get_user_by_email(email)):
+			user = frappe.get_doc(
 				{
 					"doctype": "User",
-					"email": test_user,
+					"email": email,
 					"first_name": "Test Search Child User",
 					"user_type": "System User",
 				}
-			).insert(ignore_permissions=True).add_roles("System Manager")
+			).insert(ignore_permissions=True)
+			user.add_roles("System Manager")
+			test_user = user.name
 			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
 
 		add_user_permission(target, allowed.name, test_user)
@@ -1084,11 +1102,13 @@ class TestSearch(IntegrationTestCase):
 		allowed = frappe.get_doc({"doctype": target, "title": "Allowed Document"}).insert()
 		restricted = frappe.get_doc({"doctype": target, "title": "Restricted Document"}).insert()
 
-		test_user = "test_search_locked_user@example.com"
-		if not frappe.db.exists("User", test_user):
-			frappe.get_doc(
-				{"doctype": "User", "email": test_user, "first_name": test_user, "user_type": "System User"}
-			).insert(ignore_permissions=True).add_roles("System Manager")
+		email = "test_search_locked_user@example.com"
+		if not (test_user := get_user_by_email(email)):
+			user = frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": email, "user_type": "System User"}
+			).insert(ignore_permissions=True)
+			user.add_roles("System Manager")
+			test_user = user.name
 			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
 		add_user_permission(target, allowed.name, test_user)
 		self.addCleanup(
@@ -1121,6 +1141,83 @@ class TestSearch(IntegrationTestCase):
 		self.assertEqual(values(child, "linked"), [allowed.name])
 		self.assertEqual(values(locked_form, "member"), [allowed.name])
 		self.assertEqual(values(locked_form, "linked"), [allowed.name])
+
+	def test_search_link_ignore_user_permissions_needs_rights_on_the_form(self):
+		"""Only a user who can fill the form sees all records, and only the columns a dropdown shows."""
+
+		target = "Test Search Rights Target"
+		child = "Test Search Rights Row"
+		form = "Test Search Rights Form"
+		read_only_form = "Test Search Rights Read Only Form"
+
+		for dt in (form, read_only_form, child, target):
+			if frappe.db.exists("DocType", dt):
+				frappe.delete_doc("DocType", dt, force=True)
+
+		def make_doctype(name, fields, **kwargs):
+			new_doctype(name=name, fields=fields, **kwargs).insert()
+			self.addCleanup(lambda: frappe.delete_doc("DocType", name, force=True, ignore_missing=True))
+
+		linked = {
+			"label": "Linked",
+			"fieldname": "linked",
+			"fieldtype": "Link",
+			"options": target,
+			"ignore_user_permissions": 1,
+		}
+		rows = {"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child}
+
+		make_doctype(
+			target,
+			[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Secret", "fieldname": "secret", "fieldtype": "Data"},
+			],
+			search_fields="title",
+		)
+		make_doctype(child, [linked], istable=1)
+		make_doctype(form, [linked])
+		make_doctype(
+			read_only_form,
+			[linked, rows],
+			permissions=[{"role": "System Manager", "read": 1, "write": 0, "create": 0}],
+		)
+
+		allowed = frappe.get_doc({"doctype": target, "title": "Allowed Document", "secret": "a"}).insert()
+		restricted = frappe.get_doc(
+			{"doctype": target, "title": "Restricted Document", "secret": "b"}
+		).insert()
+
+		email = "test_search_rights_user@example.com"
+		if not (test_user := get_user_by_email(email)):
+			user = frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": email, "user_type": "System User"}
+			).insert(ignore_permissions=True)
+			user.add_roles("System Manager")
+			test_user = user.name
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+		add_user_permission(target, allowed.name, test_user)
+		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
+
+		def search(reference_doctype, **kwargs):
+			with self.set_user(test_user):
+				return search_widget(
+					target,
+					"Document",
+					reference_doctype=reference_doctype,
+					link_fieldname="linked",
+					ignore_user_permissions=True,
+					as_dict=True,
+					**kwargs,
+				)
+
+		results = search(form, filter_fields=["secret"], searchfield="secret")
+		self.assertIn(restricted.name, [row.name for row in results])
+		self.assertFalse(any("secret" in row for row in results))
+
+		self.assertEqual([row.name for row in search(read_only_form)], [allowed.name])
+		# grid rows send the child doctype, and its only form is read only
+		self.assertEqual([row.name for row in search(child)], [allowed.name])
 
 	def test_search_link_ignore_user_permissions_dangling_child_table(self):
 		"""A child table pointing at a deleted doctype should not escape as DoesNotExistError."""

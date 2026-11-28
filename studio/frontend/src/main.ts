@@ -1,19 +1,35 @@
-import "./index.css"
+import "@/runtime/index.css"
+import "@/styles/codemirror.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import "./setupFrappeUIResource"
+import "@/runtime/setupFrappeUIResource"
 import studio_router from "@/router/studio_router"
 import App from "./App.vue"
 
-import { resourcesPlugin, frappeRequest } from "frappe-ui"
-import { registerGlobalComponents } from "./globals"
+import { resourcesPlugin, frappeRequest, setConfig, toast } from "frappe-ui"
+import { registerGlobalComponents } from "@/runtime/globals"
 
 import { COMPONENTS } from "@/data/components"
-import Block from "@/utils/block"
-import { initSocket } from "@/socket"
+import Block from "@/runtime/utils/block"
+import { componentHasDefaultSlot } from "@/utils/componentSlots"
+import useCanvasStore from "@/stores/canvasStore"
+import { initSocket } from "@/runtime/socket"
 
 Block.setComponents(COMPONENTS)
+Block.setDefaultSlotLookup(componentHasDefaultSlot)
+Block.setActiveCanvasLookup(() => useCanvasStore().activeCanvas)
+
+// Show what the server reports about a request that succeeded, such as a warning on save.
+setConfig("serverMessagesHandler", (messages: string[]) => {
+	// after the caller's own toast, which would cover these
+	setTimeout(() => {
+		for (const { title, message, indicator } of messages.map((entry) => JSON.parse(entry))) {
+			const show = indicator === "orange" ? toast.warning : toast.info
+			show(title || message, { description: title ? message : undefined, duration: 10000 })
+		}
+	})
+})
 
 const studio = createApp(App)
 const pinia = createPinia()

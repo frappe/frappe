@@ -2,14 +2,16 @@
 // (flow_tui/client/state.py is the reference): replay and live share one code
 // path, durable entries rebuild everything, deltas are presentation-only.
 
+import { __ } from "./translate.js"
+
 export const EFFORTS = ["default", "off", "minimal", "low", "medium", "high", "xhigh", "max"]
 
 // display names for the wire-level effort ids
 // the two approval modes as the composer and the general settings present them
 export const APPROVAL_MODES = [
-	{ id: "auto", label: "Auto", desc: "A helper model handles approvals." },
-	{ id: "ask", label: "Ask for approval", desc: "Asks before edits and commands." },
-	{ id: "auto_approve", label: "Auto-approve", desc: "Runs everything without asking." },
+	{ id: "auto", label: __("Auto"), desc: __("A helper model handles approvals.") },
+	{ id: "ask", label: __("Ask for approval"), desc: __("Asks before edits and commands.") },
+	{ id: "auto_approve", label: __("Auto-approve"), desc: __("Runs everything without asking.") },
 ]
 
 // the mode on the wire: "ask" pauses at every gate, "auto" has a helper model answer them, "auto_approve" skips them
@@ -22,14 +24,14 @@ export function approvalMode(config) {
 }
 
 export const EFFORT_LABELS = {
-	default: "Default",
-	off: "Off",
-	minimal: "Minimal",
-	low: "Low",
-	medium: "Medium",
-	high: "High",
-	xhigh: "X-High",
-	max: "Max",
+	default: __("Default"),
+	off: __("Off"),
+	minimal: __("Minimal"),
+	low: __("Low"),
+	medium: __("Medium"),
+	high: __("High"),
+	xhigh: __("X-High"),
+	max: __("Max"),
 }
 
 // words a model id spells its own way
@@ -320,27 +322,55 @@ function recordRequest(s, e) {
 	s.requests.push(e) // whole: the transcript shows the report itself
 }
 
+// a live label as shown: state keeps the English word, which the tool group compares
+export function liveLabelText(label) {
+	return (
+		{
+			Working: __("Working"),
+			Thinking: __("Thinking"),
+			Retrying: __("Retrying"),
+			"Compacting context": __("Compacting context"),
+		}[label] ?? label
+	)
+}
+
 const END_NOTICES = {
-	aborted: "Interrupted by user",
-	denied: "You declined this action",
-	max_turns: "Stopped — turn limit reached",
-	budget: "Stopped — token budget reached",
-	length: "Stopped — model hit its length limit",
+	aborted: __("Interrupted by user"),
+	denied: __("You declined this action"),
+	max_turns: __("Stopped — turn limit reached"),
+	budget: __("Stopped — token budget reached"),
+	length: __("Stopped — model hit its length limit"),
 }
 
 const STEP_LABELS = {
-	subagent: "Sub-agent",
-	read: "Reading file",
-	grep: "Searching code",
-	bash: "Running command",
-	edit: "Editing file",
-	write: "Writing file",
-	web_fetch: "Reading page",
-	web_search: "Searching the web",
+	subagent: __("Sub-agent"),
+	read: __("Reading file"),
+	grep: __("Searching code"),
+	bash: __("Running command"),
+	edit: __("Editing file"),
+	write: __("Writing file"),
+	web_fetch: __("Reading page"),
+	web_search: __("Searching the web"),
 }
 
 export function stepLabel(name) {
 	return STEP_LABELS[name] ?? humanizeToolName(name)
+}
+
+// what a finished run of calls did, in the past tense; extension tools keep their name
+const STEP_DONE = {
+	subagent: __("Ran sub-agents"),
+	read: __("Read files"),
+	grep: __("Searched code"),
+	bash: __("Ran commands"),
+	edit: __("Edited files"),
+	write: __("Wrote files"),
+	web_fetch: __("Read pages"),
+	web_search: __("Searched the web"),
+}
+
+export function stepDoneLabel(name) {
+	return STEP_DONE[name] ?? humanizeToolName(name)
 }
 
 // Leading row icons for the built-in tools; extension tools get the generic wrench.
@@ -365,7 +395,7 @@ export function humanizeToolName(name) {
 		.replace(/[_-]+/g, " ")
 		.trim()
 		.toLowerCase()
-	return words ? words[0].toUpperCase() + words.slice(1) : "Tool"
+	return words ? words[0].toUpperCase() + words.slice(1) : __("Tool")
 }
 
 function lowerFirst(value) {
@@ -413,7 +443,7 @@ export function stepLiveLabel(call) {
 		return subject ? `${label} ${subject}` : label
 	}
 	if (name in STEP_LABELS) return label
-	return `Running ${lowerFirst(label)}`
+	return __("Running {0}", [lowerFirst(label)])
 }
 
 // Display-only compaction for tool row argument text: cwd-relative paths,
@@ -429,7 +459,8 @@ export function compactDisplayText(text, cwd) {
 		if (value.startsWith(cwd + "/")) value = value.slice(cwd.length + 1)
 		else value = value.split(cwd + "/").join("")
 	}
-	return value.replace(/(^|[\s"'=(])\/(?:Users|home)\/[^/\s"']+/g, "$1~")
+	// the slash in the class is escaped for Frappe's string collector, which else reads the regex as ended
+	return value.replace(/(^|[\s"'=(])\/(?:Users|home)\/[^\/\s"']+/g, "$1~")
 }
 
 // The one-line summary shown next to a step label.
@@ -472,24 +503,24 @@ export function stepDecision(result) {
 export function stepStat(step) {
 	const decision = stepDecision(step.result)
 	if (decision) {
-		return { denied: "denied", cancelled: "cancelled", redirect: "change requested" }[decision.status]
+		return { denied: __("denied"), cancelled: __("cancelled"), redirect: __("change requested") }[decision.status]
 	}
 	const d = step.result?.details
 	if (!d) return ""
-	if (d.exit_code !== undefined && d.exit_code !== null) return `exit ${d.exit_code}`
+	if (d.exit_code !== undefined && d.exit_code !== null) return __("exit {0}", [d.exit_code])
 	// a stopped sub-agent says why; a finished one names its agent, unless it was the default
 	if (d.end_reason !== undefined) {
 		if (d.end_reason !== "done") return d.end_reason.replace("_", " ")
 		return d.agent === "general" ? "" : d.agent
 	}
-	if (d.matches !== undefined) return `${d.matches} matches`
-	if (d.results !== undefined) return `${d.results.length} result${d.results.length === 1 ? "" : "s"}`
+	if (d.matches !== undefined) return __("{0} matches", [d.matches])
+	if (d.results !== undefined) return d.results.length === 1 ? __("1 result") : __("{0} results", [d.results.length])
 	if (d.lines_added !== undefined || d.lines_removed !== undefined)
 		return `+${d.lines_added ?? 0} -${d.lines_removed ?? 0}`
-	if (d.edits !== undefined) return `${d.edits} edits`
-	if (d.lines !== undefined) return `${d.lines} lines`
-	if (d.total_lines !== undefined) return `${d.total_lines} lines`
-	if (d.chars !== undefined) return `${d.chars} chars`
+	if (d.edits !== undefined) return __("{0} edits", [d.edits])
+	if (d.lines !== undefined) return __("{0} lines", [d.lines])
+	if (d.total_lines !== undefined) return __("{0} lines", [d.total_lines])
+	if (d.chars !== undefined) return __("{0} chars", [d.chars])
 	return ""
 }
 
@@ -517,10 +548,13 @@ export function formatDuration(durationMs) {
 	const roundedSeconds = Math.round(durationMs / 1_000)
 	if (roundedSeconds < 60) return `${roundedSeconds}s`
 	const minutes = Math.floor(roundedSeconds / 60)
-	const seconds = roundedSeconds % 60
-	if (seconds === 0) return `${minutes}m`
-	return `${minutes}m ${seconds}s`
+	if (minutes < 60) return pair(minutes, "m", roundedSeconds % 60, "s")
+	const hours = Math.floor(minutes / 60)
+	if (hours < 24) return pair(hours, "h", minutes % 60, "m")
+	return pair(Math.floor(hours / 24), "d", hours % 24, "h")
 }
+
+const pair = (big, bigUnit, small, smallUnit) => (small ? `${big}${bigUnit} ${small}${smallUnit}` : `${big}${bigUnit}`)
 
 function deriveTurns(entries, steeredSeqs = []) {
 	const turns = new Map()
@@ -601,8 +635,8 @@ function foldLabel(turn) {
 		turn.startedAt != null && turn.endedAt != null
 			? formatDuration(Math.max(0, turn.endedAt - turn.startedAt) * 1_000)
 			: null
-	if (turn.interrupted) return elapsed ? `You stopped after ${elapsed}` : "You stopped this response"
-	return elapsed ? `Worked for ${elapsed}` : "Worked"
+	if (turn.interrupted) return elapsed ? __("You stopped after {0}", [elapsed]) : __("You stopped this response")
+	return elapsed ? __("Worked for {0}", [elapsed]) : __("Worked")
 }
 
 // Folds durable entries and the streaming preview into renderable items:
@@ -730,7 +764,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 					kind: "declined",
 					key: `d:${entry.seq}`,
 					turnKey: currentTurnKey,
-					text: decision.action === `Approve \`${name}\`?` ? `Denied ${name}` : `Declined: ${decision.action}`,
+					text: decision.action === `Approve \`${name}\`?` ? __("Denied {0}", [name]) : __("Declined: {0}", [decision.action]),
 				})
 			}
 		} else if (entry.type === "compaction") {
@@ -741,7 +775,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 			if (conversation.liveErrorSeqs.includes(entry.seq)) {
 				items.push({ kind: "error", key: `e:${entry.seq}`, turnKey: currentTurnKey, error: entry })
 			} else {
-				items.push({ kind: "notice", key: `n:${entry.seq}`, turnKey: currentTurnKey, text: "Run failed" })
+				items.push({ kind: "notice", key: `n:${entry.seq}`, turnKey: currentTurnKey, text: __("Run failed") })
 			}
 		} else if (entry.type === "run_ended") {
 			flushThoughts()
@@ -961,9 +995,9 @@ function withoutFlowFields(object) {
 	)
 }
 
-// ids of the rows an item can expand: its tool calls and thoughts
+// ids of the rows an item can expand: a group's own fold, its tool calls and thoughts
 export function panelIds(item) {
-	if (item.kind === "group") return item.steps.map((step) => step.call?.id ?? step.id)
+	if (item.kind === "group") return [item.key, ...item.steps.map((step) => step.call?.id ?? step.id)]
 	return item.kind === "thinking" ? [item.key] : []
 }
 

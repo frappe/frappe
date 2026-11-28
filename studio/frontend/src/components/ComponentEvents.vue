@@ -148,14 +148,14 @@
 import { ref, computed, watch } from "vue"
 import { Combobox, FormControl, createResource, Dialog, TabButtons, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import ItemActions from "@/components/ItemActions.vue"
 import blockController from "@/utils/blockController"
 
-import { isObjectEmpty, confirm } from "@/utils/helpers"
+import { confirm, isObjectEmpty } from "@/utils/helpers"
 
-import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+import type { ActionConfigurations, ComponentEvent } from "@/runtime/types/ComponentEvent"
 import Link from "@framework/ui/components/Link/Link.vue"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
@@ -163,8 +163,8 @@ import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
 import type { DocTypeField } from "@/types"
 import { toast } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import { usePageScope } from "@/stores/codeStore"
-import useComponentInstance from "@/utils/useComponentInstance"
+import { usePageScope } from "@/runtime/stores/codeStore"
+import useComponentInstance from "@/runtime/utils/useComponentInstance"
 
 const props = defineProps<{
 	block?: Block
@@ -465,7 +465,10 @@ const getEventMenu = (event: ComponentEvent) => {
 
 function getScriptDescription(eventName: string): string {
 	let docsLink = ""
-	if (props.block && componentEvents.value.includes(eventName)) {
+	const isEmitted = componentEvents.value.includes(eventName)
+	// only a built-in component has a page in the frappe-ui docs
+	const isAppComponent = props.block?.isStudioComponent || props.block?.isCustomVueComponent
+	if (props.block && isEmitted && !isAppComponent) {
 		const componentSlug = props.block.componentName.toLowerCase()
 		docsLink = `https://ui.frappe.io/docs/components/${componentSlug}#emit-events`
 	}
@@ -481,6 +484,11 @@ function getScriptDescription(eventName: string): string {
 			)} <br><br>Refer to the <a class="underline" href="${docsLink}" target="_blank">${[
 				props.block?.componentName,
 			]} documentation</a> to see what arguments are emitted for ${eventName} event
+		`
+	} else if (isEmitted) {
+		docs += `
+			<b>Example:</b> The component calls ${getCodeBlock(`emit("${eventName}", value)`)}:<br>
+			${getCodeBlock("function handleEvent(value) { myVar.value = value }")}
 		`
 	} else {
 		docs += `

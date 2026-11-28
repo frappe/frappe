@@ -10,6 +10,7 @@ from frappe.custom.doctype.customize_form.test_customize_form import TestCustomi
 from frappe.desk.notifications import get_doc_count, get_open_count
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
+from frappe.utils import get_user_by_email
 
 
 class TestDashboardConnections(IntegrationTestCase):
@@ -259,7 +260,8 @@ class TestDashboardConnections(IntegrationTestCase):
 		todo.run_method("save_customization")
 
 	def test_external_link_count_per_link_fieldname(self):
-		todo = frappe.get_doc(doctype="ToDo", description="test", allocated_to="test@example.com").insert()
+		user = get_user_by_email("test@example.com")
+		todo = frappe.get_doc(doctype="ToDo", description="test", allocated_to=user).insert()
 		frappe.get_doc(doctype="Test Doctype D", title="d-001", doclink=todo.name).insert()
 
 		dashboard = frappe._dict(

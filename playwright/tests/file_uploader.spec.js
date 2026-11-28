@@ -122,12 +122,15 @@ test.describe("FileUploader", () => {
 				user: test_user,
 				role: "System Manager",
 			});
-			await admin.set_value("User", test_user, { new_password: test_password });
+			await admin.set_value("User", await admin.user_id(test_user), {
+				new_password: test_password,
+			});
 		});
 
 		test.afterAll(async ({ admin }) => {
 			await set_restriction(admin, original_setting);
-			await admin.remove_doc("User", test_user, true);
+			const user = await admin.user_id(test_user);
+			if (user) await admin.remove_doc("User", user, true);
 		});
 
 		test("should show checkbox and toggle when setting is disabled for System Manager", async ({

@@ -233,6 +233,15 @@ class TestPdf(IntegrationTestCase):
 		self.assertGreater(top, baselines[0])
 		self.assertLess(top, baselines[0] + 72)
 
+	def test_header_and_footer_keep_the_document_title(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			"<title>Sales Invoice: SINV-0001</title>"
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		self.assertEqual(PdfReader(io.BytesIO(pdf)).metadata.title, "Sales Invoice: SINV-0001")
+
 	def test_footer_is_measured_at_the_width_it_prints(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
@@ -245,6 +254,39 @@ class TestPdf(IntegrationTestCase):
 		self.assertGreater(len(pages), 1)
 		for number, page in enumerate(pages, start=1):
 			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
+
+	def test_footer_visible_last_page_prints_on_last_page_only(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		html = (
+			"<p>row</p>" * 120 + '<div id="footer-html"><p class="visible-last-page">Grand Total</p>'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		for pdf_generator in ("chrome", "PlutoPrint"):
+			with self.subTest(pdf_generator=pdf_generator):
+				pdf = pdfgen.get_pdf(html, pdf_generator=pdf_generator)
+				texts = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
+				self.assertGreater(len(texts), 1)
+				self.assertNotIn("Grand Total", "".join(texts[:-1]))
+				self.assertIn("Grand Total", texts[-1])
+
+	def test_footer_first_page_classes_pick_their_pages(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		html = (
+			"<p>row</p>" * 120 + '<div id="footer-html"><p class="visible-first-page">Cover Note</p>'
+			'<p class="hidden-first-page">Continued</p>'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		for pdf_generator in ("chrome", "PlutoPrint"):
+			with self.subTest(pdf_generator=pdf_generator):
+				pdf = pdfgen.get_pdf(html, pdf_generator=pdf_generator)
+				first, *later = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
+				self.assertTrue(later)
+				self.assertIn("Cover Note", first)
+				self.assertNotIn("Continued", first)
+				self.assertNotIn("Cover Note", "".join(later))
+				self.assertIn("Continued", later[0])
 
 	def test_pdf_renders_while_another_render_has_a_tab_open(self):
 		from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
@@ -306,6 +348,7 @@ class TestPdf(IntegrationTestCase):
 		import threading
 		import time
 		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+		from unittest.mock import patch
 
 		class SlowImageHandler(BaseHTTPRequestHandler):
 			def do_GET(self):
@@ -322,11 +365,29 @@ class TestPdf(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 
-		pdf = pdfgen.get_pdf(
-			f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
-			+ "<p>row</p>" * 10
-		)
+		with patch("frappe.utils.chromium.page.allows_internal_print_urls", return_value=True):
+			pdf = pdfgen.get_pdf(
+				f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
+				+ "<p>row</p>" * 10
+			)
 		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
+
+	def test_pdf_browser_has_no_network_of_its_own(self):
+		import socket
+		from unittest.mock import patch
+
+		server = socket.create_server(("127.0.0.1", 0))
+		server.settimeout(1)
+		self.addCleanup(server.close)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with patch("frappe.utils.chromium.page.allows_internal_print_urls", return_value=False):
+			pdfgen.get_pdf(
+				f'<script>new WebSocket("ws://127.0.0.1:{server.getsockname()[1]}")</script><p>row</p>'
+			)
+		with self.assertRaises(TimeoutError):
+			server.accept()
 
 	def test_bulk_pdf_with_password_keeps_every_document(self):
 		import json
@@ -347,6 +408,24 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt("qwe"))
 		self.assertGreaterEqual(len(reader.pages), 2)
+
+	def test_bulk_pdf_bookmarks_each_document(self):
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		names = [
+			frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
+			for description in ("Call Northwind Traders", "Follow up with Litware")
+		]
+
+		_download_multi_pdf("ToDo", frappe.as_json(names))
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertEqual(
+			[(item.title, reader.get_destination_page_number(item)) for item in reader.outline],
+			[(names[0], 0), (names[1], 1)],
+		)
 
 	def test_bulk_pdf_by_doctype_skips_a_deleted_document(self):
 		from frappe.utils.print_format import _download_multi_pdf
@@ -518,6 +597,31 @@ class TestPdf(IntegrationTestCase):
 			_download_multi_pdf("ToDo", frappe.as_json([todo.name]))
 
 		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
+
+	def test_on_print_pdf_hook_runs_for_builder_downloads(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import download_pdf
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+		):
+			download_pdf("ToDo", todo.name, print_format="Standard")
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": "Standard"}])
 
 	def test_report_pdf_fits_wide_tables_and_runs_no_scripts(self):
 		from frappe.utils import print_format

@@ -294,6 +294,11 @@ function remainder(numerator, denominator, precision) {
 		_remainder = numerator % denominator;
 	}
 
+	// JS % keeps the dividend's sign; take the divisor's sign like Python so negatives round the same
+	if (_remainder && _remainder < 0 !== denominator < 0) {
+		_remainder += denominator;
+	}
+
 	return flt(_remainder, precision);
 }
 

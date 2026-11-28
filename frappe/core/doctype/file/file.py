@@ -12,6 +12,7 @@ import os
 import posixpath
 import re
 import zipfile
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 from urllib.parse import quote, unquote
 
@@ -21,11 +22,16 @@ import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.exceptions import DoesNotExistError
-from frappe.model.db_query import requires_owner_constraint
 from frappe.model.document import Document
-from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read, get_role_permissions
+from frappe.permissions import (
+	SYSTEM_USER_ROLE,
+	get_doctypes_with_read,
+	get_role_permissions,
+	requires_owner_constraint,
+)
 from frappe.utils import (
 	cint,
+	cstr,
 	get_link_to_form,
 	get_table_name,
 	get_url,
@@ -205,6 +211,10 @@ class File(Document):
 		attachment.flags.copy_from_existing_file = True
 		return attachment.insert(ignore_permissions=ignore_permissions)
 
+	def before_validate(self):
+		# here, not in validate(): a File subclass may skip super().validate()
+		self.validate_attachment_change()
+
 	def validate(self):
 		if self.is_folder:
 			if self.file_url:
@@ -232,6 +242,27 @@ class File(Document):
 		self.validate_file_url()
 		self.validate_file_on_disk()
 		self.file_size = frappe.form_dict.file_size or self.file_size
+
+	def validate_attachment_change(self):
+		"""Apply the stored row's permission and protection before its document or content changes."""
+		doc_before_save = self.get_doc_before_save()
+		if not doc_before_save or self.flags.ignore_permissions or frappe.flags.in_install:
+			return
+
+		is_moved = any(
+			cstr(self.get(fieldname)) != cstr(doc_before_save.get(fieldname))
+			for fieldname in ("attached_to_doctype", "attached_to_name")
+		)
+		if is_moved:
+			doc_before_save.check_permission("write")
+
+		is_stored_blob = (
+			self.get("blob") and self.has_value_changed("blob") and self.blob == self.flags.stored_blob
+		)
+		if is_moved or (
+			not is_stored_blob and (self.has_value_changed("file_url") or self.has_value_changed("blob"))
+		):
+			doc_before_save.validate_protected_file()
 
 	def validate_attachment_references(self):
 		if not self.attached_to_doctype:
@@ -316,7 +347,14 @@ class File(Document):
 		if not self.is_new():
 			filters["name"] = ["!=", self.name]
 
-		private_files = frappe.get_all("File", filters=filters, fields=["name", "owner"])
+		private_files = frappe.get_all(
+			"File", filters=filters, fields=["name", "owner", "file_url", "is_private", "attached_to_doctype"]
+		)
+		# the database collation ignores case and the filesystem may not;
+		# when some rows match exactly, only those point at this file
+		private_files = [
+			file for file in private_files if file.file_url == filters["file_url"]
+		] or private_files
 		if not private_files:
 			return
 
@@ -325,7 +363,7 @@ class File(Document):
 			return
 
 		# a file can be attached to multiple documents; access to any one of them is enough
-		for private_file in private_files:
+		for private_file in _without_unreadable_attachments(private_files):
 			if user == private_file.owner:
 				return
 
@@ -558,7 +596,8 @@ class File(Document):
 				exc=frappe.MandatoryError,
 			)
 		elif not self.file_name and self.file_url:
-			self.file_name = self.file_url.split("/")[-1].split("?")[0]
+			stem, ext = os.path.splitext(self.file_url.split("/")[-1].split("?")[0])
+			self.file_name = stem[: max(0, frappe.db.VARCHAR_LEN - len(ext))] + ext[: frappe.db.VARCHAR_LEN]
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
 
@@ -639,6 +678,13 @@ class File(Document):
 			ref_doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
 		except DoesNotExistError:
 			return
+		except ImportError:
+			if (
+				frappe.db.exists("DocType", self.attached_to_doctype)
+				and frappe.get_meta(self.attached_to_doctype).protect_attached_files
+			):
+				raise
+			return
 
 		if ref_doc.docstatus == 0:
 			# If the document is not submitted yet, users can correct wrong attachments
@@ -652,7 +698,7 @@ class File(Document):
 			return
 
 		frappe.throw(
-			msg=_("This file is attached to a protected document and cannot be deleted."),
+			msg=_("This file is attached to a protected document and cannot be changed or deleted."),
 			title=_("Protected File"),
 		)
 
@@ -928,13 +974,14 @@ class File(Document):
 
 	@frappe.whitelist()
 	def optimize_file(self):
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		if self.is_folder:
 			raise TypeError("Folders cannot be optimized")
 
 		self.validate_file_url_matches_record()
 		self.validate_blob_access()
 
-		content_type = mimetypes.guess_type(self.file_name)[0]
+		content_type = mimetypes.guess_type(self.file_name)[0] or ""
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
 		is_svg = content_type == "image/svg+xml"
 		is_local_pdf = content_type == "application/pdf" and self.file_size > 0
@@ -1101,6 +1148,42 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 			return frappe.has_permission(attached_to_doctype, "read", doc=ref_doc, user=user, debug=debug)
 
 	return False
+
+
+def _without_unreadable_attachments(files: list[frappe._dict]) -> Iterator[frappe._dict]:
+	"""Rows need `name`, `owner`, `is_private` and `attached_to_doctype`; owned and shared rows always pass."""
+	if any(frappe.get_hooks("ignore_file_permissions")):
+		yield from files
+		return
+
+	user = frappe.session.user
+	readable_doctypes = {}
+	shared_files = None
+	for file in files:
+		doctype = file.attached_to_doctype
+		# a child table cannot be checked without its parent document
+		if not file.is_private or file.owner == user or not doctype or frappe.is_table(doctype):
+			yield file
+			continue
+
+		if doctype not in readable_doctypes:
+			try:
+				readable_doctypes[doctype] = frappe.has_permission(doctype, "read", user=user)
+			except frappe.DoesNotExistError:
+				frappe.clear_last_message()
+				readable_doctypes[doctype] = False
+		if readable_doctypes[doctype]:
+			yield file
+			continue
+
+		if shared_files is None:
+			shared_files = set(
+				frappe.share.get_shared(
+					"File", user, filters=[["share_name", "in", [candidate.name for candidate in files]]]
+				)
+			)
+		if file.name in shared_files:
+			yield file
 
 
 def get_permission_query_conditions(user: str | None = None) -> str:

@@ -81,7 +81,7 @@ import MarginHandler from "@/components/MarginHandler.vue"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucidePenLine from "~icons/lucide/pen-line"
 
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
@@ -156,6 +156,8 @@ const getStyleClasses = computed(() => {
 
 	if (props.block.isStudioComponent) {
 		classes.push("ring-outline-purple-4")
+	} else if (props.block.isCustomVueComponent) {
+		classes.push("ring-outline-green-5")
 	} else {
 		classes.push("ring-outline-blue-4")
 	}
@@ -186,13 +188,13 @@ const openComponentEditor = () => {
 }
 
 const componentLabelClasses = computed(() => {
-	if (isBlockSelected.value) {
-		return props.block.isStudioComponent
-			? "bg-surface-purple-6 text-ink-base"
-			: "bg-surface-blue-6 text-ink-base"
-	} else {
-		return props.block.isStudioComponent ? "text-ink-purple-5" : "text-ink-blue-5"
+	const color = props.block.isStudioComponent ? "purple" : props.block.isCustomVueComponent ? "green" : "blue"
+	const classes = {
+		purple: ["bg-surface-purple-6 text-ink-base", "text-ink-purple-5"],
+		green: ["bg-surface-green-6 text-ink-base", "text-ink-green-6"],
+		blue: ["bg-surface-blue-6 text-ink-base", "text-ink-blue-5"],
 	}
+	return classes[color][isBlockSelected.value ? 0 : 1]
 })
 
 // The selected block's overlay sits above the block itself, so it has to start

@@ -128,7 +128,7 @@
 import { computed, ref } from "vue"
 import { Button } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
-import Block from "@/utils/block"
+import Block from "@/runtime/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"
 import ArrayInput from "@/components/ArrayInput.vue"
@@ -136,18 +136,18 @@ import { isObjectEmpty } from "@/utils/helpers"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/completions/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import useComponentStore from "@/stores/componentStore"
+import useComponentStore from "@/runtime/stores/componentStore"
 import { getComponentProps } from "@/utils/components"
-import { isDynamicValue } from "@/utils/code"
+import { isDynamicValue } from "@/runtime/utils/code"
 import useCanvasStore from "@/stores/canvasStore"
 import blockController from "@/utils/blockController"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ComponentProp, ComponentProps } from "@/types"
-import { ComponentInput } from "@/types/Studio/StudioComponent"
+import { StudioComponentInput } from "@/runtime/types/Studio/StudioComponent"
 import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
 import DeprecatedProps from "@/components/DeprecatedProps.vue"
 import useStudioStore from "@/stores/studioStore"
-import useComponentInstance from "@/utils/useComponentInstance"
+import useComponentInstance from "@/runtime/utils/useComponentInstance"
 
 const props = defineProps<{
 	block?: Block
@@ -176,12 +176,11 @@ const propConfigs = computed<ComponentProps>(() => {
 
 	if (props.isTestingComponent) {
 		const componentEditorStore = useComponentEditorStore()
-		return getStudioComponentProps(componentEditorStore.componentInputs)
+		return getStudioComponentProps(componentEditorStore.declaredProps)
 	}
 	if (props.block.isStudioComponent) {
 		const componentStore = useComponentStore()
-		const componentDoc = componentStore.getComponentDoc(props.block.componentName)
-		return componentDoc?.inputs ? getStudioComponentProps(componentDoc.inputs) : {}
+		return getStudioComponentProps(componentStore.getComponentProps(props.block.componentName))
 	}
 	if (componentInstance.value) {
 		return getComponentProps(props.block.componentName, componentInstance.value)
@@ -239,11 +238,11 @@ const filteredComponentProps = computed(() => {
 const hasFilteredProps = computed(() => !isObjectEmpty(filteredComponentProps.value))
 defineExpose({ hasFilteredProps })
 
-function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentProps {
-	if (isObjectEmpty(componentInputs)) return {}
+function getStudioComponentProps(declaredProps: StudioComponentInput[]): ComponentProps {
+	if (isObjectEmpty(declaredProps)) return {}
 
 	const _props: ComponentProps = {}
-	componentInputs.forEach((input) => {
+	declaredProps.forEach((input) => {
 		_props[input.input_name] = {
 			type: input.type,
 			default: input.default || undefined,

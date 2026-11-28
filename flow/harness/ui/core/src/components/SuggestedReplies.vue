@@ -1,7 +1,7 @@
 <template>
 	<!-- a tap sends a reply; a question taking several answers ticks them, then sends them together -->
 	<div class="flex flex-col items-start gap-2.5">
-		<div class="flex max-w-full flex-wrap items-center gap-1.5" role="group" :aria-label="multiSelect ? 'Pick answers' : 'Suggested replies'">
+		<div class="flex max-w-full flex-wrap items-center gap-1.5" role="group" :aria-label="multiSelect ? __('Pick answers') : __('Suggested replies')">
 			<Button
 				v-for="reply in replies"
 				:key="reply"
@@ -28,7 +28,7 @@
 			v-if="multiSelect"
 			size="sm"
 			variant="solid"
-			label="Send"
+			:label="__('Send')"
 			icon-right="lucide-arrow-up"
 			class="-mb-[26px]"
 			:class="{ invisible: !picked.length }"
@@ -42,6 +42,7 @@ import { ref } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 
 import { layout } from "../layout.js"
+import { __ } from "../translate.js"
 
 const props = defineProps({
 	replies: { type: Array, required: true },

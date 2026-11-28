@@ -17,6 +17,7 @@
   "report_type",
   "default_letter_head",
   "default_print_format",
+  "site_print_defaults",
   "add_total_row",
   "disabled",
   "prepared_report",
@@ -225,6 +226,15 @@
    "options": "Print Format"
   },
   {
+   "default": "0",
+   "fieldname": "site_print_defaults",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Site Print Defaults",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "default_letter_head",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
@@ -269,7 +279,7 @@
  "idx": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-27 18:32:38.903652",
+ "modified": "2026-11-13 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

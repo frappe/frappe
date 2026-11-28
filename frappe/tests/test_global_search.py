@@ -9,6 +9,7 @@ from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	get_doctypes_for_global_search,
 )
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+from frappe.model.naming import NamingSeries
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects
 from frappe.utils import global_search, now_datetime
@@ -26,6 +27,12 @@ class TestGlobalSearch(IntegrationTestCase):
 		make_property_setter(doctype, "roles", "in_global_search", 1, "Int")
 		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
 		self.global_search_priorities = get_doctypes_for_global_search()
+
+		counter_prefix = "rl:frappe.utils.global_search.web_search:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
+		self.addCleanup(setattr, frappe.local, "request_ip", getattr(frappe.local, "request_ip", None))
+		frappe.local.request_ip = "127.0.0.1"
 
 	def tearDown(self):
 		self.set_global_search_priorities(self.global_search_priorities)
@@ -102,6 +109,22 @@ class TestGlobalSearch(IntegrationTestCase):
 		for doctype in doctypes:
 			settings.append("allowed_in_global_search", {"document_type": doctype})
 		settings.save()
+
+	def test_exact_name_match_survives_the_result_limit(self):
+		make_property_setter("Event", None, "show_name_in_global_search", 1, "Check", for_doctype=True)
+		frappe.db.truncate("__global_search")
+		target_name = f"EV{NamingSeries('EV.#####').get_current_value() + 26:05d}"
+		for i in range(25):
+			frappe.get_doc(
+				doctype="Event", subject=f"Follow-up {i} for {target_name}", starts_on=now_datetime()
+			).insert()
+		target = frappe.get_doc(doctype="Event", subject="Kick-off", starts_on=now_datetime()).insert()
+		self.assertEqual(target.name, target_name)
+		global_search.sync_global_search()
+
+		results = global_search.search(target.name.lower())
+
+		self.assertEqual(results[0].name, target.name)
 
 	def test_update_doc(self):
 		self.insert_test_events()

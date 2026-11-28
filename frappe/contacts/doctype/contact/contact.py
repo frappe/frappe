@@ -71,6 +71,7 @@ class Contact(Document):
 		self.set_primary("phone")
 		self.set_primary("mobile_no")
 
+		self.validate_user()
 		self.set_user()
 
 		set_link_title(self)
@@ -131,9 +132,30 @@ class Contact(Document):
 			.where(link_filter)
 		).run(pluck=True)
 
+	def validate_user(self):
+		if not self.user or self.flags.ignore_permissions or not self.has_value_changed("user"):
+			return
+
+		if not frappe.has_permission("User", "write", ignore_share_permissions=True):
+			frappe.throw(_("You can't link this Contact to a User."), frappe.PermissionError)
+
 	def set_user(self):
-		if not self.user and self.email_id:
-			self.user = frappe.db.get_value("User", {"email": self.email_id})
+		if self.user or not self.email_id:
+			return
+
+		user = frappe.utils.get_user_by_email(self.email_id)
+		if not user:
+			return
+
+		def is_trusted_owner(owner):
+			return owner == user or not reads_contacts_only_as_owner(owner)
+
+		if not is_trusted_owner(self.owner):
+			return
+
+		linked_owners = frappe.get_all("Contact", filters={"user": user}, pluck="owner")
+		if not any(is_trusted_owner(owner) for owner in linked_owners):
+			self.user = user
 
 	def get_link_for(self, link_doctype):
 		"""Return the link name, if exists for the given link DocType"""
@@ -264,7 +286,10 @@ class Contact(Document):
 
 		for row in self.phone_nos:
 			tel = vcard.add("tel")
-			tel.value = row.phone
+			tel.value = row.get("phone")
+			if not tel.value:
+				continue
+
 			if row.is_primary_phone:
 				tel.type_param = "home"
 
@@ -277,8 +302,7 @@ class Contact(Document):
 @frappe.whitelist()
 def download_vcard(contact: str):
 	"""Download vCard for the contact"""
-	contact = frappe.get_doc("Contact", contact)
-	contact.check_permission()
+	contact = frappe.read_doc("Contact", contact)
 
 	vcard = contact.get_vcard()
 	make_access_log(doctype="Contact", document=contact.name, file_type="vcf")
@@ -299,8 +323,7 @@ def download_vcards(contacts: str):
 
 	vcards = []
 	for contact_id in contact_ids:
-		contact = frappe.get_doc("Contact", contact_id)
-		contact.check_permission()
+		contact = frappe.read_doc("Contact", contact_id)
 		vcard = contact.get_vcard()
 		vcards.append(vcard.serialize())
 
@@ -315,6 +338,13 @@ def download_vcards(contacts: str):
 	frappe.response["filename"] = f"{timestamp} Contacts.vcf"
 	frappe.response["filecontent"] = "\n".join(vcards).encode("utf-8")
 	frappe.response["type"] = "binary"
+
+
+def reads_contacts_only_as_owner(user: str) -> bool:
+	"""Whether `user` can read a Contact only because they own it."""
+	from frappe.permissions import get_role_permissions
+
+	return "read" in (get_role_permissions("Contact", user=user).get("if_owner") or {})
 
 
 def get_default_contact(doctype, name):
@@ -369,8 +399,7 @@ def invite_user(contact: str):
 
 @frappe.whitelist()
 def get_contact_details(contact: str):
-	contact = frappe.get_doc("Contact", contact)
-	contact.check_permission()
+	contact = frappe.read_doc("Contact", contact)
 
 	return {
 		"contact_person": contact.get("name"),

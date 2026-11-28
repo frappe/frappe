@@ -22,7 +22,6 @@
 			window.frappe_app = "{{ frappe_app }}";
 			window.app_pages = {{ app_pages|tojson }};
 			window.app_home = {{ app_home|tojson }};
-			window.router_script = {{ router_script|tojson }};
 			window.router_file = {{ router_file|tojson }};
 			window.is_guest = {{ is_guest|tojson }};
 			window.is_developer_mode = {{ is_developer_mode }};
@@ -31,9 +30,9 @@
 			<!-- workaround for HMR in renderer during development -->
 			<!-- protocol-relative so the browser loads over the page's own scheme (avoids mixed-content over HTTPS) -->
 			<script type="module" src="//{{ vite_dev_server_host }}/@vite/client"></script>
-			<script type="module" src="//{{ vite_dev_server_host }}/src/renderer.ts"></script>
+			<script type="module" src="//{{ vite_dev_server_host }}/src/runtime/renderer.ts"></script>
 		{% else %}
-			<script type="module" src="/src/renderer.ts"></script>
+			<script type="module" src="/src/runtime/renderer.ts"></script>
 		{% endif %}
 
 		{% if assets_not_found %}

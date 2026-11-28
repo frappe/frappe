@@ -34,7 +34,8 @@
 			<button
 				v-if="back"
 				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-				title="Back"
+				:title="__('Back')"
+				data-palette-back
 				@click="emit('back')"
 			>
 				<span class="lucide-arrow-left size-3.5" aria-hidden="true" />
@@ -55,6 +56,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { isInert, isPageEvent } from "../inert.js"
 import { layout } from "../layout.js"
 import { nextNavigationIndex } from "../paletteNav.js"
+import { __ } from "../translate.js"
 
 const props = defineProps({
 	title: { type: String, required: true },

@@ -3,6 +3,7 @@ const { get_conf, get_redis_subscriber } = require("../../node_utils");
 const { get_url, get_hostname } = require("../utils");
 const conf = get_conf();
 const redisClient = get_redis_subscriber("redis_queue");
+redisClient.on("error", (err) => console.warn("authenticate: redis error", err.message));
 
 async function getSecretFromRedis() {
 	if (!redisClient.isOpen) await redisClient.connect();

@@ -27,6 +27,7 @@ from frappe.desk.doctype.sidebar.test_sidebar import (
 )
 from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, add_to_sidebar, ensure_module
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 # Any module the dock can take you to will do, since these tests are about the layers rather than
 # this module. Not `Core`: it is a `code_only_modules` module now, so `get_navigable_modules`
@@ -38,8 +39,8 @@ OTHER = "test-sidebar-other@example.com"
 
 
 def make_user(email: str, roles: list[str]):
-	if frappe.db.exists("User", email):
-		frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+	if user := get_user_by_email(email):
+		frappe.delete_doc("User", user, force=True, ignore_permissions=True)
 	return frappe.get_doc(
 		{
 			"doctype": "User",
@@ -54,18 +55,18 @@ def make_user(email: str, roles: list[str]):
 class CustomizationTestCase(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
-		make_user(USER, ["System Manager"])
+		self.user = make_user(USER, ["System Manager"]).name
 		self.wipe()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		self.wipe()
-		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
+		frappe.delete_doc("User", self.user, force=True, ignore_missing=True)
 
 	def wipe(self, module: str = MODULE):
 		for name in frappe.get_all("Custom Sidebar", filters={"module": module}, pluck="name"):
 			frappe.delete_doc("Custom Sidebar", name, force=True, ignore_permissions=True)
-		frappe.clear_cache(user=USER)
+		frappe.clear_cache(user=self.user)
 
 	def resolved(self, module: str = MODULE):
 		"""What `module` resolves to for the session user, which is where every layer lands."""
@@ -114,7 +115,7 @@ class TestSidebarCustomization(CustomizationTestCase):
 		frappe.db.set_value("Custom Sidebar", name, "user", None, update_modified=False)
 		frappe.clear_cache()
 
-		layers = get_layers_for(USER, [MODULE])
+		layers = get_layers_for(self.user, [MODULE])
 
 		self.assertEqual([layer.name for layer in layers.get(MODULE, [])], [name])
 
@@ -289,7 +290,7 @@ class TestAReorderIsNotAnOpinionAboutEverything(CustomizationTestCase):
 			save_sidebar_customization(module, json.dumps(list(reversed(items))))
 
 			# nothing of the site's is stored as the user's own opinion
-			layer = get_customization(module, USER)
+			layer = get_customization(module, self.user)
 			self.assertTrue(all(not row.label and not row.icon for row in layer.sidebar_items))
 
 			# ... and now the site relabels an item, and the app ships another one
@@ -370,7 +371,7 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 			# canonical either way, or the guarantee would depend on how the client asked.
 			save_sidebar_customization(module, json.dumps([{"key": target["key"], "hidden": 1}]))
 
-			row = get_customization(module, USER).sidebar_items[0]
+			row = get_customization(module, self.user).sidebar_items[0]
 			self.assertEqual((row.link_type, row.link_to), ("Report", report.name))
 			self.assertFalse(row.key, "a linked row stores no id beside its columns")
 
@@ -467,11 +468,11 @@ class TestWhoMayTouchTheSiteLayer(CustomizationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.manager = make_user(MANAGER, ["Desk User", "Workspace Manager"]).name
 
 	def tearDown(self):
 		super().tearDown()
-		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		frappe.delete_doc("User", self.manager, force=True, ignore_missing=True)
 
 	def test_a_desk_user_cannot_write_the_site_layer(self):
 		self.as_user()
@@ -520,13 +521,13 @@ class TestWhoMayTouchTheSiteLayer(CustomizationTestCase):
 		save_site_sidebar(MODULE, json.dumps([]))
 		self.assertEqual(
 			{row.user for row in frappe.get_list("Custom Sidebar", fields=["user"])},
-			{"", USER},
+			{"", self.user},
 		)
 
 		self.as_user()
 		self.assertEqual(
 			{row.user for row in frappe.get_list("Custom Sidebar", fields=["user"])},
-			{USER},
+			{self.user},
 		)
 
 
@@ -537,11 +538,11 @@ class TestUserRowsAreTheUsers(CustomizationTestCase):
 		frappe.set_user("Administrator")
 		save_site_sidebar(MODULE, json.dumps([]))
 
-		self.assertTrue(frappe.db.exists("Custom Sidebar", {"user": USER}))
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"user": self.user}))
 
-		frappe.delete_doc("User", USER, force=True, ignore_permissions=True)
+		frappe.delete_doc("User", self.user, force=True, ignore_permissions=True)
 
-		self.assertFalse(frappe.db.exists("Custom Sidebar", {"user": USER}))
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"user": self.user}))
 		# the site layer is nobody's personal preference
 		self.assertTrue(frappe.db.exists("Custom Sidebar", {"user": ""}))
 
@@ -552,28 +553,28 @@ class TestALayerKeepsItsOwner(CustomizationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		make_user(OTHER, ["Desk User"])
+		self.other = make_user(OTHER, ["Desk User"]).name
 
 	def tearDown(self):
 		super().tearDown()
-		frappe.delete_doc("User", OTHER, force=True, ignore_missing=True)
+		frappe.delete_doc("User", self.other, force=True, ignore_missing=True)
 
 	def take(self, name):
 		from frappe.client import set_value
 
 		frappe.set_user(OTHER)
 		with self.assertRaises(frappe.PermissionError):
-			set_value("Custom Sidebar", name, "user", OTHER)
+			set_value("Custom Sidebar", name, "user", self.other)
 		frappe.set_user("Administrator")
 
 	def test_nobody_takes_another_users_layer(self):
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([]))
 		frappe.set_user("Administrator")
-		name = frappe.db.get_value("Custom Sidebar", {"module": MODULE, "user": USER})
+		name = frappe.db.get_value("Custom Sidebar", {"module": MODULE, "user": self.user})
 
 		self.take(name)
-		self.assertEqual(frappe.db.get_value("Custom Sidebar", name, "user"), USER)
+		self.assertEqual(frappe.db.get_value("Custom Sidebar", name, "user"), self.user)
 
 	def test_nobody_takes_the_site_layer(self):
 		save_site_sidebar(MODULE, json.dumps([]))
@@ -624,7 +625,7 @@ class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
 		}
 
 	def test_the_site_layer_drops_a_row_naming_a_private_page(self):
-		private = self.make_workspace("Test Site Layer Private Page", public=0, for_user=USER)
+		private = self.make_workspace("Test Site Layer Private Page", public=0, for_user=self.user)
 		public = self.make_workspace("Test Site Layer Public Page", public=1)
 
 		save_site_sidebar(MODULE, json.dumps([self.row_for(private), self.row_for(public)]))
@@ -633,12 +634,12 @@ class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
 
 	def test_the_owners_own_layer_keeps_their_own_page(self):
 		"""Their own page in their own layer is the one place such a row belongs."""
-		private = self.make_workspace("Test Own Layer Private Page", public=0, for_user=USER)
+		private = self.make_workspace("Test Own Layer Private Page", public=0, for_user=self.user)
 
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([self.row_for(private)]))
 
-		self.assertEqual(self.stored_links(USER), [private.name])
+		self.assertEqual(self.stored_links(self.user), [private.name])
 
 	def test_a_users_layer_drops_somebody_elses_page(self):
 		"""A row about a page its reader cannot open says nothing, whichever user's layer it is in."""
@@ -647,7 +648,7 @@ class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([self.row_for(private)]))
 
-		self.assertEqual(self.stored_links(USER), [])
+		self.assertEqual(self.stored_links(self.user), [])
 
 	def test_a_page_with_no_owner_may_be_stored_anywhere(self):
 		"""`public = 0` with no `for_user` is a page `get_workspaces` shows to everybody, so it is
@@ -664,7 +665,7 @@ class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
 
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([self.row_for(unowned)]))
-		self.assertEqual(self.stored_links(USER), [unowned.name])
+		self.assertEqual(self.stored_links(self.user), [unowned.name])
 
 	def test_a_page_that_turns_private_takes_its_stored_row_out_on_the_next_save(self):
 		"""What retires the rows a site stored before the derivation existed: every write runs the
@@ -674,7 +675,7 @@ class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
 		save_site_sidebar(MODULE, json.dumps([self.row_for(workspace)]))
 		self.assertEqual(self.stored_links(), [workspace.name])
 
-		frappe.db.set_value("Workspace", workspace.name, {"public": 0, "for_user": USER})
+		frappe.db.set_value("Workspace", workspace.name, {"public": 0, "for_user": self.user})
 		save_site_sidebar(MODULE, label="Renamed")
 
 		self.assertEqual(self.stored_links(), [])
@@ -788,11 +789,11 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.manager = make_user(MANAGER, ["Desk User", "Workspace Manager"]).name
 
 	def tearDown(self):
 		super().tearDown()
-		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		frappe.delete_doc("User", self.manager, force=True, ignore_missing=True)
 
 	def read(self, layer: str, module: str = MODULE):
 		endpoint = get_user_sidebar_layer if layer == "user" else get_site_sidebar_layer
@@ -908,7 +909,7 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		save_sidebar_customization(MODULE, json.dumps(self.read("user")))
 
 		self.assertEqual(self.keys(), before)
-		layer = get_customization(MODULE, USER)
+		layer = get_customization(MODULE, self.user)
 		self.assertTrue(all(not row.label and not row.icon for row in layer.sidebar_items))
 
 	def test_bringing_an_item_back_does_not_freeze_its_label(self):
@@ -926,7 +927,7 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		)
 
 		self.assertIn(target["key"], self.keys())
-		layer = get_customization(MODULE, USER)
+		layer = get_customization(MODULE, self.user)
 		self.assertTrue(all(not row.label and not row.icon for row in layer.sidebar_items))
 
 	def test_an_added_item_survives_the_editors_round_trip(self):
@@ -1000,7 +1001,7 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual(next(i for i in resolved if i["key"] == renamed["key"])["label"], "Mine")
 
 		# ... and the reorder said nothing about anything but the one label it meant
-		layer = get_customization(MODULE, USER)
+		layer = get_customization(MODULE, self.user)
 		self.assertEqual([row.label for row in layer.sidebar_items if row.label], ["Mine"])
 
 	def test_a_layer_can_add_a_section_and_put_an_entry_in_it(self):
@@ -1090,11 +1091,11 @@ class TestResetToStandard(CustomizationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.manager = make_user(MANAGER, ["Desk User", "Workspace Manager"]).name
 
 	def tearDown(self):
 		super().tearDown()
-		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		frappe.delete_doc("User", self.manager, force=True, ignore_missing=True)
 
 	def arrange_every_layer(self):
 		"""A site layer and two people's own, all hiding something."""
@@ -1116,7 +1117,7 @@ class TestResetToStandard(CustomizationTestCase):
 				row.user
 				for row in frappe.get_all("Custom Sidebar", filters={"module": MODULE}, fields=["user"])
 			},
-			{"", USER, MANAGER},
+			{"", self.user, self.manager},
 		)
 
 		reset_to_standard(MODULE)
@@ -1172,11 +1173,11 @@ class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.manager = make_user(MANAGER, ["Desk User", "Workspace Manager"]).name
 
 	def tearDown(self):
 		super().tearDown()
-		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		frappe.delete_doc("User", self.manager, force=True, ignore_missing=True)
 
 	def add_to_site_layer(self, **item):
 		save_site_sidebar(MODULE, json.dumps([*self.base_items(), {"added": 1, "type": "Link", **item}]))
@@ -1210,7 +1211,7 @@ class TestTheEditorHidesWhatTheReaderMayNotOpen(CustomizationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.manager = make_user(MANAGER, ["Desk User", "Workspace Manager"]).name
 		save_site_sidebar(
 			MODULE,
 			json.dumps(
@@ -1229,7 +1230,7 @@ class TestTheEditorHidesWhatTheReaderMayNotOpen(CustomizationTestCase):
 
 	def tearDown(self):
 		super().tearDown()
-		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		frappe.delete_doc("User", self.manager, force=True, ignore_missing=True)
 
 	def links(self, read):
 		return [item["link_to"] for item in read(MODULE)]
@@ -1319,7 +1320,9 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		ensure_module(PRIVATE_MODULE)
 		self.addCleanup(self.wipe, PRIVATE_MODULE)
 
-	def make_page(self, title, module=MODULE, for_user=USER, public=0, ignore_permissions=True):
+	def make_page(self, title, module=MODULE, for_user=None, public=0, ignore_permissions=True):
+		if for_user is None:
+			for_user = self.user
 		doc = frappe.get_doc(
 			{
 				"doctype": "Workspace",
@@ -1341,14 +1344,14 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 	def test_a_new_page_lands_in_the_private_layer_and_its_modules(self):
 		page = self.make_page("Test Rows New Page")
 
-		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)])
-		self.assertEqual(self.rows(MODULE, USER), [(page.name, page.title)])
+		self.assertEqual(self.rows(PRIVATE_MODULE, self.user), [(page.name, page.title)])
+		self.assertEqual(self.rows(MODULE, self.user), [(page.name, page.title)])
 
 	def test_a_page_of_the_private_module_gets_one_row(self):
 		"""It is only at home. There is no second sidebar for it to be a guest in."""
 		page = self.make_page("Test Rows Private Module Page", module=PRIVATE_MODULE)
 
-		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)])
+		self.assertEqual(self.rows(PRIVATE_MODULE, self.user), [(page.name, page.title)])
 
 	def test_nothing_is_written_to_the_site_layer(self):
 		self.make_page("Test Rows Site Layer Page")
@@ -1366,7 +1369,7 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 
 		add_to_sidebar(page)
 
-		self.assertEqual(self.rows(MODULE, USER), [])
+		self.assertEqual(self.rows(MODULE, self.user), [])
 		self.assertIn(page.name, [link for link, _label in self.rows(MODULE, None)])
 
 	def test_moving_it_to_another_module_moves_its_row(self):
@@ -1375,9 +1378,9 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		page.save(ignore_permissions=True)
 		self.addCleanup(self.wipe, "Contacts")
 
-		self.assertEqual(self.rows(MODULE, USER), [])
-		self.assertEqual(self.rows("Contacts", USER), [(page.name, page.title)])
-		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)], "still at home")
+		self.assertEqual(self.rows(MODULE, self.user), [])
+		self.assertEqual(self.rows("Contacts", self.user), [(page.name, page.title)])
+		self.assertEqual(self.rows(PRIVATE_MODULE, self.user), [(page.name, page.title)], "still at home")
 
 	def test_a_page_turning_private_leaves_no_row_behind(self):
 		"""It was shared a moment ago, so the site's layer holds a row for it and so does everyone
@@ -1390,8 +1393,8 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		self.assertTrue(self.rows(MODULE, None), "sanity: the site layer holds it while shared")
 
 		page.public = 0
-		page.for_user = USER
-		page.label = f"{page.title}-{USER}"
+		page.for_user = self.user
+		page.label = f"{page.title}-{self.user}"
 		page.save(ignore_permissions=True)
 
 		everywhere = frappe.get_all(
@@ -1402,24 +1405,25 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		holders = {
 			row.parent: frappe.db.get_value("Custom Sidebar", row.parent, "user") for row in everywhere
 		}
-		self.assertEqual(sorted(set(holders.values())), [USER], "only the new owner's layers name it now")
+		self.assertEqual(
+			sorted(set(holders.values())), [self.user], "only the new owner's layers name it now"
+		)
 
 	def test_renaming_it_renames_its_rows(self):
 		page = self.make_page("Test Rows Renaming Page")
 		page.title = "Test Rows Renamed Page"
 		page.save(ignore_permissions=True)
 
-		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, "Test Rows Renamed Page")])
+		self.assertEqual(self.rows(PRIVATE_MODULE, self.user), [(page.name, "Test Rows Renamed Page")])
 
 	def held_by(self, page, holders: int):
 		"""Put a row naming `page` in `holders` different users' layers."""
 		for i in range(holders):
-			email = f"test-sidebar-holder-{i}@example.com"
-			make_user(email, ["Desk User"])
-			self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+			user = make_user(f"test-sidebar-holder-{i}@example.com", ["Desk User"]).name
+			self.addCleanup(frappe.delete_doc, "User", user, force=True, ignore_missing=True)
 			layer = frappe.new_doc("Custom Sidebar")
 			layer.module = MODULE
-			layer.user = email
+			layer.user = user
 			layer.append(
 				"sidebar_items",
 				{
@@ -1479,41 +1483,41 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		The endpoints said so already (`new_page`, `update_page`); the model says it now, because a
 		document API call reaches neither.
 		"""
-		make_user(OTHER, ["Desk User"])
-		self.addCleanup(frappe.delete_doc, "User", OTHER, force=True, ignore_missing=True)
+		other = make_user(OTHER, ["Desk User"]).name
+		self.addCleanup(frappe.delete_doc, "User", other, force=True, ignore_missing=True)
 
 		self.as_user()
 		with self.assertRaises(frappe.PermissionError):
 			# Through the permission system, as the document API goes: `ignore_permissions` is
 			# what a trusted caller passes, and the point here is an untrusted one.
-			self.make_page("Test Rows Somebody Elses Page", for_user=OTHER, ignore_permissions=False)
+			self.make_page("Test Rows Somebody Elses Page", for_user=other, ignore_permissions=False)
 
 		frappe.set_user("Administrator")
-		self.assertEqual(self.rows(PRIVATE_MODULE, OTHER), [])
+		self.assertEqual(self.rows(PRIVATE_MODULE, other), [])
 
 	def test_a_workspace_manager_may_make_one_for_somebody_else(self):
 		"""Which is what the manager dialog does, and what the endpoints have always allowed."""
-		make_user(OTHER, ["Desk User"])
-		self.addCleanup(frappe.delete_doc, "User", OTHER, force=True, ignore_missing=True)
-		make_user(MANAGER, ["System Manager", "Workspace Manager"])
-		self.addCleanup(frappe.delete_doc, "User", MANAGER, force=True, ignore_missing=True)
+		other = make_user(OTHER, ["Desk User"]).name
+		self.addCleanup(frappe.delete_doc, "User", other, force=True, ignore_missing=True)
+		manager = make_user(MANAGER, ["System Manager", "Workspace Manager"]).name
+		self.addCleanup(frappe.delete_doc, "User", manager, force=True, ignore_missing=True)
 
 		frappe.set_user(MANAGER)
-		page = self.make_page("Test Rows Managed Page", for_user=OTHER, ignore_permissions=False)
+		page = self.make_page("Test Rows Managed Page", for_user=other, ignore_permissions=False)
 
 		frappe.set_user("Administrator")
-		self.assertEqual(self.rows(PRIVATE_MODULE, OTHER), [(page.name, page.title)])
+		self.assertEqual(self.rows(PRIVATE_MODULE, other), [(page.name, page.title)])
 
 	def test_deleting_it_takes_its_rows_out(self):
 		page = self.make_page("Test Rows Deleting Page")
 		frappe.delete_doc("Workspace", page.name, force=True)
 
-		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [])
-		self.assertEqual(self.rows(MODULE, USER), [])
+		self.assertEqual(self.rows(PRIVATE_MODULE, self.user), [])
+		self.assertEqual(self.rows(MODULE, self.user), [])
 
 		# And the layers the page's own creation made, which now say nothing at all.
-		self.assertIsNone(get_customization(PRIVATE_MODULE, USER))
-		self.assertIsNone(get_customization(MODULE, USER))
+		self.assertIsNone(get_customization(PRIVATE_MODULE, self.user))
+		self.assertIsNone(get_customization(MODULE, self.user))
 
 	def test_hiding_it_in_a_modules_sidebar_sticks(self):
 		"""The page is a guest there, so it may be sent away. Before the layers said which keys they

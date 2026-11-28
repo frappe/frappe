@@ -88,10 +88,8 @@ test.describe("MultiSelectDialog", () => {
 
 		await expect(rows()).toHaveCount(20);
 
-		const more_records = shared.page.waitForResponse(
-			(res) =>
-				res.request().method() === "POST" &&
-				res.url().includes("api/method/frappe.client.get_list")
+		const more_records = shared.page.waitForResponse((res) =>
+			res.url().includes("api/method/frappe.client.get_list")
 		);
 		await more_btn.locator("button").click();
 		await more_records;

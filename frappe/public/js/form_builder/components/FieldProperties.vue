@@ -8,7 +8,9 @@ let store = useStore();
 
 let search_text = ref("");
 let args = computed(() =>
-	store.form.selected_field?.fieldtype === "Table" ? { is_table_field: 1 } : {}
+	["Table", "Table MultiSelect"].includes(store.form.selected_field?.fieldtype)
+		? { is_table_field: 1 }
+		: {}
 );
 
 const LAYOUT_OVERRIDE_PROPS = new Set([

@@ -159,6 +159,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (label) {
 			this.label = this.get_translated(label);
 			frappe.utils.add_link_title(this.get_options(), value, label);
+			this.title_value_map = { ...this.title_value_map, [this.label]: value };
 		}
 
 		return this.validate_and_set_in_model(value, e);
@@ -350,7 +351,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const event = o.originalEvent;
 			if (event && [TABKEY, ENTERKEY].includes(event.keyCode)) {
 				const input = me.get_label_value().toLowerCase();
-				if (!input && event.keyCode === TABKEY) {
+				if (
+					event.keyCode === TABKEY &&
+					(!input || me.awesomplete_term !== me.get_label_value())
+				) {
 					e.preventDefault();
 					me.awesomplete.close();
 					return false;
@@ -404,10 +408,18 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	 * @returns {boolean} - True if input matches the label, value, or description.
 	 */
 	input_matches_item(input, item) {
+		const parts = input.split("%");
 		return (
 			input &&
 			[this.get_translated(item.label ?? item.value), item.value, item.description].some(
-				(value) => cstr(value).toLowerCase().includes(input)
+				(value) => {
+					let text = cstr(value).toLowerCase();
+					return parts.every((part) => {
+						const index = text.indexOf(part);
+						text = text.slice(index + part.length);
+						return index !== -1;
+					});
+				}
 			)
 		);
 	}
@@ -475,6 +487,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (cache[doctype][term] != null) {
 			// immediately show from cache
 			this.awesomplete.list = cache[doctype][term];
+			this.awesomplete_term = term;
 		}
 
 		const filters = args.filters;
@@ -555,6 +568,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				}
 				cache[doctype][term] = r.message;
 				this.awesomplete.list = cache[doctype][term];
+				this.awesomplete_term = term;
 				this.toggle_href(doctype);
 				r.message.forEach((item) => {
 					frappe.utils.add_link_title(doctype, item.value, item.label);

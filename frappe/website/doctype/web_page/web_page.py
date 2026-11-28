@@ -207,6 +207,16 @@ class WebPage(WebsiteGenerator):
 			}
 
 	def validate_dates(self):
+		if (
+			not self.published
+			and not self.is_new()
+			and self.has_value_changed("published")
+			and self.end_date
+			and get_datetime(self.end_date) > get_datetime()
+			and not (self.start_date and get_datetime(self.start_date) > get_datetime())
+		):
+			self.end_date = now()
+
 		if self.end_date:
 			if self.start_date and get_datetime(self.end_date) < get_datetime(self.start_date):
 				frappe.throw(_("End Date cannot be before Start Date!"))

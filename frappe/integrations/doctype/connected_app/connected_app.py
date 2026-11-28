@@ -68,6 +68,12 @@ class ConnectedApp(Document):
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
 
+		if not self.is_new() and not self.client_id:
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("client_id")))),
+				frappe.MandatoryError,
+			)
+
 	def get_oauth2_session(self, user=None, init=False):
 		"""Return an auto-refreshing OAuth2 session which is an extension of a requests.Session()"""
 		token = None
@@ -213,7 +219,7 @@ class ConnectedApp(Document):
 
 # OAuth providers must be able to return here before authentication; guests are redirected
 # to login below, and authenticated callbacks must match the stored OAuth state.
-@frappe.whitelist(methods=["GET"], allow_guest=True)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(methods=["GET"], allow_guest=True, rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def callback(code: str | None = None, state: str | None = None):
 	"""Handle client's code.
 

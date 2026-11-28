@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe.model import no_value_fields
 from frappe.utils import cint, flt
+from frappe.utils.print_format_generator import layout_page_settings
 
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
@@ -60,12 +61,18 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 	dropped = []
 	show_section_headings = cint(print_format.get("show_section_headings")) if print_format else 0
 	line_breaks = cint(print_format.get("line_breaks")) if print_format else 0
+	paper_size = print_format.get("paper_size") if print_format else None
 
 	layout = {
 		"sections": [],
 		"header": {"columns": [{"label": "", "fields": []}]},
 		"footer": {"columns": [{"label": "", "fields": []}]},
 	}
+	page = {"size": paper_size}
+	if paper_size == "Custom":
+		page.update(width=print_format.get("paper_width"), height=print_format.get("paper_height"))
+	if layout_page_settings({"page": page}):
+		layout["page"] = page
 
 	data = [frappe._dict(df) for df in (format_data or []) if isinstance(df, dict)]
 

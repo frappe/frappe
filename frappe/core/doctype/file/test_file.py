@@ -30,8 +30,9 @@ from frappe.core.doctype.file.utils import (
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_files_path, set_request
+from frappe.utils import get_files_path, get_user_by_email, set_request
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
@@ -973,7 +974,31 @@ class TestFile(IntegrationTestCase):
 
 		with self.set_user("test4@example.com"):
 			self.assertIsNone(find_file_by_url("/private/files/CaseCheck.txt"))
-			self.assertEqual(find_file_by_url("/private/files/casecheck.txt").owner, "test4@example.com")
+			self.assertEqual(
+				find_file_by_url("/private/files/casecheck.txt").owner, get_user_by_email("test4@example.com")
+			)
+
+	def test_find_file_by_url_checks_an_unreadable_doctype_once(self):
+		for i in range(3):
+			translation = frappe.get_doc(
+				doctype="Translation",
+				language="de",
+				source_text=f"Shared {i}",
+				translated_text=f"Geteilt {i}",
+			).insert()
+			file = frappe.get_doc(
+				doctype="File",
+				file_name="test_shared_translation.txt",
+				content="shared translation",
+				is_private=1,
+				attached_to_doctype="Translation",
+				attached_to_name=translation.name,
+			).insert()
+
+		with self.set_user("test4@example.com"):
+			find_file_by_url(file.file_url)
+			with self.assertQueryCount(3):
+				self.assertIsNone(find_file_by_url(file.file_url))
 
 	def test_remove_file_by_url_ignores_urls_that_differ_in_case(self):
 		note = frappe.get_doc(doctype="Note", title="Case check", public=1).insert()
@@ -984,6 +1009,21 @@ class TestFile(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("File", upper.name))
 		self.assertTrue(frappe.db.exists("File", lower.name))
+
+	def test_private_file_access_matches_the_exact_file_url(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test@example.com"):
+			file = frappe.get_doc(doctype="File", file_url="/private/files/casecheck.txt", is_private=1)
+			self.assertRaises(frappe.PermissionError, file.insert)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_private_file_access_without_an_exact_url_match(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test2@example.com"):
+			file = frappe.get_doc(doctype="File", file_url="/private/files/CASECHECK.txt", is_private=1)
+			self.assertRaises(frappe.PermissionError, file.insert)
 
 	def test_zip_files_adds_a_repeated_file_once(self):
 		from frappe.core.doctype.file.file import File
@@ -1176,6 +1216,9 @@ class TestFile(IntegrationTestCase):
 
 class TestChunkedUpload(IntegrationTestCase):
 	def setUp(self):
+		counter_prefix = "rl:frappe.handler.upload_file:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
 		self.enterContext(self.change_settings("System Settings", {"max_file_size": 1}))
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.addCleanup(frappe.local.form_dict.clear)
@@ -1599,6 +1642,48 @@ class TestAttachment(IntegrationTestCase):
 			frappe.delete_doc("File", file.name)
 
 		self.assertEqual([message.get("title") for message in frappe.message_log], ["Protected File"])
+
+	def test_protected_file_keeps_its_document(self):
+		doc = frappe.get_doc(doctype=self.test_protected_doctype, title="test protected reference").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_protected_reference.txt",
+				"content": "Protected Reference",
+				"attached_to_doctype": self.test_protected_doctype,
+				"attached_to_name": doc.name,
+			}
+		).insert()
+		doc.submit()
+
+		file = frappe.get_doc("File", file.name)
+		file.update({"attached_to_doctype": None, "attached_to_name": None})
+		with self.assertRaises(frappe.ValidationError):
+			file.save()
+
+	def test_attachment_change_checks_stored_record(self):
+		todo = frappe.get_doc(doctype="ToDo", description="test attachment move").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_attachment_move.txt",
+				"content": "Attachment Move",
+				"is_private": 1,
+				"attached_to_doctype": "ToDo",
+				"attached_to_name": todo.name,
+			}
+		).insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test2@example.com")
+		own_todo = frappe.get_doc(doctype="ToDo", description="test attachment target").insert()
+		file = frappe.get_doc("File", file.name)
+		file.attached_to_name = own_todo.name
+		with self.assertRaises(frappe.PermissionError):
+			file.save()
 
 	def test_document_delete_cascades_referenced_attachment(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test cascade delete").insert()
@@ -2180,14 +2265,15 @@ class TestAttachmentsAccess(IntegrationTestCase):
 		self.assertIn("test_user_attachment.txt", user_attachments_files)
 
 	def test_attach_to_doc_without_write_permission_is_blocked(self):
+		user = get_user_by_email("test@example.com")
 		frappe.set_user("test4@example.com")
-		self.assertFalse(frappe.has_permission("User", "write", "test@example.com"))
+		self.assertFalse(frappe.has_permission("User", "write", user))
 
 		attack = frappe.new_doc(
 			"File",
 			file_name="poisoned.svg",
 			attached_to_doctype="User",
-			attached_to_name="test@example.com",
+			attached_to_name=user,
 			content="<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
 			is_private=1,
 		)
@@ -2195,9 +2281,7 @@ class TestAttachmentsAccess(IntegrationTestCase):
 
 		frappe.set_user("test@example.com")
 		self.assertEqual(
-			frappe.get_all(
-				"File", filters={"attached_to_doctype": "User", "attached_to_name": "test@example.com"}
-			),
+			frappe.get_all("File", filters={"attached_to_doctype": "User", "attached_to_name": user}),
 			[],
 		)
 
@@ -2809,7 +2893,7 @@ class TestPublicFileRestriction(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		# Create a test user without System Manager role
-		if not frappe.db.exists("User", "test_restricted@example.com"):
+		if not get_user_by_email("test_restricted@example.com"):
 			user = frappe.get_doc(
 				{
 					"doctype": "User",
@@ -2910,7 +2994,7 @@ class TestForcePrivateAttachments(IntegrationTestCase):
 		).insert(ignore_if_duplicate=True)
 
 		cls.user = "test_force_private@example.com"
-		if not frappe.db.exists("User", cls.user):
+		if not get_user_by_email(cls.user):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -2964,14 +3048,16 @@ class TestFileListOwnerRestriction(IntegrationTestCase):
 	ROLE = "_Test Role"
 
 	def setUp(self):
+		self.owner = get_user_by_email(self.OWNER)
+		self.other = get_user_by_email(self.OTHER)
 		frappe.set_user("Administrator")
-		other_user = frappe.get_doc("User", self.OTHER)
+		other_user = frappe.get_doc("User", self.other)
 		if not any(r.role == self.ROLE for r in other_user.roles):
 			other_user.append("roles", {"role": self.ROLE})
 			other_user.save(ignore_permissions=True)
 
 		frappe.set_user(self.OWNER)
-		self.pddr = frappe.get_doc({"doctype": "Personal Data Download Request", "user": self.OWNER}).insert(
+		self.pddr = frappe.get_doc({"doctype": "Personal Data Download Request", "user": self.owner}).insert(
 			ignore_permissions=True
 		)
 		self.file = frappe.new_doc(
@@ -2999,7 +3085,7 @@ class TestFileListOwnerRestriction(IntegrationTestCase):
 
 	def test_shared_but_not_owned_document_still_shows_its_file(self):
 		frappe.set_user("Administrator")
-		frappe.share.add_docshare("Personal Data Download Request", self.pddr.name, self.OTHER, read=1)
+		frappe.share.add_docshare("Personal Data Download Request", self.pddr.name, self.other, read=1)
 
 		frappe.set_user(self.OTHER)
 		files = frappe.get_list("File", filters={"name": self.file.name})
@@ -3017,6 +3103,8 @@ class TestFileListUserPermissionRestriction(IntegrationTestCase):
 	ROLE = "_Test Role"
 
 	def setUp(self):
+		self.restricted = get_user_by_email(self.RESTRICTED)
+		self.other = get_user_by_email(self.OTHER)
 		frappe.set_user("Administrator")
 		frappe.get_doc(
 			doctype="DocType",
@@ -3028,7 +3116,7 @@ class TestFileListUserPermissionRestriction(IntegrationTestCase):
 			],
 			permissions=[{"role": "All", "read": 1, "create": 1}],
 		).insert(ignore_if_duplicate=True)
-		for user in (self.RESTRICTED, self.OTHER):
+		for user in (self.restricted, self.other):
 			user_doc = frappe.get_doc("User", user)
 			if not any(r.role == self.ROLE for r in user_doc.roles):
 				user_doc.append("roles", {"role": self.ROLE})
@@ -3037,7 +3125,7 @@ class TestFileListUserPermissionRestriction(IntegrationTestCase):
 		frappe.get_doc(
 			{
 				"doctype": "User Permission",
-				"user": self.RESTRICTED,
+				"user": self.restricted,
 				"allow": "Role",
 				"for_value": self.ROLE,
 			}

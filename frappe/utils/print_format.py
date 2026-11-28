@@ -20,6 +20,7 @@ from frappe.desk.query_report import (
 )
 from frappe.desk.utils import send_report_email
 from frappe.model.document import Document
+from frappe.rate_limiter import rate_limit
 from frappe.translate import print_language
 from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
 from frappe.utils.jinja import render_template
@@ -34,6 +35,7 @@ from frappe.www.printview import validate_print_permission
 
 MULTI_PDF_ASYNC_RATE_LIMIT = 10
 MULTI_PDF_ASYNC_RATE_WINDOW = 60
+PRINTED_PDF_FOLDER = "Home/Attachments/Printed PDFs"
 
 
 def get_max_bulk_print_docs() -> int:
@@ -186,6 +188,16 @@ def publish_failure(task_id: str, error: Exception):
 	)
 
 
+def get_document_print_language(doctype: str, name: str, print_format: str | None = None) -> str | None:
+	"""The print page's precedence: the document's own language, then the format's default."""
+	doc_language = None
+	if frappe.get_meta(doctype).has_field("language"):
+		doc_language = frappe.db.get_value(doctype, name, "language")
+	return doc_language or (
+		print_format and frappe.db.get_value("Print Format", print_format, "default_print_language")
+	)
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -232,25 +244,15 @@ def _download_multi_pdf(
 
 	from pypdf import PdfWriter
 
-	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
-
 	pdf_writer = PdfWriter()
 	failed = []
 
 	options = frappe.parse_json(options)
 
-	def document_language(print_doctype, print_name):
-		"""The print page's precedence: the document's own language, then the
-		format's default, then the language the print was requested in."""
-		doc_language = None
-		if frappe.get_meta(print_doctype).has_field("language"):
-			doc_language = frappe.db.get_value(print_doctype, print_name, "language")
-		return doc_language or format_language or language
-
 	def print_into_writer(print_doctype, print_name):
 		"""Route one document into the shared writer — builder formats through the
 		generator (which dispatches Typst), everything else through get_print."""
-		with print_language(document_language(print_doctype, print_name)):
+		with print_language(get_document_print_language(print_doctype, print_name, format) or language):
 			from frappe.printing.doctype.print_format.classic_converter import (
 				get_default_print_format,
 				uses_beta_renderer,
@@ -289,7 +291,12 @@ def _download_multi_pdf(
 			_run_print_pdf_hooks(print_doctype, print_name, format)
 			pf = pf_doc or get_default_print_format(print_doctype)
 			generator = PrintFormatGenerator(
-				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
+				pf,
+				doc,
+				letterhead,
+				no_letterhead=no_letterhead,
+				settings=page_settings(options),
+				ignore_pdf_standard=True,
 			)
 			pdf = generator.render_pdf()
 			make_access_log(
@@ -309,11 +316,14 @@ def _download_multi_pdf(
 		result = frappe.parse_json(name)
 		total_docs = len(result)
 		filename = f"{doctype}_"
+		pdf_writer.add_metadata({"/Title": doctype})
 
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
+				first_page = len(pdf_writer.pages)
 				pdf_writer = print_into_writer(doctype, ss)
+				pdf_writer.add_outline_item(str(ss), first_page)
 			except frappe.PermissionError as e:
 				if task_id:
 					publish_failure(task_id, e)
@@ -345,11 +355,14 @@ def _download_multi_pdf(
 	else:
 		total_docs = sum([len(doctype[dt]) for dt in doctype])
 		count = 0
+		pdf_writer.add_metadata({"/Title": name})
 		for doctype_name in doctype:
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
+					first_page = len(pdf_writer.pages)
 					pdf_writer = print_into_writer(doctype_name, doc_name)
+					pdf_writer.add_outline_item(str(doc_name), first_page)
 				except frappe.PermissionError as e:
 					if task_id:
 						publish_failure(task_id, e)
@@ -413,7 +426,8 @@ def _download_multi_pdf(
 from frappe.deprecation_dumpster import read_multi_pdf
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
+@rate_limit(limit=30, seconds=60, user_based=True)
 @frappe.concurrent_limit()
 def download_pdf(
 	doctype: str,
@@ -447,6 +461,102 @@ def download_pdf(
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf_file
 	frappe.local.response.type = "pdf"
+
+
+@frappe.whitelist(methods=["POST"])
+@frappe.concurrent_limit()
+def attach_pdf(
+	doctype: str,
+	name: str,
+	format: str | None = None,
+	no_letterhead: bool | int = 0,
+	language: str | None = None,
+	letterhead: str | None = None,
+	pdf_generator: str | None = None,
+	style: str | None = None,
+	settings: str | None = None,
+) -> dict:
+	"""Attach the printed PDF to the document as a private file, rewriting the one this method attached earlier for the same format."""
+	from frappe.core.doctype.file.utils import get_safe_file_name
+
+	doc = frappe.get_doc(doctype, name)
+	validate_print_permission(doc)
+	doc.check_permission("write")
+	format_name = format or doc.meta.default_print_format or "Standard"
+
+	with print_language(language or get_document_print_language(doctype, name, format_name)):
+		pdf_file = frappe.get_print(
+			doctype,
+			name,
+			format,
+			doc=doc,
+			as_pdf=True,
+			letterhead=letterhead,
+			no_letterhead=no_letterhead,
+			pdf_generator=pdf_generator,
+			style=style,
+			settings=settings,
+		)
+
+	file_name = get_safe_file_name(f"{doc.name} - {format_name}.pdf")
+	previous = frappe.get_all(
+		"File",
+		filters={
+			"attached_to_doctype": doc.doctype,
+			"attached_to_name": doc.name,
+			"folder": PRINTED_PDF_FOLDER,
+			"file_name": file_name,
+			"is_private": 1,
+		},
+		order_by="creation desc",
+		limit=1,
+		pluck="name",
+	)
+	kept_previous = bool(previous) and _attachments_are_protected(doc)
+
+	if previous and not kept_previous:
+		file = frappe.get_doc("File", previous[0])
+		file.save_file(content=pdf_file, overwrite=True)
+		file.file_name = file_name
+		file.save()
+	else:
+		_create_printed_pdf_folder()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"content": pdf_file,
+				"attached_to_doctype": doc.doctype,
+				"attached_to_name": doc.name,
+				"folder": PRINTED_PDF_FOLDER,
+				"is_private": 1,
+			}
+		).insert()
+		if file.file_name != file_name:
+			file.db_set("file_name", file_name)
+
+	return {"file_name": file.file_name, "file_url": file.file_url, "kept_previous": kept_previous}
+
+
+def _attachments_are_protected(doc: Document) -> bool:
+	return bool(doc.meta.protect_attached_files) and (
+		doc.docstatus == 1
+		or (doc.docstatus == 2 and not frappe.has_permission(doc.doctype, "delete", doc=doc))
+	)
+
+
+def _create_printed_pdf_folder():
+	if frappe.db.exists("File", PRINTED_PDF_FOLDER):
+		return
+	parent_folder, folder_name = PRINTED_PDF_FOLDER.rsplit("/", 1)
+	frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": folder_name,
+			"is_folder": 1,
+			"folder": parent_folder,
+		}
+	).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
 @frappe.whitelist()
@@ -686,11 +796,11 @@ def _download_report_pdf(
 	else:
 		numbered_rows = list(enumerate(rows, start=1))
 
+	total_row_doc = None
 	if total_row:
 		fieldnames = [column.fieldname for column in report_columns]
-		numbered_rows.append(
-			(None, frappe._dict(zip(fieldnames, total_row, strict=False), is_total_row=True))
-		)
+		total_row_doc = frappe._dict(zip(fieldnames, total_row, strict=False), is_total_row=True)
+		numbered_rows.append((None, total_row_doc))
 
 	if print_format:
 		rendered = render_report_jinja(
@@ -713,7 +823,7 @@ def _download_report_pdf(
 
 		def format_value(value, column, row):
 			# frappe.format caches a field's currency per (doctype, name); totals use the first row's
-			doc = frappe._dict(first_row if row.is_total_row else row, doctype=report_name, name=id(row))
+			doc = frappe._dict(first_row if row is total_row_doc else row, doctype=report_name, name=id(row))
 			# reports put labels and placeholders in typed columns, e.g. "Opening" in a date column
 			try:
 				if column.fieldtype == "Datetime":

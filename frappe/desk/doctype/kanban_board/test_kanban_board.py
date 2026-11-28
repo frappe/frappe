@@ -17,6 +17,7 @@ from frappe.desk.doctype.kanban_board.kanban_board import (
 	update_order_for_single_card,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 def _decompress_kanban_cards(cards):
@@ -308,7 +309,7 @@ class TestKanbanBoard(IntegrationTestCase):
 		)
 
 		other = "kanban_perm_test@example.com"
-		if not frappe.db.exists("User", other):
+		if not get_user_by_email(other):
 			frappe.get_doc(
 				{
 					"doctype": "User",
@@ -418,6 +419,25 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.assertEqual(res["lanes"], [{"value": "High", "label": "High", "count": 1}])
 		self.assertEqual(res["unset"], 0)
 		self.assertEqual(res_assign["unset"], 1)
+
+	def test_get_kanban_column_page_respects_permissions(self):
+		frappe.db.set_value("Kanban Board", self.board_name, "private", 0)
+		self.addCleanup(frappe.db.set_value, "Kanban Board", self.board_name, "private", 1)
+		user = create_user("kanban_lane_reader@example.com", "Desk User")
+		frappe.db.set_value("ToDo", self.todos[0], "allocated_to", user.name)
+		self.addCleanup(frappe.db.set_value, "ToDo", self.todos[0], "allocated_to", None)
+
+		with self.set_user(user.name):
+			frappe.local.form_dict = frappe._dict(
+				{
+					"board_name": self.board_name,
+					"column_name": "Open",
+					"doctype": "ToDo",
+					"fields": '["name"]',
+					"filters": "[]",
+				}
+			)
+			self.assertEqual(get_kanban_column_page()["total"], 1)
 
 	def test_get_kanban_group_values_rejects_unconfigured_field(self):
 		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values

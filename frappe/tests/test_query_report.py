@@ -42,7 +42,7 @@ class TestQueryReport(IntegrationTestCase):
 				)
 			),
 		)
-		# the same message once frappe has stripped its markup (worker stdin is a tty)
+		# a message with no markup is kept as it is
 		self.assertEqual(
 			"Please select a Company.",
 			get_user_facing_error(
@@ -343,11 +343,10 @@ class TestQueryReport(IntegrationTestCase):
 		# Create mock data
 		data = create_mock_data()
 
-		# Define the visible rows
-		visible_idx = [0, 2, 3]
+		data.result = [data.result[idx] for idx in [0, 2, 3]]
 
 		# Build the result
-		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
@@ -368,13 +367,11 @@ class TestQueryReport(IntegrationTestCase):
 		# Create mock data
 		data = create_mock_data()
 
-		# Define the visible rows
-		visible_idx = [0, 2, 3]
+		data.result = [data.result[idx] for idx in [0, 2, 3]]
 
 		# Build the result
 		xlsx_data, _column_widths, _ = build_xlsx_data(
 			data,
-			visible_idx,
 			include_indentation=False,
 			include_filters=True,
 		)
@@ -399,11 +396,8 @@ class TestQueryReport(IntegrationTestCase):
 			{"column_a": 22.1, "column_b": ["Dummy 1", "Dummy 2"]},  # composite value in column_b
 		]
 
-		# Define the visible rows
-		visible_idx = [0, 1]
-
 		# Build the result
-		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=0)
 		# Export to excel
 		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
@@ -1188,11 +1182,12 @@ data = columns, result
 		self.assertEqual(frappe.local.response["_link_titles"]["User::Administrator"], full_name)
 
 	def test_run_skips_link_titles_when_doctype_does_not_show_them(self):
+		frappe.get_doc(doctype="ToDo", description="Link title check").insert(set_name="todo-1")
 		report = self.make_link_column_report()
 
 		self.run_report(report)
 
-		self.assertNotIn("User::Administrator", frappe.local.response.get("_link_titles", {}))
+		self.assertNotIn("ToDo::todo-1", frappe.local.response.get("_link_titles", {}))
 
 	def test_legacy_string_columns_resolve_link_titles(self):
 		"""Prepared reports can still carry `Label:Link/DocType:width` column strings."""
@@ -1205,6 +1200,121 @@ data = columns, result
 
 		full_name = frappe.db.get_value("User", "Administrator", "full_name")
 		self.assertEqual(titles["User::Administrator"], full_name)
+
+	def test_user_permissions_skip_link_columns_that_ignore_them(self):
+		from frappe.desk.query_report import get_filtered_data
+
+		viewer, assigner = self.restrict_to_own_user()
+		column = {"fieldname": "assigned_by", "fieldtype": "Link", "options": "User"}
+		data = [{"assigned_by": assigner}]
+
+		self.assertEqual(get_filtered_data("ToDo", [column], data, viewer), [])
+		self.assertEqual(
+			get_filtered_data("ToDo", [{**column, "ignore_user_permissions": 1}], data, viewer), data
+		)
+
+	def test_saved_columns_cannot_skip_user_permissions(self):
+		from frappe.desk.query_report import generate_report_result, get_report_doc
+
+		viewer, assigner = self.restrict_to_own_user()
+		column = dict(fieldname="assigned_by", label="Assigned By", fieldtype="Link", options="User")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Assigned By Report " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+				"columns": [column],
+			}
+		).insert(ignore_permissions=True)
+		report.report_script = f'result = [{{"assigned_by": "{assigner}"}}]'
+		report.save()
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Assigned By Custom Report " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"is_standard": "No",
+				"json": json.dumps({"columns": [{**column, "ignore_user_permissions": 1}]}),
+			}
+		).insert(ignore_permissions=True)
+
+		result = generate_report_result(get_report_doc(custom_report.name), user=viewer)
+
+		self.assertEqual(result["result"], [])
+
+	def test_saved_columns_cannot_retarget_columns_that_skip_user_permissions(self):
+		from frappe.desk.query_report import generate_report_result, get_report_doc
+
+		viewer, assigner = self.restrict_to_own_user()
+		report = self.make_assigned_by_report({"assigned_by": assigner})
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Assigned By Custom Report " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"is_standard": "No",
+				"json": json.dumps(
+					{"columns": [{"fieldname": "assigned_by", "fieldtype": "Link", "options": "Role"}]}
+				),
+			}
+		).insert(ignore_permissions=True)
+
+		result = generate_report_result(get_report_doc(custom_report.name), user=viewer)
+
+		self.assertNotIn("ignore_user_permissions", result["columns"][0])
+
+	def test_link_titles_skip_user_permissions_for_columns_that_ignore_them(self):
+		viewer, assigner = self.restrict_to_own_user()
+		column = {"fieldname": "assigned_by", "fieldtype": "Link", "options": "User"}
+		rows = [{"assigned_by": assigner}]
+
+		with self.set_user(viewer):
+			restricted = get_report_link_titles([column], rows)
+			ignored = get_report_link_titles([{**column, "ignore_user_permissions": 1}], rows)
+
+		self.assertNotIn(f"User::{assigner}", restricted)
+		self.assertEqual(ignored[f"User::{assigner}"], frappe.db.get_value("User", assigner, "full_name"))
+
+	def restrict_to_own_user(self):
+		"""User permission restricting test@example.com to their own User; returns them and another user."""
+		from frappe.permissions import add_user_permission
+
+		viewer, other = "test@example.com", "test1@example.com"
+		add_user_permission("User", viewer, viewer, ignore_permissions=True)
+		self.addCleanup(frappe.cache.hdel, "user_permissions", viewer)
+		return viewer, other
+
+	def make_assigned_by_report(self, row):
+		"""Script report returning `row` under an `assigned_by` column that ignores user permissions."""
+		columns = [
+			dict(
+				fieldname="assigned_by",
+				label="Assigned By",
+				fieldtype="Link",
+				options="User",
+				ignore_user_permissions=1,
+			)
+		]
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Assigned By Report " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+		report.report_script = f"data = {columns!r}, [{row!r}]"
+		report.save()
+		return report
 
 	def make_link_column_report(self):
 		"""Script report with an ID column and a User link column, returning one row."""
@@ -1237,6 +1347,26 @@ data = columns, result
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
 		make_property_setter(doctype, None, "show_title_field_in_link", "1", "Check", for_doctype=True)
+
+	def test_user_facing_error_keeps_line_breaks(self):
+		from frappe.desk.query_report import get_user_facing_error
+
+		traceback = (
+			"Traceback (most recent call last):\n  File 'x.py', line 1\n"
+			"frappe.exceptions.ValidationError: "
+			"Row 4: first.<br>Row 4: <b>second</b> one.<BR><br />Row 5: third."
+		)
+
+		# the report view shows each message on its own line
+		self.assertEqual(
+			"Row 4: first.\nRow 4: second one.\n\nRow 5: third.",
+			get_user_facing_error(traceback, keep_line_breaks=True),
+		)
+		# the notification stays on one line, since an email subject drops newlines
+		self.assertEqual(
+			"Row 4: first. Row 4: second one. Row 5: third.",
+			get_user_facing_error(traceback),
+		)
 
 
 def create_mock_data():

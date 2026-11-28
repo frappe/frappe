@@ -61,7 +61,9 @@ class AttachmentQueue(Document):
 		# created_document is a Dynamic Link, so a claim always reads back as a string.
 		document_name = cstr(document_name)
 
-		claimed = self.created_document
+		# Locks the entry until the request ends, so a second reviewer filing the same
+		# upload waits here and then finds it claimed.
+		claimed = frappe.db.get_value(self.doctype, self.name, "created_document", for_update=True)
 		source_file = self.source_file
 
 		if claimed:

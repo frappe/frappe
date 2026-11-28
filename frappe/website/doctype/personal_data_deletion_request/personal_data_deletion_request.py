@@ -8,9 +8,17 @@ import frappe
 from frappe import _
 from frappe.core.doctype.user.user import rewrite_owner_fields
 from frappe.core.utils import find
-from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
 from frappe.model.document import Document
-from frappe.utils import add_days, get_datetime, get_fullname, now_datetime, time_diff_in_hours
+from frappe.utils import (
+	add_days,
+	get_datetime,
+	get_email_addresses,
+	get_fullname,
+	get_user_by_email,
+	now_datetime,
+	time_diff_in_hours,
+	validate_email_address,
+)
 from frappe.utils.logging import connection_for, is_log_doctype
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -72,6 +80,9 @@ class PersonalDataDeletionRequest(Document):
 		set_name_from_naming_options(autoname, self)
 		frappe.utils.validate_email_address(self.email, throw=True)
 
+	def before_validate(self):
+		self.email = self.email.strip().lower()
+
 	def after_insert(self):
 		self.send_verification_mail()
 
@@ -89,7 +100,7 @@ class PersonalDataDeletionRequest(Document):
 		return url
 
 	def disable_user(self):
-		user = frappe.get_doc("User", self.email)
+		user = frappe.get_doc("User", get_user_with_email(self.email))
 		user.enabled = False
 		user.save()
 
@@ -110,13 +121,17 @@ class PersonalDataDeletionRequest(Document):
 		)
 
 	def notify_system_managers(self):
-		recipients = []
-		for manager in get_system_managers(only_name=True):
-			if is_email_notifications_enabled(manager):
-				recipients.append(manager)
+		managers = set(get_system_managers(only_name=True))
+		managers -= set(
+			frappe.get_all(
+				"Notification Settings",
+				filters={"name": ("in", managers), "enable_email_notifications": 0},
+				pluck="name",
+			)
+		)
 
 		frappe.sendmail(
-			recipients=recipients,
+			recipients=get_email_addresses(managers),
 			subject=_("User {0} has requested for data deletion").format(self.email),
 			template="data_deletion_approval",
 			args={"user": self.email, "url": frappe.utils.get_url(self.get_url())},
@@ -195,7 +210,7 @@ class PersonalDataDeletionRequest(Document):
 				if column not in log_db.DEFAULT_COLUMNS and not meta.get_field(column):
 					continue
 
-				log_db.delete(doctype, {column: email})
+				log_db.delete(doctype, {column: ("in", get_user_values(self.user, email))})
 				swept = True
 
 			# Deleting nothing because no column exists is a broken `user_data_fields` entry,
@@ -223,12 +238,11 @@ class PersonalDataDeletionRequest(Document):
 			email_user, domain = email.split("@")
 			return f"{email_user}-{number}@{domain}"
 
+		filter_by = doctype.get("filter_by", "owner")
+		values = get_user_values(self.user, self.email)
+
 		for i, name in enumerate(
-			frappe.get_all(
-				doctype["doctype"],
-				filters={doctype.get("filter_by", "owner"): self.email},
-				pluck="name",
-			)
+			frappe.get_all(doctype["doctype"], filters={filter_by: ("in", values)}, pluck="name")
 		):
 			frappe.rename_doc(
 				doctype["doctype"], name, new_name(self.anon, i + 1), force=True, show_alert=False
@@ -240,7 +254,7 @@ class PersonalDataDeletionRequest(Document):
 
 		docs = frappe.get_all(
 			ref["doctype"],
-			filters={filter_by: email},
+			filters={filter_by: ("in", get_user_values(self.user, email))},
 			fields=["name", filter_by],
 		)
 
@@ -284,7 +298,7 @@ class PersonalDataDeletionRequest(Document):
 
 		if filter_by_meta and filter_by_meta.fieldtype != "Link":
 			value = doc[filter_by]
-			if self.email in value:
+			if self.email_regex.search(value):
 				value = re.sub(self.email_regex, self.anon, value)
 				value = re.sub(self.full_name_regex, self.anonymization_value_map["Data"], value)
 				self.anonymize_fields_dict[filter_by] = value
@@ -335,12 +349,13 @@ class PersonalDataDeletionRequest(Document):
 		# Must run before the rename, which rewrites `owner` to the anonymised name.
 		self.delete_log_data(email)
 
-		frappe.flags.in_personal_data_deletion = True
-		try:
-			frappe.rename_doc("User", email, anon, force=True, show_alert=False)
-		finally:
-			frappe.flags.in_personal_data_deletion = False
-		rewrite_owner_fields(email, anon, commit=commit)
+		if validate_email_address(self.user):
+			frappe.flags.in_personal_data_deletion = True
+			try:
+				frappe.rename_doc("User", self.user, anon, force=True, show_alert=False)
+			finally:
+				frappe.flags.in_personal_data_deletion = False
+			rewrite_owner_fields(self.user, anon, commit=commit)
 
 		pending = [step.document_type for step in self.deletion_steps if step.status != "Deleted"]
 
@@ -367,7 +382,8 @@ class PersonalDataDeletionRequest(Document):
 
 	def __set_anonymization_data(self, email, anon):
 		self.anon = anon or self.name
-		self.full_name = get_fullname(email)
+		self.user = get_user_with_email(email)
+		self.full_name = get_fullname(self.user)
 		self.email_regex = get_pattern(email)
 		self.full_name_regex = get_pattern(self.full_name)
 		self.is_full_name_set = email != self.full_name
@@ -395,18 +411,22 @@ class PersonalDataDeletionRequest(Document):
 				f" 'REDACTED'), %(email)s, '{self.anon}')",
 			]
 
+		filter_by = doctype.get("filter_by", "owner")
 		update_predicate = f"SET  {', '.join(match_fields)}"
-		where_predicate = (
-			"" if doctype.get("strict") else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
-		)
+		where_predicate = "" if doctype.get("strict") else f"WHERE `{filter_by}` IN %(values)s"
 
 		frappe.db.sql(
 			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
-			{"name": self.full_name, "email": self.email},
+			{
+				"name": self.full_name,
+				"email": self.email,
+				"values": get_user_values(self.user, self.email),
+			},
 		)
 
 	@frappe.whitelist()
 	def put_on_hold(self):
+		frappe.only_for("System Manager")
 		self.db_set("status", "On Hold")
 
 
@@ -441,7 +461,7 @@ def remove_unverified_record():
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def confirm_deletion(email: str, name: str, host_name: str):
 	if not verify_request():
 		return
@@ -470,5 +490,18 @@ def confirm_deletion(email: str, name: str, host_name: str):
 		)
 
 
+def get_user_with_email(email: str) -> str:
+	if user := get_user_by_email(email):
+		return user
+
+	frappe.throw(_("No user has the email {0}").format(email), frappe.DoesNotExistError)
+
+
+def get_user_values(user: str, email: str) -> tuple[str, ...]:
+	"""The user's ID and email: configured columns hold one or the other (`owner` the ID, `email_id`
+	the email, `attached_to_name` the ID of the User record), and neither can belong to another user."""
+	return tuple(dict.fromkeys((user, email)))
+
+
 def get_pattern(full_match):
-	return re.compile(rf"(?<!\.)\b{re.escape(full_match)}\b(?!\.)")
+	return re.compile(rf"(?<!\.)\b{re.escape(full_match)}\b(?!\.)", re.IGNORECASE)

@@ -138,6 +138,23 @@ def verify_against_placeholder(pwd):
 	verify_password(pwd, _placeholder_hash())
 
 
+def has_password(user: str) -> bool:
+	"""Whether a password is stored for the user. Passwords are hashed rows, which
+	`get_decrypted_password` does not read."""
+	return bool(
+		frappe.qb.from_(Auth)
+		.select(Auth.name)
+		.where(
+			(Auth.doctype == "User")
+			& (Auth.name == user)
+			& (Auth.fieldname == "password")
+			& (Auth.encrypted == 0)
+		)
+		.limit(1)
+		.run()
+	)
+
+
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
@@ -307,8 +324,11 @@ def get_encryption_key():
 	if "encryption_key" not in frappe.local.conf:
 		from frappe.installer import update_site_config
 
-		encryption_key = Fernet.generate_key().decode()
-		update_site_config("encryption_key", encryption_key)
+		# the cached config may predate a key another process has just written to the file
+		encryption_key = frappe.get_site_config().get("encryption_key")
+		if not encryption_key:
+			encryption_key = Fernet.generate_key().decode()
+			update_site_config("encryption_key", encryption_key)
 		frappe.local.conf.encryption_key = encryption_key
 
 	return frappe.local.conf.encryption_key

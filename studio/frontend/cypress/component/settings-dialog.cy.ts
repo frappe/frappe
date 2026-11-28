@@ -6,10 +6,10 @@ import { createMemoryHistory, createRouter } from "vue-router"
 // @ts-ignore
 import { FrappeUIProvider, resourcesPlugin } from "frappe-ui"
 
-import "@/setupFrappeUIResource"
+import "@/runtime/setupFrappeUIResource"
 import SettingsDialog from "@/components/Settings/SettingsDialog.vue"
 import useStudioStore from "@/stores/studioStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/runtime/types/Studio/StudioPage"
 
 const APP_NAME = "cypress-settings"
 const RENAMED_APP = "cypress-settings-renamed"
@@ -154,7 +154,7 @@ describe("settings dialog", () => {
 	it("shows export settings only in developer mode", () => {
 		cy.wrap(null).then(() => store.openSettings("app"))
 		cy.contains("Not exported to any Frappe App").should("not.exist")
-		cy.contains("button", "AI").click()
+		cy.contains("button", "Pages").click()
 		cy.window().then((win) => (win.is_developer_mode = true))
 		cy.contains("button", "App").click()
 		cy.contains("Not exported to any Frappe App").should("be.visible")
@@ -178,7 +178,9 @@ describe("settings dialog", () => {
 		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").click()
 		cy.contains("[role=dialog]", "Disable App Export").contains("button", "Cancel").click()
 		cy.contains("[role=dialog]", "Export Settings").should("be.visible")
-		cy.get("@docMethod.all").should("have.length", 0)
+		cy.get("@docMethod.all").then((calls: any[]) => {
+			expect(calls.map((call) => call.request.body.method)).to.not.include("disable_app_export")
+		})
 	})
 
 	it("renames the app and moves the editor to its new URL", () => {
@@ -215,14 +217,14 @@ describe("settings dialog", () => {
 		})
 		cy.contains("button", "Rename").should("be.disabled")
 		cy.window().then((win) => (win.is_developer_mode = true))
-		cy.contains("button", "AI").click()
+		cy.contains("button", "Pages").click()
 		cy.contains("button", "App").click()
 		cy.contains("button", "Rename").should("not.be.disabled")
 	})
 
 	it("opens on the requested tab", () => {
-		cy.wrap(null).then(() => store.openSettings("ai"))
-		cy.contains("label", "OpenRouter API Key").should("be.visible")
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		cy.contains("[role=row]", "About").should("be.visible")
 		cy.contains("button", "App").click()
 		cy.contains("label", "Route").should("be.visible")
 	})

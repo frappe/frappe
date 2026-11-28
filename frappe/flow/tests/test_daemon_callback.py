@@ -20,7 +20,7 @@ from frappe.flow.memory import store as memory_store
 from frappe.flow.tests.test_fake_daemon import FakeDaemon, turn
 from frappe.flow.tools.builtins import SCREEN_EVENT, SCREEN_TIMEOUT, sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-from frappe.utils import set_request
+from frappe.utils import get_user_by_email, set_request
 
 SECRET = "callback-secret"
 OWNER = "callback-owner@example.com"
@@ -75,10 +75,15 @@ class TestToolCallback(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": SECRET}))
-		if not frappe.db.exists("User", OWNER):
-			frappe.get_doc(
-				{"doctype": "User", "email": OWNER, "first_name": "Callback", "send_welcome_email": 0}
-			).insert(ignore_permissions=True)
+		if not (owner := get_user_by_email(OWNER)):
+			owner = (
+				frappe.get_doc(
+					{"doctype": "User", "email": OWNER, "first_name": "Callback", "send_welcome_email": 0}
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
+		self.owner = owner
 		for slug in ("whoami", "maybe_later", "write_then_fail", "callback_context", "later"):
 			self.flow_tool(slug, type="Imported", import_path=f"{MODULE}.{slug}")
 		self.flow_tool("boom", type="Script", code=BOOM)
@@ -95,6 +100,7 @@ class TestToolCallback(IntegrationTestCase):
 			"frappe/read_records",
 			"frappe/delete",
 			"frappe/run_action",
+			"frappe/call_api",
 			"frappe/execute",
 			"frappe/update_memory",
 			"frappe/search_attachments",
@@ -119,7 +125,7 @@ class TestToolCallback(IntegrationTestCase):
 			}
 		).insert()
 		self.session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
-		self.session.db_set("owner", OWNER)
+		self.session.db_set("owner", self.owner)
 
 	def tearDown(self):
 		frappe.db.rollback()
@@ -191,13 +197,13 @@ class TestToolCallback(IntegrationTestCase):
 				self.call("whoami")
 
 	def test_tools_run_as_the_sessions_owner_with_their_permissions(self):
-		self.assertEqual(self.call("whoami"), {"content": OWNER, "is_error": False})
+		self.assertEqual(self.call("whoami"), {"content": self.owner, "is_error": False})
 		self.assertEqual(frappe.session.user, "Administrator")
 		result = self.call("callback_context")
 		self.assertFalse(result["is_error"])
 		self.assertEqual(
 			json.loads(result["content"]),
-			{"session": self.session.name, "agent": self.agent.name, "user": OWNER},
+			{"session": self.session.name, "agent": self.agent.name, "user": self.owner},
 		)
 		# last: a failing tool rolls the whole transaction back
 		result = self.call("read_records", {"doctype": "Error Log"})
@@ -217,7 +223,8 @@ class TestToolCallback(IntegrationTestCase):
 			frappe.set_user("Administrator")
 		run = frappe.get_doc("Flow Run", {"session": self.session.name})
 		self.assertEqual(
-			(run.owner, run.status, run.daemon_run_id, run.output), (OWNER, "Completed", "daemon-run", "done")
+			(run.owner, run.status, run.daemon_run_id, run.output),
+			(self.owner, "Completed", "daemon-run", "done"),
 		)
 		self.session.reload()
 		self.assertEqual(self.session.last_synced_seq, 8)
@@ -243,7 +250,7 @@ class TestToolCallback(IntegrationTestCase):
 			self.assertEqual(calls, [])
 			self.call_terminal(8)
 			self.call_terminal(8)
-		self.assertEqual(calls, [(run.name, OWNER)])
+		self.assertEqual(calls, [(run.name, self.owner)])
 
 	def test_builtin_tools_are_bound_to_the_calling_session_and_its_owner(self):
 		self.addCleanup(memory_store.drop_table)
@@ -255,7 +262,7 @@ class TestToolCallback(IntegrationTestCase):
 		memory = frappe.get_doc("Flow Agent Memory", json.loads(result["content"])["memory_id"])
 		self.assertEqual(
 			(memory.agent, memory.scope, memory.user, memory.source_run),
-			(self.agent.name, "User", OWNER, run.name),
+			(self.agent.name, "User", self.owner, run.name),
 		)
 
 		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.agent.model)
@@ -279,7 +286,7 @@ class TestToolCallback(IntegrationTestCase):
 				"attached_to_doctype": "Flow Session",
 				"attached_to_name": self.session.name,
 			}
-		).insert(ignore_permissions=True).db_set("owner", OWNER)
+		).insert(ignore_permissions=True).db_set("owner", self.owner)
 		result = self.call("read_attachment", {})
 		self.assertEqual([row["file_name"] for row in json.loads(result["content"])], ["policy.txt"])
 
@@ -289,7 +296,7 @@ class TestToolCallback(IntegrationTestCase):
 		self.agent.append("sub_agents", {"agent": child})
 		self.agent.save()
 		# a sub-agent calls back with its own tools
-		self.assertEqual(self.call("whoami", agent=child), {"content": OWNER, "is_error": False})
+		self.assertEqual(self.call("whoami", agent=child), {"content": self.owner, "is_error": False})
 
 		# each disabled record stays disabled for the rows after it
 		for disable, name, target, error in (
@@ -299,7 +306,7 @@ class TestToolCallback(IntegrationTestCase):
 			(None, "whoami", {"agent": stranger}, f"{stranger} is not a sub-agent of {self.agent.name}."),
 			(("Flow Tool", "boom"), "boom", {}, "Unknown tool boom."),
 			(("Flow Agent", self.agent.name), "whoami", {}, "The session's agent is disabled."),
-			(("User", OWNER), "whoami", {}, "The session's owner is disabled."),
+			(("User", self.owner), "whoami", {}, "The session's owner is disabled."),
 		):
 			with self.subTest(error):
 				if disable:
@@ -350,12 +357,12 @@ class TestToolCallback(IntegrationTestCase):
 			daemon.calls,
 			[
 				("tool_waiting", self.session.name, "t1"),
-				("tool_result", self.session.name, "t1", {"content": OWNER, "is_error": False}),
+				("tool_result", self.session.name, "t1", {"content": self.owner, "is_error": False}),
 			],
 		)
 
 	def test_a_tool_can_choose_the_background_per_call(self):
-		inline = {"content": OWNER, "is_error": False}
+		inline = {"content": self.owner, "is_error": False}
 		with patch("frappe.enqueue") as enqueue:
 			self.assertEqual(self.call("maybe_later", {"slow": False}, result_token="t1"), inline)
 			enqueue.assert_not_called()
@@ -375,7 +382,7 @@ class TestToolCallback(IntegrationTestCase):
 			reply = self.call("read_screen", result_token="t2")
 		self.assertEqual(reply, {"pending": True, "timeout": SCREEN_TIMEOUT})
 		publish.assert_called_once_with(
-			SCREEN_EVENT, {"session": self.session.name, "token": "t2"}, user=OWNER
+			SCREEN_EVENT, {"session": self.session.name, "token": "t2"}, user=self.owner
 		)
 		with patch("frappe.publish_realtime") as publish:
 			self.assertTrue(self.call("read_screen")["is_error"])
@@ -441,7 +448,7 @@ class TestToolCallback(IntegrationTestCase):
 				{"doctype": "ToDo", "description": description, "assigned_by": assigned_by}
 			).insert(ignore_permissions=True)
 
-		mine = todo("<p>Call the courier about the delayed Pune shipment</p>", OWNER)
+		mine = todo("<p>Call the courier about the delayed Pune shipment</p>", self.owner)
 		hidden = todo("Someone else's task", "Administrator")
 		for record, shown in (
 			(mine, "Call the courier about the delayed Pune shipment"),
@@ -458,7 +465,7 @@ class TestToolCallback(IntegrationTestCase):
 
 	def test_a_set_value_card_names_the_field_by_label_with_its_formatted_value(self):
 		todo = frappe.get_doc(
-			{"doctype": "ToDo", "description": "Renew the Delhivery contract", "assigned_by": OWNER}
+			{"doctype": "ToDo", "description": "Renew the Delhivery contract", "assigned_by": self.owner}
 		).insert(ignore_permissions=True)
 		cases = (
 			({"fieldname": "priority", "value": "High"}, "Priority: High"),
@@ -490,6 +497,12 @@ class TestToolCallback(IntegrationTestCase):
 				"action": "frappe.desk.form.assign_to.add",
 				"args": {"assign_to": ["a"]},
 			},
+			mode="confirm",
+		)["prompt"]
+		self.assertEqual(prompt, "Assign To: Add\nAssign To: a")
+		prompt = self.call(
+			"call_api",
+			{"method": "frappe.desk.form.assign_to.add", "args": {"assign_to": ["a"]}},
 			mode="confirm",
 		)["prompt"]
 		self.assertEqual(prompt, "Assign To: Add\nAssign To: a")

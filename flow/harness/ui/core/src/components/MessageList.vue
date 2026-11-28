@@ -7,6 +7,10 @@
 		:style="{ scrollPaddingBottom: composerHeight + 24 + 'px' }"
 		@scroll="onScroll"
 		@mousedown="onMouseDown"
+		@wheel.passive="markReader"
+		@touchmove.passive="markReader"
+		@keydown="onReaderKey"
+		@pointerdown="onScrollbar"
 	>
 		<!-- pad by the floating composer's height so "center" means the visible
 		     area above it, not the full page -->
@@ -19,7 +23,7 @@
 			<slot name="empty" :mark="mark">
 				<!-- the mark over a quiet heading, each a step smaller on a phone -->
 				<BrandMark line :size="32" v-bind="mark" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
-				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-4xl">What would you like to build?</h2>
+				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-[22px]">{{ __("What would you like to build?") }}</h2>
 			</slot>
 			<!-- the box's place under the mark until the first message -->
 			<div v-if="docked" ref="dock" class="mt-5 w-full shrink-0" :style="{ height: composerHeight + 'px' }" />
@@ -63,6 +67,7 @@
 				/>
 				<ToolGroup
 					v-else-if="item.kind === 'group'"
+					:id="item.key"
 					:class="tightGap(i)"
 					:steps="item.steps"
 					:sealed="i < turnEnd - 1 || !conversation.running"
@@ -76,7 +81,7 @@
 				>
 					<CopyButton
 						:text="item.text"
-						title="Copy response"
+						:title="__('Copy response')"
 					/>
 					<!-- a host's own per-turn actions (Flow's feedback thumbs) -->
 					<component
@@ -94,7 +99,7 @@
 					class="flex items-center gap-2.5 text-base text-ink-gray-5"
 				>
 					<span class="lucide-archive size-3.5 flex-none" aria-hidden="true" />
-					<span>Context compacted ({{ item.entry.reason }})</span>
+					<span>{{ __("Context compacted ({0})", [item.entry.reason]) }}</span>
 				</div>
 				<!-- an action turned down at its card: a line of the turn, not a divider, as it can run long -->
 				<div v-else-if="item.kind === 'declined'" class="flex items-start gap-2.5 text-base text-ink-gray-5">
@@ -113,7 +118,7 @@
 					v-else-if="item.kind === 'error'"
 					class="break-words rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-base text-ink-red-6"
 				>
-					{{ item.error.message }}
+					<slot name="error" :error="item.error">{{ item.error.message }}</slot>
 				</div>
 			</template>
 
@@ -130,13 +135,9 @@
 			<!-- Before the first streamed block (or during retry/compaction), no
 			     transcript item owns the live status, so render one fallback line.
 			     Its padding keeps it on the same rhythm as the rows that replace it; after
-			     a thinking block the thread gap collapses too, so the status sits
-			     exactly where the upcoming tool row will render. -->
-			<div
-				v-if="showStandaloneStatus"
-				class="py-2 text-base-medium md:py-2.5"
-				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
-			>
+			     a thinking block the thread gap collapses too, and after text it tightens as
+			     a row's does, so the status sits exactly where the upcoming row will render. -->
+			<div v-if="showStandaloneStatus" class="pb-2 text-base md:pb-2.5" :class="statusGap">
 				<span class="flow-shimmer">{{ liveLabel }}</span>
 			</div>
 
@@ -154,7 +155,7 @@
 		v-if="!stick && !empty"
 		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 hover:text-ink-gray-9"
 		:style="{ bottom: composerHeight + 12 + 'px' }"
-		title="Scroll to bottom"
+		:title="__('Scroll to bottom')"
 		@click="toBottom"
 	>
 		<span class="lucide-arrow-down size-4" aria-hidden="true" />
@@ -169,7 +170,8 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
 
 import { layout } from "../layout.js"
-import { buildItems, formatTime, panelIds, suggestedReplies, userAttachments, userText } from "../transcript.js"
+import { buildItems, formatTime, liveLabelText, panelIds, suggestedReplies, userAttachments, userText } from "../transcript.js"
+import { __ } from "../translate.js"
 import AddToChat from "./AddToChat.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
@@ -196,9 +198,20 @@ const conversation = computed(() => props.conversation ?? flow.state.conversatio
 // the session's own: a sub-agent's thread offers none
 const replies = computed(() => (props.suggestions && !props.conversation ? suggestedReplies(conversation.value) : null))
 const expandedTurnKeys = ref(new Set())
-// rows (tool calls, thoughts) the user has open, by id
+// rows (tool calls, thoughts, a folded run of calls) the user has open, by id
 const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
+// opening a row is reading it: the reply's growth no longer scrolls it away; the ↓ button or
+// scrolling to the bottom follows again
+watch(
+	() => openPanels.size,
+	(size, before) => {
+		if (size > before) {
+			stick.value = false
+			readerAt = 0 // the row's nudge into view is ours, however lately the reader scrolled
+		}
+	},
+)
 const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
 // a turn that ends with one of its rows open stays unfolded once the row is closed: only its fold folds it
 watch(
@@ -270,8 +283,11 @@ function tightGap(i) {
 	const cur = items.value[i]?.kind
 	if (prev === "thinking" && cur === "thinking") return "-mt-5"
 	const meetsText = (isRow(prev) && cur === "text") || (prev === "text" && isRow(cur))
-	return meetsText || (prev === "turn-fold" && isRow(cur)) ? "-mt-1.5" : ""
+	if (meetsText) return textGap.value
+	return prev === "turn-fold" && isRow(cur) ? "-mt-1.5" : ""
 }
+// one folded line sits closer to the text than a list of rows does
+const textGap = computed(() => (flow.state.prefs?.separateToolCalls ? "-mt-1.5" : "-mt-3"))
 
 // Streamed thinking and tool groups render their own status. The fallback is
 // reserved for statuses that have no preview item yet.
@@ -285,9 +301,15 @@ const lastIsLiveThinking = computed(
 // steered one, the turn above keeps its own status
 const liveLabel = computed(() =>
 	conversation.value.running && conversation.value.steering?.length
-		? "Working"
-		: conversation.value.liveLabel || (conversation.value.sending?.length ? "Working" : ""),
+		? __("Working")
+		: liveLabelText(conversation.value.liveLabel) || (conversation.value.sending?.length ? __("Working") : ""),
 )
+// under a thought, a row per call lands closer than a folded run's line does
+const statusGap = computed(() => {
+	const kind = lastItem.value?.kind
+	if (kind === "thinking" && flow.state.prefs.separateToolCalls) return "-mt-5 pt-1 md:pt-0.5"
+	return ["pt-2 md:pt-2.5", kind === "thinking" ? "-mt-5" : kind === "text" ? textGap.value : ""]
+})
 const showStandaloneStatus = computed(
 	() => !!liveLabel.value && !lastIsOpenGroup.value && !lastIsLiveThinking.value,
 )
@@ -318,9 +340,24 @@ function onScroll() {
 	// any upward scroll unsticks; scrolling down re-sticks only once the view
 	// actually reaches the bottom — re-pinning from ~80px away yanks the page
 	// out of the user's hands mid-scroll
-	if (distance < 4) stick.value = true
-	else if (goingUp) stick.value = false
+	if (distance < 4) {
+		if (readerScrolled()) stick.value = true
+	} else if (goingUp) stick.value = false
 	updateActivePrompt()
+}
+
+// the reader's own scrolling (wheel, swipe, keys, the scrollbar) can follow again; our scrolls
+// (a row nudged into view, a jump) never do — reaching the bottom by one would snap an open row away.
+// The window outlasts a swipe's glide and a slow drag of the scrollbar
+let readerAt = 0
+const markReader = () => (readerAt = Date.now())
+const readerScrolled = () => Date.now() - readerAt < 3000
+const SCROLL_KEYS = new Set(["ArrowDown", "ArrowUp", "PageDown", "PageUp", "End", "Home", " "])
+function onReaderKey(event) {
+	if (SCROLL_KEYS.has(event.key)) markReader()
+}
+function onScrollbar(event) {
+	if (event.target === scroller.value) markReader()
 }
 
 // a clicked button, link or summary takes no focus, so a closing dialog can't scroll the list back to it
@@ -389,7 +426,7 @@ const prompts = computed(() =>
 	items.value
 		.filter((item) => item.kind === "user")
 		.map((item) => {
-			const text = userText(item.entry) || userAttachments(item.entry)[0]?.name || "Prompt"
+			const text = userText(item.entry) || userAttachments(item.entry)[0]?.name || __("Prompt")
 			return { key: item.key, text: text.length > 400 ? text.slice(0, 400) + "…" : text }
 		}),
 )
@@ -415,6 +452,7 @@ function scrollToPrompt(key) {
 	const target = scroller.value?.querySelector(`[data-prompt-key="${CSS.escape(key)}"]`)
 	if (!target) return
 	stick.value = false // don't let the autoscroller cancel the jump mid-stream
+	readerAt = 0
 	target.scrollIntoView({ behavior: "smooth", block: "start" })
 }
 

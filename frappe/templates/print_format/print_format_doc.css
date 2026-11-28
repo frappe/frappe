@@ -55,6 +55,17 @@
 	color: inherit;
 }
 
+.print-format-doc .field .value.value--colored a,
+.print-format-doc .field .value.value--colored pre,
+.print-format-doc .field .value.value--colored code {
+	color: inherit;
+}
+
+.print-format-doc pre,
+.print-format-doc pre code {
+	word-break: break-word;
+}
+
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
 .print-format-doc .field.left-right,
 .print-format-doc .field.field-inline {
@@ -445,6 +456,10 @@
 	color: var(--gray-600);
 }
 
+.print-format-doc .child-table .cell-line-label {
+	font-weight: 600;
+}
+
 .print-format-doc .child-table .cell-line * {
 	margin: 0;
 }
@@ -648,4 +663,111 @@ body.print-format-doc .letter-head,
 
 .print-format-doc .field .label.label--no-colon::after {
 	content: none;
+}
+
+.print-format-doc li[data-list] {
+	counter-set: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8;
+}
+.print-format-doc .ql-editor li[data-list] {
+	padding-left: 0;
+}
+.print-format-doc .ql-editor .ql-ui {
+	display: none;
+}
+.print-format-doc li[data-list="bullet"] {
+	list-style-type: disc;
+	counter-increment: list-item 0;
+}
+.print-format-doc li[data-list="ordered"] {
+	list-style-type: decimal;
+}
+.print-format-doc li[data-list="checked"],
+.print-format-doc li[data-list="unchecked"] {
+	counter-increment: list-item 0;
+}
+.print-format-doc li[data-list="checked"]::marker {
+	content: "\2611  ";
+}
+.print-format-doc li[data-list="unchecked"]::marker {
+	content: "\2610  ";
+}
+.print-format-doc li[data-list].ql-indent-1 {
+	margin-inline-start: 1.5em;
+	counter-set: list-2 list-3 list-4 list-5 list-6 list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-2 {
+	margin-inline-start: 3em;
+	counter-set: list-3 list-4 list-5 list-6 list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-3 {
+	margin-inline-start: 4.5em;
+	counter-set: list-4 list-5 list-6 list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-4 {
+	margin-inline-start: 6em;
+	counter-set: list-5 list-6 list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-5 {
+	margin-inline-start: 7.5em;
+	counter-set: list-6 list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-6 {
+	margin-inline-start: 9em;
+	counter-set: list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-7 {
+	margin-inline-start: 10.5em;
+	counter-set: list-8;
+}
+.print-format-doc li[data-list].ql-indent-8 {
+	margin-inline-start: 12em;
+	counter-set: none;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-1 {
+	counter-increment: list-item 0 list-1;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-1::marker {
+	content: counter(list-1, lower-alpha) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-2 {
+	counter-increment: list-item 0 list-2;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-2::marker {
+	content: counter(list-2, lower-roman) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-3 {
+	counter-increment: list-item 0 list-3;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-3::marker {
+	content: counter(list-3, decimal) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-4 {
+	counter-increment: list-item 0 list-4;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-4::marker {
+	content: counter(list-4, lower-alpha) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-5 {
+	counter-increment: list-item 0 list-5;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-5::marker {
+	content: counter(list-5, lower-roman) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-6 {
+	counter-increment: list-item 0 list-6;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-6::marker {
+	content: counter(list-6, decimal) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-7 {
+	counter-increment: list-item 0 list-7;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-7::marker {
+	content: counter(list-7, lower-alpha) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-8 {
+	counter-increment: list-item 0 list-8;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-8::marker {
+	content: counter(list-8, lower-roman) ". ";
 }

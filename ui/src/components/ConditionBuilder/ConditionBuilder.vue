@@ -109,6 +109,7 @@
 import { computed, nextTick, provide, ref, useId, watch } from "vue";
 import { Button } from "frappe-ui";
 import ConditionGroup from "./ConditionGroup.vue";
+import { conditionOperators } from "./adapters";
 import { useConditionFields } from "./internal/fields";
 import {
 	focusAfterAdd,
@@ -267,6 +268,8 @@ provide(conditionBuilderKey, {
 	),
 	invalid: computed(() => Boolean(errorText.value)),
 	fields,
+	operatorsForField: (fieldtype, fieldname) =>
+		(props.operatorsForField ?? conditionOperators)(fieldtype, fieldname),
 	fieldsLoading,
 	fieldsError,
 	reloadFields,

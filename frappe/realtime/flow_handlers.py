@@ -5,6 +5,7 @@
 # browsers from Frappe's Python realtime server. The Node server loads realtime/flow_handlers.js.
 
 import asyncio
+import hashlib
 import json
 import logging
 import re
@@ -26,6 +27,7 @@ SESSION_CHANNEL = "harness:"
 RESYNC_ALL = "harness-resync:all"
 RESYNC_SITE = "harness-resync:site:"
 ACCESS_SITE = "flow-access:"
+GUEST_CHECK = "/api/method/frappe.flow.api.guest.can_stream"
 SESSION_NAME = re.compile(r"[\w.-]{1,140}", re.ASCII)
 SUBSCRIBE_TIMEOUT = 10
 RECONNECT_DELAY = 1
@@ -51,9 +53,9 @@ class Relay:
 		self.pubsub = None
 		self.listener: asyncio.Task | None = None
 
-	async def subscribe(self, socket: Socket, session: object) -> bool:
+	async def subscribe(self, socket: Socket, session: object, token: object = None) -> bool:
 		"""Join the session's room once the caller may read it and the Redis channel is live."""
-		if not is_valid_name(session) or not await socket.has_permission("Flow Session", session):
+		if not is_valid_name(session) or not await can_stream(socket, session, token):
 			return False
 
 		channel = f"{SESSION_CHANNEL}{socket.site}:{session}"
@@ -211,6 +213,20 @@ class Relay:
 				await socket.emit(RESUBSCRIBE, {"session": entry.session})
 
 
+async def can_stream(socket: Socket, session: str, token: object) -> bool:
+	"""Whether the site lets this socket read the chat. Every guest chat is Guest's, so the
+	token its start gave opens it. The site is sent the token's hash: the address of a GET may
+	be logged."""
+	if not isinstance(token, str) or not token:
+		return await socket.has_permission("Flow Session", session)
+	try:
+		token_hash = hashlib.sha256(token.encode()).hexdigest()
+		reply = await socket._session.get(GUEST_CHECK, {"session": session, "token_hash": token_hash})
+	except Exception:
+		return False
+	return reply.get("message") is True
+
+
 def redis_client() -> redis.asyncio.Redis:
 	config = get_config()
 	conf = frappe.get_common_site_config(sites_path=config.sites_path)
@@ -232,23 +248,24 @@ def is_valid_name(session: object) -> bool:
 relay = Relay()
 
 
-@realtime.on("flow:subscribe")
-async def subscribe(socket: Socket, session: object) -> dict:
+# Guests reach these for a guest chat; anyone without a token is still asked for read access.
+@realtime.on("flow:subscribe", allow_guest=True)
+async def subscribe(socket: Socket, session: object, token: object = None) -> dict:
 	try:
-		subscribed = await relay.subscribe(socket, session)
+		subscribed = await relay.subscribe(socket, session, token)
 	except Exception:
 		logger.exception("flow: subscribe failed")
 		subscribed = False
 	return {"subscribed": subscribed}
 
 
-@realtime.on("flow:unsubscribe")
+@realtime.on("flow:unsubscribe", allow_guest=True)
 async def unsubscribe(socket: Socket, session: object) -> None:
 	if is_valid_name(session):
 		await relay.release(socket, session)
 
 
-@realtime.on("disconnect")
+@realtime.on("disconnect", allow_guest=True)
 async def disconnect(socket: Socket) -> None:
 	for session in list(socket.get("flow_sessions", [])):
 		await relay.release(socket, session)

@@ -23,7 +23,7 @@ def get_limit():
 		return limit
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=get_limit, seconds=60 * 60)
 def add_comment(
 	comment: str,
@@ -51,8 +51,8 @@ def add_comment(
 	else:
 		# override with the logged-in user's identity to prevent spoofing;
 		# guests must supply their own name/email in the request
-		comment_email = frappe.session.user
-		comment_by = frappe.get_value("User", frappe.session.user, "full_name")
+		comment_email = None
+		comment_by = frappe.db.get_value("User", frappe.session.user, "full_name")
 
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))

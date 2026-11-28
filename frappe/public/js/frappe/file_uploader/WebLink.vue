@@ -13,7 +13,9 @@
 				v-model="url"
 			/>
 		</div>
-		<div class="text-small text-danger pt-1" v-if="error_message">{{ error_message }}</div>
+		<div class="text-small text-danger pt-1 whitespace-pre-wrap" v-if="error_message">
+			{{ frappe.utils.html2text(error_message) }}
+		</div>
 	</div>
 </template>
 

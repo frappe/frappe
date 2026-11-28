@@ -18,6 +18,7 @@ from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import check_doctype_permission
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_files_path
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.deprecations import deprecated
@@ -42,6 +43,9 @@ ALLOWED_MIMETYPES = (
 	"video/quicktime",
 	"video/mp4",
 	"text/csv",
+	"audio/mp4",
+	"audio/webm",
+	"audio/ogg",
 )
 
 
@@ -109,13 +113,13 @@ def is_valid_http_method(method):
 		frappe.throw_permission_error()
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def logout():
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def web_logout():
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
@@ -125,6 +129,7 @@ def web_logout():
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
+@rate_limit(limit=300, seconds=60, user_based=True)
 def upload_file():
 	user = None
 	if frappe.session.user == "Guest":
@@ -223,6 +228,14 @@ def upload_file():
 				args["max_height"] = int(frappe.form_dict.max_height)
 			content = optimize_image(**args)
 
+	if doctype and fieldname:
+		df = frappe.get_meta(frappe.form_dict.field_doctype or doctype).get_field(fieldname)
+		file_type = guess_type(filename or file_url or "")[0]
+		if df and df.fieldtype == "Attach Image" and file_type and not file_type.startswith("image/"):
+			from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
+
+			frappe.throw(_("{0} only accepts images").format(_(df.label)), exc=FileTypeNotAllowed)
+
 	frappe.local.uploaded_file_url = file_url
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
@@ -280,7 +293,8 @@ def check_write_permission(doctype: str | None = None, name: str | None = None):
 		return
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
+@rate_limit(limit=120, seconds=60, user_based=True)
 def download_file(file_url: str):
 	"""
 	Download file using token and REST API. Valid session or
@@ -351,7 +365,11 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 
 	else:
 		docs = frappe.parse_json(docs)
-		doc = frappe.get_doc(docs, check_permission=True)
+		doc = frappe.get_doc(docs)
+		if not doc.is_new() or doc.meta.issingle or frappe.db.exists(doc.doctype, doc.name):
+			frappe.has_permission(doc.doctype, "read", doc.name, throw=True)
+		else:
+			doc.check_permission("read")
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 

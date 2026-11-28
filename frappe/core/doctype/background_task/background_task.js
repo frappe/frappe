@@ -9,17 +9,20 @@ frappe.ui.form.on("Background Task", {
 
 		if (["Failed", "Cancelled"].includes(frm.doc.status)) {
 			if (frm.doc.allow_user_retry) {
-				frm.add_custom_button(__("Retry Task"), () => {
-					frappe.call({
-						method: "frappe.core.doctype.background_task.background_task.retry_task",
-						args: { task_id: frm.doc.task_id },
-						callback: () => {
-							frm.reload_doc();
-						},
-					});
-				})
-					.removeClass("btn-default")
-					.addClass("btn-primary");
+				frm.add_custom_button(
+					__("Retry Task"),
+					() => {
+						frappe.call({
+							method: "frappe.core.doctype.background_task.background_task.retry_task",
+							args: { task_id: frm.doc.task_id },
+							callback: () => {
+								frm.reload_doc();
+							},
+						});
+					},
+					null,
+					"primary"
+				);
 			}
 			return;
 		}
@@ -60,6 +63,7 @@ frappe.ui.form.on("Background Task", {
 		frappe.call({
 			method: "frappe.core.doctype.background_task.background_task.get_cached_task_status",
 			args: { task_id: frm.doc.task_id },
+			type: "GET",
 			callback: (r) => {
 				if (!r.message) return;
 				let cached = r.message;

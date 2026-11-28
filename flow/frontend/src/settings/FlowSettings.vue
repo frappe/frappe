@@ -12,6 +12,7 @@
 <script setup>
 import { computed, inject, watch } from "vue";
 import SettingsDialog from "@flow/ui-core/components/SettingsDialog.vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import DocPanel from "./DocPanel.vue";
 import GeneralPanel from "./GeneralPanel.vue";
@@ -20,11 +21,11 @@ import ModelsPanel from "./ModelsPanel.vue";
 import { SPECS } from "./specs.js";
 
 const DESCRIPTIONS = {
-	agents: "The agents you can chat with.",
-	skills: "Instructions agents can use for specific tasks.",
-	tools: "Actions agents can take.",
-	triggers: "Run an agent when a document changes or on a schedule.",
-	memories: "What agents have remembered.",
+	agents: __("The agents you can chat with."),
+	skills: __("Instructions agents can use for specific tasks."),
+	tools: __("Actions agents can take."),
+	triggers: __("Run an agent when a document changes or on a schedule."),
+	memories: __("What agents have remembered."),
 };
 const ICONS = {
 	general: "lucide-settings",
@@ -51,15 +52,15 @@ const groups = computed(() => {
 	const docTab = (key) => (allowed.has(key) ? tab(key, SPECS[key].label) : null);
 	return [
 		{
-			label: "Chat",
+			label: __("Chat"),
 			// models are set up by those who may change them; everyone else picks one in the composer
-			tabs: [tab("general", "General"), page.can("Flow Model", "write") ? tab("models", "Models") : null],
+			tabs: [tab("general", __("General")), page.can("Flow Model", "write") ? tab("models", __("Models")) : null],
 		},
-		{ label: "Agents", tabs: ["agents", "skills", "tools", "triggers"].map(docTab) },
+		{ label: __("Agents"), tabs: ["agents", "skills", "tools", "triggers"].map(docTab) },
 		{
-			label: "Knowledge",
+			label: __("Knowledge"),
 			tabs: [
-				page.can("Flow Knowledge Base", "read") ? tab("knowledge", "Knowledge") : null,
+				page.can("Flow Knowledge Base", "read") ? tab("knowledge", __("Knowledge")) : null,
 				docTab("memories"),
 			],
 		},

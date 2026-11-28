@@ -14,7 +14,7 @@ from frappe.automation_engine.actions.base import (
 	render_context,
 	render_value,
 )
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, get_user_display_id, validate_email_address
 
 NUMERIC_FIELDTYPES = ("Int", "Float", "Currency", "Percent")
 HTTP_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE")
@@ -198,7 +198,7 @@ def resolve_recipients(recipients: list, doc) -> list:
 	resolved = []
 	for recipient in recipients:
 		if recipient == OWNER_TOKEN:
-			resolved.append(doc.owner if doc else None)
+			resolved.append(doc.owner if doc and doc.owner != "Guest" else None)
 		elif recipient == ASSIGNEES_TOKEN:
 			resolved.extend(_assignees(doc))
 		else:
@@ -210,6 +210,40 @@ def _assignees(doc) -> list:
 	if not doc:
 		return []
 	return frappe.parse_json(doc.get("_assign") or "[]") or []
+
+
+def _get_recipient_emails(
+	values: list[str], reference_doctype: str | None = None, reference_name: str | None = None
+) -> list[str]:
+	"""Return the email of each user ID and every other valid email, in order and deduplicated.
+
+	Anything else is dropped and logged.
+	"""
+	user_emails = dict(
+		frappe.get_all(
+			"User",
+			filters=[["name", "in", values], ["name", "!=", "Guest"]],
+			fields=["name", "email"],
+			as_list=True,
+		)
+	)
+	emails, invalid = [], []
+	for value in values:
+		email = user_emails[value] if value in user_emails else validate_email_address(value)
+		if email:
+			emails.append(email)
+		else:
+			invalid.append(value)
+
+	if invalid:
+		frappe.log_error(
+			title=_("Invalid email recipients"),
+			message=_("Not a user or an email address: {0}").format(", ".join(invalid)),
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+		)
+
+	return list(dict.fromkeys(emails))
 
 
 class SendNotification(AutomationAction):
@@ -255,12 +289,17 @@ class SendNotification(AutomationAction):
 			return _("No recipients to notify")
 		if params.get("channel") == "System":
 			return self._notify_system(doc, recipients, subject, message)
+		reference_doctype = doc.doctype if doc else None
+		reference_name = doc.name if doc else None
+		recipients = _get_recipient_emails(recipients, reference_doctype, reference_name)
+		if not recipients:
+			return _("No recipients to notify")
 		frappe.sendmail(
 			recipients=recipients,
 			subject=subject,
 			message=message,
-			reference_doctype=doc.doctype if doc else None,
-			reference_name=doc.name if doc else None,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
 		)
 		return _("Emailed {0}").format(", ".join(recipients))
 
@@ -328,7 +367,7 @@ class AssignToUser(AutomationAction):
 				"description": render_value(params.get("description"), doc, context) or doc.doctype,
 			}
 		)
-		return _("Assigned to {0}").format(", ".join(users))
+		return _("Assigned to {0}").format(", ".join(get_user_display_id(user) for user in users))
 
 
 class CallWebhook(AutomationAction):
@@ -528,13 +567,18 @@ def _guard_url(url: str):
 
 def _send_guarded_request(method, url, headers, payload, timeout):
 	"""Follow redirects by hand so every hop is guarded; requests would only check the first."""
-	import requests
+	from requests.adapters import Retry
+
+	from frappe.utils.safe_exec import get_safe_request_session
 
 	body = frappe.as_json(payload) if payload else None
 	headers = {"Content-Type": "application/json", **(headers or {})} if body else dict(headers or {})
+	session = get_safe_request_session()
+	for adapter in session.adapters.values():
+		adapter.max_retries = Retry(total=0, read=False)
 	for _hop in range(MAX_REDIRECTS + 1):
 		_guard_url(url)
-		response = requests.request(
+		response = session.request(
 			method=method, url=url, data=body, headers=headers, timeout=timeout, allow_redirects=False
 		)
 		location = response.headers.get("Location") if response.is_redirect else None
