@@ -109,6 +109,8 @@ description: Close overdue ToDos.
 Close each open ToDo dated before today.
 ```
 
+To test whether a change to a skill, an API or an error message helps the assistant, write cases beside `skills/` and run them with `bench flow-eval`: [docs/evals.md](docs/evals.md).
+
 ### Manage sessions
 
 ```python
