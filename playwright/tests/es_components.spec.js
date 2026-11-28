@@ -374,6 +374,50 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Combobox", () => {
+		test("opens from a button of your own, and a pick leaves the button as it was", async ({
+			page,
+		}) => {
+			await show(page, "Combobox");
+			const button = explorer_group(page, "On a button of your own").getByRole("button", {
+				name: "Add tag",
+			});
+			const input = page.locator(".es-combobox__panel .es-combobox__input");
+			const options = page.locator(".es-combobox__panel [role='option']");
+
+			await button.click();
+			await expect(input).toBeFocused();
+			await input.fill("key");
+			await expect(options).toHaveText(["Key account", 'Create tag "key"']);
+			await input.press("Enter");
+			await expect(page.getByText("Added Key account")).toBeVisible();
+			await expect(page.locator(".es-combobox__panel")).toHaveCount(0);
+			await expect(button).toHaveText("Add tag");
+
+			// the create row takes what was typed
+			await button.click();
+			await input.fill("brand new");
+			await expect(options).toHaveText(['Create tag "brand new"']);
+			await input.press("Enter");
+			await expect(page.getByText("Created brand new")).toBeVisible();
+		});
+	});
+
+	test.describe("Tag", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Tag");
+		});
+
+		test("a removable tag's ✕ is a labelled button", async ({ page }) => {
+			const tags = explorer_group(page, "Removable").locator(".es-tag");
+			await expect(tags).toHaveCount(3);
+			await expect(
+				tags.nth(1).getByRole("button", { name: "Remove Respond in 24h" })
+			).toBeVisible();
+			await expect(explorer_group(page, "Sizes").locator(".es-tag__remove")).toHaveCount(0);
+		});
+	});
+
 	test.describe("Bottom Sheet", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Bottom Sheet");

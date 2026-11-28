@@ -1,0 +1,128 @@
+/* Espresso Tag — a label put on a record, with an optional ✕ to take it off.
+ *
+ *   <span class="es-tag" data-size="sm|lg" data-theme="blue|green|amber|red|violet">
+ *     <span class="es-tag__label">Respond in 24h</span>
+ *     <button class="es-tag__remove" aria-label="Remove">✕</button>
+ *   </span>
+ */
+
+.es-tag {
+  /* default theme = gray */
+  --c-fill: var(--surface-gray-2);
+  --c-fill-hover: var(--surface-gray-3);
+  --c-fg: var(--ink-gray-7);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing);
+  max-width: 100%;
+  height: calc(var(--spacing) * 6);
+  padding-inline: calc(var(--spacing) * 1.5);
+  border-radius: var(--radius-3);
+  background: var(--c-fill);
+  color: var(--c-fg);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.es-tag:has(.es-tag__remove) {
+  padding-inline-end: var(--spacing);
+}
+
+.es-tag__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.es-tag__remove {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--spacing) * 3.5);
+  height: calc(var(--spacing) * 3.5);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  --icon-stroke: currentColor;
+  cursor: pointer;
+}
+
+.es-tag__remove:hover {
+  background: var(--c-fill-hover);
+}
+
+.es-tag__remove:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-default);
+}
+
+.es-tag__remove > svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- themes (override the gray default) ----*/
+.es-tag[data-theme="blue"] {
+  --c-fill: var(--surface-blue-2);
+  --c-fill-hover: var(--surface-blue-3);
+  --c-fg: var(--ink-blue-8);
+}
+
+.es-tag[data-theme="green"] {
+  --c-fill: var(--surface-green-2);
+  --c-fill-hover: var(--surface-green-3);
+  --c-fg: var(--ink-green-8);
+}
+
+.es-tag[data-theme="amber"] {
+  --c-fill: var(--surface-amber-2);
+  --c-fill-hover: var(--surface-amber-3);
+  --c-fg: var(--ink-amber-8);
+}
+
+.es-tag[data-theme="red"] {
+  --c-fill: var(--surface-red-2);
+  --c-fill-hover: var(--surface-red-3);
+  --c-fg: var(--ink-red-8);
+}
+
+.es-tag[data-theme="violet"] {
+  --c-fill: var(--surface-violet-2);
+  --c-fill-hover: var(--surface-violet-3);
+  --c-fg: var(--ink-violet-8);
+}
+
+/* ---- sizes (override the md default) ---- */
+.es-tag[data-size="sm"] {
+  height: calc(var(--spacing) * 5);
+  border-radius: var(--radius-2);
+  font-size: var(--text-xs);
+}
+
+.es-tag[data-size="sm"] .es-tag__remove {
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
+}
+
+.es-tag[data-size="lg"] {
+  height: calc(var(--spacing) * 7);
+  padding-inline: calc(var(--spacing) * 2);
+  border-radius: var(--radius-4);
+  font-size: var(--text-base);
+}
+
+.es-tag[data-size="lg"]:has(.es-tag__remove) {
+  padding-inline-end: calc(var(--spacing) * 1.5);
+}
+
+.es-tag[data-size="lg"] .es-tag__remove {
+  width: calc(var(--spacing) * 4);
+  height: calc(var(--spacing) * 4);
+}

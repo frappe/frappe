@@ -27,6 +27,7 @@ frappe.ui.form.AssignTo = class AssignTo {
 	}
 	render(assignments) {
 		this.frm.get_docinfo().assignments = assignments;
+		this.frm.sidebar?.refresh_actions?.();
 
 		let assignments_wrapper = this.parent.find(".assignments");
 
@@ -281,7 +282,10 @@ frappe.ui.form.AssignmentClass = class AssignmentClass {
 			if (count === 3) {
 				$assignment_html.append(
 					$(
-						'<a href="javascript:void(0)" class="text-muted view-all-assignment">View All</div>'
+						`<a href="javascript:void(0)" class="text-muted view-all-assignment">${__(
+							"{0} more",
+							[this.assignments.length - count]
+						)}</a>`
 					)
 				);
 				break;
@@ -298,7 +302,15 @@ frappe.ui.form.AssignmentClass = class AssignmentClass {
 		const row = $(`
 			<div class="dialog-assignment-row" data-user="${assignment}">
 				<div class="assignee">
-					${frappe.avatar(assignment, "avatar-smaller")}
+					${
+						in_dialogue
+							? frappe.avatar(assignment, "avatar-smaller")
+							: frappe.ui.avatar.html({
+									image: frappe.user_info(assignment).image,
+									label: frappe.user_info(assignment).fullname,
+									size: "sm",
+							  })
+					}
 					<span>${frappe.user.full_name(assignment)}</span>
 				</div>
 				<div class="btn-group btn-group-sm" role="group" aria-label="Actions">
