@@ -515,9 +515,9 @@ def bulk_retry(queues):
 
 @frappe.whitelist()
 def send_now(name: str | int, force_send: bool = False):
-	record = EmailQueue.find(name)
-	if record:
-		record.check_permission()
+	record = frappe.get_doc("Email Queue", name, for_update=True)
+	record.check_permission()
+	if record.is_to_be_sent():
 		record.send(force_send=force_send)
 
 
