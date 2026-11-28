@@ -1,0 +1,257 @@
+/* Espresso List: a boxed list of rows for things people open or act on (applicants,
+ * openings, to-dos). Each row has an optional avatar or icon, a title and subtitle, a meta
+ * text, a badge, always-visible controls and actions that appear on hover.
+ *
+ * Boxed (default) has a border and 4px padding; data-variant="flat" drops both for lists inside a pane.
+ *
+ * Markup contract:
+ *
+ *   <div class="es-list" data-variant="flat">   (data-variant only for flat; data-empty when there are no items: no box, just the empty state)
+ *     <a class="es-list__row" href="..." data-id="john" data-avatar data-has-actions
+ *        data-selected aria-current="true">   (data-selected only on the selected row)
+ *       <span class="es-list__lead">(avatar or icon)</span>
+ *       <span class="es-list__text">
+ *         <span class="es-list__title">John Doe</span>
+ *         <span class="es-list__subtitle">Referred by Jane</span>
+ *       </span>
+ *       <span class="es-badge es-list__badge">...</span>
+ *       <span class="es-list__meta">6d ago</span>
+ *       <span class="es-list__controls">(a dropdown, a button: always visible, never open the row)</span>
+ *       <span class="es-list__actions">(buttons)</span>
+ *     </a>
+ *     <div class="es-list__row" role="button" tabindex="0">...</div>   (no href, with on_click)
+ *     <button type="button" class="es-list__more">Show all 12</button>   (only while folded)
+ *   </div>
+ *
+ * With groups, the root has data-grouped and holds a heading and a box of rows per group:
+ *
+ *   <div class="es-list" data-grouped>
+ *     <div class="es-list__group-head">
+ *       <span class="es-list__group-label">Feedback due</span>
+ *       <span class="es-list__group-count">2</span>
+ *     </div>
+ *     <div class="es-list__group">(rows)</div>
+ *   </div>
+ *
+ * A row is a link when it has an href, otherwise a div. Actions show while the row is
+ * hovered or holds focus, and replace the meta; touch screens always show them. Lists
+ * narrower than 480px drop the meta, and the badge too while actions show; controls stay. Rows are 52px
+ * tall with an avatar, 44px without.
+ */
+
+.es-list,
+.es-list__group {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 1);
+	padding: calc(var(--spacing) * 1);
+	border: 1px solid var(--outline-gray-1);
+	border-radius: var(--radius-lg);
+	container-type: inline-size;
+}
+
+.es-list[data-variant="flat"],
+.es-list[data-variant="flat"] .es-list__group,
+.es-list[data-grouped] {
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+}
+
+.es-list[data-grouped] {
+	display: block;
+}
+
+.es-list__group-head {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1.5);
+	height: calc(var(--spacing) * 8);
+	padding-inline: calc(var(--spacing) * 3);
+	margin-top: calc(var(--spacing) * 4);
+}
+
+.es-list__group-head:first-child {
+	margin-top: 0;
+}
+
+.es-list__group-label {
+	color: var(--ink-gray-7);
+}
+
+.es-list__group-count {
+	color: var(--ink-gray-5);
+	font-variant-numeric: tabular-nums;
+}
+
+.es-list[data-empty] {
+	padding: 0;
+	border: 0;
+}
+
+.es-list__row {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 3);
+	min-height: calc(var(--spacing) * 11);
+	padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+	border-radius: var(--radius-md);
+	color: inherit;
+	text-decoration: none;
+	transition: background-color 150ms ease-out;
+}
+
+.es-list__row[data-avatar] {
+	min-height: calc(var(--spacing) * 13);
+}
+
+.es-list__row:is(a, [role="button"]) {
+	cursor: pointer;
+}
+
+.es-list__row:is(:hover, :focus-within) {
+	background-color: var(--surface-gray-1);
+	color: inherit;
+	text-decoration: none;
+}
+
+.es-list__row[data-selected],
+.es-list__row[data-selected]:is(:hover, :focus-within) {
+	background-color: var(--surface-gray-2);
+}
+
+.es-list__row:focus-visible {
+	outline: 1px solid var(--outline-gray-3);
+	outline-offset: -1px;
+}
+
+/* Inset hairline in the middle of the gap above each row; a hovered or selected tile hides its own and the next. */
+.es-list__row + .es-list__row::before {
+	content: "";
+	position: absolute;
+	inset-block-start: calc(var(--spacing) * -0.5 - 0.5px);
+	inset-inline: calc(var(--spacing) * 3);
+	height: 1px;
+	background-color: var(--outline-gray-1);
+}
+
+.es-list__row:is(:hover, :focus-within, [data-selected])::before,
+.es-list__row:is(:hover, :focus-within, [data-selected]) + .es-list__row::before {
+	display: none;
+}
+
+.es-list__lead {
+	display: flex;
+	flex-shrink: 0;
+	color: var(--ink-gray-5);
+}
+
+/* Reset the global .icon margin, which drifts in flex layouts. */
+.es-list__lead .icon {
+	margin: 0;
+}
+
+.es-list__text {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: calc(var(--spacing) * 16);
+}
+
+.es-list__title,
+.es-list__subtitle {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.es-list__title {
+	font-size: var(--text-base);
+	font-weight: var(--font-weight-medium);
+	color: var(--ink-gray-8);
+}
+
+.es-list__subtitle {
+	font-size: var(--text-p-sm);
+	color: var(--ink-gray-5);
+}
+
+.es-list__meta {
+	flex-shrink: 0;
+	font-size: var(--text-p-sm);
+	color: var(--ink-gray-5);
+	white-space: nowrap;
+}
+
+.es-list__badge {
+	min-width: 0;
+}
+
+.es-list__controls {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+}
+
+.es-list__actions {
+	display: none;
+	flex-shrink: 0;
+	gap: calc(var(--spacing) * 2);
+}
+
+.es-list__row:is(:hover, :focus-within) .es-list__actions {
+	display: flex;
+}
+
+.es-list__row[data-has-actions]:is(:hover, :focus-within) .es-list__meta {
+	display: none;
+}
+
+.es-list__more {
+	display: block;
+	width: 100%;
+	padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+	border: 0;
+	border-radius: var(--radius-md);
+	background: none;
+	appearance: none;
+	font: inherit;
+	font-size: var(--text-p-sm);
+	color: var(--ink-gray-6);
+	text-align: center;
+	cursor: pointer;
+	outline: none;
+	transition: background-color 150ms ease-out;
+}
+
+.es-list__more:hover {
+	background-color: var(--surface-gray-1);
+	color: var(--ink-gray-8);
+}
+
+.es-list__more:focus-visible {
+	outline: var(--focus-outline-default);
+	outline-offset: -2px;
+}
+
+@media (hover: none) {
+	.es-list__actions {
+		display: flex;
+	}
+}
+
+@container (max-width: 480px) {
+	.es-list__meta,
+	.es-list__row[data-has-actions]:is(:hover, :focus-within) .es-list__badge {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.es-list__row,
+	.es-list__more {
+		transition: none;
+	}
+}

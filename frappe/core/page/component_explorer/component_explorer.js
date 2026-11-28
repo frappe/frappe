@@ -26,6 +26,21 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			)
 		);
 
+	// sample rows for the List examples
+	const APPLICANTS = [
+		["jane", "Jane Cooper", "Referred by Alex Morgan", "2d ago"],
+		["wade", "Wade Warren", "wade@example.com", "6d ago"],
+		["esther", "Esther Howard", "esther@example.com", "9d ago"],
+	].map(([id, title, subtitle, meta]) => ({
+		id,
+		title,
+		subtitle,
+		meta,
+		avatar: { label: title },
+		href: `/desk/job-applicant/${id}`,
+	}));
+	const [JANE, WADE, ESTHER] = APPLICANTS;
+
 	// the quick entry example's fields, read back by its Save action
 	let explorer_todo_fields;
 	let explorer_contact_fields;
@@ -1768,6 +1783,181 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		List: {
+			helper: "frappe.ui.list",
+			wide: true,
+			stacked: true,
+			groups: [
+				{
+					title: __("Rows (avatar, meta, badge and hover actions)"),
+					items: [
+						{
+							__code: 'frappe.ui.list({\n  items: [\n    { id: "jane", title: "Jane Cooper", subtitle: "Referred by Alex Morgan", meta: "2d ago",\n      avatar: { label: "Jane Cooper" }, href: "/desk/job-applicant/jane",\n      actions: [\n        { label: "Shortlist", onclick: (item, list) => list.update_item(item.id, { badge: { label: "Shortlisted", theme: "green" }, actions: [] }) },\n        { label: "Reject", variant: "ghost", theme: "red", onclick: (item, list) => list.remove_item(item.id) },\n      ] },\n    { id: "wade", title: "Wade Warren", subtitle: "wade@example.com", meta: "6d ago", avatar: { label: "Wade Warren" }, badge: { label: "On hold" }, href: "/desk/job-applicant/wade" },\n  ],\n  on_click: (item, list, event) => { event.preventDefault(); open_applicant(item.id); },\n})',
+							on_click: (item, list, event) => {
+								event.preventDefault();
+								frappe.ui.toast({ message: `Opened ${item.title}` });
+							},
+							items: [
+								{
+									...JANE,
+									actions: [
+										{
+											label: "Shortlist",
+											onclick: (item, list) =>
+												list.update_item(item.id, {
+													badge: {
+														label: "Shortlisted",
+														theme: "green",
+													},
+													actions: [],
+												}),
+										},
+										{
+											label: "Reject",
+											variant: "ghost",
+											theme: "red",
+											onclick: (item, list) => list.remove_item(item.id),
+										},
+									],
+								},
+								{ ...WADE, badge: { label: "On hold" } },
+								{
+									...ESTHER,
+									title: "Esther Howard-Montgomery-Featherstonehaugh the Third of Westminster",
+									subtitle:
+										"Referred by Alexander Montgomery-Featherstonehaugh from the Engineering department",
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Controls (always visible; a click on them never opens the row)"),
+					items: [
+						{
+							__code: 'frappe.ui.list({\n  items: applicants.map((applicant) => ({\n    ...applicant,\n    stage: "Applied",\n    controls: (item, list) =>\n      frappe.ui.dropdown({\n        button: { label: item.stage, size: "sm", icon_right: "chevron-down" },\n        options: stages.map((stage) => ({\n          label: stage,\n          onclick: () => list.update_item(item.id, { stage }),\n        })),\n      }),\n  })),\n  on_click: (item, list, event) => { event.preventDefault(); open_applicant(item.id); },\n})',
+							on_click: (item, list, event) => {
+								event.preventDefault();
+								frappe.ui.toast({ message: `Opened ${item.title}` });
+							},
+							items: APPLICANTS.map((applicant) => ({
+								...applicant,
+								stage: "Applied",
+								controls: (item, list) =>
+									frappe.ui.dropdown({
+										button: {
+											label: item.stage,
+											size: "sm",
+											icon_right: "chevron-down",
+										},
+										options: ["Applied", "Shortlisted", "Rejected"].map(
+											(stage) => ({
+												label: stage,
+												onclick: () =>
+													list.update_item(item.id, { stage }),
+											})
+										),
+									}),
+							})),
+						},
+					],
+				},
+				{
+					title: __("Flat variant (inside a pane, no box)"),
+					items: [
+						{
+							__code: 'new frappe.ui.List({\n  variant: "flat",\n  items: applicants,\n})',
+							variant: "flat",
+							items: APPLICANTS,
+						},
+					],
+				},
+				{
+					title: __("Grouped rows (a heading and count per group)"),
+					items: [
+						{
+							__code: 'new frappe.ui.List({\n  groups: [\n    { id: "due", label: "Feedback due", count: 2 },\n    { id: "cleared", label: "Cleared", count: 1 },\n  ],\n  items: [\n    { id: "jane", group: "due", title: "Jane Cooper", subtitle: "Panel on 12 Nov" },\n    ...\n  ],\n})',
+							groups: [
+								{ id: "due", label: "Feedback due", count: 2 },
+								{ id: "cleared", label: "Cleared", count: 1 },
+							],
+							items: [
+								["jane", "due", "Jane Cooper", "Panel on 12 Nov"],
+								["wade", "due", "Wade Warren", "Panel on 13 Nov"],
+								["esther", "cleared", "Esther Howard", "Cleared by Alex Morgan"],
+							].map(([id, group, title, subtitle]) => ({
+								id,
+								group,
+								title,
+								subtitle,
+								avatar: { label: title },
+								href: `/desk/job-applicant/${id}`,
+							})),
+						},
+					],
+				},
+				{
+					title: __("Selected row (the caller owns the state)"),
+					items: [
+						{
+							__code: 'const list = new frappe.ui.List({\n  items: applicants,\n  selected: "wade",\n  on_click: (item, list, event) => {\n    event.preventDefault();\n    list.set_selected(item.id);\n  },\n});\nlist.get_selected();  // "wade"\nlist.set_selected(null);  // clear',
+							selected: "wade",
+							on_click: (item, list, event) => {
+								event.preventDefault();
+								list.set_selected(item.id);
+							},
+							items: [JANE, { ...WADE, badge: { label: "On hold" } }, ESTHER],
+						},
+					],
+				},
+				{
+					title: __("Folds after max"),
+					items: [
+						{
+							__code: 'frappe.ui.list({\n  items: openings,  // 7 rows\n  max: 3,\n  more_label: __("Show all {0}"),\n})',
+							max: 3,
+							items: [
+								[
+									"Software Engineer",
+									"Engineering · Mumbai",
+									"3 new · 1 of 2 hired",
+								],
+								["Product Designer", "Design · Remote", "1 hired"],
+								["Account Executive", "Sales · Delhi", "5 new · 0 of 3 hired"],
+								["HR Generalist", "People", "2 new"],
+								["Data Analyst", "Finance · Pune", "1 of 1 hired"],
+								["Support Lead", "Customer Success", "4 new"],
+								["Office Manager", "Admin · Mumbai", "0 of 1 hired"],
+							].map(([title, subtitle, meta], index) => ({
+								id: `opening-${index}`,
+								title,
+								subtitle,
+								meta,
+								icon: "briefcase",
+								badge:
+									index === 2
+										? { label: "Closes in 3 days", theme: "amber" }
+										: undefined,
+							})),
+						},
+					],
+				},
+				{
+					title: __("Empty (shows an empty state instead of the box)"),
+					items: [
+						{
+							items: [],
+							empty: {
+								icon: "users",
+								title: "No new applicants",
+								description:
+									"Applications from the job post and ones you add land here.",
+							},
+						},
+					],
+				},
+			],
+		},
 		Progress: {
 			helper: "frappe.ui.progress",
 			wide: true,
@@ -1835,6 +2025,42 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							},
 						},
 					],
+				},
+			],
+		},
+		Rating: {
+			helper: "frappe.ui.rating",
+			html: (opts) => frappe.ui.rating.html(opts),
+			groups: [
+				{
+					title: __("Values"),
+					items: [
+						{ value: 5 },
+						{ value: 4 },
+						{ value: 3.7, __note: "rounds to 4 stars" },
+						{ value: 0 },
+					],
+				},
+				{
+					title: __("Sizes"),
+					caption: "size",
+					items: [
+						{ value: 4, size: "xs" },
+						{ value: 4, size: "sm", __note: "sm is the default" },
+						{ value: 4, size: "md" },
+						{ value: 4, size: "lg" },
+					],
+				},
+				{
+					title: __("Half steps"),
+					items: [
+						{ value: 3.5, step: 0.5 },
+						{ value: 3.7, step: 0.5, __note: "rounds to 3.5" },
+					],
+				},
+				{
+					title: __("Max"),
+					items: [{ value: 7, max: 10, size: "xs" }],
 				},
 			],
 		},
