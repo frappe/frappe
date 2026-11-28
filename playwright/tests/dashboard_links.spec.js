@@ -118,6 +118,7 @@ test.describe("Dashboard links", () => {
 		await page.goto(`/desk/${doctype_to_link_name.toLowerCase().replaceAll(" ", "-")}`);
 		const filters = await page.evaluate(async (doctype) => {
 			await frappe.model.with_doctype(doctype);
+			await frappe.require("connections_dialog.bundle.js");
 			const dialog = Object.create(frappe.ui.form.ConnectionsDialog.prototype);
 			const with_link = (fieldname) => {
 				dialog.dashboard = {

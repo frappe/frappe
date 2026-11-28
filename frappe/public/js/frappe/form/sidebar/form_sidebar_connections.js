@@ -1,5 +1,3 @@
-import "../connections_dialog";
-
 const SHOWN_IN_SIDEBAR = 4;
 
 // doctype icons can be lucide names, legacy "fa fa-*" classes or empty
@@ -105,6 +103,8 @@ frappe.ui.form.SidebarConnections = class SidebarConnections {
 	}
 
 	open_dialog(doctype) {
-		new frappe.ui.form.ConnectionsDialog({ frm: this.frm, doctype });
+		frappe
+			.require("connections_dialog.bundle.js")
+			.then(() => new frappe.ui.form.ConnectionsDialog({ frm: this.frm, doctype }));
 	}
 };
