@@ -204,6 +204,26 @@ class TestSearch(IntegrationTestCase):
 			add_images(rows, "User")
 		self.assertNotIn("image", rows[0])
 
+	def test_search_link_include_image_when_image_column_is_dropped(self):
+		# get_list drops columns the user can't read, so rows may have only `name`
+		test_user = "test_search_image_limited@example.com"
+		if not frappe.db.exists("User", test_user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Test Search Image Limited",
+					"user_type": "System User",
+					"roles": [{"role": "Desk User"}],
+				}
+			).insert(ignore_permissions=True)
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+
+		with self.set_user(test_user):
+			rows = search_link(doctype="User", txt=test_user, include_image=True)
+
+		self.assertIn(test_user, [row["value"] for row in rows])
+
 	def test_image_field_behind_a_permlevel_is_not_returned(self):
 		from frappe.desk.search import get_image_field
 
