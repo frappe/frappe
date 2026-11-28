@@ -1134,7 +1134,7 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		with test_user(roles=[]) as user, self.assertRaises(frappe.ValidationError):
 			frappe.rename_doc("User", user.name, f"{user.name}.invalid")
 
-	def test_email_patch_moves_administrators_email_off_a_users_id(self):
+	def test_email_patch_resets_a_standard_users_email_that_a_users_id_has(self):
 		from frappe.patches.v16_0.set_user_email_from_name import execute
 
 		frappe.db.savepoint("email_patch")
@@ -1146,17 +1146,60 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			user.flags.skip_email_from_name = True
 			user.insert(set_name=name)
 
-		# a changed email is left alone: migrate stops
-		frappe.db.set_value("User", "Administrator", "email", "_test_owner@example.com")
-		add_user_named("_test_owner@example.com")
-		self.assertRaises(frappe.ValidationError, execute)
-		frappe.db.set_value("User", "Administrator", "email", "admin@example.com")
-		frappe.delete_doc("User", "_test_owner@example.com", force=True, ignore_permissions=True)
+		def alerts_to(user):
+			return frappe.get_all(
+				"Notification Log", {"for_user": user, "type": "Alert"}, pluck="email_content"
+			)
 
-		add_user_named("admin@example.com")
-		execute()
-		self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
-		self.assertEqual(frappe.db.get_value("User", "admin@example.com", "email"), "admin@example.com")
+		with test_user(roles=["System Manager"]) as system_manager:
+			# a user signed up with Administrator's default email: no alert, it never got mail
+			add_user_named("admin@example.com")
+			execute()
+			self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
+			self.assertEqual(frappe.db.get_value("User", "admin@example.com", "email"), "admin@example.com")
+			self.assertEqual(alerts_to(system_manager.name), [])
+
+			frappe.db.set_value("User", "Administrator", "email", "_test_owner@example.com")
+			frappe.db.set_value("User", "Guest", "email", "_test_guest@example.com")
+			add_user_named("_test_owner@example.com")
+			add_user_named("_test_guest@example.com")
+			with self.change_settings("System Settings", enable_two_factor_auth=1, two_factor_method="Email"):
+				execute()
+
+			self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
+			self.assertEqual(frappe.db.get_value("User", "Guest", "email"), "guest@example.com")
+			self.assertEqual(
+				frappe.db.get_value("User", "_test_owner@example.com", "email"), "_test_owner@example.com"
+			)
+			(alert,) = alerts_to(system_manager.name)
+			self.assertIn("_test_owner@example.com", alert)
+			self.assertIn("browse --user Administrator", alert)
+			self.assertIn("_test_owner+admin@example.com", alert)
+
+	def test_email_patch_alert_leaves_out_2fa_by_sms(self):
+		from frappe.patches.v16_0.set_user_email_from_name import execute
+
+		frappe.db.savepoint("email_patch")
+		self.addCleanup(frappe.db.rollback, save_point="email_patch")
+
+		with test_user(roles=["System Manager"]) as system_manager:
+			frappe.db.set_value("User", "Administrator", "email", "_test_owner@example.com")
+			user = frappe.new_doc("User", email=f"_test_{frappe.generate_hash(length=6)}@example.com")
+			user.first_name = "Owner"
+			user.flags.skip_email_from_name = True
+			user.insert(set_name="_test_owner@example.com")
+			with self.change_settings("System Settings", enable_two_factor_auth=1):
+				# saving SMS as the method needs SMS Settings set up
+				frappe.db.set_single_value("System Settings", "two_factor_method", "SMS")
+				frappe.local.system_settings = None
+				execute()
+
+			self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@example.com")
+			(alert,) = frappe.get_all(
+				"Notification Log", {"for_user": system_manager.name, "type": "Alert"}, pluck="email_content"
+			)
+			self.assertIn("won't get mail", alert)
+			self.assertNotIn("browse", alert)
 
 	def test_users_are_found_by_email(self):
 		from frappe.core.doctype.user.user import user_query
