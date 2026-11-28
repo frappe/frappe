@@ -4,8 +4,7 @@ frappe.ui.form.Attachments = class Attachments {
 	constructor(opts) {
 		$.extend(this, opts);
 
-		this.attachments_page_length = 10; // show n attachments initially
-		this.show_all_attachments = false;
+		this.attachments_page_length = 3; // show n attachments, then "N more"
 		this.attachment_preview_width_key = "form_attachment_preview_width";
 		this.max_csv_preview_size = 5 * 1024 * 1024;
 		this.attachment_preview_width = this.get_stored_preview_width();
@@ -62,9 +61,10 @@ frappe.ui.form.Attachments = class Attachments {
 			.toggle(!max_reached && this.frm.has_perm("write"));
 
 		// add attachment objects
-		var attachments = this.get_attachments();
+		var attachments = frappe.utils.sort(this.get_attachments().slice(), "creation", "string");
 		this.render_attachments(attachments);
 		this.setup_show_all_button(attachments);
+		if (this.all_dialog?.display) this.render_all_dialog_list();
 		this.notify_change();
 	}
 
@@ -73,22 +73,24 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	setup_show_all_button(attachments) {
-		// show button if there is more to show and user has not clicked on "Show All"
-		let is_slicable = attachments.length > this.attachments_page_length;
-		let show = !this.show_all_attachments && is_slicable;
-
 		let show_all_btn = this.parent.find(".show-all-btn");
-		if (!show) {
+		if (attachments.length <= this.attachments_page_length) {
 			show_all_btn.addClass("hidden");
 			return;
 		}
 
-		show_all_btn.removeClass("hidden");
-		show_all_btn.click(() => {
-			show_all_btn.addClass("hidden");
-			this.show_all_attachments = true;
-			this.refresh();
+		show_all_btn
+			.removeClass("hidden")
+			.find(".pill-label")
+			.text(__("{0} more", [attachments.length - this.attachments_page_length]));
+		show_all_btn.off("click").on("click", (e) => {
+			e.preventDefault();
+			this.show_all_dialog();
 		});
+	}
+
+	show_all_dialog() {
+		frappe.require("attachments_dialog.bundle.js").then(() => this.make_all_dialog());
 	}
 
 	get_attachments() {
@@ -99,8 +101,7 @@ frappe.ui.form.Attachments = class Attachments {
 		var me = this;
 		let attachments_to_render = attachments;
 
-		let is_slicable = attachments.length > this.attachments_page_length;
-		if (!this.show_all_attachments && is_slicable) {
+		if (attachments.length > this.attachments_page_length) {
 			// render last n attachments as they are at the top
 			let start = attachments.length - this.attachments_page_length;
 			attachments_to_render = attachments.slice(start, attachments.length);
@@ -122,14 +123,15 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	add_attachment(attachment) {
+		this.make_attachment_row(attachment).insertAfter(this.add_attachment_wrapper);
+	}
+
+	make_attachment_row(attachment) {
 		var file_name = attachment.file_name;
 		var file_url = this.get_file_url(attachment);
-		var fileid = attachment.name;
 		if (!file_name) {
 			file_name = file_url;
 		}
-
-		var me = this;
 
 		let file_label = `
 			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
@@ -138,39 +140,120 @@ frappe.ui.form.Attachments = class Attachments {
 				<span>${frappe.utils.xss_sanitise(file_name)}</span>
 			</a>`;
 
-		let remove_action = null;
-		if (this.can_delete_attachment()) {
-			remove_action = function (target_id) {
-				frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
-					let target_attachment = me
-						.get_attachments()
-						.find((attachment) => attachment.name === target_id);
-					let to_be_removed = me
-						.get_attachments()
-						.filter(
-							(attachment) => attachment.file_name === target_attachment.file_name
-						);
-					to_be_removed.forEach((attachment) => me.remove_attachment(attachment.name));
-				});
-				return false;
-			};
-		}
+		const visibility = attachment.is_private ? __("Private") : __("Public");
+		const icon = `<span class="attachment-icon" title="${visibility}" aria-label="${visibility}">
+				${frappe.utils.icon(attachment.is_private ? "lock" : "globe", "sm ml-0")}
+			</span>`;
 
-		const icon = `<a href="/desk/file/${fileid}" class="attachment-icon">
-				${frappe.utils.icon(attachment.is_private ? "lock" : "lock-open", "sm ml-0")}
-			</a>`;
+		// a div rather than the data pill's button, so the menu button can sit inside it
+		let $attachment_row = $(`<div class="attachment-row">
+				<div class="data-pill">
+					<div class="flex align-center ellipsis">
+						${icon}
+						<span class="pill-label ellipsis">${file_label}</span>
+					</div>
+				</div>
+			</div>`);
 
-		let $attachment_row = $(`<div class="attachment-row"></div>`)
-			.append(frappe.get_data_pill(file_label, fileid, remove_action, icon))
-			.insertAfter(this.add_attachment_wrapper);
+		const menu = new frappe.ui.Dropdown({
+			button: {
+				icon: "ellipsis",
+				variant: "ghost",
+				size: "xs",
+				tooltip: __("Actions"),
+				css_class: "attachment-actions",
+			},
+			align: "end",
+			options: () => this.get_attachment_actions(attachment, file_url),
+		});
+		$attachment_row.find(".data-pill").append(menu.$trigger);
 
-		$attachment_row.find(".attachment-file-label").on("click", (event) => {
-			if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
+		$attachment_row.find(".data-pill").on("click", (event) => {
+			if ($(event.target).closest(".attachment-actions").length) return;
+			if (
+				$(event.target).closest("a").length &&
+				(event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
+			) {
 				return;
 			}
-
 			event.preventDefault();
+			this.all_dialog?.hide();
 			this.show_attachment_preview(attachment, file_url);
+		});
+		return $attachment_row;
+	}
+
+	get_attachment_actions(attachment, file_url) {
+		return [
+			{
+				label: __("Preview"),
+				icon: "eye",
+				onclick: () => {
+					this.all_dialog?.hide();
+					this.show_attachment_preview(attachment, file_url);
+				},
+			},
+			{
+				label: __("Open in new tab"),
+				icon: "arrow-up-right",
+				href: file_url,
+				target: "_blank",
+			},
+			{
+				label: attachment.is_private ? __("Make public") : __("Make private"),
+				icon: attachment.is_private ? "globe" : "lock",
+				condition: () => this.can_delete_attachment(),
+				onclick: () => this.toggle_attachment_privacy(attachment),
+			},
+			{
+				label: __("Delete"),
+				icon: "trash-2",
+				theme: "red",
+				condition: () => this.can_delete_attachment(),
+				onclick: () => this.delete_attachment(attachment),
+			},
+		];
+	}
+
+	toggle_attachment_privacy(attachment) {
+		const name = attachment.file_name;
+		const make_private = !attachment.is_private;
+		const request = frappe
+			.xcall("frappe.client.set_value", {
+				doctype: "File",
+				name: attachment.name,
+				fieldname: "is_private",
+				value: make_private ? 1 : 0,
+			})
+			.then((file) => {
+				Object.assign(attachment, {
+					is_private: file.is_private,
+					file_url: file.file_url,
+				});
+				// the server also points the document's Attach field at the moved file
+				if (file.attached_to_field) {
+					this.frm.reload_doc();
+				} else {
+					this.refresh();
+				}
+			});
+		return frappe.ui.toast.promise(request, {
+			loading: make_private
+				? __("Making {0} private...", [name])
+				: __("Making {0} public...", [name]),
+			success: make_private
+				? __("{0} is now private", [name])
+				: __("{0} is now public", [name]),
+			error: __("Could not change who can see {0}", [name]),
+		});
+	}
+
+	delete_attachment(attachment) {
+		frappe.confirm(__("Are you sure you want to delete the attachment?"), () => {
+			// files attached twice under one name go together
+			this.get_attachments()
+				.filter((a) => a.file_name === attachment.file_name)
+				.forEach((a) => this.remove_attachment(a.name));
 		});
 	}
 
@@ -250,6 +333,16 @@ frappe.ui.form.Attachments = class Attachments {
 						>
 							${frappe.utils.icon("arrow-up-right", "sm", "", "", "", true)}
 						</a>
+						${
+							attachment.name
+								? frappe.ui.button.html({
+										icon: "file-text",
+										variant: "ghost",
+										title: __("Open file record"),
+										css_class: "attachment-preview-file-record",
+								  })
+								: ""
+						}
 						${frappe.ui.button.html({
 							icon: "copy",
 							variant: "ghost",
@@ -273,6 +366,10 @@ frappe.ui.form.Attachments = class Attachments {
 
 		this.attachment_preview.find(".attachment-preview-close").on("click", () => {
 			this.hide_attachment_preview();
+		});
+
+		this.attachment_preview.find(".attachment-preview-file-record").on("click", () => {
+			frappe.set_route("Form", "File", attachment.name);
 		});
 
 		this.attachment_preview.find(".attachment-preview-copy-link").on("click", (event) => {
@@ -656,6 +753,14 @@ frappe.ui.form.Attachments = class Attachments {
 	remove_attachment_by_filename(filename, callback) {
 		this.remove_attachment(this.get_file_id_from_file_url(filename), callback);
 	}
+	get_remove_request(fileid) {
+		return {
+			method: "frappe.desk.form.utils.remove_attach",
+			type: "DELETE",
+			args: { fid: fileid, dt: this.frm.doctype, dn: this.frm.docname },
+		};
+	}
+
 	remove_attachment(fileid, callback) {
 		if (!fileid) {
 			if (callback) callback();
@@ -664,13 +769,7 @@ frappe.ui.form.Attachments = class Attachments {
 
 		var me = this;
 		return frappe.call({
-			method: "frappe.desk.form.utils.remove_attach",
-			type: "DELETE",
-			args: {
-				fid: fileid,
-				dt: me.frm.doctype,
-				dn: me.frm.docname,
-			},
+			...this.get_remove_request(fileid),
 			callback: function (r, rt) {
 				if (r.exc) {
 					if (!r._server_messages) frappe.msgprint(__("There were errors"));
