@@ -488,8 +488,13 @@ frappe.views.CommunicationComposer = class {
 		});
 	}
 
+	get_template_doctype() {
+		return this.frm?.doctype || this.doc?.doctype;
+	}
+
 	make_template_dropdown() {
-		return frappe.ui.dropdown({
+		const template_names = this.frm ? null : this.get_email_template_names();
+		const $dropdown = frappe.ui.dropdown({
 			button: {
 				label: __("Use template"),
 				variant: "ghost",
@@ -498,17 +503,24 @@ frappe.views.CommunicationComposer = class {
 			align: "end",
 			empty_text: __("No templates"),
 			options: () =>
-				this.get_email_template_names().then((names) =>
+				(template_names || this.get_email_template_names()).then((names) =>
 					names.map((name) => ({
 						label: name,
 						onclick: () => this.apply_email_template(name),
 					}))
 				),
 		});
+
+		if (template_names) {
+			$dropdown.addClass("hidden");
+			template_names.then((names) => $dropdown.toggleClass("hidden", !names.length));
+		}
+		return $dropdown;
 	}
 
 	get_email_template_names() {
-		if (!this.frm?.doctype) {
+		const doctype = this.get_template_doctype();
+		if (!doctype) {
 			return frappe.db
 				.get_list("Email Template", { fields: ["name"], order_by: "name", limit: 0 })
 				.then((rows) => (rows || []).map((row) => row.name));
@@ -521,7 +533,7 @@ frappe.views.CommunicationComposer = class {
 				searchfield: "name",
 				start: 0,
 				page_len: 0,
-				filters: { reference_doctype: this.frm.doctype },
+				filters: { reference_doctype: doctype },
 			})
 			.then((rows) => (rows || []).map(([name]) => name));
 	}
@@ -562,10 +574,11 @@ frappe.views.CommunicationComposer = class {
 				options: "Email Template",
 				fieldname: "email_template",
 				get_query: function () {
-					if (me.frm?.doctype) {
+					const doctype = me.get_template_doctype();
+					if (doctype) {
 						return {
 							query: "frappe.email.doctype.email_template.email_template.get_email_templates",
-							filters: { reference_doctype: me.frm.doctype },
+							filters: { reference_doctype: doctype },
 						};
 					}
 				},
