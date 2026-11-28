@@ -89,6 +89,14 @@ def table_dimension() -> int | None:
 	return int(shape) if shape else None
 
 
+def indexed_sources() -> set[str]:
+	"""Sources with at least one row in the store."""
+	with _connect() as db:
+		if _shape(db, TABLE_NAME) is None:
+			return set()
+		return {row[0] for row in db.execute(f"select distinct source from {TABLE_NAME}")}
+
+
 def ensure_table_for_dimension(dimension: int) -> None:
 	"""Create the chunks table for the given vector width if it is missing.
 

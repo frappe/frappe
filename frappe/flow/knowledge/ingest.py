@@ -24,18 +24,21 @@ CHUNK_DOCTYPE = "Flow Knowledge Chunk"
 BATCH = 500
 
 
-def enqueue_ingestion(source: str, rebuild: bool = False) -> None:
+def enqueue_ingestion(source: str, rebuild: bool = False, deduplicate: bool = False) -> None:
 	frappe.enqueue(
 		"frappe.flow.knowledge.ingest.ingest_source",
 		queue="long",
 		enqueue_after_commit=True,
+		job_id=f"flow-knowledge-ingest-{source}" if deduplicate else None,
+		deduplicate=deduplicate,
 		source=source,
 		rebuild=rebuild,
 	)
 
 
 def sync_due_sources() -> None:
-	"""Daily scheduler: enqueue an incremental sweep for every auto-sync DocType source."""
+	"""Daily scheduler: rebuild sources missing from the vector store and enqueue an incremental
+	sweep for every other auto-sync DocType source."""
 	from frappe.flow.knowledge import store
 
 	# backups leave out the vector store, so a restored site has chunks but no table
@@ -43,12 +46,22 @@ def sync_due_sources() -> None:
 		for source in frappe.get_all("Flow Knowledge Source", pluck="name"):
 			enqueue_ingestion(source, rebuild=True)
 		return
+
+	missing = set()
+	# a rebuild purges chunks before a store of another width rejects the new ones
+	if store.table_dimension() == cint(frappe.get_cached_doc("Flow Knowledge Settings").embedding_dimension):
+		completed = frappe.get_all(
+			"Flow Knowledge Source", filters={"status": "Completed", "chunk_count": [">", 0]}, pluck="name"
+		)
+		missing = set(completed) - store.indexed_sources()
+	for source in missing:
+		enqueue_ingestion(source, rebuild=True, deduplicate=True)
 	sources = frappe.get_all(
 		"Flow Knowledge Source",
 		filters={"source_type": "DocType", "auto_sync": 1},
 		pluck="name",
 	)
-	for source in sources:
+	for source in set(sources) - missing:
 		enqueue_ingestion(source)
 
 
