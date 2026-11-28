@@ -1,8 +1,13 @@
 import re
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import frappe
 from frappe.utils.data import cint, cstr
+
+if TYPE_CHECKING:
+	from pypdf import PdfWriter
+
+	from frappe.model.document import Document
 
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
@@ -74,6 +79,43 @@ def _run_print_pdf_hooks(doctype, name, print_format):
 		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
 
+def run_after_print(
+	doc: "Document", pdf: bytes, password: str | None = None, output: "PdfWriter | None" = None
+) -> "bytes | PdfWriter":
+	if hasattr(doc, "after_print"):
+		pdf = doc.after_print(pdf) or pdf
+
+	hooks = frappe.get_doc_hooks()
+	frappe.db._disable_transaction_control += 1
+	try:
+		for path in hooks.get(doc.doctype, {}).get("after_print", []) + hooks.get("*", {}).get(
+			"after_print", []
+		):
+			pdf = frappe.get_attr(path)(doc, "after_print", pdf) or pdf
+	finally:
+		frappe.db._disable_transaction_control -= 1
+
+	if password and output is None:
+		from frappe.utils.pdf import encrypt_pdf
+
+		pdf = encrypt_pdf(pdf, password)
+
+	if output is None:
+		return pdf
+
+	from io import BytesIO
+
+	from pypdf import PdfReader
+
+	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
+
+	reader = PdfReader(BytesIO(pdf))
+	first_new_page = len(output.pages)
+	output.append_pages_from_reader(reader)
+	PDFTransformer.resolve_internal_links(output, reader, first_new_page)
+	return output
+
+
 def get_print(
 	doctype=None,
 	name=None,
@@ -107,6 +149,7 @@ def get_print(
 
 	from frappe.utils.pdf import get_pdf
 	from frappe.website.serve import get_response_without_exception_handling
+	from frappe.www.printview import get_print_doc
 
 	local = frappe.local
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
@@ -116,6 +159,7 @@ def get_print(
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
+		doc = doc or get_print_doc(doctype, name)
 		local.form_dict.pdf_generator = generator
 		local.form_dict.doctype = doctype
 		local.form_dict.name = name
@@ -139,27 +183,25 @@ def get_print(
 			and ((pf_doc is None and standard_pdf_options) or (pf_doc and uses_beta_renderer(pf_doc)))
 		):
 			from frappe.core.doctype.access_log.access_log import make_access_log
-			from frappe.model.document import Document
 			from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
 			from frappe.www.printview import validate_print
 
-			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
-			validate_print(doc_obj)
+			validate_print(doc)
 			_run_print_pdf_hooks(doctype, name, print_format)
-			render_format = pf_doc or get_default_print_format(doc_obj.doctype)
+			render_format = pf_doc or get_default_print_format(doc.doctype)
 			pdf = _render_builder_pdf(
 				render_format,
-				doc_obj,
+				doc,
 				letterhead,
 				no_letterhead,
-				pdf_options.get("password"),
+				None if output else pdf_options.get("password"),
 				style,
 				settings=settings,
 				pdf_generator=generator,
 			)
 			make_access_log(
-				doctype=doc_obj.doctype,
-				document=doc_obj.name,
+				doctype=doc.doctype,
+				document=doc.name,
 				file_type="PDF",
 				method="Print",
 				page=f"Print Format: {render_format.name}",
@@ -183,6 +225,9 @@ def get_print(
 		_run_print_pdf_hooks(doctype, name, print_format)
 
 		hook_func = frappe.get_hooks("pdf_generator")
+		options_with_password = dict(pdf_options)
+		password = pdf_options.pop("password", None)
+		is_frappe_generator = generator in ("chrome", "PlutoPrint", "Typst")
 		for hook in hook_func:
 			"""
 			check pdf_generator value in your hook function.
@@ -193,12 +238,14 @@ def get_print(
 				hook,
 				print_format=print_format,
 				html=html,
-				options=pdf_options,
-				output=output,
+				options=pdf_options if generator in HTML_PDF_GENERATORS else options_with_password,
+				output=None if is_frappe_generator else output,
 				pdf_generator=generator,
 			)
 			# if hook returns a value, assume it was the correct pdf_generator and return it
 			if pdf:
+				if is_frappe_generator:
+					return run_after_print(doc=doc, pdf=pdf, password=password, output=output)
 				if output and isinstance(pdf, bytes):
 					from io import BytesIO
 
@@ -210,7 +257,8 @@ def get_print(
 					return output
 				return pdf
 
-		return get_pdf(html, options=pdf_options, output=output, print_format=print_format)
+		pdf = get_pdf(html, options=pdf_options, output=None, print_format=print_format)
+		return run_after_print(doc=doc, pdf=pdf, password=password, output=output)
 	finally:
 		local.form_dict = original_form_dict
 
@@ -277,7 +325,9 @@ def attach_print(
 			if cint(print_settings.send_print_as_pdf):
 				ext = ".pdf"
 				if html:
-					content = get_pdf(html, options={"password": password} if password else None)
+					doc_obj = doc or frappe.get_doc(doctype, name)
+					pdf = get_pdf(html)
+					content = run_after_print(doc=doc_obj, pdf=pdf, password=password)
 				elif render_via_generator:
 					from frappe.core.doctype.access_log.access_log import make_access_log
 					from frappe.www.printview import validate_print_for_docstatus

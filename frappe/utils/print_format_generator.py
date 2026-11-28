@@ -15,6 +15,7 @@ from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones, zone_repeats, zone_show_on
 from frappe.utils.data import cint, cstr, flt
 from frappe.utils.jinja_globals import is_rtl
+from frappe.utils.print_utils import run_after_print
 
 ZONE_PAGE_CLASSES = {
 	"first_page": "visible-first-page",
@@ -720,6 +721,7 @@ class PrintFormatGenerator:
 		pf = self.print_format
 		generator_name = resolve_pdf_generator(pf, pdf_generator)
 		if generator_name not in HTML_PDF_GENERATORS:
+			is_frappe_generator = generator_name == "Typst"
 			previous = getattr(frappe.local, "print_format_generator", None)
 			frappe.local.print_format_generator = self
 			try:
@@ -735,6 +737,8 @@ class PrintFormatGenerator:
 						pdf_generator=generator_name,
 					)
 					if pdf:
+						if is_frappe_generator:
+							return run_after_print(self.doc, pdf, password=password)
 						return pdf
 			finally:
 				frappe.local.print_format_generator = previous
@@ -756,18 +760,14 @@ class PrintFormatGenerator:
 		}
 		if self._header_absorbs_top_margin:
 			options["header-includes-top-margin"] = True
-		if password:
-			options["password"] = password
 		options.update(self.page_options())
 		background = self.layout.get("background")
-		if background:
-			options.pop("password", None)
 		pdf = render_html_pdf(pf.name, html, options, generator_name)
-		return self.underlay_background(pdf, background, password, generator_name) if background else pdf
+		if background:
+			pdf = self.underlay_background(pdf, background, pdf_generator=generator_name)
+		return run_after_print(self.doc, pdf, password=password)
 
-	def underlay_background(
-		self, pdf: bytes, background: dict, password: str | None = None, pdf_generator: str = "chrome"
-	) -> bytes:
+	def underlay_background(self, pdf: bytes, background: dict, pdf_generator: str = "chrome") -> bytes:
 		"""Draw the page background under every page of ``pdf``, edge to edge."""
 		from io import BytesIO
 
@@ -786,8 +786,6 @@ class PrintFormatGenerator:
 		writer = PdfWriter(clone_from=BytesIO(pdf))
 		for page in writer.pages:
 			page.merge_page(background_page, over=False)
-		if password:
-			writer.encrypt(password)
 		out = BytesIO()
 		writer.write(out)
 		return out.getvalue()
@@ -825,7 +823,6 @@ class PrintFormatGenerator:
 
 		import typst
 
-		from frappe.utils.pdf import encrypt_pdf
 		from frappe.utils.typst_emitter import (
 			TypstEmitter,
 			ensure_typst_fonts,
@@ -915,8 +912,6 @@ class PrintFormatGenerator:
 					_("This document cannot be printed as {0}: {1}").format(pdf_standard, reason),
 					title=_("PDF Standard"),
 				)
-		if password:
-			pdf = encrypt_pdf(pdf, password)
 		return pdf
 
 	def _build_html_for_chrome(self):
