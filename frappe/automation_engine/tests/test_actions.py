@@ -3,6 +3,8 @@
 
 from unittest.mock import patch
 
+import responses
+
 import frappe
 from frappe.automation_engine.actions.base import (
 	USER_CONTROL,
@@ -381,7 +383,7 @@ class TestCallWebhook(IntegrationTestCase):
 		todo = make_todo(description="hello")
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=FakeResponse(text="done")) as request,
+			patch("requests.Session.request", return_value=FakeResponse(text="done")) as request,
 		):
 			result = CallWebhook().execute(
 				todo,
@@ -406,7 +408,7 @@ class TestCallWebhook(IntegrationTestCase):
 	def test_failed_status_fails_the_step(self):
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=FakeResponse(status_code=500, text="boom")),
+			patch("requests.Session.request", return_value=FakeResponse(status_code=500, text="boom")),
 		):
 			self.assertRaises(
 				frappe.ValidationError,
@@ -422,14 +424,14 @@ class TestCallWebhook(IntegrationTestCase):
 			"http://10.1.2.3/hook",
 			"http://127.0.0.1:8000/hook",
 		):
-			with patch("requests.request") as request:
+			with patch("requests.Session.request") as request:
 				self.assertRaises(AutomationParamError, CallWebhook().execute, None, {"url": url}, {})
 				request.assert_not_called()
 
 	def test_a_host_resolving_internally_is_blocked(self):
 		with (
 			public_dns({"sneaky.example.com": "10.0.0.5"}),
-			patch("requests.request") as request,
+			patch("requests.Session.request") as request,
 		):
 			self.assertRaises(
 				AutomationParamError,
@@ -444,7 +446,7 @@ class TestCallWebhook(IntegrationTestCase):
 		redirect = FakeResponse(status_code=302, headers={"Location": "http://169.254.169.254/"})
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=redirect) as request,
+			patch("requests.Session.request", return_value=redirect) as request,
 		):
 			self.assertRaises(
 				AutomationParamError,
@@ -462,7 +464,7 @@ class TestCallWebhook(IntegrationTestCase):
 		]
 		with (
 			public_dns({"example.com": "93.184.216.34", "other.example.com": "93.184.216.35"}),
-			patch("requests.request", side_effect=responses) as request,
+			patch("requests.Session.request", side_effect=responses) as request,
 		):
 			result = CallWebhook().execute(None, {"url": "https://example.com/hook"}, {})
 
@@ -476,11 +478,29 @@ class TestCallWebhook(IntegrationTestCase):
 		redirect = FakeResponse(status_code=302, headers={"Location": "https://example.com/hook"})
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=redirect),
+			patch("requests.Session.request", return_value=redirect),
 		):
 			self.assertRaises(
 				AutomationParamError, CallWebhook().execute, None, {"url": "https://example.com/hook"}, {}
 			)
+
+	def test_a_host_resolving_internally_when_sent_is_blocked(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		addresses = iter(("93.184.216.34", "10.0.0.5"))
+
+		def getaddrinfo(host, *args, **kwargs):
+			return [(2, 1, 6, "", (next(addresses), 0))]
+
+		with (
+			patch("socket.getaddrinfo", side_effect=getaddrinfo),
+			responses.RequestsMock(assert_all_requests_are_fired=False) as mocked,
+		):
+			mocked.add(responses.POST, "https://example.com/hook")
+			self.assertRaises(
+				frappe.ValidationError, CallWebhook().execute, None, {"url": "https://example.com/hook"}, {}
+			)
+			self.assertFalse(mocked.calls)
 
 
 class TestRunScript(IntegrationTestCase):
