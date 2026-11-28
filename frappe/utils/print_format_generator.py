@@ -123,7 +123,7 @@ def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 			settings=frappe.parse_json(fd.get("settings")) if fd.get("settings") else None,
 			no_letterhead=fd.get("no_letterhead"),
 		)
-	return generator.render_typst_pdf(password=(options or {}).get("password"))
+	return generator.render_typst_pdf()
 
 
 def is_qr_barcode_options(options: str | None) -> bool:
@@ -633,6 +633,7 @@ class PrintFormatGenerator:
 		pf = self.print_format
 		generator_name = resolve_pdf_generator(pf, pdf_generator)
 		if generator_name not in HTML_PDF_GENERATORS:
+			is_frappe_generator = generator_name == "Typst"
 			previous = getattr(frappe.local, "print_format_generator", None)
 			frappe.local.print_format_generator = self
 			try:
@@ -643,15 +644,14 @@ class PrintFormatGenerator:
 						hook,
 						print_format=pf.name,
 						html=None,
-						options={},
+						options={} if is_frappe_generator or not password else {"password": password},
 						output=None,
 						pdf_generator=generator_name,
 					)
 					if pdf:
-						if isinstance(pdf, bytes):
-							pdf = run_after_print(self.doc, pdf, password=password)
+						if is_frappe_generator:
+							return run_after_print(self.doc, pdf, password=password)
 						return pdf
-
 			finally:
 				frappe.local.print_format_generator = previous
 		from frappe.utils.typst_emitter import has_typst_blocks
@@ -719,7 +719,7 @@ class PrintFormatGenerator:
 					options[option] = convert_uom(value, "mm", "px", only_number=True)
 		return options
 
-	def render_typst_pdf(self, password=None):
+	def render_typst_pdf(self):
 		"""Compile the resolved layout through Typst — ~10-15x faster than Chromium.
 
 		Refuses (rather than silently falling back) when the format uses features
@@ -729,7 +729,6 @@ class PrintFormatGenerator:
 
 		import typst
 
-		from frappe.utils.pdf import encrypt_pdf
 		from frappe.utils.typst_emitter import (
 			TypstEmitter,
 			ensure_typst_fonts,
@@ -794,8 +793,6 @@ class PrintFormatGenerator:
 			# root pins file access to the tempdir — matters once formats can
 			# carry raw Typst markup (Typst blocks)
 			pdf = typst.compile(path, root=tmp, font_paths=typst_font_paths())
-		if password:
-			pdf = encrypt_pdf(pdf, password)
 		return pdf
 
 	def _build_html_for_chrome(self):

@@ -10,7 +10,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.print_utils import run_after_print
 
 
-def blank_pdf(page_count=1) -> bytes:
+def blank_pdf(page_count: int = 1) -> bytes:
 	writer = PdfWriter()
 	for _ in range(page_count):
 		writer.add_blank_page(width=72, height=72)
@@ -139,7 +139,7 @@ class TestPrintUtils(IntegrationTestCase):
 		def assert_encrypted(pdf):
 			reader = PdfReader(io.BytesIO(pdf))
 			self.assertTrue(reader.is_encrypted)
-			reader.decrypt(password)
+			self.assertTrue(reader.decrypt(password))
 
 		assert_encrypted(frappe.get_print("ToDo", todo.name, as_pdf=True, password=password))
 		assert_encrypted(frappe.attach_print("ToDo", todo.name, password=password)["fcontent"])
@@ -159,7 +159,11 @@ class TestPrintUtils(IntegrationTestCase):
 		result = frappe.get_print("ToDo", todo.name, as_pdf=True, output=writer, password="s3cret")
 
 		self.assertIs(result, writer)
-		self.assertTrue(writer.pages)
+		stream = io.BytesIO()
+		writer.write(stream)
+		merged = PdfReader(stream)
+		self.assertFalse(merged.is_encrypted)
+		self.assertTrue(merged.pages)
 
 	def test_after_print_runs_on_classic_print_formats(self):
 		"""A classic print format and a mail body render through printview and the pdf_generator hooks,
@@ -195,3 +199,37 @@ class TestPrintUtils(IntegrationTestCase):
 			self.assertEqual(len(PdfReader(io.BytesIO(pdf)).pages), 2)
 		for pdf in (printed, attached):
 			self.assertIn("marker", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
+	def test_links_in_a_merged_classic_print_point_to_its_pages(self):
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Merged Links {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"standard": "No",
+				"html": '<a href="#target">jump</a>'
+				'<p id="target" style="page-break-before: always">target</p>',
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", print_format.name, force=True)
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		writer = PdfWriter()
+		for _ in range(2):
+			frappe.get_print(
+				"ToDo",
+				todo.name,
+				print_format=print_format.name,
+				as_pdf=True,
+				output=writer,
+				pdf_generator="chrome",
+			)
+
+		self.assertEqual(len(writer.pages), 4)
+		for link_page in (0, 2):
+			destination = writer.pages[link_page]["/Annots"][0].get_object()["/Dest"]
+			self.assertEqual(destination[0].idnum, writer.pages[link_page + 1].indirect_reference.idnum)

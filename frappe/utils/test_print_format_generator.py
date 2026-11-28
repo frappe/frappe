@@ -255,33 +255,32 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		"""On the builder path, get_print and attach_print pass a password through to render_pdf.
 		Chrome renders without it, and run_after_print encrypts the bytes Chrome returned.
 		"""
+		import io
 		from unittest.mock import patch
 
+		from pypdf import PdfReader
+
 		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.test_print_utils import blank_pdf
 
 		pf = self._make_print_format(pdf_generator="chrome")
 		todo = self._make_todo()
 		generator = PrintFormatGenerator(pf, todo)
 
-		with (
-			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf,
-			patch("frappe.utils.pdf.encrypt_pdf", return_value=b"%PDF-encrypted") as encrypt_pdf,
-		):
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=blank_pdf()) as chrome_pdf:
 			pdf = generator.render_pdf(password="s3cret")
 
 		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
-		encrypt_pdf.assert_called_once_with(b"%PDF-", "s3cret")
-		self.assertEqual(pdf, b"%PDF-encrypted")
+		reader = PdfReader(io.BytesIO(pdf))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("s3cret"))
+		self.assertEqual(len(reader.pages), 1)
 
-		with (
-			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf,
-			patch("frappe.utils.pdf.encrypt_pdf") as encrypt_pdf,
-		):
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=blank_pdf()) as chrome_pdf:
 			pdf = generator.render_pdf()
 
 		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
-		encrypt_pdf.assert_not_called()
-		self.assertEqual(pdf, b"%PDF-")
+		self.assertFalse(PdfReader(io.BytesIO(pdf)).is_encrypted)
 
 	def test_bulk_typst_pdf_with_password_is_encrypted(self):
 		import io
