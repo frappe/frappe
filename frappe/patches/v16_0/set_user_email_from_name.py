@@ -48,10 +48,10 @@ def execute():
 	for name, (old_email, email) in standard_user_emails.items():
 		frappe.qb.update(User).set(User.email, email).where(User.name == name).run()
 
-		other_user = user_ids.get(old_email.lower())
-		if name == "Administrator" and other_user and old_email.lower() != DEFAULT_EMAILS[name]:
-			report_administrator_email_change(old_email, email, other_user)
-		elif other_user:
+		is_another_users_id = old_email.lower() in user_ids
+		if name == "Administrator" and is_another_users_id and old_email.lower() != DEFAULT_EMAILS[name]:
+			report_administrator_email_change(old_email, email)
+		elif is_another_users_id:
 			click.echo(
 				f"User {name}: email {old_email!r} changed to {email!r}, another user has it as their ID"
 			)
@@ -67,15 +67,15 @@ def execute():
 	frappe.qb.update(User).set(User.email, Lower(User.name)).where(User.name.isin(list(changes))).run()
 
 
-def report_administrator_email_change(old_email, new_email, other_user):
+def report_administrator_email_change(old_email, new_email):
 	"""Tell System Managers that Administrator's email changed, and how to sign in if 2FA needs it."""
 	from frappe.desk.doctype.notification_log.notification_log import make_notification_logs
 	from frappe.twofactor import get_verification_method, two_factor_is_enabled
 	from frappe.utils.user import get_system_managers
 
-	subject = _("Administrator's email changed from {0} to {1}, because {2} has the same email.").format(
-		old_email, new_email, other_user
-	)
+	subject = _(
+		"Administrator's email changed from {0} to {1}, because another user has the same email."
+	).format(old_email, new_email)
 	if two_factor_is_enabled("Administrator") and get_verification_method() != "SMS":
 		details = _(
 			"Administrator uses two-factor authentication, which can email it a code, so it may not be able to sign in until it has a real address. Sign in as Administrator without 2FA (e.g. {0}) and give it another address, such as {1}."
