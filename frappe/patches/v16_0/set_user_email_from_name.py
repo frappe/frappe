@@ -11,7 +11,7 @@ RESERVED_EMAILS = {"Administrator": "admin@frappe.invalid", "Guest": "guest@frap
 def execute():
 	"""Set every user's email to their user ID in lowercase, so the email can be made unique."""
 	users = frappe.get_all("User", fields=["name", "email"])
-	user_ids = {user.name.lower(): user.name for user in users if user.name not in STANDARD_USERS}
+	user_ids = {user.name.lower() for user in users if user.name not in STANDARD_USERS}
 
 	changes, standard_user_emails, owners = {}, {}, {}
 	for user in users:
