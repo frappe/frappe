@@ -34,6 +34,12 @@ frappe.ui.form.on("Web Form", {
 		}
 		on_controlled_access_change(frm);
 
+		if (frm.doc.__onload?.created_doctype_deleted) {
+			show_created_doctype_deleted(frm);
+			return;
+		}
+
+		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
 		frm.trigger("add_get_fields_button");
 		frm.trigger("add_publish_button");
@@ -63,6 +69,31 @@ frappe.ui.form.on("Web Form", {
 		}
 	},
 
+	toggle_new_doctype_fields(frm) {
+		let editable = designs_own_doctype(frm);
+		frm.fields_dict.web_form_fields.grid.update_docfield_property(
+			"fieldname",
+			"fieldtype",
+			editable ? "Autocomplete" : "Select"
+		);
+		frm.fields_dict.web_form_fields.grid.update_docfield_property(
+			"fieldname",
+			"read_only_depends_on",
+			frm.doc.created_new_doctype ? "eval:!doc.__islocal" : ""
+		);
+		frm.set_df_property("doc_type", "read_only", frm.doc.created_new_doctype);
+		frm.set_df_property("web_form_fields", "read_only", cannot_edit_created_doctype(frm));
+		frm.set_intro(
+			cannot_edit_created_doctype(frm)
+				? __(
+						"Only a user who can edit DocType {0} can change the fields of this Web Form.",
+						[frappe.utils.bold(frm.doc.doc_type)]
+				  )
+				: ""
+		);
+		frm.refresh_field("web_form_fields");
+	},
+
 	validate: function (frm) {
 		// must run before the checks below, which read web_form_fields
 		flush_form_builder(frm);
@@ -75,6 +106,13 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	add_publish_button(frm) {
+		// the sidebar's own link is hidden on the builder tab
+		if (frm.doc.published && !frm.is_new()) {
+			frm.add_custom_button(__("See on Website"), () =>
+				window.open(`/${frm.doc.route}`, "_blank", "noopener")
+			);
+		}
+
 		frm.add_custom_button(frm.doc.published ? __("Unpublish") : __("Publish"), () => {
 			frm.set_value("published", !frm.doc.published);
 			frm.save();
@@ -83,6 +121,14 @@ frappe.ui.form.on("Web Form", {
 
 	add_get_fields_button(frm) {
 		frm.add_custom_button(__("Get Fields"), () => {
+			if (!frm.doc.doc_type) {
+				frappe.show_alert({
+					message: __("Select an existing DocType to fetch its fields"),
+					indicator: "orange",
+				});
+				return;
+			}
+
 			// flush first, or fields only on the canvas show unticked and get added twice
 			flush_form_builder(frm);
 
@@ -155,6 +201,7 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	doc_type: function (frm) {
+		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
 		// so the add-field picker offers the new doctype's fields
 		render_form_builder(frm);
@@ -402,6 +449,8 @@ frappe.ui.form.on("Web Form Field", {
 		}
 	},
 	fieldname: function (frm, doctype, name) {
+		if (!frm.doc.doc_type) return;
+
 		let doc = frappe.get_doc(doctype, name);
 		let df = frappe.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
 		if (!df) return;
@@ -852,20 +901,68 @@ function add_embed_link(frm) {
 
 // the canvas is not a Desk field, so frm.disable_form() never reaches it
 function is_builder_read_only(frm) {
-	return (frm.doc.is_standard && !frappe.boot.developer_mode) || !frm.has_perm("write");
+	return (
+		(frm.doc.is_standard && !frappe.boot.developer_mode) ||
+		!frm.has_perm("write") ||
+		cannot_edit_created_doctype(frm)
+	);
+}
+
+function cannot_edit_created_doctype(frm) {
+	return Boolean(frm.doc.created_new_doctype) && !frappe.model.can_write("DocType");
+}
+
+function show_created_doctype_deleted(frm) {
+	const can_recreate = frappe.model.can_create("DocType");
+	const can_delete = frappe.model.can_delete("Web Form");
+	const doctype = frappe.utils.escape_html(frm.doc.doc_type).bold();
+	const dialog = new frappe.ui.Dialog({
+		title: __("DocType Deleted"),
+		primary_action_label: can_recreate ? __("Recreate DocType") : null,
+		primary_action: can_recreate
+			? () =>
+					frm.call("recreate_doctype").then(() => {
+						dialog.hide();
+						frm.reload_doc();
+					})
+			: null,
+		secondary_action_label: can_delete ? __("Delete Web Form") : null,
+		secondary_action: can_delete
+			? () =>
+					frappe
+						.call("frappe.client.delete", { doctype: "Web Form", name: frm.doc.name })
+						.then(() => {
+							dialog.hide();
+							frappe.set_route("List", "Web Form");
+						})
+			: null,
+	});
+	dialog.$body.append(
+		`<p>${
+			can_recreate
+				? __(
+						"DocType {0} was deleted. Recreate it from this form's fields, or delete this Web Form. Old records cannot be restored.",
+						[doctype]
+				  )
+				: __("DocType {0} was deleted. Ask a System Manager to recreate it.", [doctype])
+		}</p>`
+	);
+	dialog.show();
+}
+
+function designs_own_doctype(frm) {
+	return Boolean(!frm.doc.doc_type || frm.doc.created_new_doctype);
 }
 
 function render_form_builder(frm) {
 	const builder = frappe.web_form_builder;
 	const mounted_here = !!get_form_builder(frm);
 
-	// a mounted builder falls through, so clearing doc_type blanks its field picker
-	if (!frm.doc.doc_type && !mounted_here) return;
-
 	if (mounted_here) {
 		builder.docname = frm.doc.name;
 		builder.doctype = frm.doc.doc_type;
 		builder.force_read_only = is_builder_read_only(frm);
+		builder.creates_fields = designs_own_doctype(frm);
 		builder.update_store();
 		builder.setup_page_actions();
 		builder.store.fetch();
@@ -888,6 +985,7 @@ function render_form_builder(frm) {
 		builder.doctype = frm.doc.doc_type;
 		builder.is_web_form = true;
 		builder.force_read_only = is_builder_read_only(frm);
+		builder.creates_fields = designs_own_doctype(frm);
 		builder.init(true);
 		builder.store.fetch();
 		return;
@@ -912,6 +1010,7 @@ function render_form_builder(frm) {
 				is_source_field: is_web_form_field,
 				validate_page_limit,
 				force_read_only: is_builder_read_only(frm),
+				creates_fields: designs_own_doctype(frm),
 			});
 			frappe.web_form_builder.docname = frm.doc.name;
 		})

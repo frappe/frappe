@@ -213,6 +213,11 @@ class DocType(Document):
 				},
 			)
 
+	def onload(self):
+		from frappe.website.doctype.web_form.web_form import get_web_form_managed_fields
+
+		self.set_onload("web_form_managed_fields", get_web_form_managed_fields(self.name))
+
 	def validate(self):
 		"""Validate DocType before saving.
 

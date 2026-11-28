@@ -3,6 +3,8 @@
 
 import json
 import os
+import re
+import unicodedata
 from typing import TYPE_CHECKING
 
 import frappe
@@ -10,7 +12,12 @@ from frappe import _, scrub
 from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefaultError
 from frappe.core.doctype.file.utils import remove_file_by_url
+from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
+from frappe.desk.form.linked_with import get_linked_fields, get_parent_doctypes
 from frappe.desk.form.meta import get_code_files_via_hooks
+from frappe.model import child_table_fields, default_fields
+from frappe.model.document import RESERVED_KEYWORDS, Document
+from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission, get_allowed_docs_for_doctype, get_user_permissions
 from frappe.rate_limiter import rate_limit
@@ -26,6 +33,9 @@ from frappe.website.website_generator import WebsiteGenerator
 
 if TYPE_CHECKING:
 	from frappe.website.doctype.web_form_request.web_form_request import WebFormRequest
+
+LAYOUT_FIELDTYPES = ("Section Break", "Column Break", "Page Break")
+DOCTYPE_BREAK_FIELDTYPES = ("Section Break", "Column Break", "Tab Break")
 
 
 class WebForm(WebsiteGenerator):
@@ -55,8 +65,9 @@ class WebForm(WebsiteGenerator):
 		button_label: DF.Data | None
 		client_script: DF.Code | None
 		condition_json: DF.JSON | None
+		created_new_doctype: DF.Check
 		custom_css: DF.Code | None
-		doc_type: DF.Link
+		doc_type: DF.Link | None
 		dynamic_filters_json: DF.JSON | None
 		hide_footer: DF.Check
 		hide_navbar: DF.Check
@@ -88,10 +99,36 @@ class WebForm(WebsiteGenerator):
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
+		if not self.doc_type and not frappe.has_permission("DocType", "create"):
+			frappe.throw(
+				_("Select an existing DocType, or ask a System Manager to create this Web Form."),
+				frappe.PermissionError,
+				title=_("Not Permitted to Create DocType"),
+			)
+
+		if self.is_new() and not frappe.flags.in_import:
+			self.created_new_doctype = 0
+		self.validate_created_doctype_unchanged()
+
+		if not self.doc_type or self.created_new_doctype:
+			self.set_fieldnames()
+			self.validate_saved_fieldnames_unchanged()
+
+		if not self.doc_type and (before := self.get_doc_before_save()) and before.doc_type:
+			frappe.throw(_("Select a DocType"), frappe.MandatoryError)
+
+		if self.published and not self.doc_type and not self.needs_new_doctype():
+			frappe.throw(_("Add a field before you publish this Web Form."), title=_("No Fields"))
+
 		super().validate()
 
+		if self.is_standard:
+			self.validate_standard_module()
+
 		if not self.module:
-			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
+			self.module = (
+				frappe.db.get_value("DocType", self.doc_type, "module") if self.doc_type else "Custom"
+			)
 
 		in_user_env = not (
 			frappe.flags.in_install or frappe.flags.in_patch or frappe.in_test or frappe.flags.in_fixtures
@@ -114,6 +151,48 @@ class WebForm(WebsiteGenerator):
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
 
+	def after_insert(self):
+		# DocType DDL commits, so it waits until the Web Form itself is valid
+		if self.needs_new_doctype():
+			self.create_new_doctype()
+
+	def onload(self):
+		super().onload()
+		self.set_onload("created_doctype_deleted", self.created_doctype_deleted())
+
+	def created_doctype_deleted(self):
+		return bool(
+			self.created_new_doctype and self.doc_type and not frappe.db.exists("DocType", self.doc_type)
+		)
+
+	@frappe.whitelist()
+	def recreate_doctype(self):
+		"""Records of the deleted DocType are not restored."""
+		self.check_permission("write")
+		frappe.has_permission("DocType", "create", throw=True)
+		if self.created_doctype_deleted():
+			self.create_new_doctype(keep_web_form=True)
+
+	def validate_standard_module(self):
+		"""A standard form exports into its module's app. "Custom" is only a default here, and
+		would put the form and the DocType it creates into the frappe app."""
+		owns_doctype = not self.doc_type or self.created_new_doctype
+		if owns_doctype and self.module in (None, "", "Custom"):
+			frappe.throw(
+				_("Select the module this standard Web Form belongs to."),
+				frappe.MandatoryError,
+				title=_("Module Required"),
+			)
+
+		if self.module and frappe.db.get_value("Module Def", self.module, "custom"):
+			frappe.throw(
+				_("A standard Web Form needs a module that belongs to an app."),
+				title=_("Invalid Module"),
+			)
+
+	def needs_new_doctype(self):
+		return not self.doc_type and any(d.fieldtype not in LAYOUT_FIELDTYPES for d in self.web_form_fields)
+
 	def set_access_flags(self):
 		if not (self.login_required or self.key_required):
 			self.allow_multiple = self.allow_edit = self.allow_delete = self.show_list = 0
@@ -121,6 +200,171 @@ class WebForm(WebsiteGenerator):
 			self.show_list = 1
 		else:
 			self.allow_delete = 0
+
+	def create_new_doctype(self, keep_web_form=False):
+		# leave room for the "-N" suffix
+		ascii_name = unicodedata.normalize("NFKD", cstr(self.name)).encode("ascii", "ignore").decode()
+		slug = re.sub(r"[^\w -]+", "", ascii_name, flags=re.ASCII).strip(" -_")
+		slug = slug or frappe.generate_hash(length=10)
+		base = f"webform-{slug}"[: frappe.db.MAX_COLUMN_LENGTH - len("tab") - 4]
+		doctype_name = append_number_if_name_exists("DocType", base)
+
+		new_doctype = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": doctype_name,
+				"module": self.module,
+				"custom": cint(not self.exports_created_doctype()),
+				"autoname": "hash",
+				"naming_rule": "Random",
+				"fields": self.get_fields_for_new_doctype(),
+				"permissions": [
+					{
+						"role": "System Manager",
+						"read": 1,
+						"write": 1,
+						"create": 1,
+						"delete": 1,
+						"print": 1,
+						"email": 1,
+						"export": 1,
+						"report": 1,
+						"share": 1,
+					}
+				],
+			}
+		)
+		try:
+			new_doctype.insert()
+		except Exception:
+			self.discard_half_created_doctype(doctype_name, keep_web_form)
+			raise
+
+		self.db_set({"doc_type": new_doctype.name, "created_new_doctype": 1}, update_modified=False)
+
+	def discard_half_created_doctype(self, doctype_name, keep_web_form=False):
+		"""Creating the table commits, so a failure after it leaves this Web Form and the DocType saved."""
+		frappe.db.rollback()
+		if frappe.db.exists("DocType", doctype_name):
+			frappe.delete_doc("DocType", doctype_name, force=True, ignore_permissions=True)
+		if not keep_web_form and frappe.db.exists("Web Form", self.name):
+			frappe.delete_doc("Web Form", self.name, force=True, ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+
+	def set_fieldnames(self):
+		taken = {*default_fields, *child_table_fields, *RESERVED_KEYWORDS, *dir(Document), "autoname"}
+		unnamed = []
+		for d in self.web_form_fields:
+			if d.fieldtype in LAYOUT_FIELDTYPES:
+				continue
+			d.label = d.label or d.fieldtype
+			if d.fieldname and d.fieldname == scrub_fieldname(d.fieldname) and d.fieldname not in taken:
+				taken.add(d.fieldname)
+			else:
+				unnamed.append(d)
+
+		max_length = frappe.db.MAX_COLUMN_LENGTH - 1
+		for d in unnamed:
+			base = scrub_fieldname(d.fieldname or d.label) or scrub_fieldname(d.fieldtype)
+			fieldname, suffix = base, 1
+			while fieldname in taken:
+				suffix += 1
+				fieldname = f"{base[: max_length - len(str(suffix)) - 1]}_{suffix}"
+
+			d.fieldname = fieldname
+			taken.add(fieldname)
+
+	def validate_created_doctype_unchanged(self):
+		if not self.created_new_doctype or not self.has_value_changed("doc_type"):
+			return
+
+		frappe.throw(
+			_("This Web Form created DocType {0}, so its DocType cannot be changed.").format(
+				frappe.bold(self.get_doc_before_save().doc_type)
+			),
+			title=_("DocType Cannot Be Changed"),
+		)
+
+	def validate_saved_fieldnames_unchanged(self):
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		saved = {d.name: d.fieldname for d in before.web_form_fields if d.fieldname}
+		for d in self.web_form_fields:
+			if d.name in saved and d.fieldname != saved[d.name]:
+				frappe.throw(
+					_(
+						"Fieldname {0} of field {1} cannot be changed. Remove the field and add a new one."
+					).format(frappe.bold(saved[d.name]), frappe.bold(d.label or d.fieldname)),
+					title=_("Fieldname Cannot Be Changed"),
+				)
+
+	def get_fields_for_new_doctype(self):
+		return [self.as_docfield(d) for d in self.web_form_fields]
+
+	def as_docfield(self, web_form_field):
+		fieldtype = web_form_field.fieldtype.replace("Page Break", "Tab Break")
+		return {
+			"fieldname": web_form_field.fieldname,
+			"label": web_form_field.label,
+			"fieldtype": fieldtype,
+			"options": web_form_field.options,
+			"reqd": web_form_field.reqd,
+			"default": web_form_field.default,
+			"description": web_form_field.description,
+		}
+
+	def sync_fields_to_doctype(self):
+		"""Deletes DocType fields removed from the form. Fields added from Desk stay at the end."""
+		if not self.created_new_doctype:
+			return
+
+		if not self.doc_type or not frappe.db.exists("DocType", self.doc_type):
+			return
+
+		target_doctype = frappe.get_doc("DocType", self.doc_type)
+		before = [field_signature(df) for df in target_doctype.fields]
+
+		docfields = {
+			df.fieldname: df for df in target_doctype.fields if df.fieldtype not in DOCTYPE_BREAK_FIELDTYPES
+		}
+
+		fields = []
+		for d in self.web_form_fields:
+			new = self.as_docfield(d)
+			if docfield := docfields.pop(d.fieldname, None):
+				docfield.update(new)
+				new = docfield
+			fields.append(new)
+
+		removed = self.get_removed_fieldnames()
+		fields += [df for fieldname, df in docfields.items() if fieldname not in removed]
+
+		if [field_signature(df) for df in fields] == before:
+			return
+
+		if not frappe.has_permission("DocType", "write", self.doc_type):
+			frappe.throw(
+				_("Only a user who can edit DocType {0} can change the fields of this Web Form.").format(
+					frappe.bold(self.doc_type)
+				),
+				frappe.PermissionError,
+				title=_("Fields Cannot Be Changed"),
+			)
+
+		target_doctype.set("fields", fields)
+		for idx, df in enumerate(target_doctype.fields, 1):
+			df.idx = idx
+		target_doctype.save()
+
+	def get_removed_fieldnames(self):
+		before = self.get_doc_before_save()
+		if not before:
+			return set()
+
+		current = {d.fieldname for d in self.web_form_fields}
+		return {d.fieldname for d in before.web_form_fields if d.fieldname and d.fieldname not in current}
 
 	def validate_guest_key_link_fields(self):
 		if not is_guest_key_web_form(self):
@@ -141,6 +385,14 @@ class WebForm(WebsiteGenerator):
 		"""Validate all fields are present"""
 		from frappe.model import no_value_fields
 
+		if self.created_new_doctype:
+			self.validate_fieldtype_changes()
+			return
+
+		# a new DocType is made from these fields after save
+		if not self.doc_type:
+			return
+
 		meta = frappe.get_meta(self.doc_type)
 		missing = [
 			df.fieldname
@@ -150,6 +402,34 @@ class WebForm(WebsiteGenerator):
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
+
+	def validate_fieldtype_changes(self):
+		"""The DocType saves its fields before it alters the column, so this must run before the sync."""
+		if not frappe.db.exists(self.doc_type, {}):
+			return
+
+		meta = frappe.get_meta(self.doc_type)
+		customize_form = frappe.get_doc({"doctype": "Customize Form", "doc_type": self.doc_type})
+		for d in self.web_form_fields:
+			df = d.fieldname and meta.get_field(d.fieldname)
+			new_type = self.as_docfield(d)["fieldtype"]
+			if not df or df.fieldtype == new_type:
+				continue
+
+			if CustomizeForm.allow_fieldtype_change(df.fieldtype, new_type):
+				old_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
+				new_length = cint(frappe.db.type_map.get(new_type)[1])
+				if new_length and (not old_length or old_length > new_length):
+					new_df = frappe._dict(df.as_dict(), fieldtype=new_type, label=d.label or d.fieldname)
+					customize_form.validate_fieldtype_length(new_df)
+				continue
+
+			frappe.throw(
+				_(
+					"Field {0} cannot be changed from {1} to {2}, because the form already has records."
+				).format(frappe.bold(d.label or d.fieldname), df.fieldtype, new_type),
+				title=_("Field Type Change Not Allowed"),
+			)
 
 	def warn_about_empty_pages(self):
 		"""The portal skips a page with no visible fields and shows the rest of the form.
@@ -208,6 +488,13 @@ class WebForm(WebsiteGenerator):
 	# export
 	def on_update(self):
 		"""In developer mode, export a standard Web Form's JSON and create its .js and .py stubs."""
+		if not (frappe.flags.in_import or self.flags.in_insert):
+			if self.needs_new_doctype():
+				self.create_new_doctype(keep_web_form=True)
+			else:
+				self.make_created_doctype_standard()
+				self.sync_fields_to_doctype()
+
 		path = export_module_json(self, self.is_standard, self.module)
 
 		if path:
@@ -233,6 +520,51 @@ def get_context(context):
 	pass
 """
 					)
+
+	def exports_created_doctype(self):
+		return self.is_standard and frappe.conf.developer_mode
+
+	def make_created_doctype_standard(self):
+		if not (self.created_new_doctype and self.exports_created_doctype()):
+			return
+
+		if not frappe.db.get_value("DocType", self.doc_type, "custom"):
+			return
+
+		target_doctype = frappe.get_doc("DocType", self.doc_type)
+		target_doctype.custom = 0
+		target_doctype.module = self.module
+		target_doctype.save()
+
+	def after_delete(self):
+		self.delete_created_doctype()
+
+	def delete_created_doctype(self):
+		"""An import deletes and re-inserts, so it keeps the DocType."""
+		if (
+			frappe.flags.in_import
+			or not self.created_new_doctype
+			or not frappe.db.exists("DocType", self.doc_type)
+		):
+			return
+
+		if frappe.db.count(self.doc_type):
+			message = _("DocType {0} and its records were kept.")
+		elif frappe.db.exists("Web Form", {"doc_type": self.doc_type}):
+			message = _("DocType {0} was kept, because another Web Form uses it.")
+		elif linking_doctype := get_doctype_linking_to(self.doc_type):
+			message = _("DocType {0} was kept, because {1} links to it.").format(
+				frappe.bold(self.doc_type), frappe.bold(linking_doctype)
+			)
+		elif not frappe.has_permission("DocType", "delete", self.doc_type):
+			message = _("DocType {0} was kept, because you do not have permission to delete it.")
+		elif not frappe.db.get_value("DocType", self.doc_type, "custom"):
+			message = _("DocType {0} was kept, because it is a standard DocType.")
+		else:
+			frappe.delete_doc("DocType", self.doc_type)
+			return
+
+		frappe.msgprint(message.format(frappe.bold(self.doc_type)), title=_("DocType Kept"))
 
 	def clear_cache(self):
 		frappe.cache.delete_key("bootinfo")
@@ -941,6 +1273,41 @@ def process_link_field(
 def get_web_form_module(doc):
 	if doc.is_standard:
 		return get_doc_module(doc.module, doc.doctype, doc.name)
+
+
+def scrub_fieldname(text):
+	text = unicodedata.normalize("NFKD", cstr(text)).encode("ascii", "ignore").decode()
+	fieldname = re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+	if fieldname[:1].isdigit():
+		fieldname = f"field_{fieldname}"
+	return fieldname[: frappe.db.MAX_COLUMN_LENGTH - 1].rstrip("_")
+
+
+def get_doctype_linking_to(doctype):
+	linking_doctypes = [*get_linked_fields(doctype), *get_parent_doctypes([doctype])[doctype]]
+	return next((dt for dt in linking_doctypes if dt != doctype), None)
+
+
+def field_signature(df):
+	"""A break's fieldname is random, so it is left out."""
+	keys = ("label", "fieldtype", "options", "reqd", "default", "description")
+	if df.get("fieldtype") not in DOCTYPE_BREAK_FIELDTYPES:
+		keys = ("fieldname", *keys)
+	return tuple(df.get(key) or None for key in keys)
+
+
+def get_web_form_managed_fields(doctype):
+	"""The Web Form that created `doctype`, and the fields it overwrites on every save."""
+	web_form = frappe.db.get_value("Web Form", {"doc_type": doctype, "created_new_doctype": 1})
+	if not web_form:
+		return None
+
+	doc = frappe.get_doc("Web Form", web_form)
+	fields = [doc.as_docfield(d) for d in doc.web_form_fields if d.fieldname]
+	return {
+		"web_form": web_form,
+		"fields": [df for df in fields if df["fieldtype"] not in DOCTYPE_BREAK_FIELDTYPES],
+	}
 
 
 @frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
