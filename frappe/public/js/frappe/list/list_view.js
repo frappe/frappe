@@ -1157,6 +1157,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				);
 				this.column_max_widths[fieldname] = newWidth;
 				this.save_column_width(fieldname, newWidth);
+				this.toggle_right_border();
 			}
 			fieldname = null;
 		});
@@ -1897,18 +1898,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.parent.page.main.parent().addClass("disable-scrolling");
 		}
 
-		// if no scroll then remove borders
-		let list_row = this.$result.find(".list-row-container .list-row").first();
-		let frappe_list_width = this.$frappe_list.width();
-		let left_width = list_row.find(".level-left").first().width();
-		let right_width = list_row.find(".level-right").first().width();
-
-		// if listview is not scrollable then hide border
-		if (left_width < frappe_list_width - right_width) {
-			this.$result.find(".list-row-container .list-row .level-right").addClass("border-0");
-		}
-
+		this.toggle_right_border();
 		this.sync_right_width();
+	}
+
+	toggle_right_border() {
+		const result_container = this.$result.parent()[0];
+		this.$result
+			.find(".list-row-container .list-row .level-right")
+			.toggleClass("border-0", result_container.scrollWidth <= result_container.clientWidth);
 	}
 
 	// The header's right side holds the count, each row's the timestamp and comment
@@ -2234,6 +2232,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_realtime_updates();
 		this.setup_action_handler();
 		this.setup_keyboard_navigation();
+		new ResizeObserver(() => this.toggle_right_border()).observe(this.$result.parent()[0]);
 	}
 
 	setup_keyboard_navigation() {
