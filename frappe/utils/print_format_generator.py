@@ -146,7 +146,7 @@ def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 			settings=frappe.parse_json(fd.get("settings")) if fd.get("settings") else None,
 			no_letterhead=fd.get("no_letterhead"),
 		)
-	return generator.render_typst_pdf()
+	return generator.render_typst_pdf(password=(options or {}).get("password"))
 
 
 def is_qr_barcode_options(options: str | None) -> bool:
@@ -722,13 +722,6 @@ class PrintFormatGenerator:
 		generator_name = resolve_pdf_generator(pf, pdf_generator)
 		if generator_name not in HTML_PDF_GENERATORS:
 			is_frappe_generator = generator_name == "Typst"
-			if is_frappe_generator and password and not self.ignore_pdf_standard and pf.get("pdf_standard"):
-				frappe.throw(
-					_(
-						"A PDF/A file cannot be password protected. Print it without a password or clear the PDF Standard of this Print Format."
-					),
-					title=_("PDF Standard"),
-				)
 			previous = getattr(frappe.local, "print_format_generator", None)
 			frappe.local.print_format_generator = self
 			try:
@@ -739,7 +732,7 @@ class PrintFormatGenerator:
 						hook,
 						print_format=pf.name,
 						html=None,
-						options={} if is_frappe_generator or not password else {"password": password},
+						options={"password": password} if password else {},
 						output=None,
 						pdf_generator=generator_name,
 					)
@@ -820,7 +813,7 @@ class PrintFormatGenerator:
 				options["fit-height"] = True
 		return options
 
-	def render_typst_pdf(self):
+	def render_typst_pdf(self, password=None):
 		"""Compile the resolved layout through Typst — ~10-15x faster than Chromium.
 
 		Refuses (rather than silently falling back) when the format uses features
@@ -849,6 +842,13 @@ class PrintFormatGenerator:
 			)
 
 		pdf_standard = None if self.ignore_pdf_standard else self.print_format.get("pdf_standard")
+		if pdf_standard and password:
+			frappe.throw(
+				_(
+					"A PDF/A file cannot be password protected. Print it without a password or clear the PDF Standard of this Print Format."
+				),
+				title=_("PDF Standard"),
+			)
 
 		ensure_typst_fonts(self.print_format.get("font"))
 		emitter = TypstEmitter(self)

@@ -149,6 +149,7 @@ def get_print(
 
 	from frappe.utils.pdf import get_pdf
 	from frappe.website.serve import get_response_without_exception_handling
+	from frappe.www.printview import get_print_doc
 
 	local = frappe.local
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
@@ -158,7 +159,7 @@ def get_print(
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
-		doc = doc or frappe.get_lazy_doc(doctype, name)
+		doc = doc or get_print_doc(doctype, name)
 		local.form_dict.pdf_generator = generator
 		local.form_dict.doctype = doctype
 		local.form_dict.name = name
@@ -224,7 +225,7 @@ def get_print(
 		_run_print_pdf_hooks(doctype, name, print_format)
 
 		hook_func = frappe.get_hooks("pdf_generator")
-		custom_options = dict(pdf_options)
+		options_with_password = dict(pdf_options)
 		password = pdf_options.pop("password", None)
 		is_frappe_generator = generator in ("chrome", "PlutoPrint", "Typst")
 		for hook in hook_func:
@@ -237,7 +238,7 @@ def get_print(
 				hook,
 				print_format=print_format,
 				html=html,
-				options=pdf_options if is_frappe_generator else custom_options,
+				options=pdf_options if generator in HTML_PDF_GENERATORS else options_with_password,
 				output=None if is_frappe_generator else output,
 				pdf_generator=generator,
 			)
