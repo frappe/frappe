@@ -35,12 +35,12 @@ def execute():
 
 	# Rare: an ID that is a reserved email, or, on Postgres, two IDs that differ only in case
 	# (John@x.com and john@x.com). The unique index would fail on these, so stop with the names instead.
-	clashes = [names for email, names in owners.items() if email and len(names) > 1]
+	clashes = {email: names for email, names in owners.items() if email and len(names) > 1}
 	if clashes:
 		frappe.throw(
 			_(
 				"These users would share an email: {0}. Change their emails so that each one is unique, then run migrate again."
-			).format("; ".join(", ".join(names) for names in clashes))
+			).format("; ".join(f"{email} ({', '.join(names)})" for email, names in clashes.items()))
 		)
 
 	User = frappe.qb.DocType("User")
