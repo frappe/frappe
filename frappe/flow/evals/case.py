@@ -4,6 +4,7 @@
 """Eval cases: one Python file each in `apps/<app>/evals/`, with ASK, USER, setup() and check(run)."""
 
 import runpy
+import sys
 import traceback
 from collections.abc import Callable
 from contextlib import contextmanager
@@ -57,6 +58,8 @@ def load_cases(app: str, only: tuple[str, ...] = ()) -> list[Case]:
 	files = sorted(path for path in folder.glob("*.py") if not path.name.startswith("_"))
 	if not files:
 		raise click.ClickException(f"No cases in {folder}.")
+	if str(folder) not in sys.path:
+		sys.path.insert(0, str(folder))  # so a case can import a helper such as _people.py
 	names = [path.stem for path in files]
 	if unknown := [name for name in only if name not in names]:
 		raise click.ClickException(f"No case named {', '.join(unknown)}. Cases: {', '.join(names)}.")

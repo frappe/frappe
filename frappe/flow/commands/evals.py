@@ -88,7 +88,7 @@ def run(context, app, label, **opts):
 	header = f"flow-eval run {app}{f' --skill {skill}' if skill else ''}    {opts['runs']} runs a case · {model_id}"
 	header += "".join(f" · {a} {commits.get(a, '?')}" for a in dict.fromkeys((app, "frappe")))
 	by_arm = {folder.name: [r for r in records if r["label"] == folder.name] for folder, _ in arms}
-	click.echo(run_table(by_arm, header, advice=True))
+	click.echo(run_table(by_arm, header, advice=True, max_cost=opts["max_cost"]))
 	click.echo(
 		"saved in " + " and ".join(f"sites/{get_site(context)}/private/flow-evals/{n}" for n in by_arm)
 	)

@@ -4,6 +4,7 @@
 """The tables `flow-eval` prints, and the rule that calls a change better, same, worse or unclear."""
 
 import json
+import math
 import re
 import statistics
 from pathlib import Path
@@ -15,16 +16,25 @@ FOLDER = re.compile(r"^[A-Za-z0-9_-]+(\.with|\.without)?$")
 
 
 def verdict(a: int, n_a: int, b: int, n_b: int, errors: int = 0) -> str:
-	"""`a` of `n_a` counted runs passed in the first arm, `b` of `n_b` in the second."""
+	"""`a` of `n_a` counted runs passed in the first arm, `b` of `n_b` in the second. Better or
+	worse when a one-sided Fisher exact test gives p <= 0.05: at 3 runs only 0/3 against 3/3."""
 	if errors or not n_a or not n_b:
 		return "unclear"
-	if a == 0 and b == n_b:
-		return "better"
-	if a == n_a and b == 0:
-		return "worse"
 	if (a, b) in ((n_a, n_b), (0, 0)):
 		return "same"
+	if _fisher(a, n_a, b, n_b) <= 0.05:
+		return "better"
+	if _fisher(b, n_b, a, n_a) <= 0.05:
+		return "worse"
 	return "unclear"
+
+
+def _fisher(a: int, n_a: int, b: int, n_b: int) -> float:
+	"""The chance that the second arm passes `b` or more times if both arms were the same."""
+	passed, total = a + b, n_a + n_b
+	return sum(
+		math.comb(passed, x) * math.comb(total - passed, n_b - x) for x in range(b, min(passed, n_b) + 1)
+	) / math.comb(total, n_b)
 
 
 def check_table(results: list[dict]) -> str:
@@ -52,7 +62,9 @@ def check_table(results: list[dict]) -> str:
 	return "\n".join(lines)
 
 
-def run_table(arms: dict[str, list[dict]], header: str, advice: bool = False) -> str:
+def run_table(
+	arms: dict[str, list[dict]], header: str, advice: bool = False, max_cost: float | None = None
+) -> str:
 	"""One count column per arm; with two, a verdict column and every fail and error under it."""
 	names, two = list(arms), len(arms) == 2
 	cases = sorted({r["case"] for records in arms.values() for r in records})
@@ -60,7 +72,7 @@ def run_table(arms: dict[str, list[dict]], header: str, advice: bool = False) ->
 	lines = [header, ""] * bool(header) + [
 		f"{'case':<22}" + "".join(f"{n:<{w}}" for n in names) + "change" * two
 	]
-	totals, verdicts = {n: [0, 0] for n in names}, []
+	totals, verdicts, shown = {n: [0, 0] for n in names}, [], []
 	for case in cases:
 		runs = {n: [r for r in arms[n] if r["case"] == case] for n in names}
 		counts = {
@@ -76,6 +88,7 @@ def run_table(arms: dict[str, list[dict]], header: str, advice: bool = False) ->
 				totals[n] = [totals[n][0] + p, totals[n][1] + c]
 			if two:
 				verdicts.append(verdict(*counts[names[0]], *counts[names[1]], errors))
+				shown.append(case)
 				row += verdicts[-1] + (f" ({errors} error{'s' * (errors > 1)})" if errors else "")
 		lines.append(row)
 	total = f"{'total':<22}" + "".join(f"{f'{p}/{c}':<{w}}" for p, c in totals.values())
@@ -88,6 +101,9 @@ def run_table(arms: dict[str, list[dict]], header: str, advice: bool = False) ->
 		"",
 		*_stat_lines({n: [r for r in rs if r["case"] in shared] for n, rs in arms.items()}, w),
 	]
+	if max_cost is not None:
+		spent = sum(r["usage"].get("cost") or 0 for rs in arms.values() for r in rs)
+		lines[-1] += f" · ${spent:.3f} of ${max_cost:.2f}"
 	if two:
 		failed = [
 			f"{r['status']:<6}{r['case']:<22}{n.rsplit('.', 1)[-1]} #{r['n']}  {r['detail']}"
@@ -96,10 +112,9 @@ def run_table(arms: dict[str, list[dict]], header: str, advice: bool = False) ->
 			if r["status"] != "pass"
 		]
 		lines += [""] * bool(failed) + failed
-		if advice and "unclear" in verdicts:
-			lines.append(
-				"unclear: run those cases again with more runs, e.g. --only <case> --runs 6 --label again"
-			)
+		if advice and (unclear := [c for c, v in zip(shown, verdicts, strict=True) if v == "unclear"]):
+			only = " ".join(f"--only {c}" for c in unclear)
+			lines.append(f"unclear: run them again with more runs, such as {only} --runs 6 --label again")
 	return "\n".join(lines)
 
 

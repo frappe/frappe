@@ -144,7 +144,7 @@ class Snapshot:
 			else:
 				frappe.db.sql_ddl(f"rename table `{new}` to `{table}`")
 		frappe.db.commit()  # DDL commits anyway; nosemgrep: frappe-manual-commit
-		frappe.clear_cache()
+		_clear_cache()
 		return True
 
 	@_locked
@@ -170,6 +170,27 @@ class Snapshot:
 		self.restore()
 		self.drop()
 		return taken
+
+
+def _clear_cache() -> None:
+	"""Clear the cache, but keep API discovery as warm as on a site in use: a cold one refuses
+	the model's first `find_apis` calls while it builds in the background."""
+	from frappe.api import discovery
+
+	keys = (
+		discovery.PYTHON_METHOD_CACHE_KEY,
+		discovery.PYTHON_SEARCH_CACHE_KEY,
+		discovery.DOCTYPE_METHOD_CACHE_KEY,
+		discovery.DOCTYPE_SEARCH_CACHE_KEY,
+	)
+	kept = {key: frappe.cache.get_value(key, expires=True) for key in keys}
+	frappe.clear_cache()
+	if None in kept.values():
+		discovery.build_cache()
+		return
+	ttl = discovery.DEVELOPER_MODE_CACHE_TTL if frappe.conf.developer_mode else discovery.CACHE_TTL
+	for key, value in kept.items():
+		frappe.cache.set_value(key, value, expires_in_sec=ttl)
 
 
 def _tables(own: bool = True) -> list[str]:

@@ -57,6 +57,11 @@ class TestCases(IntegrationTestCase):
 		with self.assertRaisesRegex(click.ClickException, r"admin\.py: USER must be a normal user"):
 			self.load({"admin.py": ok.replace("a@example.com", "Administrator")})
 
+	def test_a_case_can_import_a_helper_beside_it(self):
+		helper = "USER = 'b@example.com'\n"
+		body = "from _eval_people import USER\nASK = 'hi'\ndef setup(): pass\ndef check(run): pass\n"
+		self.assertEqual(self.load({"one.py": body, "_eval_people.py": helper})[0].user, "b@example.com")
+
 	def test_the_site_must_allow_evals_and_be_on_mariadb(self):
 		with patch("frappe.get_file_json", return_value={}):
 			self.assertRaisesRegex(click.ClickException, "disabled for the site", check_site)
@@ -72,7 +77,11 @@ class TestCases(IntegrationTestCase):
 			((3, 3, 3, 3), "same"),
 			((0, 3, 0, 3), "same"),
 			((1, 3, 3, 3), "unclear"),
+			((0, 3, 2, 3), "unclear"),
 			((0, 3, 6, 6), "better"),
+			((0, 6, 4, 6), "better"),
+			((4, 6, 0, 6), "worse"),
+			((1, 6, 4, 6), "unclear"),
 			((0, 3, 2, 2, 1), "unclear"),
 			((0, 0, 3, 3), "unclear"),
 		):
@@ -159,6 +168,15 @@ class TestSnapshot(SnapshotCase):
 		self.assertEqual(_tables(), tables)
 		self.assertEqual(_checksums(tables), before)
 		self.assertFalse(frappe.db.has_column("ToDo", "eval_probe"))
+
+	def test_a_restore_leaves_api_discovery_warm(self):
+		from frappe.api import discovery
+
+		frappe.cache.delete_keys(f"{discovery.DISCOVERY_CACHE_PREFIX}:")
+		self.snapshot.restore()
+		methods = discovery._get_cached_python_methods()
+		self.snapshot.restore()
+		self.assertEqual(discovery._get_cached_python_methods(), methods)
 
 	def test_a_partial_snapshot_is_never_restored_from(self):
 		taken = self.snapshot.complete()
@@ -251,6 +269,10 @@ class TestCheck(SnapshotCase):
 		self.snapshot.restore()
 		result = play(case(path=[("read_records", {"doctype": "ToDo"}, lambda result: False)]))
 		self.assertIn("expect returned false for", result["steps"][0]["detail"])
+		self.snapshot.restore()
+		result = play(case(path=[("read_records", "ToDo")]))
+		self.assertEqual(result["status"], "error", result)
+		self.assertIn("is not (tool, args)", result["steps"][0]["detail"])
 
 
 def failed(seq, run_id, message="hi"):
@@ -299,6 +321,16 @@ class TestRun(SnapshotCase):
 		self.snapshot.restore()
 		record, _ = self.run_with(FakeDaemon(), check=fails)
 		self.assertEqual((record["status"], record["detail"]), ("fail", "not what was asked"))
+
+	def test_a_refused_chat_is_the_cases_error_not_the_providers(self):
+		def setup():
+			make_user()
+			frappe.get_doc("User", USER).remove_roles("Flow User")
+
+		with patch.object(DaemonClient, "for_site", return_value=FakeDaemon()):
+			record, provider_error = chat.one_run(case(setup=setup), 1, self.folder, None, 60)
+		self.assertEqual((record["status"], provider_error), ("error", False), record)
+		self.assertIn("PermissionError", record["detail"])
 
 	def test_a_provider_error_is_an_error_and_two_stop_the_command(self):
 		record, provider_error = self.run_with(FakeDaemon(answer=failed))

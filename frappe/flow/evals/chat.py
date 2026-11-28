@@ -7,12 +7,14 @@ import hashlib
 import json
 import subprocess
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
 
 import frappe
 from frappe.flow.evals.case import Call, Case, Run, as_user, last_line, run_setup
+from frappe.flow.lib.session import ERRORS, FlowServerDown
 
 ABORT_WAIT = 30
 
@@ -82,7 +84,8 @@ def one_run(case: Case, n: int, folder: Path, model: str | None, timeout: int) -
 	"""One chat, and whether it ended in an error of the provider or of Flow."""
 	from frappe.flow.api import api
 
-	record = {"case": case.name, "n": n, "label": folder.name, "started": frappe.utils.now(), "seconds": None}
+	record = {"case": case.name, "n": n, "label": folder.name, "seconds": None}
+	record |= {"started": datetime.now(UTC).isoformat(timespec="seconds")}
 	record |= {"ask": case.ask, "user": case.user, "model": None, "status": "error", "detail": None}
 	record |= {"reply": "", "tool_calls": [], "usage": {}, "prompt_hash": None}
 	try:
@@ -107,12 +110,12 @@ def one_run(case: Case, n: int, folder: Path, model: str | None, timeout: int) -
 		record |= {"seconds": round(time.monotonic() - start, 1), "model": model, "reply": run.reply}
 		record |= {"tool_calls": [vars(c) for c in run.tool_calls], "usage": run.usage}
 	except Exception as exc:
-		return {**record, "detail": last_line(exc)}, True
+		# a refusal, such as a USER without Flow User, is the case's mistake, not the provider's
+		refused = isinstance(exc, frappe.ValidationError | frappe.PermissionError)
+		return {**record, "detail": last_line(exc)}, not refused or isinstance(exc, FlowServerDown)
 	finally:
 		if session:
 			_end(session["name"])
-	from frappe.flow.lib.session import ERRORS
-
 	if status == "Running" or status == "Denied" or error in (ERRORS["max_turns"], ERRORS["budget"]):
 		# a chat that would not stop points at the flow server, so it counts towards the stop
 		return {**record, "status": "fail", "detail": error or "the run was denied"}, "did not stop" in (

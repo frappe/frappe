@@ -77,6 +77,8 @@ def _over_cap(content: str) -> bool:
 
 
 def _target(call_args: dict) -> str:
+	if not isinstance(call_args, dict):
+		return ""
 	if method := call_args.get("method"):
 		return str(method).rsplit(".", 1)[-1]
 	return str(call_args.get("doctype") or "")

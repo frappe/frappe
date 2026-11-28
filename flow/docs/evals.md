@@ -6,7 +6,7 @@
 
 - A bench, and a **throwaway site** whose own `site_config.json` has `allow_flow_evals`. The command copies every table when it starts and puts them all back before each run and at the end, so anything else written to that site meanwhile is lost. Never set it on a site you work on.
   ```
-  bench --site eval.localhost set-config allow_flow_evals true
+  bench --site trial.evals.localhost set-config allow_flow_evals true
   ```
 - For `flow-eval run`: a model on that site, with **your own API key or a local model's address** (Desk, Flow's settings, Flow Model). Frappe gives no key for this. The runs cost what any chat on that model costs.
 - `flow-eval check` calls no model and needs no key; the site needs only a Flow Model row so that Flow has an Assistant.
@@ -53,32 +53,44 @@ def check(run):
 - `USER`: who asks. A normal user, never Administrator: every tool call runs with their permissions.
 - `setup()`: makes the records the case needs, as Administrator, on a site just put back. It must make `USER`, with the role Flow User. What it returns is `run.setup`. Make the records the way the app makes them, with the fields its own lists filter on: a ToDo without `allocated_to` is on no one's list.
 - `check(run)`: passes by returning, fails with an `AssertionError`, whose message the table shows. It may read `frappe.db`. `run.reply` is the last message, `run.tool_calls` the calls in order (`.name`, `.args`, `.result`), `run.called(name, **args)` whether a call was made with those top-level arguments, `run.usage` the tokens and cost.
-- `PATH` (optional): the tool calls a right agent would make, for `flow-eval check`. Each step is `(tool, args)` or `(tool, args, expect)`. `expect` is a string the result must contain, or a function of the result text. A step with an `expect` passes when it holds, even if the tool refused, so `(send, "Join this thread")` says "this is refused, and the refusal names the next step". `PATH` may be a function of what `setup()` returned.
+- `PATH` (optional): the tool calls a right agent would make, for `flow-eval check`. Each step is `(tool, args)` or `(tool, args, expect)`. `expect` is a string the result must contain, or a function of the result text. A step with an `expect` passes when it holds, even if the tool refused, so `("call_api", {"method": "raven.api.raven_message.send_message", "args": {…}}, "Join this thread")` says "this is refused, and the refusal names the next step". `PATH` may be a function of what `setup()` returned. A step cannot use an earlier step's result: make the record in `setup()`, return it, and write `PATH` as a function of it.
+- A file whose name starts with `_` can hold helpers: the `evals/` folder is on `sys.path`, so a case can `from _people import make_users`.
+
+A step names one of the Assistant's tools (`frappe/flow/tools/builtins.py`) with its arguments, as the model would call it. The ones a case uses most:
+
+| Tool | Arguments |
+|---|---|
+| `read_records` | `doctype`, `filters`, `fields`, `limit`, `order_by` |
+| `describe` | `doctype`, `name` (a record's fields, permissions and actions) |
+| `create` | `doctype`, `records` (a list of dicts) |
+| `update` | `doctype`, `names`, `values` |
+| `call_api` | `method` (a whitelisted method's dotted path), `args` |
+| `find_apis` | `query` |
 
 ## Check without a model
 
 ```
-$ bench --site eval.localhost flow-eval check frappe
+$ bench --site trial.evals.localhost flow-eval check frappe
 case                  step                                        result                        bytes
 my_todos              1 read_records ToDo                         ok                               75
 1 of 1 cases pass. Largest result: 75 bytes. A result over 51,200 bytes is cut before the model sees it.
 ```
 
-Each step runs through Flow's own tool callback as `USER`, exactly as a model's call would, and the table shows what the model would be given: a refusal, missing rows, an error that names no next step, a result too large. It exits 1 when a case fails.
+Each step runs through Flow's own tool callback as `USER`, exactly as a model's call would, and the table shows what the model would be given: a refusal, missing rows, an error that names no next step, a result too large. It exits 1 when a case fails. `check(run)` is never called here, since there is no reply: a pass means the `PATH` worked, not that the case would pass with a model.
 
 ## Run with a model
 
 ```
-$ bench --site eval.localhost flow-eval run frappe --skill print-formats --max-cost 0.10
+$ bench --site trial.evals.localhost flow-eval run frappe --skill print-formats --max-cost 0.10
 6 runs on openai/openai/gpt-6-luna, stops at $0.10
-flow-eval run frappe --skill frappe/print-formats    3 runs a case · openai/openai/gpt-6-luna · frappe 90d6efa1b9
+flow-eval run frappe --skill frappe/print-formats    3 runs a case · openai/openai/gpt-6-luna · frappe c5ab20fcc0
 
 case                  latest.without  latest.with     change
 my_todos              3/3             3/3             same
 total                 3/3             3/3             0 better · 1 same · 0 unclear · 0 worse
 
-tokens per run        20,488          20,874          (median, input + output)
-cost                  $0.001          $0.001          (total, as Flow recorded it)
+tokens per run        20,522          20,865          (median, input + output)
+cost                  $0.002          $0.001          (total, as Flow recorded it) · $0.002 of $0.10
 saved in sites/trial.evals.localhost/private/flow-evals/latest.without and sites/trial.evals.localhost/private/flow-evals/latest.with
 ```
 
@@ -88,54 +100,54 @@ How a case is called:
 
 | Word | When |
 |---|---|
-| `better` | every run without passed none, every run with passed |
-| `worse` | the other way round |
+| `better` | the second arm passed more, and a one-sided Fisher exact test on the two pass counts gives p ≤ 0.05: at 3 runs only 0/3 against 3/3, at 6 runs 0/6 against 4/6 or 1/6 against 5/6 |
+| `worse` | the same the other way round |
 | `same` | both arms passed every run, or both failed every run |
-| `unclear` | anything else, or a run ended in an `error` (the provider's or the case's own code); run more |
+| `unclear` | anything else, or a run ended in an `error` (the provider's or the case's own code); the table names the cases to run again with `--runs 6` |
 
 A run that times out (`--timeout`, 300 s), hits the iteration limit or is denied is a `fail`. Each run is saved as JSON in `sites/<site>/private/flow-evals/<label>/`, with the reply, the tool calls and their results, the usage, a hash of the prompt and each app's commit; `prompt.txt` holds the system prompt of the label's first run; `prompt_hash` tells you whether later runs were given the same one.
 
-`--max-cost` (1 dollar by default) stops the command once the runs have cost that much; it can overshoot by one run. Two provider errors in a row stop it too.
+`flow-eval run --help` lists every option: `--skill`, `--runs`, `--only`, `--model`, `--label`, `--timeout` and `--max-cost`. `--max-cost` (1 dollar by default) stops the command once the runs have cost that much; it can overshoot by one run. Two provider errors in a row stop it too.
 
 ## A code change
 
 `--skill` turns one skill off in the same checkout. For a change to code, run once on the base branch and once on yours, with labels, and compare:
 
 ```
-git -C apps/myapp switch develop && git -C apps/myapp checkout my-branch -- evals
-bench restart
-bench --site eval.localhost flow-eval run myapp --label base
+git -C apps/raven switch develop
+# restart the web server, and migrate if the schema differs
+bench --site trial.evals.localhost flow-eval run raven --only missed_messages --label base --max-cost 0.10
 
-git -C apps/myapp switch my-branch
-bench restart
-bench --site eval.localhost flow-eval run myapp --label mine
+git -C apps/raven switch pr-2407
+# restart the web server, and migrate if the schema differs
+bench --site trial.evals.localhost flow-eval run raven --skill raven --label pr2 --max-cost 0.40
 
-bench --site eval.localhost flow-eval compare base mine
+bench --site trial.evals.localhost flow-eval compare base pr2.without
 ```
 
-The web server runs the tools, so restart it after a switch, and migrate when the schema changed. A change that is half skill and half code gives three arms: `base` on the base branch, and `pr.without` and `pr.with` from `flow-eval run myapp --skill myskill --label pr` on your branch. `compare base pr.without` is what the code did; the `--skill` table is what the skill added; `compare base pr.with` is the whole change.
+The cases are untracked files in `apps/raven/evals/`, so they stay put when the branch changes; commit them on both branches, or copy them in, if yours are tracked. The web server runs the tools, so restart it after a switch, and migrate when the schema changed. A change that is half skill and half code gives three arms: `base` on the base branch, and `pr.without` and `pr.with` from `flow-eval run myapp --skill myskill --label pr` on your branch. `compare base pr.without` is what the code did; the `--skill` table is what the skill added; `compare base pr.with` is the whole change.
 
 ```
-$ bench --site eval.localhost flow-eval run frappe
-$ bench --site eval.localhost flow-eval compare latest latest.with
-latest: openai/openai/gpt-6-luna · frappe 92854a05f8 · raven e2ae015c
-latest.with: openai/openai/gpt-6-luna · frappe 90d6efa1b9 · raven e2ae015c
+$ bench --site trial.evals.localhost flow-eval run frappe --max-cost 0.10
+$ bench --site trial.evals.localhost flow-eval compare latest latest.with
+latest: openai/openai/gpt-6-luna · frappe c5ab20fcc0 · raven e2ae015c
+latest.with: openai/openai/gpt-6-luna · frappe c5ab20fcc0 · raven e2ae015c
 
 case                  latest       latest.with  change
 my_todos              3/3          3/3          same
 total                 3/3          3/3          0 better · 1 same · 0 unclear · 0 worse
 
-tokens per run        20,860       20,874       (median, input + output)
+tokens per run        14,990       20,865       (median, input + output)
 cost                  $0.001       $0.001       (total, as Flow recorded it)
 ```
 
 ## Limits
 
 - One turn per case. No approval cards (every call is approved), no `read_screen` (no page is open), no background jobs.
-- The restore puts back every table, and nothing else: not files, not Flow's memory and knowledge indexes, not an auto-increment's next value.
-- Runs go one after another: about 20 s a run on GPT-6 Luna, plus about half a second to put the site back.
+- The restore puts back every table and keeps API discovery warm, and nothing else: not files, not Flow's memory and knowledge indexes, not an app's own search index (Raven's SQLite search can return a message from an earlier run), not an auto-increment's next value.
+- Runs go one after another: about 16 s a run on GPT-6 Luna (median), plus about half a second to put the site back.
 - MariaDB only.
 
 ## What it costs
 
-On GPT-6 Luna, 34 runs of Raven's cases cost $0.076 in all: $0.002 a run (median), about 89,000 tokens. So 12 cases run 3 times with and without a skill (72 runs) cost about $0.15 on Luna; a dearer model costs more in proportion. The one-time copy took 5.6 s on a site with frappe and Raven (333 tables).
+On GPT-6 Luna, 51 runs of Raven's cases cost $0.105 in all: $0.0016 a run (median), about 71,000 tokens. So 12 cases run 3 times with and without a skill (72 runs) cost about $0.15 on Luna; a dearer model costs more in proportion. The one-time copy took 5.6 s on a site with frappe and Raven (333 tables).
