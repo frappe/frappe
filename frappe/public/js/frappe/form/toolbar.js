@@ -219,17 +219,14 @@ frappe.ui.form.Toolbar = class Toolbar {
 		let me = this;
 
 		if (me.is_title_editable() || me.can_rename()) {
-			let edit_icon = this.page.add_action_icon(
-				"square-pen",
-				() => {
-					me.setup_editable_title_click_event(element);
-				},
-				"",
-				__("Edit")
-			);
-			edit_icon.css("background-color", "transparent");
-			edit_icon.addClass("p-0");
-			element.append(edit_icon);
+			frappe.ui
+				.button({
+					icon: "square-pen",
+					variant: "ghost",
+					tooltip: __("Edit"),
+					onclick: () => me.setup_editable_title_click_event(element),
+				})
+				.appendTo(element);
 		}
 	}
 
