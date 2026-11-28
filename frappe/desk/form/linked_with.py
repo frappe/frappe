@@ -684,7 +684,7 @@ DEFERRABLE_ERRORS = (frappe.ValidationError, frappe.PermissionError, frappe.Quer
 
 def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 	"""Run process over docs, deferring blocked ones to later passes until a
-	pass makes no progress, then raise the first blocker's error."""
+	pass makes no progress, then raise the error of the doc that is stuck."""
 	total = len(docs)
 	processed = 0
 	save_point = "process_linked_doc"
@@ -697,26 +697,39 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 
 	while docs:
 		deferred = []
+		errors = []
 		for doc in docs:
 			side_effect_counts = capture_pending_side_effects()
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
-			except DEFERRABLE_ERRORS:
+			except DEFERRABLE_ERRORS as error:
 				# hooks ran before the failing check; undo their writes and side effects
 				frappe.db.rollback(save_point=save_point)
 				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
+				errors.append(error)
 				continue
 			frappe.db.release_savepoint(save_point)
 			mark_processed()
 
 		if len(deferred) == len(docs):
 			# surface the blocker's error; a success means the block was transient
-			process(deferred[0])
+			process(deferred.pop(get_stuck_doc_index(errors)))
 			mark_processed()
-			deferred = deferred[1:]
 		docs = deferred
+
+
+def get_stuck_doc_index(errors):
+	"""Index of the last doc that failed for its own reason, else the first doc.
+
+	Docs run referencing docs first, so an earlier doc can fail only because a
+	later doc it points to is still submitted. A link error names another doc
+	in the set, and a lock timeout is transient, so neither is the cause."""
+	for index in range(len(errors) - 1, -1, -1):
+		if not isinstance(errors[index], frappe.LinkExistsError | frappe.QueryTimeoutError):
+			return index
+	return 0
 
 
 def capture_pending_side_effects() -> dict:

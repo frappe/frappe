@@ -468,6 +468,43 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertEqual(attempts, ["first", "second", "first", "second"])
 
+	def test_stuck_pass_surfaces_the_referenced_docs_own_error(self):
+		"""A referencing doc that waits for the root must not hide the root's own
+		error, e.g. a Quality Inspection waiting for a Purchase Receipt whose
+		cancel fails on negative stock."""
+
+		def process(docinfo):
+			if docinfo["name"] == "referencing":
+				raise frappe.ValidationError("cancel the root first")
+			raise frappe.ValidationError("root has its own blocker")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "root has its own blocker"):
+			linked_with.process_linked_docs_in_dependency_order(
+				[
+					{"doctype": "Parent DocType", "name": "referencing"},
+					{"doctype": "Parent DocType", "name": "root"},
+				],
+				process,
+			)
+
+	def test_stuck_pass_skips_link_errors_that_name_another_doc(self):
+		"""A root blocked only by a link to a stuck referencing doc must surface
+		the referencing doc's error, not the link error."""
+
+		def process(docinfo):
+			if docinfo["name"] == "referencing":
+				raise frappe.ValidationError("referencing has its own blocker")
+			raise frappe.LinkExistsError("root is linked with referencing")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "referencing has its own blocker"):
+			linked_with.process_linked_docs_in_dependency_order(
+				[
+					{"doctype": "Parent DocType", "name": "referencing"},
+					{"doctype": "Parent DocType", "name": "root"},
+				],
+				process,
+			)
+
 	def test_get_submitted_linked_docs_truncates_large_graphs(self):
 		"""A graph larger than the cap returns no documents marked truncated, so
 		the caller offers background cancellation instead of walking everything."""
