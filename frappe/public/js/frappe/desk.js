@@ -642,7 +642,7 @@ frappe.Application = class Application {
 
 			if (csrf_token) {
 				// If user re-logged in then their other tabs won't be usable without this update.
-				frappe.csrf_token = csrf_token;
+				window.csrf_token = frappe.csrf_token = csrf_token;
 			}
 		});
 	}

@@ -63,15 +63,22 @@ class Page(Document):
 	def validate(self):
 		validate_route_conflict(self.doctype, self.name)
 
-		if self.is_new() and not getattr(conf, "developer_mode", 0):
-			frappe.throw(_("Not in Developer Mode"))
+		previous = self.get_doc_before_save()
+		if not (self.is_island_reference and (self.is_new() or previous.is_island_reference)):
+			if self.is_new() and not getattr(conf, "developer_mode", 0):
+				frappe.throw(_("Not in Developer Mode"))
 
-		# setting ignore_permissions via update_setup_wizard_access (setup_wizard.py)
-		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
-			frappe.throw(_("Only Administrator can edit"))
+			# setting ignore_permissions via update_setup_wizard_access (setup_wizard.py)
+			if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
+				frappe.throw(_("Only Administrator can edit"))
 
 		self.validate_shell()
 		self.validate_island()
+
+	@property
+	def is_island_reference(self) -> bool:
+		"""A site's page that names an island and holds no code, so it is configuration."""
+		return self.standard != "Yes" and self.type == "Frappe UI" and bool(self.island)
 
 	def validate_shell(self):
 		if self.system_page and self.shared_page:
@@ -207,11 +214,14 @@ class Page(Document):
 		return super().clear_cache()
 
 	def on_trash(self):
-		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
-			frappe.throw(_("Deletion of this document is only permitted in developer mode."))
+		if not self.is_island_reference:
+			if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
+				frappe.throw(_("Deletion of this document is only permitted in developer mode."))
+			if frappe.session.user != "Administrator":
+				frappe.throw(_("Only Administrator can delete"))
 
 		delete_custom_role("page", self.name)
-		if frappe.conf.developer_mode:
+		if frappe.conf.developer_mode and not self.is_island_reference:
 			frappe.db.after_commit(self.delete_folder_with_contents)
 
 	def delete_folder_with_contents(self):

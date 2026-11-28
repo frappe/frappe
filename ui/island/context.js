@@ -19,6 +19,8 @@ import { inject } from "vue";
  * @property {(value: number, df?: Object, doc?: Object) => string} [format_axis_number]
  *           an axis tick, shortened, in `df`'s unit
  * @property {boolean} [developer_mode]
+ * @property {Object|null} [socket]  the host's socket.io connection to the site,
+ *           so an island listens for realtime events without opening its own
  * @property {string|null} [first_day_of_the_week]  as System Settings names the
  *           day, such as "Monday"
  */
