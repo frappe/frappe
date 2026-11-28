@@ -1143,7 +1143,7 @@ class Document(_DocumentBase):
 	def set_workflow_state_on_cancel(self):
 		from frappe.model.workflow import set_workflow_state_on_action
 
-		if workflow := self.meta.get_workflow(self):
+		if workflow := self.meta.get_workflow():
 			set_workflow_state_on_action(self, workflow, "cancel")
 
 	def validate_set_only_once(self):
