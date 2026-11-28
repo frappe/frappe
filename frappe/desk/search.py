@@ -155,6 +155,10 @@ def search_widget(
 			)
 			ignore_user_permissions = False
 
+	if ignore_user_permissions:
+		# past user permissions, return only what a link dropdown shows
+		searchfield, filter_fields = None, None
+
 	start = cint(start)
 	page_length = cint(page_length)
 
@@ -361,6 +365,9 @@ def validate_ignore_user_permissions(form_doctype: str, link_fieldname: str, lin
 		# a read-only or hidden field has no search box, so only a crafted request names it
 		return not any(field.read_only or field.hidden for field in fields)
 
+	if not can_fill_form(form_doctype):
+		return False
+
 	meta = frappe.get_meta(form_doctype)
 	matched_child_field = None
 	locked_child_field = False
@@ -459,6 +466,16 @@ def validate_ignore_user_permissions(form_doctype: str, link_fieldname: str, lin
 		)
 
 	return True
+
+
+def can_fill_form(doctype: str) -> bool:
+	"""Whether the user may create or edit `doctype`, or for a child table, a form that holds it."""
+	from frappe.desk.form.linked_with import get_parent_doctypes
+
+	forms = get_parent_doctypes([doctype])[doctype] if frappe.is_table(doctype) else [doctype]
+	return any(
+		has_permission(form, ptype, print_logs=False) for form in forms for ptype in ("create", "write")
+	)
 
 
 def get_std_fields_list(meta, key):
