@@ -217,11 +217,14 @@ class TestCompleteAppSetup(IntegrationTestCase):
 
 	def test_setup_user_cannot_be_administrator(self):
 		admin = frappe.db.get_value("User", "Administrator", ["email", "first_name"], as_dict=True)
+		# The failed insert aborts the transaction on Postgres; roll back to here before reading again.
+		frappe.db.savepoint("before_duplicate_user")
 		self.assertRaises(
 			frappe.UniqueValidationError,
 			setup_wizard.create_or_update_user,
 			{"email": admin.email.upper(), "full_name": "Taken Over", "password": "Some_pass_123"},
 		)
+		frappe.db.rollback(save_point="before_duplicate_user")
 		self.assertEqual(frappe.db.get_value("User", "Administrator", "first_name"), admin.first_name)
 
 	def test_needs_system_manager(self):
