@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 import frappe
 from frappe.database import get_db
-from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
+from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit, send_now
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 
@@ -101,6 +101,28 @@ class TestEmailQueue(IntegrationTestCase):
 		q2 = frappe.new_doc("Email Queue", email_account="_Test Email Account 1")
 		self.assertIsNot(get_server(frappe.new_doc("Email Queue")), get_server(q1))
 		self.assertIs(get_server(q1), get_server(q2))
+
+	def test_send_and_send_now_skip_email_claimed_by_another_worker(self):
+		email_record = frappe.new_doc(
+			"Email Queue",
+			sender="Test <test@example.com>",
+			show_as_cc="",
+			message="Test message",
+			status="Not Sent",
+			priority=1,
+			recipients=[{"recipient": "test_claimed@example.com"}],
+		).insert()
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "Email Queue", email_record.name, force=True)
+		frappe.db.set_value("Email Queue", email_record.name, "status", "Sending")
+
+		with self.set_user("test@example.com"), patch.dict(frappe.flags, sent_mail=None):
+			email_record.send()
+			self.assertIsNone(frappe.flags.sent_mail)
+
+			send_now(email_record.name, force_send=True)
+			self.assertIsNone(frappe.flags.sent_mail)
+		self.assertEqual(frappe.db.get_value("Email Queue", email_record.name, "status"), "Sending")
 
 	@run_only_if(db_type_is.SQLITE)
 	def test_send_records_result_when_another_connection_commits_during_send(self):
