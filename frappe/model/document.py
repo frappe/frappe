@@ -1184,6 +1184,8 @@ class Document(_DocumentBase):
 
 		if self._action != "cancel":
 			self._validate()
+		else:
+			self.set_workflow_state_on_cancel()
 
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
@@ -1529,6 +1531,12 @@ class Document(_DocumentBase):
 			validate_workflow(self)
 			if self._action != "save":
 				set_workflow_state_on_action(self, workflow, self._action)
+
+	def set_workflow_state_on_cancel(self):
+		from frappe.model.workflow import set_workflow_state_on_action
+
+		if workflow := self.meta.get_workflow(self):
+			set_workflow_state_on_action(self, workflow, "cancel")
 
 	def validate_set_only_once(self):
 		"""Validate that fields are not changed if not in insert"""
