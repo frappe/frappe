@@ -1,10 +1,11 @@
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { dialog, toast } from "frappe-ui";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
 import { inPanel } from "../panel.js";
+import { canLabel, linkLabels, pickedNames } from "./links.js";
 import { newDoc } from "./specs.js";
 
 // What a list of records and a record's form do, for settings and for the setup forms in the
@@ -85,6 +86,8 @@ export function useRecord(props, emit) {
 	const saving = ref(false);
 	const running = ref(null);
 	const form = ref(null);
+	const labels = linkLabels();
+	provide("flowLinkLabels", labels);
 
 	const isNew = computed(() => !props.spec.single && !doc.value?.name);
 	const canWrite = computed(() =>
@@ -113,26 +116,47 @@ export function useRecord(props, emit) {
 		return !!field.locked?.(doc.value);
 	}
 
-	function adopt(data) {
+	// as the form edits it: a multi-link as the names it picks
+	function toDoc(data) {
 		const value = { ...data };
 		for (const field of multilinks.value)
 			value[field.name] = (data[field.name] ?? []).map((row) => row[field.child]);
-		doc.value = value;
-		original.value = JSON.stringify(value);
+		return value;
+	}
+
+	function adopt(data) {
+		doc.value = toDoc(data);
+		original.value = JSON.stringify(doc.value);
+	}
+
+	// before the form shows, so no link flashes its name first; a link that can't be labelled,
+	// or whose lookup fails, shows its names as before
+	async function labelRecordLinks(value) {
+		const lookups = props.spec.fields
+			.filter((field) => field.link && canLabel(page, field.link))
+			.map((field) => [
+				field.link,
+				pickedNames(value[field.name]).filter(
+					(name) => labels.get(field.link, name) === undefined
+				),
+			])
+			.filter(([, names]) => names.length);
+		await Promise.allSettled(
+			lookups.map(([doctype, names]) => labels.label(doctype, names, props.spec.doctype))
+		);
+	}
+
+	async function open(args) {
+		const data = await call("frappe.client.get", args);
+		await labelRecordLinks(toDoc(data));
+		adopt(data);
 	}
 
 	async function load() {
 		error.value = "";
 		try {
-			if (props.spec.single)
-				adopt(await call("frappe.client.get", { doctype: props.spec.doctype }));
-			else if (props.name)
-				adopt(
-					await call("frappe.client.get", {
-						doctype: props.spec.doctype,
-						name: props.name,
-					})
-				);
+			if (props.spec.single) await open({ doctype: props.spec.doctype });
+			else if (props.name) await open({ doctype: props.spec.doctype, name: props.name });
 			else adopt(newDoc(props.spec));
 		} catch (err) {
 			error.value = err.message;

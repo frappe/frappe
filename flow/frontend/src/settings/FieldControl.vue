@@ -199,7 +199,7 @@ import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
-import { searchLinks } from "./links.js";
+import { canLabel, linkLabels, pickedNames } from "./links.js";
 
 // CodeMirror loads only when a code field shows
 const CodeField = defineAsyncComponent(() => import("./CodeField.vue"));
@@ -211,6 +211,8 @@ const props = defineProps({
 	variant: { type: String, default: "outline" },
 });
 const page = inject("flowPage");
+// shared by the fields of the record they show
+const labels = inject("flowLinkLabels", linkLabels, true);
 
 // numbers read with separators; everything else as it is
 const readonlyText = computed(() => {
@@ -261,21 +263,35 @@ const providerOptions = computed(() => {
 const linkQuery = ref("");
 const debouncedLinkQuery = useDebouncedValue(linkQuery, 300);
 const searched = computed(() =>
-	props.disabled && !page.can(props.field.link, "read") ? null : props.field.link
+	props.disabled && !canLabel(page, props.field.link) ? null : props.field.link
 );
+// a read-only field opens no list to pick from, so only its labels are looked up
+const listed = computed(() => (props.disabled ? null : searched.value));
 const links = ref([]);
-const linksLoading = ref(!!searched.value); // until the first results arrive
+const linksLoading = ref(!!listed.value); // until the first results arrive
 const linksError = ref("");
-const options = computed(() => {
-	const value = props.doc[props.field.name];
-	const selected = Array.isArray(value) ? value : value ? [value] : [];
-	return [
-		...links.value,
-		...selected
-			.filter((name) => !links.value.some((option) => option.value === name))
-			.map((name) => ({ value: name, label: name })),
-	];
-});
+const label = (name) => (searched.value && labels.get(searched.value, name)) ?? name;
+const options = computed(() => [
+	...links.value,
+	...pickedNames(props.doc[props.field.name])
+		.filter((name) => !links.value.some((option) => option.value === name))
+		.map((name) => ({ value: name, label: label(name) })),
+]);
+// picks no search has labelled are looked up once, each showing its name meanwhile
+const asked = new Set();
+watch(
+	() => [searched.value, props.doc[props.field.name]],
+	async ([doctype, value]) => {
+		if (!doctype) return;
+		const missing = pickedNames(value).filter(
+			(name) => !asked.has(name) && labels.get(doctype, name) === undefined
+		);
+		if (!missing.length) return;
+		missing.forEach((name) => asked.add(name));
+		await labels.label(doctype, missing, props.doc.doctype);
+	},
+	{ immediate: true }
+);
 // a read-only multi-link lists only its picks, each disabled
 const picked = computed(() =>
 	(props.doc[props.field.name] ?? []).map((name) => ({
@@ -284,17 +300,19 @@ const picked = computed(() =>
 	}))
 );
 watch(
-	[searched, debouncedLinkQuery],
+	[listed, debouncedLinkQuery],
 	async ([doctype, query], _, onCleanup) => {
 		let stale = false;
 		onCleanup(() => (stale = true));
 		linksError.value = "";
-		if (!doctype) {
+		// the combobox puts the picked label in its query: nobody typed it
+		const echo = props.field.type === "link" && query && query === label(props.doc[props.field.name]);
+		if (!doctype || echo) {
 			linksLoading.value = false;
 			return;
 		}
 		try {
-			const data = await searchLinks(doctype, query, props.doc.doctype);
+			const data = await labels.search(doctype, query, props.doc.doctype);
 			if (!stale) links.value = data;
 		} catch (err) {
 			if (!stale) linksError.value = err.message;

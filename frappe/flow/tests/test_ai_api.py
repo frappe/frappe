@@ -526,7 +526,9 @@ class TestSessionEndpoints(ApiCase):
 		self.assertIn("txt", data["file_types"])
 		self.assertEqual(data["user"]["name"], "Administrator")
 		self.assertIn("full_name", data["user"])
-		self.assertEqual(data["permissions"]["Flow Provider"], ["read", "write", "create", "delete"])
+		self.assertEqual(
+			data["permissions"]["Flow Provider"], ["select", "read", "write", "create", "delete"]
+		)
 		frappe.db.delete("Flow Provider")  # tearDown rolls it back
 		self.assertEqual(api.boot()["providers"], [])
 		provider = frappe.get_doc({"doctype": "Flow Provider", "provider": "openai"}).insert()
@@ -536,7 +538,8 @@ class TestSessionEndpoints(ApiCase):
 		data = api.boot()
 		self.assertEqual(data["user"]["name"], other)
 		self.assertEqual(data["permissions"]["Flow Provider"], [])
-		self.assertEqual(data["permissions"]["Flow Model"], ["read"])
+		self.assertEqual(data["permissions"]["Flow Model"], ["select", "read"])
+		self.assertIn("select", data["permissions"]["User"])
 
 	def test_create_session_names_the_agent_and_keeps_the_approval_mode(self):
 		data = api.create_session(

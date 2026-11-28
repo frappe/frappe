@@ -41,6 +41,8 @@ SETTINGS_DOCTYPES = (
 	"Flow Agent Memory",
 	"Flow Settings",
 )
+# Doctypes outside Flow that its settings link to; boot reports the caller's rights on them too.
+LINKED_DOCTYPES = ("Role", "User")
 
 # Per-user chat preferences and their allowed values. None means the default.
 USER_PREFS = {
@@ -93,10 +95,10 @@ def boot() -> dict[str, Any]:
 		"permissions": {
 			doctype: [
 				ptype
-				for ptype in ("read", "write", "create", "delete")
+				for ptype in ("select", "read", "write", "create", "delete")
 				if frappe.has_permission(doctype, ptype)
 			]
-			for doctype in SETTINGS_DOCTYPES
+			for doctype in (*SETTINGS_DOCTYPES, *LINKED_DOCTYPES)
 		},
 	}
 

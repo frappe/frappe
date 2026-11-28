@@ -211,6 +211,56 @@ test("link and multilink search the server, keeping their options while it loads
 	);
 });
 
+test("a picked value outside the search results shows its label, not its name", async (t) => {
+	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
+		filters?.name ? [{ value: "a1b2c3", label: "Ann Smith" }] : [{ value: "tool-1" }];
+	for (const typeName of ["link", "multilink"]) {
+		const el = mount(t, FieldControl, {
+			field: { name: "user", type: typeName, label: "User", link: "User" },
+			doc: { doctype: "Flow Agent", user: typeName === "multilink" ? ["a1b2c3"] : "a1b2c3" },
+		});
+		await until(() => el.textContent.includes("Ann Smith"));
+		assert.ok(!el.textContent.includes("a1b2c3"), typeName);
+	}
+});
+
+test("a pick keeps its label when a later search leaves it out", async (t) => {
+	transport.calls.length = 0;
+	transport.answers["frappe.desk.search.search_link"] = ({ txt }) =>
+		txt === "nobody" ? [] : [{ value: "z1", label: "Zelda Quill" }];
+	const doc = reactive({ doctype: "Flow Trigger", run_as: "" });
+	const el = mount(t, FieldControl, {
+		field: { name: "run_as", type: "link", label: "Run as", link: "User" },
+		doc,
+	});
+	await until(() => el.textContent.includes("Zelda Quill"));
+	doc.run_as = "z1";
+	type(el, "nobody");
+	await until(() => transport.calls.some(([, args]) => args.txt === "nobody"));
+	await new Promise((resolve) => setTimeout(resolve, 20));
+	assert.ok(el.textContent.includes("Zelda Quill"));
+	assert.ok(!el.textContent.includes("z1"));
+	assert.ok(!transport.calls.some(([, args]) => args.filters?.name));
+});
+
+test("the picked label the combobox puts in its query is not searched for", async (t) => {
+	transport.calls.length = 0;
+	transport.answers["frappe.desk.search.search_link"] = () => [{ value: "z1", label: "Zelda Quill" }];
+	const doc = reactive({ doctype: "Flow Trigger", run_as: "" });
+	const el = mount(t, FieldControl, {
+		field: { name: "run_as", type: "link", label: "Run as", link: "User" },
+		doc,
+	});
+	await until(() => el.textContent.includes("Zelda Quill"));
+	doc.run_as = "z1";
+	type(el, "Zelda Quill");
+	await new Promise((resolve) => setTimeout(resolve, 350)); // past the search's debounce
+	assert.deepEqual(
+		transport.calls.map(([, args]) => args.txt),
+		[""]
+	);
+});
+
 test("a read-only multilink still opens, showing only its picks and nothing to change, by name where its records can't be read", async (t) => {
 	transport.answers["frappe.desk.search.search_link"] = () => [
 		{ value: "tool-1", label: "Tool One" },
@@ -369,6 +419,43 @@ test("an untouched JSON field is saved as no value and a filled one as written; 
 	assert.deepEqual(toast.shown, ["Created", "Saved"]);
 });
 
+test("a read-only link the user may search shows its label", async (t) => {
+	transport.calls.length = 0;
+	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
+		filters?.name ? [{ value: "a1b2c3", label: "Ann Smith" }] : [];
+	const el = mount(
+		t,
+		FieldControl,
+		{
+			field: { name: "user", type: "link", label: "User", link: "User" },
+			doc: { doctype: "Flow Agent Memory", user: "a1b2c3" },
+			disabled: true,
+		},
+		{ can: (doctype, ptype) => doctype === "User" && ptype === "select" }
+	);
+	await until(() => el.textContent.includes("Ann Smith"));
+	assert.ok(!el.textContent.includes("a1b2c3"));
+	// with no list to open, only the label is looked up
+	await new Promise((resolve) => setTimeout(resolve, 350)); // past the search's debounce
+	assert.ok(transport.calls.every(([, args]) => args.filters?.name));
+});
+
+test("a read-only DocType link shows its label, as anyone may search DocTypes", async (t) => {
+	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
+		filters?.name ? [{ value: "ToDo", label: "Aufgabe" }] : [];
+	const el = mount(
+		t,
+		FieldControl,
+		{
+			field: { name: "target_doctype", type: "link", label: "Target DocType", link: "DocType" },
+			doc: { doctype: "Flow Trigger", target_doctype: "ToDo" },
+			disabled: true,
+		},
+		{ can: () => false }
+	);
+	await until(() => el.textContent.includes("Aufgabe"));
+});
+
 test("a new record leaves read-only fields out, so the server fills their defaults", () => {
 	assert.equal("source" in newDoc(SPECS.memories), false);
 	assert.equal("status" in newDoc(SPECS.knowledge_sources), false);
@@ -445,6 +532,31 @@ test("a saved record's changed title renames it, after saving its other edits; a
 		assert.deepEqual(toast.shown, ["Renamed"]);
 		assert.equal(el.querySelector('[data-control="Title"] input').value, "Support Helper");
 	}
+});
+
+test("a saved record opens with its links labelled, never showing their names first", async (t) => {
+	transport.answers["frappe.client.get"] = (args) => ({ name: args.name, title: args.name, user: "u-opened" });
+	// a label lookup slower than the form, which then has nothing to show but the name
+	transport.answers["frappe.desk.search.search_link"] = ({ filters }) =>
+		filters?.name
+			? new Promise((resolve) =>
+					setTimeout(() => resolve([{ value: "u-opened", label: "Opened User" }]), 50)
+			  )
+			: [];
+	const spec = {
+		...agentSpec,
+		fields: [...agentSpec.fields, { name: "user", label: "User", type: "link", link: "User" }],
+	};
+	const el = mount(t, DocForm, { spec, name: "Helper" });
+	await until(() => el.querySelector('[data-control="User"]'));
+	const field = el.querySelector('[data-control="User"]').__vueParentComponent;
+	assert.deepEqual(field.props.options, [{ value: "u-opened", label: "Opened User" }]);
+
+	// labels last as long as the form: opened again, the record's are looked up again
+	transport.calls.length = 0;
+	const again = mount(t, DocForm, { spec, name: "Helper" });
+	await until(() => again.querySelector('[data-control="User"]'));
+	assert.ok(transport.calls.some(([, args]) => args.filters?.name));
 });
 
 test("a refused rename keeps the typed title and says why; edits saved before it still reach the list and the page", async (t) => {
