@@ -38,7 +38,9 @@ def verify_request():
 
 		computed_signature = _sign_message(params)
 		valid_signature = hmac.compare_digest(given_signature, computed_signature)
-		valid_method = frappe.request.method == "GET"
+		# RFC 8058 one-click unsubscribe posts with an empty body; the signature
+		# already authenticates the URL, so allow POST with no request data too.
+		valid_method = frappe.request.method in ("GET", "POST")
 		valid_request_data = not (frappe.request.form or frappe.request.data)
 
 		if valid_signature and valid_method and valid_request_data:

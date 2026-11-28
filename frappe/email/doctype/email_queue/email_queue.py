@@ -459,6 +459,22 @@ class SendMailContext:
 			self.message_placeholder("recipient"), self.get_recipient_str(recipient_email)
 		)
 		message = self.include_attachments(message, recipient_email)
+
+		if self.queue_doc.add_unsubscribe_link and self.queue_doc.reference_doctype:
+			# RFC 2369 / RFC 8058: mailbox providers show an unsubscribe action only
+			# when these headers are present. The URL is signed per recipient.
+			unsubscribe_url = get_unsubcribed_url(
+				reference_doctype=self.queue_doc.reference_doctype,
+				reference_name=self.queue_doc.reference_name,
+				email=recipient_email,
+				unsubscribe_method=self.queue_doc.unsubscribe_method,
+				unsubscribe_params=self.queue_doc.unsubscribe_params,
+			)
+			message_obj = self.get_message_object(message)
+			message_obj["List-Unsubscribe"] = f"<{unsubscribe_url}>"
+			message_obj["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+			message = message_obj.as_string()
+
 		return message
 
 	def get_tracker_url(self, recipient_email: str) -> str:

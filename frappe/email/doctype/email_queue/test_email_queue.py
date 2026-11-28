@@ -273,6 +273,25 @@ class TestEmailQueue(IntegrationTestCase):
 		self.assertIsNone(manager_copy["Reply-To"])
 		self.assertEqual(customer_copy["Reply-To"], "manager@example.com")
 
+	def test_list_unsubscribe_headers_added(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		queue = frappe.sendmail(
+			recipients=["customer@example.com"],
+			subject="List-Unsubscribe",
+			message="Test message",
+			reference_doctype="Email Campaign",
+			reference_name="TEST-CAMPAIGN",
+			add_unsubscribe_link=1,
+		)
+
+		message = message_from_bytes(SendMailContext(queue).build_message("customer@example.com"))
+
+		self.assertTrue(message["List-Unsubscribe"].startswith("<https://"))
+		self.assertIn("unsubscribe", message["List-Unsubscribe"].lower())
+		self.assertIn("customer%40example.com", message["List-Unsubscribe"])
+		self.assertEqual(message["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click")
+
 	def test_message_without_attachments_has_alternative_root(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
