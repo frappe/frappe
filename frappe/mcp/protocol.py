@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 import frappe
+from frappe.api.skills import list_skills
 from frappe.utils import get_fullname, get_host_name
 
 LATEST_VERSION = "2026-07-28"
@@ -55,6 +56,15 @@ def server_instructions() -> str:
 	for app in frappe.get_installed_apps():
 		title = (frappe.get_hooks("app_title", app_name=app) or [app])[0]
 		lines.append(f"- {title} ({app})")
+
+	if skills := list_skills()["skills"]:
+		lines += [
+			"",
+			"Skills: instructions for specific tasks. When a task matches a skill, call get_skill",
+			"with its name before you start, and follow what it returns. When the skill mentions",
+			"a file, call get_skill again with that path as `file`.",
+		]
+		lines += [f"- {skill.name}: {' '.join(skill.description.split())}" for skill in skills]
 
 	instructions = "\n".join(lines)
 	if site_instructions := (frappe.get_system_settings("agent_instructions") or "").strip():

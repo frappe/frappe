@@ -49,6 +49,8 @@ class TestToolExecution(McpTestCase):
 			("search_methods", {"query": "ping", "doctype": "ToDo"}),
 			("get_method_schema", {"method": "frappe.ping", "args": {}}),
 			("list_document_methods", {"doctype": "ToDo", "name": "missing"}),
+			("list_skills", {"name": "frappe/print-formats"}),
+			("get_skill", {"name": "frappe/print-formats", "query": "forms"}),
 			("get_method_schema", {"doctype": "ToDo", "method": "add_comment", "args": {}}),
 			("list_documents", {"doctype": "ToDo", "name": "missing"}),
 			("get_document", {"doctype": "ToDo", "name": "missing", "filters": {}}),

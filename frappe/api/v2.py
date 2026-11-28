@@ -16,7 +16,7 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
-from frappe.api import discovery
+from frappe.api import discovery, skills
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, resolve_method, run_server_script, upload_file
@@ -707,6 +707,13 @@ url_rules = [
 		"/discovery/doctype/<doctype>/method/<method>",
 		methods=["GET"],
 		endpoint=discovery.doctype_method,
+	),
+	# Skill APIs
+	Rule("/skill", methods=["GET"], endpoint=skills.list_skills),
+	Rule(
+		"/skill/<path:name>",
+		methods=["GET"],
+		endpoint=lambda name: skills.get_skill(name, frappe.form_dict.get("file")),
 	),
 	# RPC calls
 	Rule("/method/login", endpoint=login),
