@@ -183,6 +183,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// initialize with saved order by
 		this.sort_by = this.view_user_settings.sort_by || this.sort_by || "creation";
 		this.sort_order = this.view_user_settings.sort_order || this.sort_order || "desc";
+		this.grouping = this.valid_grouping(this.view_user_settings.grouping);
 
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
@@ -230,6 +231,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	on_sort_change(sort_by, sort_order) {
 		this.sort_by = sort_by;
 		this.sort_order = sort_order;
+		this.sync_sort_indicators();
 		super.on_sort_change();
 	}
 
@@ -299,11 +301,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 	}
 
-	// Past the virtualization threshold the rows scroll in their own box, so the early
-	// margin has to be measured against that box rather than the screen.
+	// measured against the box the rows scroll in: a margin on the screen stops at its edge
 	observe_list_end() {
 		const root = this.virtualization_state?.enabled
 			? this.virtualization_state.container
+			: frappe.is_mobile()
+			? this.$result.closest(".main-section")[0]
 			: null;
 		// a new observer also reports a list end that is already in view; an existing one
 		// only reports changes
@@ -312,21 +315,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			(entries) => {
 				if (entries.some((entry) => entry.isIntersecting)) this.load_more_on_scroll();
 			},
-			{ root, rootMargin: "0px 0px 600px 0px" }
+			// two screens early: a flick outruns a page that comes over a phone's network
+			{ root, rootMargin: "0px 0px 200% 0px" }
 		);
 		this.scroll_observer.observe(this.$list_end[0]);
 	}
 
 	load_more_on_scroll() {
 		// a short last page means there is nothing more; this is when Load More hides
-		if (!frappe.is_mobile() || this.loading_more || this.data.length < this.page_length)
-			return;
+		const more = this.grouped
+			? this.grouped_rows.has_more
+			: this.data.length >= this.page_length;
+		if (!frappe.is_mobile() || this.loading_more || !more) return;
+		if (this.get_query_key() !== this.shown_query) return;
 		this.loading_more = true;
-		this.start = this.data.length;
-		this.page_length = this.selected_page_count;
+		this.start = this.grouped ? this.grouped_rows.next_start : this.data.length;
+		// a flick covers a 20-row page in a moment: scrolling loads more at a time
+		this.page_length = Math.max(this.selected_page_count, 50);
+		this.append_from = this.data.length;
+		const $loading = this.get_loading_rows(2).appendTo(this.$result);
 		// a newer refresh can render while this one is pending, and then drop its response;
 		// its own check of the list end came while this load still held loading_more
 		this.refresh_now().finally(() => {
+			$loading.remove();
+			this.append_from = null;
 			this.loading_more = false;
 			this.observe_list_end();
 		});
@@ -611,7 +623,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	async setup_view() {
 		await this.setup_columns();
 		// Header is rendered on first refresh after layout restore in before_refresh().
-		this.render_skeleton();
+		if (this.view_name !== "List") this.render_skeleton();
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
 		// add_action_item shows Actions; on a list it waits for a selection
@@ -629,6 +641,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	refresh(refresh_header = false) {
+		// a new query (filters, sort, columns) starts from the first page, also over a scroll page
+		if (this.shown_query && this.get_query_key() !== this.shown_query) this.start = 0;
+		if (
+			this.grouping &&
+			!this.grouped_rows &&
+			this.view_name === "List" &&
+			!this._grouping_bundle_failed
+		) {
+			return frappe.views.ListView.load_grouping().then(() => {
+				// frappe.require resolves on a failed script too: the list then shows ungrouped
+				if (frappe.views.ListGroupedRows) {
+					this.grouped_rows ??= new frappe.views.ListGroupedRows(this);
+				} else {
+					this._grouping_bundle_failed = true;
+				}
+				// the throttled refresh would hand back the one waiting here
+				return this.refresh_now(refresh_header);
+			});
+		}
 		if (refresh_header) {
 			this._refresh_header_on_render = true;
 		}
@@ -637,12 +668,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.selected_page_count >= this.virtualization_threshold
 				? ensure_list_virtualization_loaded()
 				: Promise.resolve();
+		let refresh_id;
 		return load_virtualization
 			.catch(() => {
 				this._virtualization_bundle_failed = true;
 			})
-			.then(() =>
-				super.refresh().then(() => {
+			.then(() => {
+				const request = super.refresh();
+				refresh_id = this.refresh_id;
+				return request.then(() => {
+					// a newer refresh or grouping dropped this response: the newer one finishes the list
+					if (refresh_id !== this.refresh_id) return;
 					if (refresh_header && !this._header_rendered_in_list) {
 						this.render_header(true);
 						this.apply_column_widths();
@@ -653,8 +689,38 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this.update_url_with_filters();
 					this.setup_realtime_updates();
 					this.apply_styles_basedon_dropdown();
+				});
+			})
+			.catch((error) => {
+				if (refresh_id === this.refresh_id && this.view_name === "List") {
+					this.hide_loading_rows();
+					if (!this.get_result_count()) this.show_load_failed();
+				}
+				throw error;
+			});
+	}
+
+	show_load_failed() {
+		this.get_count_element().empty();
+		this.$result.hide().parent(".result-container").hide();
+		this.$paging_area.hide();
+		this.$no_result
+			.empty()
+			.append(
+				frappe.ui.empty_state({
+					title: __("This list could not be loaded"),
+					actions: [
+						{
+							label: __("Try again"),
+							onclick: () => {
+								this.last_args = null;
+								this.refresh();
+							},
+						},
+					],
 				})
-			);
+			)
+			.show();
 	}
 
 	update_checkbox() {
@@ -960,12 +1026,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	freeze() {
+	freeze(loading) {
+		if (loading) this.show_loading_rows_soon();
 		if (this.list_view_settings && !this.list_view_settings.disable_count) {
 			this.get_count_element().html(
 				`<span>${__("Refreshing", null, "Document count in list view")}...</span>`
 			);
 		}
+	}
+
+	get_call_args() {
+		return this.grouped ? this.grouped_rows.get_call_args() : super.get_call_args();
+	}
+
+	prepare_data(r) {
+		if (this.grouped) this.grouped_rows.prepare_data(r);
+		else super.prepare_data(r);
 	}
 
 	get_args() {
@@ -1056,8 +1132,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	load_more() {
+		if (!this.grouped) return super.load_more();
+		this.start = this.grouped_rows.next_start;
+		this.page_length = this.selected_page_count;
+		this.refresh();
+	}
+
 	toggle_result_area() {
 		super.toggle_result_area();
+		if (this.grouped) this.$paging_area.find(".btn-more").toggle(this.grouped_rows.has_more);
 		this.toggle_actions_menu_button(this.checked_docnames.size > 0);
 		// scroll loading replaces the paging area on a phone (setup_load_on_scroll)
 		if (this.load_on_scroll && frappe.is_mobile()) this.$paging_area.hide();
@@ -1086,6 +1170,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.$result.find(".list-liked-by-me").addClass("liked");
 			}
 		}
+		this.sync_sort_indicators();
 		this.setup_column_resize();
 	}
 
@@ -1094,6 +1179,107 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			'<div><input type="checkbox" class="render-list-checkbox"/></div>'
 		);
 		this.$result.append($row);
+	}
+
+	/** At once when nothing is shown; after 300 ms over the rows of a new query, so a quick one never flashes. */
+	show_loading_rows_soon() {
+		// a scroll page keeps the query: no loading rows, and no layout read to decide it
+		if (this.view_name !== "List" || this.loading_more) return;
+		clearTimeout(this.loading_rows_timer);
+		const shown =
+			this.$no_result.is(":visible") ||
+			this.$result.children(
+				".list-group-section, .list-row-container:not(:first-child, .list-loading-row)"
+			).length;
+		if (!shown) this.show_loading_rows();
+		else if (this.get_query_key() !== this.shown_query) {
+			this.loading_rows_timer = setTimeout(() => this.show_loading_rows(), 300);
+		}
+	}
+
+	get_query_key() {
+		const { start, page_length, ...query } = this.get_call_args().args;
+		return JSON.stringify(query);
+	}
+
+	show_loading_rows() {
+		this.$result.children(".list-loading-row").remove();
+		this.parent.page.main.parent().addClass("list-view");
+		if (!this.$result.find(".list-row-head").length) this.render_header();
+		// the right side's width rule needs one of the classes the first render sets
+		if (!this.$result.is(".has-assign-to, .no-assign-to"))
+			this.$result.addClass("no-assign-to");
+		const $rows = this.get_loading_rows(Math.max(this.data.length || this.page_length, 3));
+		// the columns a grouped header hides stay hidden under it
+		this.$result.find(".list-row-head .list-group-hidden-col").each((_, cell) => {
+			$rows
+				.find(`[data-fieldname="${cell.dataset.fieldname}"]`)
+				.addClass("list-group-hidden-col");
+		});
+		this.$result.addClass("has-loading-rows").attr("aria-busy", "true").append($rows);
+		// the rows they hide kept the list tall and scrolled: the loading rows show at the top
+		this.$result[0].style.removeProperty("height");
+		this.$result.show().parent(".result-container").show().scrollTop(0);
+		this.$no_result.hide();
+		if (!frappe.is_mobile()) this.apply_column_widths();
+		this.sync_right_width();
+	}
+
+	hide_loading_rows() {
+		clearTimeout(this.loading_rows_timer);
+		this.$result
+			.removeClass("has-loading-rows")
+			.removeAttr("aria-busy")
+			.children(".list-loading-row")
+			.remove();
+	}
+
+	/** Up to a screen of loading rows shaped like this list's rows. */
+	get_loading_rows(count) {
+		count = Math.min(count, 20);
+		const bar = (width, css_class) =>
+			frappe.ui.skeleton.html({ width, height: "14px", css_class });
+		const subject_index = Math.max(
+			this.columns.findIndex((col) => col.type === "Subject"),
+			0
+		);
+		const second_line =
+			frappe.is_mobile() && this.get_mobile_columns().length
+				? `<div class="mobile-layout-line flex min-w-0">
+					<div class="mobile-layout mobile-layout-seperator no-seperator">
+						<div class="list-row-col py-1.5">${frappe.ui.skeleton.html({
+							width: "96px",
+							height: "12px",
+						})}</div>
+					</div>
+				</div>`
+				: "";
+		const rows = Array.from({ length: count }, (_, n) => {
+			const cells = this.columns.map((col, i) => {
+				const { classes, fieldname } = this.get_header_cell(col);
+				if (i === subject_index) {
+					return `<div class="list-row-col ellipsis list-subject level" data-fieldname="${fieldname}">
+						<span class="level-item select-like">${frappe.ui.skeleton.html({
+							css_class: "invisible list-checkbox-room",
+						})}</span>
+						<span class="level-item">${bar(["160px", "112px", "136px"][n % 3])}</span>
+					</div>`;
+				}
+				const align = classes.includes("text-right") ? "ms-auto" : "";
+				return `<div class="${classes}" data-fieldname="${fieldname}">${bar(
+					"50%",
+					align
+				)}</div>`;
+			});
+			return this.get_list_row_html_skeleton(
+				cells.join("") + second_line + this.get_spacer_cells(),
+				""
+			);
+		});
+		return $(rows.join(""))
+			.removeAttr("tabindex")
+			.attr("aria-hidden", "true")
+			.addClass("list-loading-row");
 	}
 
 	setup_column_resize() {
@@ -1228,10 +1414,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			!this.list_filter?.active_layout_name ||
 			this.list_filter.active_layout_name === "default_layout"
 		) {
+			const saved = frappe.get_user_settings(this.doctype, this.view_name);
 			this.save_view_user_settings({
 				filters: this.filter_area && this.filter_area.get(),
 				sort_by: this.sort_selector && this.sort_selector.sort_by,
 				sort_order: this.sort_selector && this.sort_selector.sort_order,
+				...(this.grouping || saved.grouping ? { grouping: this.grouping } : {}),
 			});
 		}
 	}
@@ -1245,7 +1433,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render() {
-		this.render_list();
+		this.hide_loading_rows();
+		if (this.view_name === "List") this.shown_query = this.get_query_key();
+		if (!this.append_rows()) this.render_list();
 		this.set_rows_as_checked();
 	}
 
@@ -1283,8 +1473,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.capture_column_widths_from_dom();
 		}
 
-		// clear rows
-		this.$result.find(".list-row-container").remove();
+		const place = this.grouped && this.grouped_rows.remember_place();
+		this.$result.find(".list-row-container:not(.list-loading-row)").remove();
 		this.$result.find(".list-virtual-spacer").remove();
 		this.parent.page.main.parent().addClass("list-view");
 		this.render_header(refresh_header);
@@ -1296,7 +1486,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const { has_assignto, assign_to_count } = this.get_assignment_stats();
 
-		if (this.should_use_virtualization()) {
+		if (this.grouped) {
+			this.teardown_virtualization_scroll_handler?.();
+			this.grouped_rows.render();
+			this.grouped_rows.restore_place(place);
+		} else if (this.should_use_virtualization()) {
 			this.sync_virtualization_viewport_mode();
 			this.setup_virtualization_scroll_handler();
 			// restore the fixed container height (mobile drops it for small
@@ -1313,25 +1507,52 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				// build all rows, insert once — per-row appends turn any
 				// geometry read in the loop into a re-layout of the growing
 				// list (quadratic on big pages)
-				let idx = 0;
-				const rows_html = this.data
-					.map((doc) => {
-						doc._idx = idx++;
-						return this.get_list_row_html(doc);
-					})
-					.join("");
+				const rows_html = this.data.map((doc) => this.get_list_row_html(doc)).join("");
 				this.$result.append(rows_html);
 			}
 		}
 
+		// a scroll page's loading rows stay at the list's end
+		this.$result.children(".list-loading-row").appendTo(this.$result);
+		this.rows_mobile = frappe.is_mobile();
 		if (!frappe.is_mobile()) {
 			this.apply_column_widths();
 		}
 		this.update_listview_classes(has_assignto, assign_to_count);
+		// group labels run up to the first total, so they are measured once the widths are set
+		if (this.grouped) this.grouped_rows.fit_labels();
 		// Non-virtual path does not go through finalize_virtual_rows; restore bulk selection here.
 		if (!this.should_use_virtualization()) {
 			this.set_rows_as_checked();
 		}
+	}
+
+	/** A scroll page adds only its rows: a phone would paint the rows on screen again. False to draw all. */
+	append_rows() {
+		const from = this.append_from;
+		this.append_from = null;
+		const refresh_header = this._refresh_header_on_render || this._pending_initial_header;
+		// rows drawn for a phone and for a wider screen don't mix (a turned tablet)
+		const same_layout = this.rows_mobile === frappe.is_mobile();
+		if (from == null || refresh_header || !same_layout || this.should_use_virtualization())
+			return false;
+		if (this.grouped) return this.grouped_rows.append_groups();
+		const drawn = this.$result
+			.find(".list-row-checkbox")
+			.map((_, el) => this.get_checkbox_docname($(el)))
+			.get();
+		const same =
+			drawn.length === from && drawn.every((name, i) => name === cstr(this.data[i]?.name));
+		if (!same) return false;
+		this.$result.append(
+			this.data
+				.slice(from)
+				.map((doc) => this.get_list_row_html(doc))
+				.join("")
+		);
+		const { has_assignto, assign_to_count } = this.get_assignment_stats();
+		this.update_listview_classes(has_assignto, assign_to_count);
+		return true;
 	}
 
 	/** Preserve rendered column widths before rows are torn down and re-rendered. */
@@ -1382,7 +1603,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	/** Turn on virtual scrolling when this page has 2000+ rows. */
 	should_use_virtualization() {
-		if (this.view !== "List") {
+		if (this.view !== "List" || this.grouped) {
 			return false;
 		}
 
@@ -1399,7 +1620,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 
-		const valid_names = new Set(this.data.map((doc) => doc.name));
+		const valid_names = new Set(this.data.map((doc) => cstr(doc.name)));
 		for (const name of this.checked_docnames) {
 			if (!valid_names.has(name)) {
 				this.checked_docnames.delete(name);
@@ -1449,11 +1670,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	 */
 	set_select_all_checked(checked) {
 		if (checked) {
-			this.data.forEach((doc) => this.checked_docnames.add(doc.name));
+			this.data.forEach((doc) => this.checked_docnames.add(cstr(doc.name)));
 			return;
 		}
 
 		this.checked_docnames.clear();
+		this.grouped_rows?.unselect_all();
 	}
 
 	render_count() {
@@ -1469,6 +1691,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			$count.html(`<span>${count}</span>`);
 			this.sync_right_width();
 			if (
+				!this.grouped &&
 				this.count_upper_bound &&
 				(this.total_count == this.count_upper_bound || this.total_count == null)
 			) {
@@ -1502,14 +1725,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		const subject_field = this.columns[0].df;
+		const toggle_all = this.grouped
+			? `<button type="button" class="level-item list-group-toggle-all btn-reset me-1 text-ink-gray-5"></button>`
+			: "";
 		let subject_html = `
 			<span class="level-item select-like">
 				<input class="list-header-checkbox list-check-all" type="checkbox" title="${__("Select All")}">
 			</span>
-			<span class="level-item" data-sort-by="${subject_field.fieldname}"
-				title="${__("Click to sort by {0}", [subject_field.label])}">
-				${__(subject_field.label)}
-			</span>
+			${toggle_all}
+			<span class="level-item">${this.sort_label_html(
+				subject_field.fieldname,
+				__(subject_field.label)
+			)}</span>
 		`;
 		const layout = this.list_filter?.get_active_layout();
 		const can_resize = layout
@@ -1517,12 +1744,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			: frappe.user.has_role("System Manager");
 		let $columns = this.columns
 			.map((col) => {
-				let classes = [
-					"list-row-col ellipsis",
-					col.type == "Subject" ? "list-subject level" : "hidden-xs",
-					col.type == "Tag" ? `tag-col ${!this.tags_shown ? "hide" : ""} ` : "",
-					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
-				].join(" ");
+				const cell = this.get_header_cell(col);
 
 				let html = "";
 				if (col.type === "Subject") {
@@ -1530,28 +1752,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				} else {
 					const fieldname = col.type !== "Status" && col.df?.fieldname;
 					const label = __(col.df?.label || col.type, null, col.df?.parent);
-					const title = __("Click to sort by {0}", [label]);
-					const attrs = fieldname ? `data-sort-by="${fieldname}" title="${title}"` : "";
-					html = `<span ${attrs}>${label}</span>`;
+					html = fieldname
+						? this.sort_label_html(fieldname, label)
+						: `<span>${label}</span>`;
 				}
 
-				const headerFieldname = col.type === "Status" ? "status_field" : col.df?.fieldname;
 				const resizeHandle =
-					can_resize && headerFieldname && col.type !== "Tag"
+					can_resize && cell.fieldname && col.type !== "Tag"
 						? `<div class="list-col-resize-handle"></div>`
 						: "";
-				return `<div class="${classes}" data-fieldname="${headerFieldname}">${html}${resizeHandle}</div>
+				return `<div class="${cell.classes}" data-fieldname="${cell.fieldname}">${html}${resizeHandle}</div>
 			`;
 			})
 			.join("");
 
-		// Add column for button and dropdown button to the header
-		if (this.settings.button) {
-			$columns += `<div class="list-row-col hidden-xs"></div>`;
-		}
-		if (this.settings.dropdown_button) {
-			$columns += `<div class="list-row-col hidden-xs"></div>`;
-		}
+		$columns += this.get_spacer_cells();
 
 		const right_html = `
 			<span class="list-count" style=""></span>
@@ -1567,10 +1782,52 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return this.get_header_html_skeleton($columns, right_html);
 	}
 
+	sort_label_html(fieldname, label) {
+		const escape = frappe.utils.escape_html;
+		const title = escape(__("Click to sort by {0}", [label]));
+		return `<span class="list-sort-label" data-sort-by="${fieldname}" title="${title}"><span class="list-sort-text truncate min-w-0">${escape(
+			label
+		)}</span><span class="list-sort-icon"></span></span>`;
+	}
+
+	/** A grouped list's call leaves out the rows' query; a change of sort or fields there is a change too. */
+	no_change(args) {
+		if (!this.grouped) return super.no_change(args);
+		return super.no_change({ ...args, rows: this.grouped_rows.get_rows_key() });
+	}
+
+	sync_sort_indicators() {
+		this.$result.find(".list-row-head [data-sort-by]").each((_, label) => {
+			const sorted = label.dataset.sortBy === this.sort_by;
+			const icon = sorted && this.sort_order === "desc" ? "arrow-down" : "arrow-up";
+			label.classList.toggle("is-sorted", sorted);
+			label.querySelector(".list-sort-icon").innerHTML = frappe.utils.icon(icon, "xs");
+		});
+	}
+
+	/** The classes and data-fieldname of a column's header cell; group rows line up with them. */
+	get_header_cell(col) {
+		return {
+			classes: [
+				"list-row-col ellipsis",
+				col.type == "Subject" ? "list-subject level" : "hidden-xs",
+				col.type == "Tag" ? `tag-col ${!this.tags_shown ? "hide" : ""} ` : "",
+				frappe.model.is_numeric_field(col.df) ? "text-right" : "",
+			].join(" "),
+			fieldname: col.type === "Status" ? "status_field" : col.df?.fieldname,
+		};
+	}
+
+	get_spacer_cells() {
+		const count =
+			Number(Boolean(this.settings.button)) + Number(Boolean(this.settings.dropdown_button));
+		return '<div class="list-row-col hidden-xs"></div>'.repeat(count);
+	}
+
 	get_header_html_skeleton(left = "", right = "") {
 		return `
 		<div class="list-row-container">
-			<header class="level list-row-head text-muted">
+			<header class="level list-row-head">
 				<div class="level-left list-header-subject">
 					${left}
 				</div>
@@ -1861,13 +2118,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	 * Iterates through `column_max_widths` and sets the `width` and `flex` styles for each column.
 	 * The width for each column is applied as both a fixed `width` and a flexible `flex` property.
 	 */
-	apply_column_widths() {
+	apply_column_widths($rows) {
 		if (this.list_view_settings?.disable_scrolling) return;
 		const MIN_WIDTH = 50;
 		const MAX_WIDTH = 400;
+		// rows added to the list need only the widths the rest already has; a changed width goes to every row
+		const widths = JSON.stringify(this.column_max_widths);
+		const $scope = $rows && widths === this.applied_column_widths ? $rows : this.$result;
+		this.applied_column_widths = widths;
 		Object.entries(this.column_max_widths).forEach(([fieldname, width]) => {
 			const clamped = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width));
-			this.$result.find(`.level-left .list-row-col[data-fieldname="${fieldname}"]`).css({
+			$scope.find(`.level-left .list-row-col[data-fieldname="${fieldname}"]`).css({
 				width: clamped,
 				flex: `0 0 ${clamped}px`,
 			});
@@ -1914,9 +2175,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	// The header's right side holds the count, each row's the timestamp and comment
 	// count. Give them all the widest one, so the columns to their left line up.
 	// Runs again once the count arrives, as it can be the widest.
-	sync_right_width() {
+	sync_right_width($rows) {
 		const result = this.$result?.[0];
 		if (!result) return;
+		// added rows already take the shared width, so measuring them can only widen it
+		const shared = parseFloat(result.style.getPropertyValue("--list-right-width"));
+		if ($rows && shared && !frappe.is_mobile()) {
+			const added = $rows.find(".list-row .level-right").toArray();
+			const width = Math.max(shared, ...added.map((el) => el.getBoundingClientRect().width));
+			if (width > shared) result.style.setProperty("--list-right-width", `${width}px`);
+			return;
+		}
 		result.style.removeProperty("--list-right-width");
 		const sides = result.querySelectorAll(
 			".list-row-head .level-right, .list-row-container .list-row .level-right"
@@ -2012,7 +2281,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.settings.button) {
 			const button_html = `
 				<button class="btn btn-action btn-default btn-xs ellipsis"
-					data-name="${doc.name}" data-idx="${doc._idx}"
+					data-name="${doc.name}"
 					title="${this.settings.button.get_description(doc)}">
 						${this.settings.button.get_label(doc)}
 				</button>
@@ -2036,7 +2305,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if (!button.show || button.show(doc)) {
 					let description = button.get_description ? button.get_description(doc) : "";
 					button_actions += `
-						<a class="dropdown-item" href="#" onclick="return false;" data-idx="${doc._idx}" button-idx="${index}" title="${description}">
+						<a class="dropdown-item" href="#" onclick="return false;" button-idx="${index}" title="${description}">
 							${button.get_label}
 						</a>
 					`;
@@ -2073,6 +2342,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_count_str() {
+		if (this.grouped) return Promise.resolve(this.grouped_rows.count_text());
 		let current_count = this.data.length;
 		let count_without_children = this.data.uniqBy((d) => d.name).length;
 
@@ -2240,12 +2510,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let focus_first_row = () => {
 			this.$result.find(".list-row-container:first").focus();
 		};
-		let focus_next = () => {
-			$(document.activeElement).next().focus();
+		// rows on screen in order: in a grouped list they sit in different groups
+		let focus_step = (by) => {
+			const rows = this.$result.find(".list-row-container[tabindex]:visible").toArray();
+			rows[rows.indexOf(document.activeElement) + by]?.focus();
 		};
-		let focus_prev = () => {
-			$(document.activeElement).prev().focus();
-		};
+		let focus_next = () => focus_step(1);
+		let focus_prev = () => focus_step(-1);
 		let list_row_focused = () => {
 			return $(document.activeElement).is(".list-row-container");
 		};
@@ -2253,6 +2524,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let $input = $row.find("input[type=checkbox]");
 			$input.click();
 		};
+		// a group's checkbox ticks its whole group: range selection steps over it
+		let check_range_row = ($row) => $row && !$row.is(".list-group-row") && check_row($row);
 		let get_list_row_if_focused = () =>
 			list_row_focused() ? $(document.activeElement) : null;
 
@@ -2289,7 +2562,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			action: () => {
 				if (!is_current_page() || is_input_focused()) return false;
 				let $list_row = get_list_row_if_focused();
-				check_row($list_row);
+				check_range_row($list_row);
 				focus_next();
 			},
 			description: __(
@@ -2305,7 +2578,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			action: () => {
 				if (!is_current_page() || is_input_focused()) return false;
 				let $list_row = get_list_row_if_focused();
-				check_row($list_row);
+				check_range_row($list_row);
 				focus_prev();
 			},
 			description: __(
@@ -2369,14 +2642,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	/** The order a column's third click goes back to. */
+	get_default_sort() {
+		return {
+			sort_by: this.meta.sort_field || "creation",
+			sort_order: (this.meta.sort_order || "desc").toLowerCase(),
+		};
+	}
+
 	setup_sort_by() {
 		this.$result.on("click", "[data-sort-by]", (e) => {
-			const sort_by = e.currentTarget.getAttribute("data-sort-by");
+			let sort_by = e.currentTarget.getAttribute("data-sort-by");
 			if (!sort_by) return;
-			let sort_order = "asc"; // always start with asc
-			if (this.sort_by === sort_by) {
-				// unless it's the same field, then toggle
-				sort_order = this.sort_order === "asc" ? "desc" : "asc";
+			// ascending, descending, then back to the DocType's default order
+			let sort_order = "asc";
+			if (this.sort_by === sort_by && this.sort_order === "asc") {
+				sort_order = "desc";
+			} else if (this.sort_by === sort_by) {
+				({ sort_by, sort_order } = this.get_default_sort());
+				if (sort_by === this.sort_by && sort_order === this.sort_order) sort_order = "asc";
 			}
 			this.sort_selector.set_value(sort_by, sort_order);
 			this.on_sort_change(sort_by, sort_order);
@@ -2390,10 +2674,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if ((e.ctrlKey || e.metaKey) && !$target.is("a")) {
 				const $list_row = $(e.currentTarget);
 				const $check = $list_row.find(".list-row-checkbox");
-				$check.prop("checked", !$check.prop("checked"));
-				this.sync_checked_docname($check);
+				// through the change handler, so a record's copies in other groups follow
+				$check.prop("checked", !$check.prop("checked")).trigger("change");
 				e.preventDefault();
-				this.on_row_checked();
 				return;
 			}
 
@@ -2513,16 +2796,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	check_row_on_drag(event, check = true) {
-		const $checkbox = $(event.target).find(".list-row-checkbox");
-		$checkbox.prop("checked", check);
-		this.sync_checked_docname($checkbox);
-		this.on_row_checked();
+		$(event.target).find(".list-row-checkbox").prop("checked", check).trigger("change");
 	}
 
 	setup_action_handler() {
+		// by name: rows drawn before others loaded (a grouped list) keep an old index
+		const doc_of = ($button) => {
+			const name = $button.closest("[data-name]").attr("data-name");
+			return this.data.find((doc) => String(doc.name) === name);
+		};
 		this.$result.on("click", ".btn-action", (e) => {
 			const $button = $(e.currentTarget);
-			const doc = this.data[$button.attr("data-idx")];
+			const doc = doc_of($button);
 			this.settings.button.action(doc);
 			e.stopPropagation();
 			return false;
@@ -2530,7 +2815,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.$result.on("click", ".inner-group-button .dropdown-item", (e) => {
 			const $button = $(e.currentTarget);
-			const doc = this.data[$button.attr("data-idx")];
+			const doc = doc_of($button);
 			const btn_idx = parseInt($button.attr("button-idx"), 10);
 			const button = this.settings.dropdown_button.buttons[btn_idx];
 
@@ -2583,15 +2868,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (e.shiftKey && this.$checkbox_cursor && !$target.is(this.$checkbox_cursor)) {
 				const name_1 = this.get_checkbox_docname(this.$checkbox_cursor);
 				const name_2 = this.get_checkbox_docname($target);
-				const index_1 = this.data.findIndex((d) => d.name === name_1);
-				const index_2 = this.data.findIndex((d) => d.name === name_2);
+				// a grouped list's rows of closed groups are loaded but not on screen
+				const rows = this.grouped
+					? this.$result
+							.find(".list-row-checkbox:visible")
+							.toArray()
+							.map((el) => ({ name: this.get_checkbox_docname($(el)) }))
+					: this.data.map((d) => ({ name: cstr(d.name) }));
+				const index_1 = rows.findIndex((d) => d.name === name_1);
+				const index_2 = rows.findIndex((d) => d.name === name_2);
 				let [min_index, max_index] = [index_1, index_2];
 
 				if (min_index > max_index) {
 					[min_index, max_index] = [max_index, min_index];
 				}
 
-				let docnames = this.data.slice(min_index + 1, max_index).map((d) => d.name);
+				let docnames = rows.slice(min_index + 1, max_index).map((d) => d.name);
 				docnames.forEach((name) => this.checked_docnames.add(name));
 				docnames.forEach((name) => {
 					this.find_checkbox_by_docname(name).prop("checked", true);
@@ -2717,6 +3009,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (!names.length) return;
 
+		// a changed row can move to another group: draw the groups again, keeping open ones open
+		if (this.grouped) {
+			// with every group loaded so far, or on its way (Load More), in one page
+			this.page_length = this.start + this.page_length;
+			this.start = 0;
+			this.last_args = null;
+			// a page still on its way was asked for before the change
+			this.refresh_id = (this.refresh_id || 0) + 1;
+			return this.refresh();
+		}
+
 		// filters to get only the doc with this name
 		const call_args = this.get_call_args();
 		call_args.args.filters.push([this.doctype, "name", "in", names]);
@@ -2835,6 +3138,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.$list_head_subject.hide();
 		}
 		this.update_checkbox();
+		this.grouped_rows?.sync_group_checks();
 		this.toggle_actions_menu_button(checked_count > 0);
 		if (checked_count > 0) {
 			this.debounced_toggle_workflow_actions();
@@ -2847,17 +3151,256 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (only_docnames) return docnames;
 
-		return this.data.filter((d) => this.checked_docnames.has(d.name));
+		return this.data.filter((d) => this.checked_docnames.has(cstr(d.name)));
 	}
 
 	clear_checked_items() {
 		this.checked_docnames.clear();
+		this.grouped_rows?.unselect_all();
 		this.$result.find(".list-row-checkbox").prop("checked", false);
 		this.on_row_checked();
 	}
 
 	save_view_user_settings(obj) {
 		return frappe.model.user_settings.save(this.doctype, this.view_name, obj);
+	}
+
+	/** Grouped once the grouping bundle is in. */
+	get grouped() {
+		return Boolean(this.grouping && this.grouped_rows) && this.view_name === "List";
+	}
+
+	/** Group the list, or ungroup it with null. The Default layout keeps it with its filters and sort. */
+	set_grouping(grouping) {
+		this.use_grouping(grouping);
+		this.last_args = null;
+		// the throttled refresh can start up to a second later: show it is loading now
+		this.freeze(true);
+		return this.refresh();
+	}
+
+	/** Takes a grouping without refreshing. */
+	use_grouping(grouping) {
+		grouping = this.valid_grouping(grouping);
+		if (frappe.utils.deep_equal(grouping, this.grouping)) return;
+		const fields = (g) => JSON.stringify(g?.levels.map((level) => level.fieldname));
+		const keep_open =
+			Boolean(grouping && this.grouping) &&
+			fields(grouping) === fields(this.grouping) &&
+			grouping.open === this.grouping.open;
+		const keep_figures = frappe.utils.deep_equal(grouping?.totals, this.grouping?.totals);
+		// reset takes the open groups' rows off the screen
+		if (this.grouped && !grouping) this.data = [];
+		this.grouping = grouping;
+		// a response still on its way was asked for the old grouping
+		this.refresh_id = (this.refresh_id || 0) + 1;
+		this.grouped_rows?.reset({ keep_open, keep_figures });
+		// the groups on screen stay, past the first page too, with no loading rows over them
+		this.page_length = keep_open ? this.start + this.page_length : this.selected_page_count;
+		this.start = 0;
+		if (keep_open && this.grouped) this.shown_query = this.get_query_key();
+		this._refresh_header_on_render = true;
+		this.update_group_button();
+	}
+
+	get_result_count() {
+		if (!this.grouped) return super.get_result_count();
+		// every row has no value: the list shows until the empty group's count comes
+		return this.grouped_rows.groups.length || Number(this.grouped_rows.empty_pending);
+	}
+
+	/** A saved grouping, less the fields the list can't be grouped by any more; null if none is left. */
+	valid_grouping(grouping) {
+		if (!grouping?.levels?.length) return null;
+		const fields = frappe.views.ListView.get_groupable_fields(this.doctype);
+		const allowed = new Set(fields.map((field) => field.fieldname));
+		const levels = Array.isArray(grouping?.levels)
+			? grouping.levels.filter((level) => allowed.has(level?.fieldname))
+			: [];
+		// only the totals the editor offers: Sum or Average of a number field
+		const totals = Object.fromEntries(
+			Object.entries(grouping.totals || {}).filter(
+				([field, fn]) =>
+					["sum", "avg"].includes(fn) &&
+					frappe.model.is_numeric_field(frappe.meta.get_docfield(this.doctype, field))
+			)
+		);
+		return levels.length ? { ...grouping, levels, totals } : null;
+	}
+
+	/** Select and Link fields (less hidden, masked and virtual ones), Assigned To and Created By. */
+	static get_groupable_fields(doctype) {
+		const meta = frappe.get_meta(doctype);
+		// a virtual DocType's list ignores GROUP BY
+		if (meta.is_virtual) return [];
+		const icons = { Select: "circle-dot", Link: "link-2" };
+		const label = (fieldname) => frappe.meta.get_translated_label(doctype, fieldname);
+		// a document's series and the one it amends say nothing about it
+		const noise = ["naming_series", "amended_from"];
+		const fields = meta.fields
+			.filter(
+				(df) =>
+					icons[df.fieldtype] &&
+					!df.hidden &&
+					!df.is_virtual &&
+					!noise.includes(df.fieldname) &&
+					ListView.can_read_field(doctype, df)
+			)
+			.map((df) => ({
+				fieldname: df.fieldname,
+				label: label(df.fieldname),
+				icon:
+					df.fieldtype === "Link" && df.options === "User"
+						? "user-round"
+						: icons[df.fieldtype],
+				has_options: df.fieldtype !== "Link",
+				suggested: Boolean(
+					df.in_standard_filter || (df.fieldtype === "Select" && df.in_list_view)
+				),
+			}));
+		fields.push(
+			{
+				fieldname: "_assign",
+				label: label("_assign"),
+				icon: "users-round",
+				suggested: true,
+			},
+			{ fieldname: "owner", label: label("owner"), icon: "user-round", suggested: true }
+		);
+		return fields;
+	}
+
+	/** Whether the user may see the field's values: its permission level, and not masked. */
+	static can_read_field(doctype, df) {
+		const masked = frappe.get_meta(doctype).masked_fields || [];
+		return frappe.perm.has_perm(doctype, df.permlevel) && !masked.includes(df.fieldname);
+	}
+
+	setup_sort_selector() {
+		super.setup_sort_selector();
+		this.setup_group_button();
+	}
+
+	setup_group_button() {
+		if (this.view_name !== "List" || !this.sort_selector || this.meta.is_virtual) return;
+
+		this.$group_button = frappe.ui.button({ icon: "list-tree", label: __("Group") });
+		this.$group_button.find(".es-button__label").addClass("truncate max-sm:hidden");
+		this.$group_x_button = frappe.ui.button({
+			icon: "x",
+			tooltip: __("Remove grouping"),
+			css_class: "border-s rounded-ss-none rounded-es-none hidden",
+			onclick: () => {
+				// this button hides: the Group button keeps the keyboard's place
+				this.$group_button.trigger("focus");
+				return this.set_grouping(null);
+			},
+		});
+		$('<div class="list-group-selector flex items-center"></div>')
+			.append(this.$group_button, this.$group_x_button)
+			.insertBefore(this.sort_selector.wrapper);
+
+		const popover = new frappe.ui.Popover({
+			trigger: this.$group_button,
+			content: () => this.make_group_editor(),
+			align: "end",
+			css_class: "group-editor-popover",
+		});
+		popover.trigger_el.removeEventListener("click", popover.ontriggerclick);
+		this.$group_button[0].addEventListener("click", (e) => {
+			e.preventDefault();
+			frappe.is_mobile() ? this.open_group_sheet() : popover.toggle();
+		});
+		this.$group_button.one("pointerenter focus", () => frappe.views.ListView.load_grouping());
+		this.update_group_button();
+	}
+
+	update_group_button() {
+		if (!this.$group_button) return;
+		const label = this.get_grouping_label();
+		this.$group_button.find(".es-button__label").text(label || __("Group"));
+		this.$group_button.attr("aria-label", label ? __("Grouped by {0}", [label]) : __("Group"));
+		this.$group_button.attr("title", label ? __("Grouped by {0}", [label]) : null);
+		// a phone removes the grouping from the Group sheet: the toolbar has no room for the ×
+		const with_x = Boolean(label) && !frappe.is_mobile();
+		this.$group_button.toggleClass("rounded-se-none rounded-ee-none", with_x);
+		this.$group_x_button.toggleClass("hidden", !with_x);
+	}
+
+	/** "Status", "Territory › Status" or "Territory + 2 more". */
+	get_grouping_label() {
+		const labels = (this.grouping?.levels || []).map(({ fieldname }) =>
+			frappe.meta.get_translated_label(this.doctype, fieldname)
+		);
+		if (labels.length > 2) return __("{0} + {1} more", [labels[0], labels.length - 1]);
+		return labels.join(" › ");
+	}
+
+	async open_group_sheet() {
+		// a second tap while the sheet's bundle loads would open a second sheet
+		if (this.opening_group_sheet) return;
+		this.opening_group_sheet = true;
+		await frappe
+			.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"])
+			.finally(() => (this.opening_group_sheet = false));
+		const $remove = frappe.ui.button({
+			label: __("Remove grouping"),
+			size: "md",
+			css_class: this.grouping ? "" : "hidden",
+			onclick: () => {
+				this.set_grouping(null);
+				sheet.close();
+			},
+		});
+		const sheet = new frappe.ui.BottomSheet({
+			title: __("Grouping"),
+			// edits apply as they are made: Done only closes
+			footer: () => [
+				$remove,
+				frappe.ui.button({
+					label: __("Done"),
+					variant: "solid",
+					size: "md",
+					onclick: () => sheet.close(),
+				}),
+			],
+			content: (sheet) =>
+				this.make_group_editor({
+					show_header: false,
+					sheet,
+					on_change: (grouping) => {
+						this.set_grouping(grouping);
+						$remove.toggleClass("hidden", !grouping);
+					},
+				}),
+		});
+		sheet.open();
+	}
+
+	/**
+	 * A group editor for this list, once its bundle is in. `opts` go to `ListGroupEditor`; by
+	 * default it edits the list's own grouping and applies each change to the list.
+	 */
+	make_group_editor(opts = {}) {
+		const $panel = $("<div></div>");
+		frappe.views.ListView.load_grouping().then(() => {
+			// frappe.require resolves on a failed script too
+			if (!frappe.views.ListGroupEditor) return;
+			const editor = new frappe.views.ListGroupEditor({
+				doctype: this.doctype,
+				grouping: this.grouping,
+				columns: this.columns.filter((col) => col.type === "Field").map((col) => col.df),
+				filters: this.get_filters_for_args(),
+				on_change: (grouping) => this.set_grouping(grouping),
+				...opts,
+			});
+			$panel.append(editor.$el);
+		});
+		return $panel;
+	}
+
+	static load_grouping() {
+		return frappe.require("list_grouping.bundle.js");
 	}
 
 	on_update() {}

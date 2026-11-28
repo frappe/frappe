@@ -212,6 +212,35 @@ class TestListFilter(UnitTestCase):
 		self.assertIsNone(updated["sort_field"])
 		self.assertIsNone(updated["sort_order"])
 
+	def test_sanitize_grouping_drops_invalid_levels_and_totals(self):
+		doc = self._create_filter()
+		grouping = {
+			"levels": [
+				{"fieldname": "status", "order": "count-desc"},
+				{"fieldname": "status"},
+				{"fieldname": "description"},
+				{"fieldname": ["priority"]},
+			],
+			"totals": {"status": "sum", "invalid_field_xyz": "sum"},
+			"open": "first",
+			"extra": "<script>",
+		}
+		updated = update_list_filter(doc.name, grouping=json.dumps(grouping))
+		self.assertEqual(
+			json.loads(updated["grouping"]),
+			{
+				"levels": [{"fieldname": "status", "order": "count-desc"}],
+				"open": "first",
+				"totals": {},
+				"show_empty": 0,
+				"hide_grouped_columns": 0,
+			},
+		)
+
+		grouping["levels"] = 5
+		updated = update_list_filter(doc.name, grouping=json.dumps(grouping))
+		self.assertIsNone(updated["grouping"])
+
 	def test_ui_test_filter_helpers(self):
 		from frappe.tests.ui_test_helpers import (
 			clear_list_layout_test_layouts,

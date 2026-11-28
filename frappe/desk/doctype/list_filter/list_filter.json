@@ -18,7 +18,9 @@
   "section_break_aljf",
   "filters",
   "section_break_lrva",
-  "columns"
+  "columns",
+  "section_break_vkqn",
+  "grouping"
  ],
  "fields": [
   {
@@ -100,12 +102,23 @@
    "fieldtype": "Int",
    "label": "Layout Order",
    "no_copy": 1
+  },
+  {
+   "fieldname": "section_break_vkqn",
+   "fieldtype": "Section Break",
+   "label": "Grouping"
+  },
+  {
+   "fieldname": "grouping",
+   "fieldtype": "Long Text",
+   "label": "Grouping"
   }
  ],
  "icon": "funnel",
  "in_create": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-09-30 21:06:57.496094",
+ "modified": "2026-11-21 20:03:52.735070",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List Filter",

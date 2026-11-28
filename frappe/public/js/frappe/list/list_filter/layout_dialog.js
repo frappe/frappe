@@ -90,6 +90,8 @@ export default class LayoutDialog {
 				default: sorting.sort_order,
 				reqd: 1,
 			},
+			{ fieldtype: "Section Break", label: __("Grouping") },
+			{ fieldtype: "HTML", fieldname: "grouping_area" },
 			{ fieldtype: "Section Break", label: __("Columns") },
 			{ fieldtype: "HTML", fieldname: "columns_area" }
 		);
@@ -111,7 +113,23 @@ export default class LayoutDialog {
 			fields: this.get_initial_columns(),
 			preserved_widths: this.preserved_layout_columns,
 		});
+		this.make_grouping_area(this.dialog.get_field("grouping_area").$wrapper);
 		this.dialog.show();
+	}
+
+	make_grouping_area(parent) {
+		this.grouping = this.get_initial_grouping();
+		parent.append(
+			this.list_view.make_group_editor({
+				grouping: this.grouping,
+				columns: this.field_selector
+					.get_columns()
+					.map(({ fieldname }) => frappe.meta.get_docfield(this.doctype, fieldname)),
+				filters: this.get_initial_filters(),
+				show_header: false,
+				on_change: (grouping) => (this.grouping = grouping),
+			})
+		);
 	}
 
 	get_initial_is_global() {
@@ -227,6 +245,13 @@ export default class LayoutDialog {
 		};
 	}
 
+	get_initial_grouping() {
+		if (this.source_layout) {
+			return this.list_view.list_filter.get_layout_grouping(this.source_layout);
+		}
+		return this.list_view.grouping || null;
+	}
+
 	get_initial_filters() {
 		if (this.source_layout?.filters) {
 			try {
@@ -294,6 +319,7 @@ export default class LayoutDialog {
 			columns,
 			sort_field: sorting.sort_field,
 			sort_order: sorting.sort_order,
+			grouping: this.grouping,
 			route_signature:
 				this.list_view.list_filter?.get_route_signature_from_filters?.(filters) || "",
 		};

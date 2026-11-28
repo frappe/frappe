@@ -218,7 +218,7 @@ export class Desk {
 		await expect(
 			this.page
 				.locator(
-					".list-paging-area:visible, .result .list-row-container:not(:has(.render-list-checkbox)) .list-row:visible, .no-result:visible"
+					".list-paging-area:visible, .result .list-row-container:not(:has(.render-list-checkbox), .list-loading-row) .list-row:visible, .no-result:visible"
 				)
 				.first()
 		).toBeVisible();

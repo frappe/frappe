@@ -107,6 +107,11 @@
 	}
 }
 
+// the old rows wait out of sight while a new query loads (show_loading_rows)
+.result.has-loading-rows > :not(:has(> .list-row-head), .list-loading-row) {
+	display: none;
+}
+
 .list-skeleton {
 	min-height: calc(100vh - 200px);
 
@@ -137,11 +142,15 @@
 	flex-direction: column;
 	padding-inline: var(--padding-sm);
 	border-radius: var(--radius);
+	transition: background-color 150ms;
 	// the :active highlight below replaces the tap flash
 	-webkit-tap-highlight-color: transparent;
 
-	&:focus {
-		.list-row {
+	// a group row keeps focus after a tap, so only the keyboard's focus lights it up
+	&:focus:not(.list-group-row),
+	&.list-group-row:focus-visible {
+		.list-row,
+		.level-right {
 			background-color: var(--highlight-color);
 		}
 	}
@@ -269,7 +278,14 @@
 		right: 0;
 		background-color: var(--bg-color);
 		border-left: 2px solid var(--highlight-color);
-		padding: 9px 10px;
+		padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.5);
+		transition: background-color 150ms;
+
+		// rows that fit the screen (no sideways scroll, see .result above) need no sticky
+		// part, which Safari paints as a layer of its own on every row
+		@media (max-width: map-get($grid-breakpoints, "sm")) {
+			position: static;
+		}
 	}
 
 	.tag-col {
@@ -337,9 +353,24 @@
 	}
 }
 
+// the checkbox's room in rows that have none (the Total row, loading rows)
+.list-checkbox-room {
+	width: var(--checkbox-size);
+	height: var(--checkbox-size);
+}
+
 .select-like {
 	padding: var(--list-checkbox-padding);
 	cursor: default;
+
+	// frappe-ui lists leave twice the room after the checkbox, which a click on still ticks
+	@include media-breakpoint-up(md) {
+		padding-inline: 0 calc(var(--list-checkbox-padding) * 2);
+
+		input[type="checkbox"]::after {
+			inset-inline-end: calc(var(--list-checkbox-padding) * -2);
+		}
+	}
 }
 
 .list-col-resize-handle {
@@ -357,12 +388,25 @@
 	&::before {
 		content: "";
 		width: 2px;
-		height: 14px; // fixed px — same on every column regardless of column height
+		// fixed: same on every column regardless of column height
+		height: calc(var(--spacing) * 4);
 		border-radius: 2px;
-		background-color: var(--gray-500);
-		// Always show a faint resting separator so users can discover resize
-		opacity: 0.25;
+		background-color: var(--outline-gray-3);
+		opacity: 0;
+		transition: opacity 300ms;
 	}
+}
+
+.list-row-head .list-row-col {
+	@include hover-only-with-pointer {
+		.list-col-resize-handle::before {
+			opacity: 1;
+		}
+	}
+}
+
+body.list-col-resizing .list-col-resize-handle::before {
+	opacity: 1;
 }
 
 body.list-col-resizing {
@@ -377,10 +421,24 @@ body.list-col-resizing {
 .list-row-head {
 	@extend .list-row;
 	cursor: default;
-	background-color: var(--subtle-fg);
-	border-radius: var(--radius);
-	height: var(--list-row-height);
+	font-size: var(--text-sm);
+	color: var(--ink-gray-5);
+	// like frappe-ui lists: no box, a line under the labels; opaque, as rows scroll under it
+	background-color: var(--bg-color);
+	height: calc(var(--spacing) * 8);
 	padding-inline: var(--padding-sm);
+	position: relative;
+	border-bottom: none;
+
+	// the line starts and ends where the rows' lines do
+	&::after {
+		content: "";
+		position: absolute;
+		bottom: 0;
+		inset-inline: var(--padding-sm);
+		border-bottom: 1px solid var(--border-color);
+		pointer-events: none;
+	}
 
 	.list-row-col {
 		position: relative;
@@ -392,8 +450,10 @@ body.list-col-resizing {
 		padding-right: 14px;
 	}
 
-	.list-subject {
-		font-weight: normal;
+	.list-subject,
+	.list-subject > .level-item {
+		font-weight: inherit;
+		color: inherit;
 	}
 
 	.checkbox-actions {
@@ -401,31 +461,35 @@ body.list-col-resizing {
 	}
 
 	.level-right {
-		background-color: var(--subtle-fg);
-		height: var(--list-row-height);
+		background-color: var(--bg-color);
+		height: 100%;
 		border-left: none;
+	}
 
-		&:hover {
-			background-color: var(--subtle-fg);
+	// a long title label ends in "…" and keeps its arrow, beside the expand-all control
+	.list-subject > .level-item:has(> .list-sort-label) {
+		flex-shrink: 1;
+		min-width: 0;
+
+		.list-sort-label {
+			display: inline-flex;
+			align-items: center;
+			max-width: 100%;
 		}
 	}
 
-	&:hover .level-right {
-		background-color: var(--subtle-fg);
+	&:hover .level-right,
+	&:active .level-right {
+		background-color: var(--bg-color);
 	}
 }
 
 .list-row-col {
 	flex: 1;
-	margin-right: 15px;
+	margin-right: calc(var(--spacing) * 4);
 
 	a {
 		color: var(--text-muted);
-	}
-
-	& > [data-sort-by]:hover {
-		cursor: pointer;
-		text-decoration: underline;
 	}
 
 	.selected-color {
@@ -438,13 +502,29 @@ body.list-col-resizing {
 	}
 }
 
+// like frappe-ui lists: a row's other columns in ink-gray-7, their text on the title's line
+.list-row:not(.list-row-head) .list-row-col:not(.list-subject) {
+	color: var(--ink-gray-7);
+
+	a:not(.es-badge) {
+		color: var(--ink-gray-7);
+	}
+
+	@include media-breakpoint-up(md) {
+		> span.ellipsis:not(.es-badge, :has(.es-badge)),
+		> span.ellipsis > a {
+			vertical-align: top;
+		}
+	}
+}
+
 $level-margin-right: 8px;
 
 .list-subject {
 	justify-content: start;
 
 	a {
-		color: var(--text-color);
+		color: var(--ink-gray-9);
 	}
 
 	&.seen {
@@ -472,12 +552,12 @@ $level-margin-right: 8px;
 .layout-main-list {
 	.list-paging-area,
 	.footnote-area {
-		padding: var(--padding-sm) 0;
+		padding: calc(var(--spacing) * 2) 0;
 	}
 
 	// clear the home indicator where the page runs under it; 0 everywhere else
 	.list-paging-area {
-		padding-bottom: calc(var(--padding-sm) + env(safe-area-inset-bottom, 0px));
+		padding-bottom: calc(var(--spacing) * 2 + env(safe-area-inset-bottom, 0px));
 	}
 }
 
@@ -490,7 +570,8 @@ $level-margin-right: 8px;
 }
 
 input.list-row-checkbox,
-input.list-header-checkbox {
+input.list-header-checkbox,
+input.list-group-checkbox {
 	margin-top: 0;
 	margin-bottom: 0;
 	--checkbox-right-margin: 0;
@@ -539,12 +620,51 @@ input.list-header-checkbox {
 	}
 }
 
+.list-sort-label {
+	cursor: pointer;
+
+	&.is-sorted {
+		color: var(--ink-gray-7);
+	}
+
+	.list-sort-icon {
+		margin-inline-start: var(--spacing);
+		opacity: 0;
+	}
+
+	@include hover-only-with-pointer {
+		color: var(--ink-gray-7);
+
+		.list-sort-icon {
+			opacity: 0.6;
+		}
+	}
+
+	&.is-sorted .list-sort-icon {
+		opacity: 1;
+	}
+}
+
+// a number column's label ends where its values do, so its arrow goes before the text
+.text-right > .list-sort-label {
+	display: inline-flex;
+	flex-direction: row-reverse;
+	align-items: center;
+	max-width: 100%;
+
+	.list-sort-icon {
+		display: inline-flex;
+		margin-inline: 0 var(--spacing);
+	}
+}
+
 .list-item-table {
 	border: 1px solid $border-color;
 	border-radius: 3px;
 
-	.list-row-head {
-		border-radius: unset;
+	// its rows' lines run edge to edge, so the header's does too
+	> .list-row-head::after {
+		inset-inline: 0;
 	}
 
 	.list-row-container {
@@ -702,6 +822,10 @@ input.list-header-checkbox {
 		margin: var(--margin-xs) 0 var(--margin-xs) var(--margin-xs);
 	}
 
+	.list-group-selector {
+		margin: var(--margin-xs);
+	}
+
 	&.list-page-form {
 		@include media-breakpoint-between(xs, sm) {
 			flex-direction: column-reverse;
@@ -715,6 +839,11 @@ input.list-header-checkbox {
 			// the ID box and the buttons carry different margins; centre them on one line
 			.filter-section {
 				align-items: center;
+			}
+
+			// the same gap as between Reload and Filter
+			.list-group-selector {
+				margin: var(--margin-xs) 0 var(--margin-xs) var(--spacing);
 			}
 		}
 	}
@@ -843,8 +972,14 @@ input.list-header-checkbox {
 			display: block;
 
 			input.list-row-checkbox,
-			input.list-header-checkbox {
+			input.list-header-checkbox,
+			input.list-group-checkbox {
 				width: 15px !important;
+				height: 15px;
+			}
+
+			.list-checkbox-room {
+				width: 15px;
 				height: 15px;
 			}
 		}
@@ -937,5 +1072,358 @@ input.list-header-checkbox {
 @media screen and (max-width: 375px) {
 	.navbar-breadcrumbs li:last-child .es-breadcrumbs__label {
 		max-width: 105px;
+	}
+}
+
+.es-popover.group-editor-popover {
+	width: calc(var(--spacing) * 120);
+}
+
+.group-editor-row-label {
+	width: calc(var(--spacing) * 16);
+}
+
+.group-editor-total {
+	width: calc(var(--spacing) * 32);
+}
+
+// the add row's picker ends where the level rows' pickers do, before their two buttons
+.group-editor-add {
+	padding-inline-end: calc(var(--spacing) * 18);
+}
+
+// in a phone's sheet: finger-sized pickers, and only the remove button beside them
+.group-editor-sheet {
+	.es-combobox {
+		height: calc(var(--spacing) * 10);
+	}
+
+	.group-editor-add,
+	.group-editor-order {
+		padding-inline-end: calc(var(--spacing) * 12);
+	}
+}
+
+.list-group-toggle-all {
+	border-radius: var(--radius-3);
+	position: relative;
+
+	// a target up to the title's sort label, away from the Select all box
+	&::after {
+		content: "";
+		position: absolute;
+		inset-block: calc(var(--spacing) * -2);
+		inset-inline: 0 calc(var(--spacing) * -1);
+
+		// a finger needs a bigger one: it reaches over the title's first letters
+		@media (pointer: coarse) {
+			inset-inline-end: calc(var(--spacing) * -3);
+		}
+	}
+
+	@include hover-only-with-pointer {
+		color: var(--ink-gray-7);
+	}
+}
+
+.list-group-section > .list-row-container.list-group-row > .list-row {
+	border-bottom-color: var(--outline-elevation-2);
+}
+
+.list-group-section > .list-row-container.list-group-row {
+	padding-inline: var(--padding-sm);
+	position: sticky;
+	top: calc(
+		var(--list-group-top, 0px) + var(--list-group-depth, 0) * var(--list-group-row-height, 0px)
+	);
+	// a parent's header stays above its sub-groups' headers, all above the rows' checkboxes (z-index 1)
+	z-index: calc(5 - var(--list-group-depth, 0));
+	background-color: var(--bg-color);
+	cursor: pointer;
+
+	// its own background hides the rows' hover, so it repeats it
+	&:active {
+		background-color: var(--highlight-color);
+	}
+
+	@include hover-only-with-pointer {
+		background-color: var(--highlight-color);
+	}
+
+	// the label runs over the empty cells beside it, up to the first total (fit_labels)
+	.list-subject {
+		overflow: visible;
+	}
+
+	// the count stays whole: the list's rule that shrinks a title's last part would hide it
+	.list-subject > span:last-child {
+		flex-shrink: 0;
+		overflow: visible;
+	}
+}
+
+.list-group-label {
+	max-width: var(--list-group-label-width, none);
+	font-weight: var(--font-weight-medium);
+}
+
+// a long grouping shortens its label instead of pushing the filters onto a second line
+.list-group-selector .es-button__label {
+	max-width: calc(var(--spacing) * 36);
+}
+
+// the list's header stays above the group headers that scroll under it
+.result:has(> .list-group-section) > .list-row-container:first-child {
+	z-index: 6;
+}
+
+// a phone scrolls the page: the list's boxes clip, since a box that scrolls (hidden,
+// auto) would hold the group headers instead of letting them stick under the page's head
+@media (max-width: 767.98px) {
+	.frappe-list .result-container:has(> .result > .list-group-section) {
+		overflow-x: clip;
+
+		// a block as wide as the screen: as a table, an open group's columns widen it past the clip
+		> .result {
+			overflow: clip;
+			display: block;
+			width: 100%;
+
+			// the page's head covers it there
+			> .list-row-container:first-child {
+				position: static;
+			}
+
+			// rows fit the box, as on a phone: it clips, so they never scroll sideways
+			.list-row-container {
+				width: auto;
+			}
+
+			.list-row-head .level-left {
+				min-width: 0;
+			}
+
+			.list-row .level-right {
+				position: static;
+				flex: 0 0 auto;
+				width: auto;
+			}
+		}
+	}
+
+	// a phone hides the columns its totals sit under
+	.list-row-container.list-group-total {
+		display: none;
+	}
+
+	// a finger-sized target to open or close a group
+	.list-group-section > .list-group-row > .list-row {
+		min-height: calc(var(--spacing) * 11);
+	}
+}
+
+// with its label hidden, a square like Filter and Sort beside it
+@include media-breakpoint-down(xs) {
+	.list-group-selector > .es-button:first-child {
+		padding-inline: 0;
+		width: var(--es-bt-h);
+	}
+}
+
+// a tap on a grey box reaches its cell, which says why it is grey (every browser alike)
+input.list-group-checkbox:disabled {
+	pointer-events: none;
+}
+
+// a tap leaves the box focused: only the keyboard's focus shows a ring
+input.list-group-checkbox:focus:not(:focus-visible) {
+	box-shadow: none;
+}
+
+// deeper headers scroll away, so a deep grouping does not fill the screen
+.list-group-section:not([data-depth="0"], [data-depth="1"], [data-depth="2"]) > .list-group-row {
+	position: static;
+}
+
+// only the list's header sticks, not the first row of a group
+.list-group-body > .list-row-container:first-child {
+	padding-inline: var(--padding-sm);
+	position: static;
+}
+
+// a row's title lines up with its group's label, one step in from the group
+@include media-breakpoint-up(md) {
+	.list-group-body > .list-row-container .list-subject > span:not(.select-like) {
+		margin-inline-start: calc((var(--list-group-depth) + 1) * var(--spacing) * 5);
+	}
+}
+
+// a phone has less room: a row starts under its group's arrow, so one level of groups moves nothing
+@media (max-width: 767.98px) {
+	.list-group-body > .list-row-container {
+		.list-subject > span:not(.select-like),
+		.mobile-layout-line {
+			margin-inline-start: calc(var(--list-group-depth) * var(--spacing) * 5);
+		}
+	}
+}
+
+.list-group-toggle {
+	margin-inline-start: calc(var(--list-group-depth, 0) * var(--spacing) * 5);
+
+	.icon {
+		transition: transform 200ms;
+	}
+}
+
+/*!rtl:begin:ignore:list-group-toggle*/
+.list-group-row[aria-expanded="true"] .list-group-toggle .icon {
+	transform: rotate(90deg);
+}
+
+// in a right-to-left language the arrow stays mirrored while it turns, so it turns, not flips
+[dir="rtl"] .list-group-row[aria-expanded="true"] .list-group-toggle .icon {
+	transform: scaleX(-1) rotate(90deg);
+}
+/*!rtl:end:ignore:list-group-toggle*/
+
+// a closed group's arrow points along the line, the other way in a right-to-left language
+[dir="rtl"] .list-group-row:not([aria-expanded="true"]) .list-group-toggle .icon,
+[dir="rtl"] .list-group-toggle-all .icon {
+	transform: scaleX(-1);
+}
+
+// a group's body slides open and shut by its height (GroupedRows.slide);
+// clip, not hidden: hidden would stop the sub-groups' headers from sticking
+.list-group-collapse.is-animating > .list-group-body {
+	overflow: clip;
+}
+
+.list-group-section:not(.is-open) > .list-group-collapse > .list-group-body {
+	height: 0;
+	overflow: clip;
+}
+
+// a row focused from the keyboard scrolls into view below the group headers stuck above it
+.result-container:has(> .result > .list-group-section) {
+	scroll-padding-top: calc(
+		var(--list-group-top, 0px) + var(--list-group-levels, 0) *
+			var(--list-group-row-height, 0px)
+	);
+}
+
+.list-group-currencies,
+.es-tooltip.list-group-figures-tip {
+	font-variant-numeric: tabular-nums;
+}
+
+// starts where the rows' titles do, as tall as a row
+.list-group-body > .list-group-message {
+	margin-inline: var(--padding-sm);
+	padding-block: calc(var(--spacing) * 3);
+	border-bottom: 1px solid var(--border-color);
+	padding-inline-start: calc(
+		var(--spacing) * 6.75 + var(--list-group-depth) * var(--spacing) * 5
+	);
+}
+
+// Load More's words start there too, not its button's edge
+.list-group-load-more > .es-button {
+	margin-inline-start: calc(var(--spacing) * -2 - 1px);
+}
+
+// sub-groups on their way are as tall as the group rows that replace them
+.list-loading-row.list-group-loading-groups > .list-row {
+	height: var(--list-group-row-height, auto);
+	overflow: hidden;
+
+	.mobile-layout-line {
+		display: none;
+	}
+}
+
+// like frappe-ui lists: no line under the last row
+.result > .list-row-container:last-child > .list-row {
+	border-bottom: none;
+}
+
+// and an open group's rows stand apart; a phone keeps its rows close, like its plain list
+@include media-breakpoint-up(md) {
+	.list-group-section[data-depth="0"] > .list-group-collapse > .list-group-body {
+		> .list-row-container:last-child > .list-row {
+			border-bottom: none;
+		}
+
+		&::before,
+		&::after {
+			content: "";
+			display: block;
+			height: calc(var(--spacing) * 2);
+		}
+
+		&::after {
+			height: calc(var(--spacing) * 5);
+		}
+	}
+}
+
+.result .list-row-col.list-group-hidden-col,
+.result .es-badge.list-group-hidden-col {
+	display: none;
+}
+
+.list-row-container.list-group-total {
+	position: sticky;
+	bottom: 0;
+	z-index: 6;
+	// its top border sits on the last group's bottom one while the list ends above the screen's
+	margin-top: -1px;
+	background-color: var(--bg-color);
+
+	.list-row {
+		border-top: 1px solid var(--border-color);
+		font-weight: var(--font-weight-medium);
+		cursor: default;
+	}
+
+	// a sum, not a record: it doesn't light up
+	@include hover-only-with-pointer {
+		background-color: var(--bg-color);
+
+		.list-row .level-right {
+			background-color: var(--bg-color);
+			box-shadow: none;
+		}
+	}
+}
+
+// under a grouped list's header, loading rows' titles start where the header's title does
+@include media-breakpoint-up(md) {
+	.result:has(> .list-row-container .list-group-toggle-all)
+		> .list-loading-row
+		.list-subject
+		> span:not(.select-like) {
+		margin-inline-start: calc(var(--spacing) * 5);
+	}
+}
+
+// like frappe-ui lists, from tablet width up: the checkbox 8px in from the row's edge
+@include media-breakpoint-up(md) {
+	.list-row-container,
+	.list-row-head,
+	.list-group-section > .list-row-container.list-group-row,
+	.list-group-body > .list-row-container:first-child {
+		padding-inline: calc(var(--spacing) * 2);
+	}
+
+	.list-row-head::after {
+		inset-inline: calc(var(--spacing) * 2);
+	}
+
+	.list-group-body > .list-group-message {
+		margin-inline: calc(var(--spacing) * 2);
+		padding-inline-start: calc(
+			var(--spacing) * 7.5 + (var(--list-group-depth) + 1) * var(--spacing) * 5
+		);
 	}
 }

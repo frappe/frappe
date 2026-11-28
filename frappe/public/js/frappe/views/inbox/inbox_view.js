@@ -87,6 +87,11 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 	render_header() {
 		this.$result.find(".list-row-head").remove();
 		this.$result.prepend(this.get_header_html());
+		this.sync_sort_indicators();
+	}
+
+	get_default_sort() {
+		return { sort_by: "communication_date", sort_order: "desc" };
 	}
 
 	render() {
