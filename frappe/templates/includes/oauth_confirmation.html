@@ -75,19 +75,35 @@
 		color: var(--ink-gray-6);
 	}
 
-	.oauth-scope-list {
-		overflow: hidden;
-		border: 1px solid var(--border-color);
+	.oauth-scope-card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--margin-sm);
+		padding: calc(var(--spacing) * 3);
+		background-color: var(--surface-gray-1);
 		border-radius: var(--radius);
 	}
 
-	.oauth-scope {
-		padding: 10px 12px;
-		border-bottom: 1px solid var(--border-color);
+	.oauth-scope-card-label {
+		margin: 0;
+		color: var(--ink-gray-5);
 	}
 
-	.oauth-scope:last-child {
-		border-bottom: 0;
+	.oauth-scope {
+		display: flex;
+		align-items: center;
+		gap: var(--margin-sm);
+		color: var(--ink-gray-7);
+	}
+
+	.oauth-scope .icon {
+		--icon-stroke: var(--ink-gray-5);
+		flex-shrink: 0;
+		margin: 0;
+	}
+
+	.oauth-scope-access {
+		color: var(--ink-gray-8);
 	}
 
 	.oauth-actions {
@@ -122,6 +138,16 @@
 			border: 0;
 			border-radius: 0;
 		}
+
+		.page-card::before,
+		.page-card::after {
+			content: "";
+			flex: 1;
+		}
+
+		.page-card::after {
+			flex: 2;
+		}
 	}
 </style>
 <section>
@@ -131,20 +157,48 @@
 			<div class="page-card-head-text">
 				<h4>{{ _("Authorize App") }}</h4>
 				<p class="page-card-subtitle">
-					{{ _("{0} wants to access your account").format(_(client_id)) }}
+					{{ _("{0} wants to connect to your account").format(_(client_id)) }}
 				</p>
 			</div>
 		</div>
 
+		{%- set profile_scopes = {
+			"Full Name": ("user", _("Full name")),
+			"Email": ("mail", _("Email address")),
+			"User Image": ("image", _("Profile photo")),
+			"Roles": ("shield", _("Roles")),
+		} -%}
+		{%- set profile_details = details | select("in", profile_scopes) | list -%}
+		{%- set other_details = details | reject("in", profile_scopes) | list -%}
+
 		<div class="oauth-permissions">
-			<p class="oauth-permissions-label">{{ _("This will allow {0} to:").format(_(client_id)) }}</p>
-			<div class="oauth-scope-list">
-				{% for detail in details %}
+			<p class="oauth-permissions-label">{{ _("This lets {0}:").format(_(client_id)) }}</p>
+			{% if profile_details %}
+			<div class="oauth-scope-card">
+				<p class="oauth-scope-card-label text-sm">{{ _("See your profile details:") }}</p>
+				{% for detail in profile_details %}
+				{%- set icon, label = profile_scopes[detail] -%}
 				<div class="oauth-scope">
-					<span>{{ _(detail.title()) }}</span>
+					<svg class="icon icon-sm"><use href="#icon-{{ icon }}"></use></svg>
+					<span>{{ label }}</span>
 				</div>
 				{% endfor %}
 			</div>
+			{% endif %}
+			{% for detail in other_details %}
+			<div class="oauth-scope-card">
+				<div class="oauth-scope oauth-scope-access text-base-medium">
+					<svg class="icon icon-sm"><use href="#icon-key-round"></use></svg>
+					<span>
+						{%- if detail == "all" -%}
+						{{ _("Read and change your data on this site") }}
+						{%- else -%}
+						{{ _(detail.title()) }}
+						{%- endif -%}
+					</span>
+				</div>
+			</div>
+			{% endfor %}
 		</div>
 
 		<div class="oauth-actions">
