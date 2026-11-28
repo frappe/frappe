@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
+from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit, send_now
 from frappe.tests.utils import FrappeTestCase, change_settings
 
 
@@ -149,6 +149,24 @@ class TestEmailQueue(FrappeTestCase):
 
 		self.assertIn(link, mock_session.sendmail.call_args.kwargs["msg"].decode())
 		self.assertNotIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))
+
+	def test_send_now_skips_email_already_being_sent(self):
+		email_record = frappe.new_doc(
+			"Email Queue",
+			sender="Test <test@example.com>",
+			show_as_cc="",
+			message="Test message",
+			status="Not Sent",
+			priority=1,
+			recipients=[{"recipient": "test_send_now@example.com"}],
+		).insert()
+		frappe.db.set_value("Email Queue", email_record.name, "status", "Sending")
+
+		with self.set_user("test@example.com"), patch.dict(frappe.flags, sent_mail=None):
+			send_now(email_record.name, force_send=True)
+			self.assertIsNone(frappe.flags.sent_mail)
+
+		self.assertEqual(frappe.db.get_value("Email Queue", email_record.name, "status"), "Sending")
 
 	def test_notification_keeps_large_recipient_list_in_one_queue(self):
 		recipients = [f"notify{index}@example.com" for index in range(101)]
