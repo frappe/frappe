@@ -6,12 +6,20 @@
 }
 
 .kanban-v2-filter-section {
+	// a phone's row holds the ID box at the start and the buttons at the end, as on the list view
+	@include media-breakpoint-between(xs, sm) {
+		width: 100%;
+	}
+
+	// spaced from the Filter button as the list's Sort button is: 8px apart, 4px on a phone
 	.group-selector .es-button,
 	.settings-button {
 		margin: var(--margin-xs);
-		/* match the btn-sm filter buttons */
-		height: 29px;
-		min-height: 29px;
+		margin-inline-start: calc(var(--spacing) * 2 - var(--margin-xs));
+
+		@include media-breakpoint-between(xs, sm) {
+			margin-inline: var(--spacing) 0;
+		}
 	}
 }
 

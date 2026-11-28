@@ -65,6 +65,33 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			frappe.ui.toast({ message: __('Create "{0}"', [query || __("new")]) }),
 	};
 
+	const EXPLORER_FILTER_FIELDS = [
+		{ fieldname: "name", label: "ID", fieldtype: "Data", icon: "search" },
+		{
+			fieldname: "status",
+			label: "Status",
+			fieldtype: "Select",
+			options: "Open\nClosed\nCancelled",
+		},
+		{
+			fieldname: "priority",
+			label: "Priority",
+			fieldtype: "Select",
+			options: "Low\nMedium\nHigh",
+		},
+		{ fieldname: "allocated_to", label: "Assigned To", fieldtype: "Link", options: "User" },
+		{ fieldname: "date", label: "Due Date", fieldtype: "Date" },
+		{ fieldname: "description", label: "Description", fieldtype: "Text Editor" },
+	];
+	const EXPLORER_EXTRA_FIELDS = {
+		progress: { fieldname: "progress", label: "Progress", fieldtype: "Percent" },
+		reference_type: {
+			fieldname: "reference_type",
+			label: "Reference Type",
+			fieldtype: "Data",
+		},
+	};
+
 	const COMPONENTS = {
 		Combobox: {
 			helper: "frappe.ui.combobox",
@@ -863,6 +890,62 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							__code: "frappe.ui.tooltip(label_el, { only_on_overflow: true })",
 							__trigger: __("DocType"),
 							only_on_overflow: true,
+						},
+					],
+				},
+			],
+		},
+		"Filter Chips": {
+			helper: "frappe.ui.filter_chips",
+			stacked: true,
+			groups: [
+				{
+					title: __("Quick filters: click one to pick, × to remove"),
+					items: [
+						{
+							doctype: "ToDo",
+							fields: EXPLORER_FILTER_FIELDS,
+							onchange: (filters) =>
+								frappe.ui.toast({
+									message:
+										filters.length === 1
+											? __("1 filter")
+											: __("{0} filters", [filters.length]),
+								}),
+						},
+					],
+				},
+				{
+					title: __("Filters set: quick ones fill in, others join the row"),
+					items: [
+						{
+							doctype: "ToDo",
+							fields: EXPLORER_FILTER_FIELDS,
+							filters: [
+								["ToDo", "status", "in", ["Open", "Closed"]],
+								["ToDo", "priority", "!=", "Low"],
+								["ToDo", "date", "Timespan", "this month"],
+								["ToDo", "progress", ">=", 50],
+								["ToDo", "reference_type", "like", "%Invoice%"],
+							],
+							get_field: (doctype, fieldname) => EXPLORER_EXTRA_FIELDS[fieldname],
+						},
+					],
+				},
+				{
+					title: __("A filter the pickers can't show (two conditions on one field)"),
+					items: [
+						{
+							doctype: "ToDo",
+							fields: EXPLORER_FILTER_FIELDS,
+							filters: [
+								["ToDo", "date", ">=", "2026-11-01"],
+								["ToDo", "date", "<=", "2026-11-30"],
+							],
+							on_advanced: (doctype, fieldname) =>
+								frappe.ui.toast({
+									message: __("Open Advanced for {0}", [fieldname]),
+								}),
 						},
 					],
 				},
@@ -2778,6 +2861,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		"Stat Card": ["desk_charts.bundle.js", "desk_charts.bundle.css"],
 		"Bottom Sheet": ["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"],
 		"Optional Sections": ["optional_sections.bundle.js", "optional_sections.bundle.css"],
+		"Filter Chips": ["filter_chips.bundle.js", "filter_chips.bundle.css"],
 	};
 	// a group with `caption: "size"` labels each example with its `size`, and so on
 	const CAPTION_KEYS = ["variant", "size", "theme", "shape", "type"];

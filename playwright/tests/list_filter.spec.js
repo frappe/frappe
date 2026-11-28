@@ -334,6 +334,148 @@ test.describe("List filter", () => {
 		await expect(picker).toHaveCount(1);
 	});
 
+	test.describe("quick filter chips", () => {
+		let original;
+		const set_smart_filters = (admin, value) =>
+			admin.set_value("System Settings", "System Settings", { use_smart_filters: value });
+		const chip = (page, label) => page.locator(`.es-filter-chip[aria-label="${label}"]`);
+		const panel = (page) => page.locator(".es-filter-panel");
+		const row = (list, label) =>
+			list
+				.locator(".es-menu__item")
+				.filter({ has: list.page().locator(".es-menu__label", { hasText: label }) });
+		const open_field = async (page, label) => {
+			await page.locator(".filter-selector .filter-button").click();
+			await row(panel(page).locator(".es-filter-panel__list"), label).click();
+		};
+
+		test.beforeAll(async ({ admin }) => {
+			original = (await admin.get_doc("System Settings", "System Settings")).data
+				.use_smart_filters;
+			if (!original) await set_smart_filters(admin, 1);
+		});
+
+		test.afterAll(async ({ admin }) => {
+			if (!original) await set_smart_filters(admin, 0);
+		});
+
+		test("a chip filters the list, and × clears it", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			const status = chip(page, "Status");
+
+			await status.locator(".es-filter-chip__main").click();
+			await row(page.locator(".es-filter-chip__panel"), /^Closed$/).click();
+			await expect.poll(() => applied(page)).toEqual([["status", "=", "Closed"]]);
+			await expect(status).toHaveAttribute("data-state", "applied");
+			await expect(status.locator(".es-filter-chip__value")).toHaveText("Closed");
+
+			await page.keyboard.press("Escape");
+			await status.locator(".es-filter-chip__remove").click();
+			await expect.poll(() => applied(page)).toEqual([]);
+			await expect(status).toHaveAttribute("data-state", "empty");
+		});
+
+		test("the Default layout clears the chips with the rows", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			await page.evaluate(() =>
+				cur_list.filter_area.add([["ToDo", "status", "=", "Closed"]])
+			);
+			await expect(chip(page, "Status")).toHaveAttribute("data-state", "applied");
+
+			await page.evaluate(() => cur_list.list_filter.apply_default_layout());
+			await expect.poll(() => applied(page)).toEqual([]);
+			await expect(chip(page, "Status")).toHaveAttribute("data-state", "empty");
+		});
+
+		test("a link's filters, and saved ones, are on the chips from their first frame", async ({
+			page,
+		}) => {
+			// the state the Status chip is first drawn with, before any later sync
+			const first_state = async () =>
+				(
+					await page.waitForFunction(
+						() =>
+							document.querySelector('.es-filter-chip[aria-label="Status"]')?.dataset
+								.state
+					)
+				).jsonValue();
+
+			await page.goto("/desk/todo?status=Closed");
+			expect(await first_state()).toBe("applied");
+			await expect.poll(() => applied(page)).toEqual([["status", "=", "Closed"]]);
+			await settled(page);
+			// the list keeps its filters for next time once it has saved them
+			await expect
+				.poll(() =>
+					page.evaluate(() =>
+						JSON.stringify(frappe.get_user_settings("ToDo", "List")?.filters || [])
+					)
+				)
+				.toContain("Closed");
+
+			// opened from inside the desk, with no link filters, it starts with its saved ones
+			await page.goto("/desk");
+			await page.waitForFunction(() => window.frappe?.router?.current_route);
+			await page.evaluate(() => frappe.set_route("List", "ToDo"));
+			expect(await first_state()).toBe("applied");
+			await expect.poll(() => applied(page)).toEqual([["status", "=", "Closed"]]);
+		});
+
+		test("the panel's picker shows a change made in Advanced filters", async ({
+			page,
+			desk,
+		}) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			await page.evaluate(() => cur_list.filter_area.add([["ToDo", "status", "=", "Open"]]));
+			await expect.poll(() => applied(page)).toEqual([["status", "=", "Open"]]);
+
+			await open_field(page, /^Status$/);
+			await panel(page).locator(".es-filter-panel__footer .es-menu__item").click();
+			await panel(page).locator(".filter-field select").selectOption("Closed");
+			await panel(page).locator(".es-filter-panel__back").click();
+
+			const values = panel(page).locator(".es-filter-picker__list");
+			await expect(row(values, /^Closed$/)).toHaveAttribute("aria-selected", "true");
+			await row(values, /^Cancelled$/).click();
+			await expect
+				.poll(() => applied(page))
+				.toEqual([["status", "in", ["Closed", "Cancelled"]]]);
+		});
+
+		test("a typed From day and a clicked To day make one range", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			await open_field(page, /^Due Date$/);
+			const day_20 = panel(page).locator(
+				".air-datepicker-cell.-day-[data-date='20']:not(.-other-month-)"
+			);
+			// a From day in the month before the one on show, so the calendar would turn to it
+			const days = await day_20.evaluate((cell) => {
+				const to = moment([+cell.dataset.year, +cell.dataset.month, 20]);
+				const from = to.clone().subtract(1, "month").date(5);
+				return {
+					typed: frappe.datetime.str_to_user(from.format("YYYY-MM-DD")),
+					from: from.format("YYYY-MM-DD"),
+					to: to.format("YYYY-MM-DD"),
+					month: cell.dataset.month,
+				};
+			});
+
+			const from_box = panel(page).locator(".es-filter-picker__input").first();
+			await from_box.click();
+			await from_box.pressSequentially(days.typed);
+			await day_20.click();
+
+			await expect
+				.poll(() => applied(page))
+				.toEqual([["date", "Between", [days.from, days.to]]]);
+			await expect(day_20).toHaveAttribute("data-month", days.month);
+		});
+	});
+
 	test.describe("sheet on a phone", () => {
 		test.use({ viewport: { width: 402, height: 800 } });
 

@@ -326,11 +326,13 @@ frappe.views.BaseList = class BaseList {
 		if (this.hide_filters) return;
 		this.filter_area = new FilterArea(this);
 
-		if (this.filters && this.filters.length > 0) {
+		// filter chips load their code first; list scripts reach them in onload, after this
+		return this.filter_area.ready.then(() => {
+			if (!this.filters?.length) return;
 			return this.filter_area.set(this.filters).catch(() => {
 				this.filter_area.clear(false);
 			});
-		}
+		});
 	}
 
 	setup_sort_selector() {
@@ -710,28 +712,39 @@ class FilterArea {
 	}
 
 	place_id_filter() {
-		const id_filter = this.list_view.page.fields_dict.name;
+		const id_filter =
+			this.filter_chips?.chip_of(this.list_view.doctype, "name")?.$wrapper[0] ||
+			this.list_view.page.fields_dict.name?.wrapper;
 		if (!id_filter || !this.$mobile_id_filter) return;
 
 		// matchMedia keeps placement in sync with the toolbar media queries in list.scss
 		const mobile_layout = window.matchMedia("(max-width: 767.98px)").matches;
-		const target = mobile_layout ? this.$mobile_id_filter : this.standard_filters_wrapper;
-		if (id_filter.wrapper.parentElement === target[0]) return;
+		const target = mobile_layout
+			? this.$mobile_id_filter
+			: this.filter_chips?.$wrapper || this.standard_filters_wrapper;
+		if (id_filter.parentElement === target[0]) return;
 
 		if (mobile_layout) {
-			target.append(id_filter.wrapper);
+			target.append(id_filter);
 		} else {
-			target.prepend(id_filter.wrapper);
+			target.prepend(id_filter);
 		}
 	}
 
 	setup() {
-		if (!this.list_view.hide_page_form) this.make_standard_filters();
+		const chips =
+			!this.list_view.hide_page_form && frappe.defaults.is_enabled("use_smart_filters");
+		this.ready = Promise.resolve();
+		if (!this.list_view.hide_page_form) {
+			if (chips) this.ready = this.make_filter_chips();
+			else this.make_standard_filters();
+		}
 		this.make_filter_list();
 		this.user_setting_fields =
 			frappe.get_user_settings(this.list_view.doctype)?.group_by_fields || [];
 
 		if (
+			!chips &&
 			!this.list_view.meta.is_virtual &&
 			["assigned_to", "owner", "tags"].some((v) => this.user_setting_fields.includes(v))
 		) {
@@ -781,11 +794,13 @@ class FilterArea {
 				);
 			})
 			.then(() => {
+				this.sync_filter_chips();
 				refresh && this.list_view.refresh();
 			});
 	}
 
 	refresh_list_view() {
+		this.sync_filter_chips();
 		// the filter button counts the toolbar boxes too
 		this.filter_list.update_filter_button();
 		if (this.trigger_refresh) {
@@ -798,7 +813,7 @@ class FilterArea {
 	exists(f) {
 		let exists = false;
 		// check in standard filters
-		const fields_dict = this.list_view.page.fields_dict;
+		const fields_dict = this.get_boxes();
 		if (f[2] === "=" && f[1] in fields_dict) {
 			const value = fields_dict[f[1]].get_value();
 			if (value) {
@@ -815,7 +830,20 @@ class FilterArea {
 	}
 
 	get_standard_field(fieldname) {
-		return this.list_view.page.fields_dict[fieldname];
+		return this.get_boxes()[fieldname];
+	}
+
+	get_boxes() {
+		const fields_dict = this.list_view.page.fields_dict;
+		return Object.fromEntries(
+			Object.entries(fields_dict).filter(([, field]) => !field.is_filter_chip)
+		);
+	}
+
+	// with chips, a range counts as one filter on the Filter button
+	filter_count() {
+		if (!this.filter_chips) return null;
+		return new Set(this.get().map((f) => `${f[0]}.${f[1]}`)).size;
 	}
 
 	set_standard_filter(filters) {
@@ -826,7 +854,7 @@ class FilterArea {
 			};
 		}
 
-		const fields_dict = this.list_view.page.fields_dict;
+		const fields_dict = this.get_boxes();
 		const boxed_fields = new Set();
 
 		return filters.reduce((out, filter) => {
@@ -1155,14 +1183,16 @@ class FilterArea {
 	}
 
 	remove(fieldname) {
-		const fields_dict = this.list_view.page.fields_dict;
+		const fields_dict = this.get_boxes();
 
 		if (fieldname in fields_dict) {
 			fields_dict[fieldname].set_value("");
 		}
 
-		let filter = this.filter_list.get_filter(fieldname);
-		if (filter) filter.remove();
+		// a range is two rows on one field; a child table's same-named field stays unless it is the only one
+		const rows = this.filter_list.filters.filter((f) => f.field?.df.fieldname == fieldname);
+		const own = rows.filter((f) => f.fieldselect?.selected_doctype === this.list_view.doctype);
+		(own.length ? own : rows.slice(0, 1)).forEach((f) => f.remove());
 		this.filter_list.apply();
 		return Promise.resolve();
 	}
@@ -1173,21 +1203,43 @@ class FilterArea {
 		}
 
 		const promises = [];
-		const fields_dict = this.list_view.page.fields_dict;
+		const fields_dict = this.get_boxes();
 		for (let key in fields_dict) {
-			const field = this.list_view.page.fields_dict[key];
+			const field = fields_dict[key];
 			promises.push(() => field.set_value(""));
 		}
 		return frappe.run_serially(promises).then(() => {
 			// last, so the filter count drops once, after the toolbar boxes are empty
 			this.filter_list.clear_filters();
 			this.filter_list.filter_order = [];
+			// the chips follow the rows, also when the list isn't refreshed yet
+			this.sync_filter_chips();
 			this.trigger_refresh = true;
-			if (promises.length === 0) {
+			if (promises.length === 0 && refresh) {
 				// refresh if there are no standard fields
 				this.debounced_refresh_list_view();
 			}
 		});
+	}
+
+	async make_filter_chips() {
+		// loaded quietly: frappe.require freezes the page while a bundle loads
+		await Promise.all(
+			["filter_chips.bundle.js", "filter_chips.bundle.css"].map((name) => {
+				const path = frappe.assets.bundled_asset(name);
+				return frappe.assets.load_asset(path, path);
+			})
+		);
+		this.chips = new frappe.views.ListFilterChips(this);
+		await this.chips.make();
+	}
+
+	sync_filter_chips() {
+		this.chips?.sync();
+	}
+
+	toggle_filter_panel() {
+		this.chips?.toggle_panel();
 	}
 
 	async make_standard_filters() {
@@ -1402,7 +1454,7 @@ class FilterArea {
 	}
 	get_standard_filters() {
 		const filters = [];
-		const fields_dict = this.list_view.page.fields_dict;
+		const fields_dict = this.get_boxes();
 
 		for (let key in fields_dict) {
 			let field = fields_dict[key];
@@ -1458,9 +1510,10 @@ class FilterArea {
 	is_being_edited() {
 		// returns true if user is currently editing filters
 		return (
-			this.filter_list &&
-			this.filter_list.wrapper &&
-			this.filter_list.wrapper.find(".filter-box:visible").length > 0
+			(this.filter_list &&
+				this.filter_list.wrapper &&
+				this.filter_list.wrapper.find(".filter-box:visible").length > 0) ||
+			Boolean(this.filter_chips?.open_key || this.chips?.popover?.is_open)
 		);
 	}
 }

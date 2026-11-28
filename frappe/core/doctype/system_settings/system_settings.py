@@ -122,6 +122,7 @@ class SystemSettings(Document):
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		use_classic_charts: DF.Check
 		use_number_format_from_currency: DF.Check
+		use_smart_filters: DF.Check
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types
 

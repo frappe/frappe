@@ -243,7 +243,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					valid_fields.includes(f[1]) ||
 					(table_doctypes.includes(f[0]) && frappe.meta.has_field(f[0], f[1]))
 			)
-			.uniqBy(JSON.stringify);
+			.uniqBy((f) => JSON.stringify(f.slice(0, 4)));
 	}
 
 	setup_page() {

@@ -293,6 +293,30 @@ input.es-combobox__value:disabled {
     stroke-width: 3;
 }
 
+.es-combobox__radio {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: calc(var(--spacing) * 3.5);
+    height: calc(var(--spacing) * 3.5);
+    border: 1px solid var(--outline-gray-4);
+    border-radius: 50%;
+    background: var(--surface-base);
+    transition: border-color 120ms;
+}
+
+.es-menu__item[data-highlighted] > .es-combobox__radio {
+    border-color: var(--outline-gray-5);
+}
+
+.es-menu__item:is([aria-selected="true"], [aria-checked="true"]) > .es-combobox__radio {
+    border-width: 4px;
+    border-color: var(--surface-gray-10);
+}
+
+.es-menu__item:is([aria-selected="true"], [aria-checked="true"])[data-highlighted] > .es-combobox__radio {
+    border-color: var(--surface-gray-9);
+}
+
 .es-menu__item[aria-selected="true"] > .es-combobox__check {
     border-color: var(--ink-gray-9);
     background: var(--ink-gray-9);
