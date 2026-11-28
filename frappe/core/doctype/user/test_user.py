@@ -1201,6 +1201,22 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			self.assertIn("won't get mail", alert)
 			self.assertNotIn("browse", alert)
 
+	def test_email_patch_names_a_standard_users_own_email_when_its_fallbacks_are_ids(self):
+		from frappe.patches.v16_0.set_user_email_from_name import execute
+
+		frappe.db.savepoint("email_patch")
+		self.addCleanup(frappe.db.rollback, save_point="email_patch")
+
+		frappe.db.set_value("User", "Administrator", "email", "_test_owner@example.com")
+		for name in ("_test_owner@example.com", "admin@example.com", "admin@frappe.invalid"):
+			user = frappe.new_doc("User", email=f"_test_{frappe.generate_hash(length=6)}@example.com")
+			user.first_name = "Clash"
+			user.flags.skip_email_from_name = True
+			user.insert(set_name=name)
+
+		with self.assertRaisesRegex(frappe.ValidationError, r"_test_owner@example\.com \([^)]*Administrator"):
+			execute()
+
 	def test_users_are_found_by_email(self):
 		from frappe.core.doctype.user.user import user_query
 
