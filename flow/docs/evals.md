@@ -144,7 +144,7 @@ cost                  $0.001       $0.001       (total, as Flow recorded it)
 ## Limits
 
 - One turn per case. No approval cards (every call is approved), no `read_screen` (no page is open), no background jobs.
-- The restore puts back every table and keeps API discovery warm, and nothing else: not files, not Flow's memory and knowledge indexes, not an app's own search index (Raven's SQLite search can return a message from an earlier run), not an auto-increment's next value.
+- The restore puts back every table and keeps API discovery warm, and nothing else: not files, not Flow's memory and knowledge indexes, not an app's own search index, not an auto-increment's next value. A case that reads an index kept in a file rebuilds it in its `setup()` with the app's own function, such as `RavenSearch().build_index()` after `drop_index()`; otherwise Raven's search returns messages from an earlier run.
 - Runs go one after another: about 16 s a run on GPT-6 Luna (median), plus about half a second to put the site back.
 - MariaDB only.
 
