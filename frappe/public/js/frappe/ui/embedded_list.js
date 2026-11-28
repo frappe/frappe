@@ -17,6 +17,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 				loading_message: __("Loading..."),
 				error_message: __("Failed to load data."),
 				show_search: true,
+				search_position: "end",
 				columns: [],
 				filters: {},
 				fields: ["name"],
@@ -81,9 +82,11 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			this.$header.hide();
 			return;
 		}
+		const search_first = this.search_position === "start";
 		this.$header.html(
-			`<div class="embedded-list-heading">${title}${description}</div>
-			<div class="embedded-list-header-actions">${search}${add}</div>`
+			`${search_first ? search : ""}
+			<div class="embedded-list-heading">${title}${description}</div>
+			<div class="embedded-list-header-actions">${search_first ? "" : search}${add}</div>`
 		);
 	}
 
