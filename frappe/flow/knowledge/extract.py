@@ -67,12 +67,17 @@ def extract_file(file_doc, max_ocr_pages: int | None = None) -> str:
 
 
 def _extract_url_source(source) -> list[ExtractedDoc]:
-	import requests
+	from requests.adapters import Retry
+
+	from frappe.utils.safe_exec import get_safe_request_session
 
 	url = (source.url or "").strip()
 	_validate_public_url(url)
+	session = get_safe_request_session()
+	for adapter in session.adapters.values():
+		adapter.max_retries = Retry(total=0, read=False)
 	# a redirect could point a validated public URL at an internal service
-	response = requests.get(
+	response = session.get(
 		url,
 		timeout=URL_TIMEOUT,
 		stream=True,

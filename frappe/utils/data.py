@@ -1709,9 +1709,14 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 			with open(path, "rb") as f:
 				content = f.read()
 		else:
-			import requests
+			from requests.adapters import Retry
 
-			r = requests.get(url, timeout=5, stream=True, allow_redirects=False)
+			from frappe.utils.safe_exec import get_safe_request_session
+
+			session = get_safe_request_session()
+			for adapter in session.adapters.values():
+				adapter.max_retries = Retry(total=0, read=False)
+			r = session.get(url, timeout=5, stream=True, allow_redirects=False)
 			r.raise_for_status()
 			chunks, total = [], 0
 			for chunk in r.iter_content(8192):
