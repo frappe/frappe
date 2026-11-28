@@ -29,6 +29,7 @@ class DocField(Document):
 		depends_on: DF.Code | None
 		description: DF.SmallText | None
 		documentation_url: DF.Data | None
+		executes_code: DF.Check
 		fetch_from: DF.SmallText | None
 		fetch_if_empty: DF.Check
 		fieldname: DF.Data | None

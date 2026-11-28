@@ -678,6 +678,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 		doc.check_permission(ptype)
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
+	doc.code_field_guard(doc).validate()
 
 	method_obj = getattr(doc, method)
 	fn = getattr(method_obj, "__func__", method_obj)

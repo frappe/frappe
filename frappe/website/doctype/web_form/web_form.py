@@ -994,6 +994,8 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 	if web_form.allow_incomplete:
 		doc.flags.ignore_mandatory = True
 
+	doc.flags.from_web_form = True
+
 	# set values
 	for field in web_form.web_form_fields:
 		fieldname = field.fieldname

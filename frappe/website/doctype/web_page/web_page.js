@@ -34,6 +34,18 @@ frappe.ui.form.on("Web Page", {
 		} else {
 			frm.events.layout(frm);
 		}
+		frm.events.mark_jinja_content(frm);
+	},
+	mark_jinja_content(frm) {
+		// same rule as WebPage.has_jinja_content: marked fields are read-only without Code Author
+		const fields = ["main_section", "main_section_md", "main_section_html"];
+		const has_jinja =
+			frm.doc.dynamic_template ||
+			fields.some((f) => {
+				const content = frm.doc[f] || "";
+				return content.includes("{{") || content.includes("<!-- jinja -->");
+			});
+		fields.forEach((f) => frm.set_df_property(f, "executes_code", has_jinja ? 1 : 0));
 	},
 	published: function (frm) {
 		// If current date is before end date,

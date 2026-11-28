@@ -4,11 +4,45 @@ import os
 import shutil
 
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils.print_format import render_letterhead_for_print
 
 
 class TestLetterHead(IntegrationTestCase):
+	def test_image_letter_head_keeps_jinja_out(self):
+		# the generated HTML is rendered as Jinja
+		letter_head = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": "Letter Head {{ 6 * 7 }}",
+				"source": "Image",
+				"image": "/files/logo{{ 7 * 7 }}.png",
+			}
+		).insert()
+		self.assertNotIn("{", letter_head.content)
+
+	def test_image_letter_head_edits_without_code_author(self):
+		html = "<p>{{ doc.name }}</p>"
+		letter_head = frappe.get_doc(
+			{"doctype": "Letter Head", "letter_head_name": frappe.generate_hash(length=10), "content": html}
+		).insert()
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			letter_head.reload()
+			letter_head.update({"source": "Image", "image": "/files/logo.png", "image_width": 100})
+			letter_head.save()
+			self.assertNotIn("{{", letter_head.content)
+
+			# the builder still holds the content it loaded before the first save
+			letter_head.reload()
+			letter_head.update({"image": "/files/logo2.png", "content": html})
+			letter_head.save()
+
+			letter_head.source = "HTML"
+			letter_head.content = "{{ frappe.session.user }}"
+			self.assertRaises(frappe.PermissionError, letter_head.save)
+
 	def test_rendered_letter_head_closes_tags_left_open_by_jinja(self):
 		doc = frappe.new_doc("Letter Head")
 		doc.letter_head_for = "Report"

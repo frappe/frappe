@@ -275,10 +275,19 @@ frappe.ui.form.on("Web Form", {
 	},
 	render_dynamic_filters_table(frm) {
 		let wrapper = $(frm.get_field("dynamic_filters_json").wrapper).empty();
+		let can_edit =
+			frappe.perm.get_field_display_status(
+				frm.get_docfield("dynamic_filters_json"),
+				frm.doc
+			) === "Write";
+		// the table replaces this field's own label, so the hint goes on the label field above it
+		frm.get_field("dynamic_filters_json").set_code_author_hint(
+			frm.get_field("dynamic_filters_label").$wrapper.find(".control-label")[0]
+		);
 
-		frm.dynamic_filter_table = $(`<table class="table table-bordered" style="cursor:${
-			frm.has_perm("write") ? "pointer" : "default"
-		}; margin: 0 0 var(--margin-lg); border-radius: 10px; border-spacing: 0; border-collapse: separate;">
+		frm.dynamic_filter_table = $(`<table class="table table-bordered ${
+			can_edit ? "cursor-pointer" : ""
+		}" style="margin: 0 0 var(--margin-lg); border-radius: 10px; border-spacing: 0; border-collapse: separate;">
 			<thead>
 				<tr>
 					<th>${__("Filter")}</th>
@@ -317,7 +326,7 @@ frappe.ui.form.on("Web Form", {
 		}
 
 		frm.dynamic_filter_table.on("click", () => {
-			if (!frm.has_perm("write")) {
+			if (!can_edit) {
 				return;
 			}
 

@@ -15,11 +15,19 @@ from frappe.integrations.doctype.notification_webhook_url.notification_webhook_u
 	NotificationWebhookURL,
 )
 from frappe.model.document import Document
+from frappe.model.executable_fields import (
+	CODE_AUTHOR_ROLE,
+	CodeFieldGuard,
+	is_code_author,
+	normalize,
+	normalize_text,
+)
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import (
 	add_to_date,
 	cast,
 	cint,
+	cstr,
 	get_email_addresses,
 	get_user_display_id,
 	now_datetime,
@@ -36,7 +44,46 @@ FORBIDDEN_DOCUMENT_TYPES = frozenset(("Email Queue",))
 DATE_BASED_EVENTS = frozenset(("Days Before", "Days After"))
 
 
+class StandardMessageGuard(CodeFieldGuard):
+	"""A standard notification's message is loaded from its app's template file, which is developer code."""
+
+	def is_authored(self, row, reference, df, is_new, child_doctype=None):
+		# a new standard notification has no app file yet
+		if row is self.doc and df.fieldname == "message" and row.is_standard and not is_new:
+			if normalize(row.message, df) == normalize(get_app_template(row), df):
+				return False
+		return super().is_authored(row, reference, df, is_new, child_doctype)
+
+	def exists_in_readable_doc(self, fieldname, value, child_doctype=None):
+		if super().exists_in_readable_doc(fieldname, value, child_doctype):
+			return True
+		# a duplicate of a standard notification carries the message from its app file
+		if fieldname != "message" or child_doctype:
+			return False
+		standard = frappe.get_list(
+			"Notification",
+			filters={"is_standard": 1, "document_type": self.doc.document_type},
+			fields=["name", "module", "message_type"],
+		)
+		# built in memory: get_template only reads the app file
+		return any(
+			normalize_text(get_app_template(Notification({"doctype": "Notification", **row})))
+			== normalize_text(value)
+			for row in standard
+		)
+
+
+def get_app_template(notification):
+	try:
+		return notification.get_template()
+	except ModuleNotFoundError:
+		# a standard notification whose app is no longer installed
+		return None
+
+
 class Notification(Document):
+	code_field_guard = StandardMessageGuard
+
 	_DOCTYPE_NAME = "Notification"
 
 	# begin: auto-generated types
@@ -231,6 +278,7 @@ class Notification(Document):
 			)
 
 		self.validate_forbidden_document_types()
+		self.validate_property_target()
 		self.validate_condition()
 		self.validate_filters()
 		self.validate_standard()
@@ -271,6 +319,25 @@ def get_context(context):
 			self.condition = None
 		elif self.condition_type == "Python":
 			self.filters = None
+
+	def validate_property_target(self):
+		# the target document is saved without permission checks
+		fields = ("set_property_after_alert", "property_value", "document_type")
+		changed = self.is_new() or any(self.has_value_changed(f) for f in fields)
+		if not (self.set_property_after_alert and changed) or is_code_author():
+			return
+
+		df = frappe.get_meta(self.document_type).get_field(self.set_property_after_alert)
+		# some fields are code only where the value holds Jinja (Web Page content, print layouts)
+		value = cstr(self.property_value)
+		if (df and df.executes_code) or any(marker in value for marker in ("{{", "{%", "\\{")):
+			frappe.throw(
+				_("Only a user with the {0} role can set {1} after the alert").format(
+					_(CODE_AUTHOR_ROLE), _(df.label if df else self.set_property_after_alert)
+				),
+				frappe.PermissionError,
+				title=_("Not Permitted"),
+			)
 
 	def validate_condition(self):
 		if not self.condition:

@@ -118,6 +118,7 @@
   },
   {
    "depends_on": "eval:doc.report_type==\"Query Report\"",
+   "executes_code": 1,
    "fieldname": "query",
    "fieldtype": "Code",
    "label": "Query",
@@ -164,6 +165,7 @@
   {
    "depends_on": "eval:doc.report_type===\"Script Report\" && doc.is_standard===\"No\"",
    "description": "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>",
+   "executes_code": 1,
    "fieldname": "report_script",
    "fieldtype": "Code",
    "label": "Script",
@@ -279,7 +281,7 @@
  "idx": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-13 23:00:00.000000",
+ "modified": "2026-11-24 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

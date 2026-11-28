@@ -38,6 +38,7 @@ class CustomField(Document):
 		depends_on: DF.Code | None
 		description: DF.Text | None
 		dt: DF.Link
+		executes_code: DF.Check
 		fetch_from: DF.SmallText | None
 		fetch_if_empty: DF.Check
 		fieldname: DF.Data | None

@@ -71,6 +71,13 @@ def create_test_file(file_name="test_attachment.txt", content="Test file content
 
 
 class TestNotification(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# these tests write conditions and templates as this user
+		frappe.get_doc("User", "test@example.com").add_roles("Code Author")
+		cls.addClassCleanup(lambda: frappe.get_doc("User", "test@example.com").remove_roles("Code Author"))
+
 	def setUp(self):
 		self.enterContext(patch.object(frappe.db, "_disable_transaction_control", 1))
 		frappe.set_user("test@example.com")

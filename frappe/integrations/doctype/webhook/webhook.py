@@ -13,7 +13,8 @@ from requests.adapters import Retry
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_to_date, cint, now_datetime
+from frappe.model.executable_fields import CodeFieldGuard
+from frappe.utils import add_to_date, cint, cstr, now_datetime
 from frappe.utils.background_jobs import get_queues_timeout, is_job_enqueued
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
@@ -25,7 +26,20 @@ RETRY_SCHEDULE = [5 * 60, 30 * 60, 2 * 3600, 5 * 3600, 10 * 3600, 10 * 3600]
 RETRY_BATCH_SIZE = 100
 
 
+class WebhookGuard(CodeFieldGuard):
+	def is_authored(self, row, reference, df, is_new, child_doctype=None):
+		# the URL runs as Jinja only when it is dynamic
+		if df.fieldname == "request_url" and not (row.is_dynamic_url and "{" in cstr(row.request_url)):
+			return False
+		return super().is_authored(row, reference, df, is_new, child_doctype)
+
+	def get_source_filters(self, fieldname, value, child_doctype=None):
+		# a static URL was never run as code, so it is no approved source for a dynamic one
+		return [["Webhook", "is_dynamic_url", "=", 1]] if fieldname == "request_url" else []
+
+
 class Webhook(Document):
+	code_field_guard = WebhookGuard
 	_DOCTYPE_NAME = "Webhook"
 
 	# begin: auto-generated types

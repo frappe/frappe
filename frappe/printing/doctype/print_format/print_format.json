@@ -146,6 +146,7 @@
   },
   {
    "depends_on": "eval:!doc.raw_printing",
+   "executes_code": 1,
    "fieldname": "html",
    "fieldtype": "Code",
    "label": "HTML",
@@ -157,6 +158,7 @@
   {
    "depends_on": "raw_printing",
    "description": "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language.",
+   "executes_code": 1,
    "fieldname": "raw_commands",
    "fieldtype": "Code",
    "label": "Raw Commands",
@@ -421,7 +423,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-11-22 20:28:18.722645",
+ "modified": "2026-11-24 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

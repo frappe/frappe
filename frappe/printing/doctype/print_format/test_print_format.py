@@ -6,6 +6,7 @@ import unittest
 from typing import TYPE_CHECKING, ClassVar
 
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
 from frappe.utils.logging import get_log_db
@@ -1387,3 +1388,103 @@ class TestPrintFormatDraft(IntegrationTestCase):
 				call()
 
 		self.assertEqual(frappe.parse_json(self.live("draft_data").draft_data)["margin_top"], 20)
+
+
+class TestBuilderJinja(IntegrationTestCase):
+	def test_html_needs_code_author_only_with_jinja(self):
+		starter = '<div class="print-format">\n\t<h3>New</h3>\n</div>'
+		values = {"doctype": "Print Format", "doc_type": "ToDo", "custom_format": 1}
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			print_format = frappe.get_doc(
+				{**values, "name": frappe.generate_hash(length=10), "html": starter}
+			).insert()
+			print_format.html = starter + "<p>plain</p>"
+			print_format.save()
+
+			print_format.html = "{{ frappe.session.user }}"
+			self.assertRaises(frappe.PermissionError, print_format.save)
+
+			report = {**values, "print_format_for": "Report", "report": "ToDo", "print_format_type": "JS"}
+			report.pop("doc_type")
+			frappe.get_doc({**report, "name": frappe.generate_hash(length=10), "html": starter}).insert()
+
+	def test_converted_print_designer_copy_without_code_author(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import converted_values
+		from frappe.utils.print_format_generator import _builder_preview_generator
+
+		image = {
+			"type": "image",
+			"isDynamic": True,
+			"image": {"doctype": "User", "fieldname": "user_image", "parentField": "allocated_to"},
+			"width": 100,
+		}
+		source = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "ToDo",
+				"print_designer_body": frappe.as_json([{"childrens": [image]}]),
+			}
+		)
+		values, _notes = converted_values(source)
+		copy = frappe.get_doc(
+			{"doctype": "Print Format", "name": frappe.generate_hash(length=10), "doc_type": "ToDo", **values}
+		)
+
+		preview = source.as_dict()
+		preview.update(values, name=None)
+		frappe.get_doc({"doctype": "ToDo", "description": "converted preview"}).insert()
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, _builder_preview_generator, preview, "ToDo")
+			self.assertTrue(_builder_preview_generator(preview, "ToDo", from_conversion=True))
+
+			self.assertRaises(frappe.PermissionError, copy.insert)
+			copy.flags.from_conversion = True
+			copy.insert()
+
+	def test_custom_format_from_standard_without_code_author(self):
+		from frappe.printing.doctype.print_format.print_format import create_custom_format
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			name = frappe.generate_hash(length=10)
+			doc = create_custom_format("ToDo", name)
+			self.assertTrue(frappe.db.exists("Print Format", name))
+			self.assertIn("print-heading", doc.format_data)
+
+	def test_builder_jinja_needs_code_author(self):
+		from frappe.utils.print_format_generator import render_jinja_template
+
+		jinja_block = {"fieldtype": "HTML", "renderer": "HTML", "html": "<p>{{ doc.name }}</p>"}
+		layout = {
+			"sections": [
+				{"columns": [{"fields": [jinja_block, {"fieldtype": "HTML", "html": "<p>Plain</p>"}]}]}
+			]
+		}
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": frappe.generate_hash(length=10),
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(layout),
+			}
+		).insert()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "builder"}).insert()
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			fields = layout["sections"][0]["columns"][0]["fields"]
+			fields.reverse()
+			fields[0]["html"] = "<p>Plain v2</p>"
+			print_format.reload()
+			print_format.format_data = frappe.as_json(layout)
+			print_format.save()
+
+			fields.append({"fieldtype": "HTML", "renderer": "HTML", "html": "{{ frappe.session.user }}"})
+			print_format.format_data = frappe.as_json(layout)
+			self.assertRaises(frappe.PermissionError, print_format.save)
+
+			self.assertIn(todo.name, render_jinja_template(jinja_block["html"], "ToDo", todo.name))
+			self.assertRaises(
+				frappe.PermissionError, render_jinja_template, "{{ frappe.session.user }}", "ToDo", todo.name
+			)

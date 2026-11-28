@@ -60,6 +60,7 @@
   {
    "default": "Automatic Assignment",
    "description": "Example: {{ subject }}",
+   "executes_code": 1,
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description",
@@ -72,6 +73,7 @@
   },
   {
    "description": "Simple Python Expression, Example: <code class=\"language-python\">status == 'Open' and issue_type == 'Bug'</code>",
+   "executes_code": 1,
    "fieldname": "assign_condition",
    "fieldtype": "Code",
    "in_list_view": 1,
@@ -85,6 +87,7 @@
   },
   {
    "description": "Simple Python Expression, Example: <code class=\"language-python\">status in (\"Closed\", \"Cancelled\")</code>",
+   "executes_code": 1,
    "fieldname": "unassign_condition",
    "fieldtype": "Code",
    "label": "Unassign Condition",
@@ -124,6 +127,7 @@
   },
   {
    "description": "Simple Python Expression, Example: <code class=\"language-python\">status == \"Invalid\"</code>",
+   "executes_code": 1,
    "fieldname": "close_condition",
    "fieldtype": "Code",
    "label": "Close Condition",
@@ -178,7 +182,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-11 12:00:00.000000",
+ "modified": "2026-11-24 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",

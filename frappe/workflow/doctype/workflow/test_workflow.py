@@ -6,6 +6,7 @@ from unittest.mock import patch
 import responses
 
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.model.workflow import (
 	WorkflowTransitionError,
 	apply_workflow,
@@ -388,6 +389,34 @@ class TestWorkflow(IntegrationTestCase):
 		self.responses.reset()
 
 		return domain
+
+	def test_expression_update_values_need_code_author(self):
+		approved = next(row for row in self.workflow.states if row.state == "Approved")
+		approved.update({"update_value": "frappe.utils.now()", "evaluate_as_expression": 1})
+		self.workflow.save()
+
+		with test_user(roles=["System Manager"]) as user, self.set_user(user.name):
+			workflow = frappe.get_doc("Workflow", self.workflow.name)
+			workflow.states[0].update({"update_field": "description", "update_value": "frappe.session.user"})
+			workflow.save()
+
+			copy = frappe.copy_doc(workflow)
+			copy.update({"workflow_name": frappe.generate_hash(length=10), "is_active": 0})
+			copy.insert()
+
+			copy = frappe.copy_doc(workflow)
+			copy.update({"workflow_name": frappe.generate_hash(length=10), "is_active": 0})
+			copy.states[0].evaluate_as_expression = 1
+			self.assertRaises(frappe.PermissionError, copy.insert)
+
+			for change in (
+				{"update_value": "frappe.session.user"},
+				{"evaluate_as_expression": 0, "update_value": "x"},
+			):
+				with self.subTest(change=change):
+					workflow = frappe.get_doc("Workflow", self.workflow.name)
+					next(row for row in workflow.states if row.state == "Approved").update(change)
+					self.assertRaises(frappe.PermissionError, workflow.save)
 
 
 def create_todo_workflow():

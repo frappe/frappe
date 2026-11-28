@@ -262,10 +262,7 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer):
 
 def get_email_subject_for_2fa(kwargs_dict):
 	"""Get email subject for 2fa."""
-	subject_template = _("Login Verification Code from {}").format(
-		frappe.get_system_settings("otp_issuer_name")
-	)
-	return frappe.render_template(subject_template, kwargs_dict, restrict_globals=True)
+	return _("Login Verification Code from {}").format(frappe.get_system_settings("otp_issuer_name"))
 
 
 def get_email_body_for_2fa(kwargs_dict):

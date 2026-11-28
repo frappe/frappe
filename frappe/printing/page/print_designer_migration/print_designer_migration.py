@@ -82,13 +82,14 @@ def convert_all() -> dict:
 
 @frappe.whitelist()
 def preview_conversion(print_format: str, name: str | None = None) -> None:
-	from frappe.utils.print_format_generator import download_builder_preview_pdf
+	from frappe.utils.print_format_generator import _builder_preview_generator, respond_with_preview_pdf
 
 	frappe.only_for("System Manager")
 	doc = get_print_designer_format(print_format)
 	converted = doc.as_dict()
 	converted.update(converted_values(doc)[0], name=None)
-	download_builder_preview_pdf(converted, doc.doc_type, name)
+	generator = _builder_preview_generator(converted, doc.doc_type, name, from_conversion=True)
+	respond_with_preview_pdf(generator)
 
 
 @frappe.whitelist()

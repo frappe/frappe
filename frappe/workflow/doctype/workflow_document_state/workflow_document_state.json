@@ -119,6 +119,7 @@
   {
    "default": "0",
    "description": "Check this if the Update Value is a formula or expression (e.g. doc.amount * 2). Leave unchecked for plain text values.",
+   "executes_code": 1,
    "fieldname": "evaluate_as_expression",
    "fieldtype": "Check",
    "label": "Evaluate as Expression"
@@ -127,7 +128,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-08 10:16:23.592473",
+ "modified": "2026-11-24 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Document State",

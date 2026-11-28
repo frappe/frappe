@@ -182,6 +182,7 @@
   },
   {
    "description": "Optional. For logic the match fields cannot express, such as OR groups. The document is available as <code>doc</code>; the match fields and this expression must all be true.",
+   "executes_code": 1,
    "fieldname": "condition",
    "fieldtype": "Code",
    "label": "Advanced Expression using Python",
@@ -239,7 +240,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-29 10:36:36.707327",
+ "modified": "2026-11-24 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Flow",

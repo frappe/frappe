@@ -372,6 +372,8 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 			doc.check_permission("read")
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
+		# methods like previews evaluate unsaved code fields
+		doc.code_field_guard(doc).validate()
 
 	if not doc:
 		frappe.throw_permission_error()

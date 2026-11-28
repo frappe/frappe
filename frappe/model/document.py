@@ -52,6 +52,7 @@ from frappe.model import (
 )
 from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import invalidate_distinct_link_doctypes
+from frappe.model.executable_fields import CodeFieldGuard
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.utils.link_count import notify_link_count
@@ -760,6 +761,7 @@ class Document(_DocumentBase):
 
 	_DOCTYPE_NAME: ClassVar[str | None] = None
 	docs: "DocsCollection[Self]" = DocsCollection()
+	code_field_guard: ClassVar[type[CodeFieldGuard]] = CodeFieldGuard
 
 	doctype: DF.Data
 	name: DF.Data | None
@@ -1062,6 +1064,7 @@ class Document(_DocumentBase):
 		self.set_new_name(set_name=set_name, set_child_names=set_child_names)
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
+		self.code_field_guard(self).validate()
 
 		self.flags.in_insert = True
 		self.run_before_save_methods()
@@ -1179,6 +1182,7 @@ class Document(_DocumentBase):
 		self.set_name_in_children()
 
 		self.validate_higher_perm_levels()
+		self.code_field_guard(self).validate()
 		self._validate_links()
 		self.run_before_save_methods()
 
