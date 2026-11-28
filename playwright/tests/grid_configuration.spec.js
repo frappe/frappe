@@ -30,7 +30,10 @@ test.describe("Grid Configuration", () => {
 		const modal = page.locator('.frappe-control[data-fieldname="fields_html"]');
 		await modal.locator(".add-new-fields").click();
 		await page.locator('[type="checkbox"][data-unit="right"]').check();
-		await page.getByRole("button", { name: "Add", exact: true }).click();
+		await page
+			.locator(".modal.show")
+			.getByRole("button", { name: "Add", exact: true })
+			.click();
 		const column_width = page.locator(
 			'.form-control.column-width[data-fieldname="parent_label"]'
 		);

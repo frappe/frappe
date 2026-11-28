@@ -15,7 +15,12 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 					</div>
 				</div>
 				<div class="comment-input-container">
-				${frappe.avatar(frappe.session.user, "avatar-medium")}
+				${frappe.ui.avatar.html({
+					label: frappe.user_info(frappe.session.user).fullname,
+					image: frappe.user_info(frappe.session.user).image,
+					size: "md",
+					theme: "auto",
+				})}
 					<div class="frappe-control col"></div>
 				</div>
 				<button class="btn hidden btn-comment btn-xs" style="margin-left:48px;">
@@ -61,7 +66,8 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 	}
 
 	submit() {
-		this.on_submit && this.on_submit(this.get_value());
+		if (this.disabled) return;
+		return this.on_submit && this.on_submit(this.get_value());
 	}
 
 	update_state() {
@@ -99,11 +105,13 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 	}
 
 	disable() {
+		this.disabled = true;
 		this.quill.disable();
 		this.button.prop("disabled", true);
 	}
 
 	enable() {
+		this.disabled = false;
 		this.quill.enable();
 		this.button.prop("disabled", false);
 	}
