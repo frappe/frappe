@@ -999,13 +999,11 @@ class TestSearch(IntegrationTestCase):
 			{"doctype": target, "title": "Restricted Document", "secret": "b"}
 		).insert()
 
-		email = "test_search_rights_user@example.com"
-		if not (test_user := get_user_by_email(email)):
-			user = frappe.get_doc(
-				{"doctype": "User", "email": email, "first_name": email, "user_type": "System User"}
-			).insert(ignore_permissions=True)
-			user.add_roles("System Manager")
-			test_user = user.name
+		test_user = "test_search_rights_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			frappe.get_doc(
+				{"doctype": "User", "email": test_user, "first_name": test_user, "user_type": "System User"}
+			).insert(ignore_permissions=True).add_roles("System Manager")
 			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
 		add_user_permission(target, allowed.name, test_user)
 		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
@@ -1022,7 +1020,7 @@ class TestSearch(IntegrationTestCase):
 					**kwargs,
 				)
 
-		results = search(form, filter_fields=["secret"], searchfield="secret")
+		results = search(form, filter_fields=frappe.as_json(["secret"]), searchfield="secret")
 		self.assertIn(restricted.name, [row.name for row in results])
 		self.assertFalse(any("secret" in row for row in results))
 
