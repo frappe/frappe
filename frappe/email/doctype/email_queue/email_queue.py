@@ -218,7 +218,7 @@ class EmailQueue(Document):
 		if not self.can_send_now() and not force_send:
 			return
 
-		if not force_send and not self.claim():
+		if not self.claim():
 			return
 
 		with SendMailContext(self, smtp_server_instance, frappe_mail_client) as ctx:
