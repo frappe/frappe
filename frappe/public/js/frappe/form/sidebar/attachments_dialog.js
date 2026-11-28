@@ -160,9 +160,8 @@ Object.assign(frappe.ui.form.Attachments.prototype, {
 	render_all_dialog_list() {
 		const txt = (this.all_dialog.get_value("search") || "").trim().toLowerCase();
 		const seen = new Set();
-		const attachments = this.get_attachments()
-			.slice()
-			.reverse()
+		const attachments = frappe.utils
+			.sort(this.get_attachments().slice(), "creation", "string", true)
 			.filter((a) => !seen.has(a.file_name) && seen.add(a.file_name))
 			.filter((a) => !txt || (a.file_name || "").toLowerCase().includes(txt));
 

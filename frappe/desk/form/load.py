@@ -224,6 +224,7 @@ def get_attachments(dt, dn):
 			"is_private",
 			"attached_to_field",
 			"folder",
+			"creation",
 		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)

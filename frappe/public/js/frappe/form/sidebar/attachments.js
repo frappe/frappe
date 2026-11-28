@@ -61,7 +61,7 @@ frappe.ui.form.Attachments = class Attachments {
 			.toggle(!max_reached && this.frm.has_perm("write"));
 
 		// add attachment objects
-		var attachments = this.get_attachments();
+		var attachments = frappe.utils.sort(this.get_attachments().slice(), "creation", "string");
 		this.render_attachments(attachments);
 		this.setup_show_all_button(attachments);
 		if (this.all_dialog?.display) this.render_all_dialog_list();
