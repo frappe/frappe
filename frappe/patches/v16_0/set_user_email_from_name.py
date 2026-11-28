@@ -52,7 +52,7 @@ def execute():
 			report_administrator_email_change(old_email, email, other_user)
 		elif other_user:
 			click.echo(
-				f"User {name}: email {old_email!r} changed to {email!r}, {other_user}'s ID is that email"
+				f"User {name}: email {old_email!r} changed to {email!r}, another user has it as their ID"
 			)
 		else:
 			click.echo(f"User {name}: email {old_email!r} changed to {email!r}")
