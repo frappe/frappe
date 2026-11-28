@@ -48,19 +48,22 @@ def _get_jenv():
 	# Some functionality like `get_safe_globals` appears safe but internally uses request local
 	# data.
 
+	from types import CodeType, FrameType, ModuleType, TracebackType
+
 	from jinja2 import DebugUndefined
 	from jinja2.sandbox import SandboxedEnvironment
 
 	from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES
 
 	UNSAFE_ATTRIBUTES = UNSAFE_ATTRIBUTES - {"format", "format_map"}
+	UNSAFE_VALUE_TYPES = (ModuleType, CodeType, FrameType, TracebackType)
 
 	class FrappeSandboxedEnvironment(SandboxedEnvironment):
-		def is_safe_attribute(self, obj, attr, *args, **kwargs):
-			if attr in UNSAFE_ATTRIBUTES:
+		def is_safe_attribute(self, obj, attr, value, *args, **kwargs):
+			if attr in UNSAFE_ATTRIBUTES or isinstance(value, UNSAFE_VALUE_TYPES):
 				return False
 
-			return super().is_safe_attribute(obj, attr, *args, **kwargs)
+			return super().is_safe_attribute(obj, attr, value, *args, **kwargs)
 
 	# frappe will be loaded last, so app templates will get precedence
 	jenv = FrappeSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined, cache_size=32)
