@@ -288,6 +288,7 @@ export const list_view_virtualization = {
 		if (!frappe.is_mobile()) {
 			this.apply_column_widths();
 		}
+		this.toggle_right_border();
 		this.set_rows_as_checked();
 	},
 
