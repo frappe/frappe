@@ -807,7 +807,7 @@ def get_linked_doctypes(dt: str) -> list:
 def get_doc_name(doc):
 	if not doc:
 		return None
-	return doc if isinstance(doc, str) else str(doc.name)
+	return str(doc if isinstance(doc, str | int) else doc.name)
 
 
 def get_rights(doctype=None):
