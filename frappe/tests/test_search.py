@@ -953,6 +953,81 @@ class TestSearch(IntegrationTestCase):
 		self.assertEqual(values(locked_form, "member"), [allowed.name])
 		self.assertEqual(values(locked_form, "linked"), [allowed.name])
 
+	def test_search_link_ignore_user_permissions_needs_rights_on_the_form(self):
+		"""Only a user who can fill the form sees all records, and only the columns a dropdown shows."""
+
+		target = "Test Search Rights Target"
+		child = "Test Search Rights Row"
+		form = "Test Search Rights Form"
+		read_only_form = "Test Search Rights Read Only Form"
+
+		for dt in (form, read_only_form, child, target):
+			if frappe.db.exists("DocType", dt):
+				frappe.delete_doc("DocType", dt, force=True)
+
+		def make_doctype(name, fields, **kwargs):
+			new_doctype(name=name, fields=fields, **kwargs).insert()
+			self.addCleanup(lambda: frappe.delete_doc("DocType", name, force=True, ignore_missing=True))
+
+		linked = {
+			"label": "Linked",
+			"fieldname": "linked",
+			"fieldtype": "Link",
+			"options": target,
+			"ignore_user_permissions": 1,
+		}
+		rows = {"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child}
+
+		make_doctype(
+			target,
+			[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Secret", "fieldname": "secret", "fieldtype": "Data"},
+			],
+			search_fields="title",
+		)
+		make_doctype(child, [linked], istable=1)
+		make_doctype(form, [linked])
+		make_doctype(
+			read_only_form,
+			[linked, rows],
+			permissions=[{"role": "System Manager", "read": 1, "write": 0, "create": 0}],
+		)
+
+		allowed = frappe.get_doc({"doctype": target, "title": "Allowed Document", "secret": "a"}).insert()
+		restricted = frappe.get_doc(
+			{"doctype": target, "title": "Restricted Document", "secret": "b"}
+		).insert()
+
+		test_user = "test_search_rights_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			frappe.get_doc(
+				{"doctype": "User", "email": test_user, "first_name": test_user, "user_type": "System User"}
+			).insert(ignore_permissions=True).add_roles("System Manager")
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+		add_user_permission(target, allowed.name, test_user)
+		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
+
+		def search(reference_doctype, **kwargs):
+			with self.set_user(test_user):
+				return search_widget(
+					target,
+					"Document",
+					reference_doctype=reference_doctype,
+					link_fieldname="linked",
+					ignore_user_permissions=True,
+					as_dict=True,
+					**kwargs,
+				)
+
+		results = search(form, filter_fields=frappe.as_json(["secret"]), searchfield="secret")
+		self.assertIn(restricted.name, [row.name for row in results])
+		self.assertFalse(any("secret" in row for row in results))
+
+		self.assertEqual([row.name for row in search(read_only_form)], [allowed.name])
+		# grid rows send the child doctype, and its only form is read only
+		self.assertEqual([row.name for row in search(child)], [allowed.name])
+
 	def test_search_link_ignore_user_permissions_dangling_child_table(self):
 		"""A child table pointing at a deleted doctype should not escape as DoesNotExistError."""
 
