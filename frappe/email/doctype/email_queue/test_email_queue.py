@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 import frappe
 from frappe.database import get_db
-from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
+from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit, send_now
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 
@@ -133,7 +133,7 @@ class TestEmailQueue(IntegrationTestCase):
 
 		mock_smtp_server.discard_session.assert_called_once()
 
-	def test_send_skips_email_claimed_by_another_worker(self):
+	def test_send_and_send_now_skip_email_claimed_by_another_worker(self):
 		email_record = frappe.new_doc(
 			"Email Queue",
 			sender="Test <test@example.com>",
@@ -143,12 +143,16 @@ class TestEmailQueue(IntegrationTestCase):
 			priority=1,
 			recipients=[{"recipient": "test_claimed@example.com"}],
 		).insert()
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "Email Queue", email_record.name, force=True)
 		frappe.db.set_value("Email Queue", email_record.name, "status", "Sending")
-		frappe.flags.sent_mail = None
 
-		email_record.send()
+		with self.set_user(get_user_by_email("test@example.com")), patch.dict(frappe.flags, sent_mail=None):
+			email_record.send()
+			self.assertIsNone(frappe.flags.sent_mail)
 
-		self.assertIsNone(frappe.flags.sent_mail)
+			send_now(email_record.name, force_send=True)
+			self.assertIsNone(frappe.flags.sent_mail)
 		self.assertEqual(frappe.db.get_value("Email Queue", email_record.name, "status"), "Sending")
 
 >>>>>>> 92c0af1 (fix(email): claim email queue with a conditional update before sending)
