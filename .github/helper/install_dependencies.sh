@@ -4,6 +4,10 @@ set -e
 echo "Setting Up System Dependencies..."
 
 echo "::group::apt packages"
+sudo apt-get -qq update
+sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
+  libcups2-dev redis-server mariadb-client fontconfig libjpeg-turbo8 xfonts-75dpi xfonts-base
+
 install_wkhtmltopdf() {
   wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
   sudo apt-get -qq install -y --no-install-recommends ./wkhtmltox_0.12.6.1-2.jammy_amd64.deb
