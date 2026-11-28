@@ -672,7 +672,7 @@ frappe.views.CommunicationComposer = class {
 			});
 			//Preselect email senders if there is only one
 			if (this.user_email_accounts.length == 1) {
-				this["sender"] = this.user_email_accounts;
+				this["sender"] = this.user_email_accounts[0];
 			} else if (this.user_email_accounts.includes(frappe.session.user_email)) {
 				this["sender"] = frappe.session.user_email;
 			}
