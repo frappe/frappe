@@ -42,9 +42,12 @@ class RealtimeConfig:
 	# HTTP back into ourselves. This is a property of the process, not of the site
 	# config; the process that embeds realtime sets it. See frappe.asgi.
 	embedded: bool = False
+	site: str | None = None
 
 
-def get_config(sites_path: str | None = None, embedded: bool = False) -> RealtimeConfig:
+def get_config(
+	sites_path: str | None = None, embedded: bool = False, site: str | None = None
+) -> RealtimeConfig:
 	"""Build the realtime config from common_site_config.json."""
 	import frappe
 
@@ -66,4 +69,5 @@ def get_config(sites_path: str | None = None, embedded: bool = False) -> Realtim
 		worker_threads=int(conf.get("socketio_worker_threads") or DEFAULT_WORKER_THREADS),
 		sites_path=sites_path,
 		embedded=embedded,
+		site=site,
 	)

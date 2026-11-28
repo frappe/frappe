@@ -10,11 +10,51 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from frappe.runner import SourceWatch
+import frappe
+import frappe.app
+from frappe.runner import Config, SourceWatch, Traffic, TrafficMiddleware
 
 
 def make_event(event_type="modified", src_path="/app/frappe/thing.py", **extra):
 	return SimpleNamespace(event_type=event_type, src_path=src_path, is_directory=False, **extra)
+
+
+def make_config(**overrides) -> Config:
+	values = dict(
+		host="127.0.0.1",
+		port=8000,
+		queue=None,
+		verbose=False,
+		web_threads=0,
+		job_threads=1,
+		restart_after_requests=0,
+		restart_after_jobs=0,
+		restart_idle_seconds=0,
+		request_drain_seconds=1,
+		job_drain_seconds=1,
+		dev=False,
+	)
+	return Config(**{**values, **overrides})
+
+
+class TestFixedSite(unittest.TestCase):
+	"""Which site the web app sends the requests to."""
+
+	def _load(self, config: Config) -> str | None:
+		asgi = SimpleNamespace(application=object())
+		with (
+			patch.object(frappe, "init"),
+			patch.dict(sys.modules, {"frappe.asgi": asgi}),
+			patch.object(frappe.app, "_site", None),
+		):
+			TrafficMiddleware.load(config, Traffic())
+			return frappe.app._site
+
+	def test_the_host_header_picks_the_site_by_default(self):
+		self.assertIsNone(self._load(make_config()))
+
+	def test_site_sends_each_request_to_that_site(self):
+		self.assertEqual(self._load(make_config(site="pe.localhost")), "pe.localhost")
 
 
 class TestSourceWatch(unittest.TestCase):

@@ -54,6 +54,7 @@ class Config:
 	request_drain_seconds: float
 	job_drain_seconds: float
 	dev: bool
+	site: str | None = None
 
 	@property
 	def queue_names(self) -> list[str] | None:
@@ -122,6 +123,10 @@ class TrafficMiddleware:
 		# to know if it must send the static files, and it builds the embedded realtime
 		# server. frappe.app also needs an initialized frappe.
 		frappe.init(site="")
+		if config.site:
+			from frappe import app
+
+			app._site = config.site
 
 		from frappe.asgi import application
 
@@ -540,6 +545,7 @@ def main() -> None:
 	parser.add_argument("--port", type=int, default=8000, help="port to listen on")
 	parser.add_argument("--queue", help="comma separated queues; unset means all of them")
 	parser.add_argument("--verbose", action="store_true", help="log each job and each realtime packet")
+	parser.add_argument("--site", help="send each web request to this site; unset means the Host header")
 	parser.add_argument(
 		"--dev",
 		action="store_true",

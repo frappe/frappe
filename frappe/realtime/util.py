@@ -28,6 +28,8 @@ def resolve_site_name(environ: dict, config: RealtimeConfig) -> str | None:
 	host = read_header(environ, "Host")
 	origin = read_header(environ, "Origin")
 
+	if config.site:
+		return config.site
 	if site_header:
 		return get_hostname(site_header)
 	if config.default_site and get_hostname(host) in ("localhost", "127.0.0.1"):

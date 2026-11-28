@@ -188,6 +188,11 @@ class TestAuthHelpers(unittest.TestCase):
 		env = make_environ(host="host.local", origin=None, site_header=None)
 		self.assertEqual(auth_mod.resolve_site_name(env, make_config()), "host.local")
 
+	def test_fixed_site_wins_over_the_headers(self):
+		cfg = make_config(default_site="default.local", site="fixed.local")
+		env = make_environ(host="other.host", origin="http://other.host", site_header="chosen.local")
+		self.assertEqual(auth_mod.resolve_site_name(env, cfg), "fixed.local")
+
 	def test_get_url_defaults_to_loopback(self):
 		# No webserver_host: never the client origin, always loopback + webserver_port.
 		cfg = make_config(webserver_port=8000)
