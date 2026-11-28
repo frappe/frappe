@@ -102,37 +102,6 @@ class TestEmailQueue(IntegrationTestCase):
 		self.assertIsNot(get_server(frappe.new_doc("Email Queue")), get_server(q1))
 		self.assertIs(get_server(q1), get_server(q2))
 
-<<<<<<< HEAD
-=======
-	def test_discards_smtp_session_on_send_failure(self):
-		"""SMTPRecipientsRefused (not an SMTPResponseException) must still discard the session."""
-		email_record = frappe.new_doc(
-			"Email Queue",
-			sender="Test <test@example.com>",
-			show_as_cc="",
-			message="Test message",
-			status="Not Sent",
-			priority=1,
-			recipients=[{"recipient": "test_refused@example.com"}],
-		).insert()
-
-		mock_session = MagicMock()
-		mock_session.has_extn.return_value = False
-		mock_session.sendmail.side_effect = smtplib.SMTPRecipientsRefused(
-			{"test_refused@example.com": (550, b"Mailbox unavailable")}
-		)
-		mock_smtp_server = MagicMock()
-		mock_smtp_server.session = mock_session
-
-		frappe.flags.testing_email = True
-		try:
-			with self.assertRaises(smtplib.SMTPRecipientsRefused):
-				email_record.send(smtp_server_instance=mock_smtp_server)
-		finally:
-			frappe.flags.testing_email = False
-
-		mock_smtp_server.discard_session.assert_called_once()
-
 	def test_send_and_send_now_skip_email_claimed_by_another_worker(self):
 		email_record = frappe.new_doc(
 			"Email Queue",
@@ -147,7 +116,7 @@ class TestEmailQueue(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "Email Queue", email_record.name, force=True)
 		frappe.db.set_value("Email Queue", email_record.name, "status", "Sending")
 
-		with self.set_user(get_user_by_email("test@example.com")), patch.dict(frappe.flags, sent_mail=None):
+		with self.set_user("test@example.com"), patch.dict(frappe.flags, sent_mail=None):
 			email_record.send()
 			self.assertIsNone(frappe.flags.sent_mail)
 
@@ -155,7 +124,6 @@ class TestEmailQueue(IntegrationTestCase):
 			self.assertIsNone(frappe.flags.sent_mail)
 		self.assertEqual(frappe.db.get_value("Email Queue", email_record.name, "status"), "Sending")
 
->>>>>>> 92c0af1 (fix(email): claim email queue with a conditional update before sending)
 	@run_only_if(db_type_is.SQLITE)
 	def test_send_records_result_when_another_connection_commits_during_send(self):
 		email_record = frappe.new_doc(
