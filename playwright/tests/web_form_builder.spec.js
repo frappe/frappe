@@ -291,11 +291,10 @@ test.describe("Web Form Builder", () => {
 			.locator(".grid-row-check")
 			.click();
 		await page
-			.locator('[data-fieldname="web_form_fields"] .grid-footer button', {
-				hasText: "Delete",
-			})
-			.first()
+			.locator('[data-fieldname="web_form_fields"] .grid-selection-bar')
+			.getByRole("button", { name: "Actions" })
 			.click();
+		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
 
 		// a tab switch syncs neither editor, the canvas re-reads the rows on save
 		await desk.save();

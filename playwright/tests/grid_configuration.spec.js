@@ -26,7 +26,7 @@ test.describe("Grid Configuration", () => {
 	test("Set user wise grid settings", async ({ page }) => {
 		await page.getByRole("tab", { name: "Navbar", exact: true }).click();
 		const table = page.locator('.frappe-control[data-fieldname="top_bar_items"]');
-		await table.locator(".icon-sm").click();
+		await table.locator(".grid-heading-row .icon-sm").click();
 		const modal = page.locator('.frappe-control[data-fieldname="fields_html"]');
 		await modal.locator(".add-new-fields").click();
 		await page.locator('[type="checkbox"][data-unit="right"]').check();
@@ -43,7 +43,7 @@ test.describe("Grid Configuration", () => {
 	test("Select All rechecks columns unchecked in the column selector", async ({ page }) => {
 		await page.getByRole("tab", { name: "Navbar", exact: true }).click();
 		const table = page.locator('.frappe-control[data-fieldname="top_bar_items"]');
-		await table.locator(".icon-sm").click();
+		await table.locator(".grid-heading-row .icon-sm").click();
 		const modal = page.locator('.frappe-control[data-fieldname="fields_html"]');
 		await modal.locator(".add-new-fields").click();
 
