@@ -70,21 +70,24 @@ def execute():
 def report_administrator_email_change(old_email, new_email):
 	"""Tell System Managers that Administrator's email changed, and how to sign in if 2FA needs it."""
 	from frappe.desk.doctype.notification_log.notification_log import make_notification_logs
-	from frappe.twofactor import get_verification_method, two_factor_is_enabled
+	from frappe.twofactor import get_default, get_verification_method, two_factor_is_enabled
 	from frappe.utils.user import get_system_managers
 
 	subject = _(
 		"Administrator's email changed from {0} to {1}, because another user has the same email."
 	).format(old_email, new_email)
-	if two_factor_is_enabled("Administrator") and get_verification_method() != "SMS":
-		details = _(
-			"Administrator uses two-factor authentication, which can email it a code, so it may not be able to sign in until it has a real address. Sign in as Administrator without 2FA (e.g. {0}) and give it another address, such as {1}."
-		).format(
-			f"bench --site {frappe.local.site} browse --user Administrator",
-			old_email.replace("@", "+admin@", 1),
-		)
-	else:
+	method = get_verification_method()
+	plus_address = old_email.replace("@", "+admin@", 1)
+	if not two_factor_is_enabled("Administrator") or method == "SMS":
 		details = _("Administrator won't get mail until it has a real address.")
+	elif method == "OTP App" and get_default("Administrator_otplogin"):
+		details = _(
+			"Administrator's authenticator app keeps working, but if its two-factor authentication is reset, it can't set it up again until it has a real address. Give it another address, such as {0}."
+		).format(plus_address)
+	else:
+		details = _(
+			"Administrator signs in with two-factor authentication, which emails it a code, so it can't sign in until it has a real address. Sign in as Administrator without 2FA (e.g. {0}) and give it another address, such as {1}."
+		).format(f"bench --site {frappe.local.site} browse --user Administrator", plus_address)
 
 	message = f"{subject} {details}"
 	click.secho(message, fg="red")
